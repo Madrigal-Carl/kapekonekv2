@@ -27,3 +27,15 @@ export const phoneRule = z
   .string()
   .transform((v) => v.replace(/\s+/g, ''))
   .pipe(z.string().regex(/^09\d{9}$/, 'Use an 11-digit mobile number starting with 09'));
+
+export const ratingRule = z.coerce
+  .number('Choose a rating from 1 to 5')
+  .int('Choose a rating from 1 to 5')
+  .min(1, 'Choose a rating from 1 to 5')
+  .max(5, 'Choose a rating from 1 to 5');
+
+export const reviewCommentRule = z
+  .string('Write your review')
+  .trim()
+  .min(10, 'Write at least 10 characters')
+  .max(1000, 'Use 1000 characters or fewer');

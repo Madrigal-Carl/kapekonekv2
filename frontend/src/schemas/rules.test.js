@@ -1,6 +1,6 @@
 // The same table runs in backend/tests/rules.test.js — keep them identical.
 import { describe, expect, it } from 'vitest';
-import { passwordRule, phoneRule, usernameRule } from './rules.js';
+import { passwordRule, phoneRule, ratingRule, reviewCommentRule, usernameRule } from './rules.js';
 
 const ok = (rule, value) => rule.safeParse(value).success;
 
@@ -28,4 +28,17 @@ describe('shared rules', () => {
   it('strips spaces from phone numbers', () => {
     expect(phoneRule.parse('0917 555 0102')).toBe('09175550102');
   });
+
+  it.each([
+    [5, true],
+    ['3', true],
+    [0, false],
+    [4.5, false],
+  ])('rating %s → %s', (value, expected) => expect(ok(ratingRule, value)).toBe(expected));
+
+  it.each([
+    ['Bold and smoky.', true],
+    ['   too short   ', false],
+    ['x'.repeat(1001), false],
+  ])('review comment %s → %s', (value, expected) => expect(ok(reviewCommentRule, value)).toBe(expected));
 });
