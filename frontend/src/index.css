@@ -35,6 +35,12 @@
   --color-positive-bg: #F1F8F3; --color-positive-line: #BFE0C8; --color-positive-ink: #1E4D30;
   --color-notice-bg: #FBF3E3; --color-notice-line: #EBD3A6; --color-notice-ink: #5C3D0E;
   --color-danger: #B3261E;   --color-danger-ink: #9B2C24;   --color-danger-bg: #FBE4E2;
+  --color-danger-strong: #C62828; /* taken-username input border */
+  --color-danger-soft: #FDF0EE; --color-danger-line: #F2C9C4; --color-danger-text: #7A2A22; /* error boxes */
+  --color-success-line: #7FB892;  /* available-username input border */
+  --color-warning-bg: #FDF1DC; --color-warning-ink: #8A5A00; /* logout icon tile */
+  --color-notice-line-strong: #DDBE86; /* button on a notice banner */
+  --color-disabled-bg: #E3D6C6; --color-disabled-ink: #6E5A4A;
 
   /* map */
   --color-water: #DCE7EA; --color-land: #EFE6D6;
@@ -46,6 +52,11 @@
   --shadow-modal: 0 24px 48px -24px rgba(43,26,18,.5);
   --shadow-drawer: -24px 0 48px -24px rgba(43,26,18,.4);
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root {
+  /* espresso overlay over hero and auth-panel photos */
+  --overlay-espresso: linear-gradient(180deg, rgb(43 26 18 / 0.55) 0%, rgb(43 26 18 / 0.4) 45%, rgb(28 16 10 / 0.9) 100%);
 }
 
 /* Base from the screens' <helmet> styles */

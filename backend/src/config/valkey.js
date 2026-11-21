@@ -6,9 +6,10 @@ const connections = new Set();
 /**
  * One ioredis connection per consumer (queue, worker, socket pub/sub, cache).
  * @param {string} name shown in logs and CLIENT LIST
+ * @param {import('ioredis').RedisOptions} [overrides]
  * @returns {Redis}
  */
-export function createValkeyConnection(name) {
+export function createValkeyConnection(name, overrides = {}) {
   const connection = new Redis({
     host: env.VALKEY_HOST,
     port: env.VALKEY_PORT,
@@ -17,6 +18,7 @@ export function createValkeyConnection(name) {
     tls: env.VALKEY_TLS ? {} : undefined,
     connectionName: `kapekonek:${name}`,
     maxRetriesPerRequest: null, // required by BullMQ
+    ...overrides,
   });
   let lastError = '';
   connection.on('error', (error) => {
@@ -29,8 +31,8 @@ export function createValkeyConnection(name) {
 }
 
 let cache;
-/** Shared connection for cache, locks and rate limits. */
-export const getValkey = () => (cache ??= createValkeyConnection('cache'));
+/** Shared connection for cache, locks and rate limits. Commands fail fast instead of queueing while Valkey is down. */
+export const getValkey = () => (cache ??= createValkeyConnection('cache', { maxRetriesPerRequest: 1 }));
 
 export async function closeValkeyConnections() {
   await Promise.allSettled([...connections].map((c) => c.quit()));

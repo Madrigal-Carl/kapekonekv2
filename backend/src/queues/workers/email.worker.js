@@ -1,13 +1,17 @@
 import { Worker } from 'bullmq';
 import { sendMail } from '../../config/mail.js';
 import { createValkeyConnection } from '../../config/valkey.js';
+import { resetPassword } from '../../templates/email/resetPassword.template.js';
 import { testEmail } from '../../templates/email/test.template.js';
+import { verifyEmail } from '../../templates/email/verifyEmail.template.js';
 import { EMAIL_JOBS } from '../email.jobs.js';
 import { EMAIL_QUEUE } from '../email.queue.js';
 
 /** Job name → (data) => { subject, html, text }. */
 const handlers = {
   [EMAIL_JOBS.TEST]: testEmail,
+  [EMAIL_JOBS.VERIFY_EMAIL]: verifyEmail,
+  [EMAIL_JOBS.RESET_PASSWORD]: resetPassword,
 };
 
 /**
