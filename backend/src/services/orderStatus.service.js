@@ -59,6 +59,7 @@ function updateText(order) {
   const { status, fulfillment: f, refund } = order;
   const refundNote = refund.status === 'pending' ? ' Your e-wallet payment will be refunded.' : '';
   switch (status) {
+    case 'pending': return `Kaluppa will confirm it within ${env.ORDER_EXPIRY_DAYS} days.`;
     case 'reserved': return 'Kaluppa confirmed your order and reserved your items.';
     case 'processing': return 'Kaluppa is preparing your order.';
     case 'out_for_delivery': return f.rider?.name ? `Rider: ${f.rider.name} · ${f.rider.phone}.` : 'Your order is on its way.';
@@ -72,6 +73,7 @@ function updateText(order) {
 }
 
 const TITLES = {
+  pending: 'placed',
   reserved: 'confirmed', processing: 'is being prepared', out_for_delivery: 'is on the way', ready_for_pickup: 'is ready for pickup',
   sold: 'is complete', cancelled: 'was cancelled', rejected: 'was rejected', expired: 'expired',
 };

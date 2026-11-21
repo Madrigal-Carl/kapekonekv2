@@ -1,4 +1,4 @@
-import { ArrowRight, Bell, ShoppingBag } from 'lucide-react'
+import { ArrowRight, ShoppingBag } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { CartDrawer } from '@/components/order/CartDrawer'
 import { BeanMark } from '@/components/ui/BeanMark'
@@ -9,6 +9,7 @@ import { cn } from '@/lib/cn'
 import { useCartDrawer } from '@/stores/cart.store'
 import { AvatarMenu } from './AvatarMenu'
 import { MobileMenu } from './MobileMenu'
+import { NotificationMenu } from './NotificationMenu'
 
 const iconButton = 'relative grid size-11 cursor-pointer place-items-center rounded-control border-0 bg-transparent text-ink-2 hover:bg-crema hover:text-ink-2'
 
@@ -53,10 +54,7 @@ export function Navbar() {
           </button>
           {isAuthenticated ? (
             <>
-              {/* shortcut: notifications open in M5; the bell matches the screen without a count until then */}
-              <button type="button" aria-label="Notifications" className={iconButton}>
-                <Bell aria-hidden="true" className="size-5" strokeWidth={1.75} />
-              </button>
+              <NotificationMenu buttonClassName={iconButton} />
               <div className="max-[720px]:hidden">
                 <AvatarMenu />
               </div>

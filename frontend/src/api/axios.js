@@ -12,8 +12,8 @@ export const setAuthHandlers = (next) => Object.assign(handlers, next)
 const NO_REFRESH = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/logout']
 let refreshing = null
 
-/** One refresh for every request that hit 401 at the same time. */
-function refreshOnce() {
+/** One refresh for every request that hit 401 at the same time (also used when the socket handshake is refused). */
+export function refreshOnce() {
   refreshing ??= api
     .post('/auth/refresh', null, { _skipRefresh: true })
     .catch((error) => {

@@ -345,15 +345,15 @@ No order chat (Change 01). Socket.IO carries only `notification:new` and `order:
 
 **Files:** `sockets/index.js` (handshake reads the `accessToken` cookie; each socket joins `user:<id>`; no other rooms or client events), test `tests/sockets.test.js`.
 
-- [ ] Tests: handshake without a valid cookie is refused; `realtime.toUser(id, 'order:updated', …)` reaches only that user's sockets; the server registers no `conversation:*` / `message:*` handlers.
+- [x] Tests: handshake without a valid cookie is refused; `realtime.toUser(id, 'order:updated', …)` reaches only that user's sockets; the server registers no `conversation:*` / `message:*` handlers.
 
 ### Task 5.2: Notifications and status emails
 
-- [ ] Notification endpoints (cursor list, unread count, read one, read all); `type` is `order_status|order_new|system` (`order_new` = Kaluppa's new-order notification); create notifications for every §7 event (buyer: every status change, refund marked; Kaluppa: new order) and emit `notification:new`; every status change emits `order:updated`; `ORDER_STATUS_CHANGED` email for every status with rider / pickup / reason + refund note; demo notification seeder. Tests: unread count after events; read-all; other user's notification → 404; `/auth/me` permissions contain no `chat.*`; `GET /api/conversations/x/messages` → 404.
+- [x] Notification endpoints (cursor list, unread count, read one, read all); `type` is `order_status|order_new|system` (`order_new` = Kaluppa's new-order notification); create notifications for every §7 event (buyer: every status change, refund marked; Kaluppa: new order) and emit `notification:new`; every status change emits `order:updated`; `ORDER_STATUS_CHANGED` email for every status with rider / pickup / reason + refund note; demo notification seeder. Tests: unread count after events; read-all; other user's notification → 404; `/auth/me` permissions contain no `chat.*`; `GET /api/conversations/x/messages` → 404.
 
 ### Task 5.3: Frontend realtime
 
-- [ ] `lib/socket.js` + `hooks/useRealtime.js` listening only to `notification:new` and `order:updated`, invalidating the notification and order queries; navbar bell dropdown (unread count, mark all read, load more). Playwright: buyer on `/orders/:id` while Kaluppa moves the order to *out for delivery* via the API → the bell count and the status banner (with rider) update live without reload.
+- [x] `lib/socket.js` + `hooks/useRealtime.js` listening only to `notification:new` and `order:updated`, invalidating the notification and order queries; navbar bell dropdown (unread count, mark all read, load more). Playwright: buyer on `/orders/:id` while Kaluppa moves the order to *out for delivery* via the API → the bell count and the status banner (with rider) update live without reload.
 
 ---
 
@@ -445,3 +445,11 @@ Source: `docs/prompts/CHANGE-02-NO-EYEBROW-BAR-NO-CHAT.md`, applied after M2 and
 - **Tests**: backend 210; frontend 63 (adds order groups + timeline, quantity/phone formatting); Playwright 16 (adds delivery + COD + cancel with a map-pinned address, pickup + GCash receipt upload, unverified buyer → `/verify-email`). The mailbox helper now skips half-written mail files.
 - **Visual check** at 1440 and 390 px against CartDrawer, Checkout, Addresses, AddressModal, Orders, OrderDetail, Modals: matches; fixed Juana's Home pin sitting in the bay, the map hint overlapping the Mapbox logo, a broken total divider, and the place search squeezing at 390 px.
 - **Still to come (M5)**: live updates on `order:updated` in the UI, the notification bell count and list.
+
+### M5 — done (2026-11-22)
+
+- **Sockets**: the handshake reads the `accessToken` cookie (cookie-parser on `io.engine`, same `userFromAccessToken` as HTTP); each socket joins only `user:<id>`; no client events are handled.
+- **Notifications API**: `GET /notifications` (cursor, 15 per page, max 50), `GET /notifications/unread-count`, `PATCH /notifications/:id/read` (someone else's → 404), `PATCH /notifications/read-all`, all behind `authenticate → verified → can('notifications.view')`. Status emails, notifications and `order:updated` were already wired in M4; seeded pending orders now get a proper "placed" title (was "undefined").
+- **Frontend**: `lib/socket.js` (refreshes the session once and reconnects when the handshake is refused) and `useRealtime` mounted once in `App`, invalidating the notification and order queries on `notification:new` / `order:updated`; navbar bell with unread count and a panel (newest first, unread marks, mark all as read, load more, skeleton/empty/error, Esc and outside click close it).
+- **Tests**: backend 219 (adds socket auth + rooms, notifications); frontend 63; Playwright 17 (adds a buyer on `/orders/:id` watching Kaluppa move the order to out for delivery: banner with rider and bell count update without a reload, then mark all as read).
+- **Visual check**: the bell panel at 1440 and 390 px (no screen designs the panel; it follows the avatar menu's tokens).

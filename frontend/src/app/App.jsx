@@ -1,6 +1,7 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from 'react-router-dom'
 import { setAuthHandlers } from '@/api/axios'
+import { useRealtime } from '@/hooks/useRealtime'
 import { router } from '@/routes/AppRouter'
 import { useAuthStore } from '@/stores/auth.store'
 import { queryClient } from './queryClient'
@@ -11,9 +12,15 @@ setAuthHandlers({
 })
 useAuthStore.getState().load()
 
+function Realtime() {
+  useRealtime()
+  return null
+}
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <Realtime />
       <RouterProvider router={router} />
     </QueryClientProvider>
   )

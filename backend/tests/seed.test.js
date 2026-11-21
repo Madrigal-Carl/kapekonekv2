@@ -114,6 +114,7 @@ describe('catalog, settings, posts and demo seeders', () => {
     for (const o of mine.filter((x) => x.status === 'pending')) expect(Date.now() - o.createdAt.getTime()).toBeLessThan(2 * 86_400_000);
     for (const o of mine.filter((x) => x.fulfillment.method === 'delivery')) expect(o.deliveryFeeCentavos).toBeGreaterThanOrEqual(5000);
     expect(await Notification.countDocuments({ user: juana._id })).toBeGreaterThanOrEqual(mine.length - 1);
+    expect(await Notification.countDocuments({ title: /undefined/ })).toBe(0);
 
     await runSeeders({ log });
     expect(await allCounts()).toEqual(first);
