@@ -1,5 +1,6 @@
 import { BeanMark } from '@/components/ui/BeanMark'
 import { Eyebrow } from '@/components/ui/Eyebrow'
+import { useLanding } from '@/hooks/useSettings'
 import { cn } from '@/lib/cn'
 
 const CONTOURS = [
@@ -30,9 +31,12 @@ function CoffeePlant() {
  * @param {{ panel: { eyebrow: string, title: string, text?: string, lines?: number, plant?: boolean }, width?: string, children: React.ReactNode }} props
  */
 export function AuthLayout({ panel, width = 'max-w-[400px]', children }) {
+  // The brand photo is the first landing slide's image (seeded media); the espresso base shows until it loads.
+  const photo = useLanding().data?.heroSlides?.[0]?.image
   return (
     <main className="flex min-h-screen w-full bg-white">
       <section aria-hidden="true" className="relative flex min-h-screen flex-1 basis-1/2 flex-col justify-between overflow-hidden bg-espresso-2 px-12 py-10 max-[900px]:hidden">
+        {photo && <img src={photo.url} alt="" className="absolute inset-0 size-full object-cover" />}
         <div className="absolute inset-0 bg-(image:--overlay-espresso)" />
         <svg viewBox="0 0 400 200" preserveAspectRatio="none" fill="none" className="absolute inset-x-0 bottom-0 h-[240px] w-full text-crema/10">
           {CONTOURS.slice(0, panel.lines ?? 3).map((d) => (
