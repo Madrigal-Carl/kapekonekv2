@@ -379,4 +379,11 @@ frontend/e2e/            Playwright specs + helpers (mailbox reader, api login)
 
 ## Milestone summaries
 
-_(appended after each milestone)_
+### M0 — done (2026-11-21)
+
+- Git repo on branch `phase-1`; root `package.json` (`dev`, `setup`, `lint`, `test`, `test:e2e`) with `concurrently`; `.gitignore`; `.gitattributes` (LF).
+- `backend/`: Express 5 + all M0 packages (latest: express 5.3, mongoose 9, zod 4, bullmq 6, ioredis 6, vitest 5); folder tree; `src/app.js` with helmet, CORS, JSON limit and `GET /api/health`; `src/server.js` on `PORT || 5000`; eslint flat config; `tests/health.test.js`.
+- `frontend/`: Vite 8 + React 19 (create-vite, ESLint variant); all M0 packages plus `vitest`; Tailwind v4 via `@tailwindcss/vite`, DESIGN §2 tokens in `src/index.css`; Poppins 400–700 via `@fontsource`; `@` alias; `vercel.json`; bean favicon; `formatPeso()` + test; Playwright Chromium installed.
+- `.env.example` in both apps with every PRODUCT-SPEC §12 variable.
+- Verified: `npm run dev` starts both; `/api/health` → `{"success":true,"data":{"status":"ok"}}`; page font is Poppins (all 4 weights load) and `--color-roast` = `#7B4A2A`; root lint + tests green.
+- Not run for M0: `migrate:fresh` (commands land in M2), graphify (nothing to graph yet), screen comparison (blank page only).
