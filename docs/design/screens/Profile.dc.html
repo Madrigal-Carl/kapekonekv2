@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Profile</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+.kk-f:focus{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+button:focus-visible,a:focus-visible{outline:2px solid #7B4A2A;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 100vh; background: #F5F0EA">
+  <dc-import name="Navbar" variant="buyer" active="none" cart-count="3" hint-size="100%,64px"></dc-import>
+
+  <div style="max-width: 1080px; margin: 0 auto; padding: 36px 32px 0">
+    <div style="display: inline-flex; align-items: center; gap: 10px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500"><span style="width: 24px; height: 3px; border-radius: 999px; background: #C8913A"></span>Account</div>
+    <h1 style="margin: 10px 0 0; font-weight: 500; font-size: 36px; letter-spacing: -0.02em">Profile</h1>
+  </div>
+
+  <div style="max-width: 1080px; margin: 0 auto; padding: 24px 32px 80px; display: flex; flex-direction: column; gap: 24px">
+
+    <form style="width: 100%; min-width: 0; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; overflow: hidden">
+      <div style="padding: 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 20px; border-bottom: 1px solid #EFE6DA">
+        <span style="width: 88px; height: 88px; display: grid; place-items: center; border-radius: 999px; background: #7B4A2A; color: #FFFFFF; font-size: 28px; font-weight: 600">JD</span>
+        <div>
+          <p style="margin: 0; font-size: 16px; font-weight: 600">Profile photo</p>
+          <p style="margin: 2px 0 0; font-size: 12.5px; color: #6B5A4E">Shows your initials until you upload one. JPG, PNG or WebP, up to 2 MB.</p>
+          <div style="margin-top: 12px; display: flex; gap: 10px">
+            <label style="display: inline-flex; align-items: center; gap: 8px; background: #7B4A2A; color: #FFFFFF; padding: 9px 14px; border-radius: 5px; font-size: 13px; font-weight: 500; cursor: pointer; min-height: 40px">
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path><circle cx="12" cy="13" r="3"></circle></svg>
+              Upload photo
+              <input type="file" accept="image/jpeg,image/png,image/webp" style="position: absolute; width: 1px; height: 1px; opacity: 0">
+            </label>
+            <button type="button" disabled="{{ true }}" style="border: 1px solid #E7DCCD; background: #FFFFFF; color: #8C8077; padding: 9px 14px; border-radius: 5px; font: inherit; font-size: 13px; font-weight: 500; min-height: 40px">Remove</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px">
+        <div>
+          <label for="fn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">First name</label>
+          <input class="kk-f" id="fn" defaultValue="Juana" style="margin-top: 8px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 11px 12px; font: inherit; font-size: 14px">
+        </div>
+        <div>
+          <label for="mn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Middle name <span style="text-transform: none; letter-spacing: 0; color: #7A6A5E">(optional)</span></label>
+          <input class="kk-f" id="mn" defaultValue="Reyes" style="margin-top: 8px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 11px 12px; font: inherit; font-size: 14px">
+        </div>
+        <div>
+          <label for="ln" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Last name</label>
+          <input class="kk-f" id="ln" defaultValue="Dela Cruz" style="margin-top: 8px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 11px 12px; font: inherit; font-size: 14px">
+        </div>
+        <div>
+          <label for="un" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Username</label>
+          <div style="position: relative; margin-top: 8px">
+            <span aria-hidden="true" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #7A6A5E; font-size: 14px">@</span>
+            <input class="kk-f" id="un" defaultValue="juanadc" aria-describedby="un-ok" style="width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 11px 12px 11px 30px; font: inherit; font-size: 14px">
+          </div>
+          <p id="un-ok" style="margin: 6px 0 0; display: flex; align-items: center; gap: 6px; font-size: 12px; color: #22633A"><svg aria-hidden="true" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>This is your current username</p>
+        </div>
+        <div>
+          <label for="ph" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Contact number</label>
+          <input class="kk-f" id="ph" inputmode="tel" defaultValue="0917 123 4567" aria-describedby="ph-hint" style="margin-top: 8px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 11px 12px; font: inherit; font-size: 14px">
+          <p id="ph-hint" style="margin: 6px 0 0; font-size: 12px; color: #6B5A4E">Format 09XXXXXXXXX. Required before you place an order.</p>
+        </div>
+        <div>
+          <span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Email</span>
+          <div style="margin-top: 8px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 1px solid #EFE6DA; background: #FBF8F4; border-radius: 5px; padding: 11px 12px; font-size: 14px; color: #4A3A30">
+            <span style="overflow: hidden; text-overflow: ellipsis">juana.delacruz@gmail.com</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: #22633A; font-weight: 600; flex-shrink: 0"><svg aria-hidden="true" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>Verified</span>
+          </div>
+          <a href="Settings.dc.html" style="display: inline-block; margin-top: 6px; font-size: 12.5px; font-weight: 600; text-decoration: none">Change email in Settings</a>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid #EFE6DA; background: #FBF8F4">
+        <button type="reset" style="border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; padding: 11px 18px; border-radius: 5px; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; min-height: 44px">Discard</button>
+        <button type="button" style="border: 0; background: #7B4A2A; color: #FFFFFF; padding: 11px 20px; border-radius: 5px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; min-height: 44px">Save changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+node_modules
+.env*
+!.env.example
+dist
+coverage
+backend/storage/
+graphify-out/
+_reference/
+playwright-report/
+test-results/
+.claude/settings.local.json

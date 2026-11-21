@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+
+  /* brand */
+  --color-espresso: #2B1A12;      /* headings, dark bands, footer */
+  --color-espresso-2: #3A2419;    /* hero/auth panel base under the photo */
+  --color-roast: #7B4A2A;         /* primary buttons, links, active states */
+  --color-roast-hover: #653B20;
+  --color-caramel: #C8913A;       /* eyebrow bars, stars, decor (never body text on white) */
+  --color-caramel-light: #EBC98F; /* caramel text on dark backgrounds */
+  --color-caramel-tint: #F3E3C7;  /* icon tiles, role badges */
+  --color-caramel-ink: #8A5A12;   /* category labels, small caramel text on white */
+  --color-crema: #F7EFE4;         /* soft sections, info boxes */
+  --color-foam: #F5F0EA;          /* app/page background on account pages */
+  --color-cream: #FBF8F4;         /* card header/footer bands */
+  --color-highlight: #FBF6F0;     /* selected radio-card background */
+
+  /* lines & surfaces */
+  --color-sand: #E7DCCD;          /* card borders */
+  --color-sand-strong: #DCCBB5;   /* input & outline-button borders */
+  --color-sand-soft: #EFE6DA;     /* inner dividers */
+  --color-photo: #EADCCB;         /* image placeholder background */
+  --color-skeleton: #F1E9DE;
+
+  /* text */
+  --color-ink: #2B1A12;
+  --color-ink-2: #4A3A30;         /* body */
+  --color-ink-3: #6B5A4E;         /* muted, labels */
+  --color-ink-4: #7A6A5E;         /* faint, timestamps */
+
+  /* feedback */
+  --color-success: #2E7D4F;  --color-success-ink: #22633A;  --color-success-bg: #E1F2E4;
+  --color-positive-bg: #F1F8F3; --color-positive-line: #BFE0C8; --color-positive-ink: #1E4D30;
+  --color-notice-bg: #FBF3E3; --color-notice-line: #EBD3A6; --color-notice-ink: #5C3D0E;
+  --color-danger: #B3261E;   --color-danger-ink: #9B2C24;   --color-danger-bg: #FBE4E2;
+
+  /* map */
+  --color-water: #DCE7EA; --color-land: #EFE6D6;
+
+  --radius-control: 5px;   /* buttons, inputs */
+  --radius-card: 8px;
+  --shadow-card-hover: 0 14px 32px -20px rgba(43,26,18,.38);
+  --shadow-dropdown: 0 18px 40px -20px rgba(43,26,18,.45);
+  --shadow-modal: 0 24px 48px -24px rgba(43,26,18,.5);
+  --shadow-drawer: -24px 0 48px -24px rgba(43,26,18,.4);
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Base from the screens' <helmet> styles */
+@layer base {
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+    background: #fff;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--color-roast); }
+  a:hover { color: var(--color-roast-hover); }
+  button:focus-visible,
+  a:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid var(--color-roast);
+    outline-offset: 2px;
+  }
+}

@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Checkout</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+.kk-f:focus{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 100vh; background: #F5F0EA">
+  <dc-import name="Navbar" variant="buyer" active="none" cart-count="3" hint-size="100%,64px"></dc-import>
+
+  <div style="max-width: 1280px; margin: 0 auto; padding: 32px 32px 0">
+    <a href="CartDrawer.dc.html" style="font-size: 13px; text-decoration: none; color: #6B5A4E">← Back to cart</a>
+    <div style="margin-top: 16px; display: inline-flex; align-items: center; gap: 10px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500"><span style="width: 24px; height: 3px; border-radius: 999px; background: #C8913A"></span>Order</div>
+    <h1 style="margin: 10px 0 0; font-weight: 500; font-size: 36px; letter-spacing: -0.02em">Checkout</h1>
+  </div>
+
+  <div style="max-width: 1280px; margin: 0 auto; padding: 28px 32px 80px; display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start">
+    <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+
+      <!-- 1 METHOD -->
+      <section aria-labelledby="s1" style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; overflow: hidden">
+        <header style="display: flex; align-items: center; gap: 12px; padding: 18px 22px; border-bottom: 1px solid #EFE6DA">
+          <span style="width: 28px; height: 28px; display: grid; place-items: center; border-radius: 999px; background: #7B4A2A; color: #FFFFFF; font-size: 13px; font-weight: 600">1</span>
+          <h2 id="s1" style="margin: 0; font-size: 16px; font-weight: 600">How do you want to get it?</h2>
+        </header>
+        <fieldset style="border: 0; margin: 0; padding: 20px 22px">
+          <legend style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Delivery method</legend>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px">
+            <sc-for list="{{ methods }}" as="m" hint-placeholder-count="2">
+              <label style="display: flex; gap: 12px; align-items: flex-start; padding: 16px; border-radius: 8px; border: {{ m.border }}; background: {{ m.bg }}; cursor: pointer">
+                <input type="radio" name="method" checked="{{ m.on }}" onChange="{{ m.pick }}" style="margin-top: 3px; width: 18px; height: 18px; accent-color: #7B4A2A">
+                <span>
+                  <span style="display: block; font-size: 15px; font-weight: 600">{{ m.title }}</span>
+                  <span style="display: block; margin-top: 2px; font-size: 12.5px; color: #6B5A4E; line-height: 1.5">{{ m.text }}</span>
+                </span>
+              </label>
+            </sc-for>
+          </div>
+        </fieldset>
+      </section>
+
+      <!-- 2 ADDRESS / PICKUP -->
+      <section aria-labelledby="s2" style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; overflow: hidden">
+        <header style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 22px; border-bottom: 1px solid #EFE6DA">
+          <div style="display: flex; align-items: center; gap: 12px">
+            <span style="width: 28px; height: 28px; display: grid; place-items: center; border-radius: 999px; background: #7B4A2A; color: #FFFFFF; font-size: 13px; font-weight: 600">2</span>
+            <h2 id="s2" style="margin: 0; font-size: 16px; font-weight: 600">{{ s2Title }}</h2>
+          </div>
+          <sc-if value="{{ isDelivery }}" hint-placeholder-val="{{ true }}">
+            <a href="AddressModal.dc.html" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; text-decoration: none; min-height: 40px">
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>Add new address
+            </a>
+          </sc-if>
+        </header>
+
+        <sc-if value="{{ isDelivery }}" hint-placeholder-val="{{ true }}">
+          <fieldset style="border: 0; margin: 0; padding: 20px 22px">
+            <legend style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Choose a delivery address</legend>
+            <div style="display: flex; flex-direction: column; gap: 12px">
+              <sc-for list="{{ addresses }}" as="ad" hint-placeholder-count="2">
+                <label style="display: flex; gap: 12px; align-items: flex-start; padding: 16px; border-radius: 8px; border: {{ ad.border }}; background: {{ ad.bg }}; cursor: pointer">
+                  <input type="radio" name="address" checked="{{ ad.on }}" onChange="{{ ad.pick }}" style="margin-top: 3px; width: 18px; height: 18px; accent-color: #7B4A2A">
+                  <span style="flex: 1; min-width: 0">
+                    <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+                      <span style="font-size: 14.5px; font-weight: 600">{{ ad.name }}</span>
+                      <span style="font-size: 13px; color: #6B5A4E">{{ ad.phone }}</span>
+                      <span style="font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; border: 1px solid #DCCBB5; color: #4A3A30; padding: 1px 7px; border-radius: 4px">{{ ad.label }}</span>
+                      <sc-if value="{{ ad.isDefault }}" hint-placeholder-val="{{ false }}"><span style="font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; background: #7B4A2A; color: #FFFFFF; padding: 2px 7px; border-radius: 4px">Default</span></sc-if>
+                    </span>
+                    <span style="display: block; margin-top: 4px; font-size: 13.5px; line-height: 1.55; color: #4A3A30">{{ ad.line }}</span>
+                    <span style="display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12px; color: #6B5A4E">
+                      <svg aria-hidden="true" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>{{ ad.distance }} km by road from Kaluppa · delivery {{ ad.feeLabel }}
+                    </span>
+                  </span>
+                  <a href="AddressModal.dc.html" style="font-size: 12.5px; font-weight: 600; text-decoration: none; padding: 4px 0">Edit</a>
+                </label>
+              </sc-for>
+            </div>
+            <p style="margin: 12px 0 0; font-size: 12.5px; color: #6B5A4E">Manage saved addresses in <a href="Addresses.dc.html" style="font-weight: 600; text-decoration: none">Addresses</a>. We deliver anywhere in Marinduque.</p>
+          </fieldset>
+        </sc-if>
+
+        <sc-if value="{{ isPickup }}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 20px 22px; display: flex; flex-direction: column; gap: 16px">
+            <div style="display: flex; gap: 14px; align-items: flex-start; padding: 16px; border-radius: 8px; background: #F7EFE4">
+              <span style="width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border-radius: 8px; background: #FFFFFF; color: #7B4A2A"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg></span>
+              <div>
+                <span style="display: block; font-size: 15px; font-weight: 600">Kaluppa</span>
+                <span style="display: block; margin-top: 2px; font-size: 13.5px; color: #4A3A30">Pantayin, Santa Cruz, Marinduque</span>
+                <span style="display: block; margin-top: 2px; font-size: 12.5px; color: #6B5A4E">[Opening hours] · We'll notify you when it's ready for pickup.</span>
+              </div>
+            </div>
+            <div>
+              <label for="phone" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Contact number</label>
+              <input class="kk-f" id="phone" inputmode="tel" defaultValue="0917 123 4567" style="margin-top: 8px; width: 100%; max-width: 340px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 11px 12px; font: inherit; font-size: 14px">
+              <p style="margin: 8px 0 0; font-size: 12.5px; color: #6B5A4E">Required. Kaluppa may contact you about your pickup. Saved to your profile.</p>
+            </div>
+          </div>
+        </sc-if>
+      </section>
+
+      <!-- 3 PAYMENT -->
+      <section aria-labelledby="s3" style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; overflow: hidden">
+        <header style="display: flex; align-items: center; gap: 12px; padding: 18px 22px; border-bottom: 1px solid #EFE6DA">
+          <span style="width: 28px; height: 28px; display: grid; place-items: center; border-radius: 999px; background: #7B4A2A; color: #FFFFFF; font-size: 13px; font-weight: 600">3</span>
+          <h2 id="s3" style="margin: 0; font-size: 16px; font-weight: 600">Payment</h2>
+        </header>
+        <div style="padding: 20px 22px; display: flex; flex-direction: column; gap: 18px">
+          <fieldset style="border: 0; margin: 0; padding: 0">
+            <legend style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Payment method</legend>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px">
+              <sc-for list="{{ pays }}" as="p" hint-placeholder-count="2">
+                <label style="display: flex; gap: 12px; align-items: flex-start; padding: 16px; border-radius: 8px; border: {{ p.border }}; background: {{ p.bg }}; cursor: pointer">
+                  <input type="radio" name="pay" checked="{{ p.on }}" onChange="{{ p.pick }}" style="margin-top: 3px; width: 18px; height: 18px; accent-color: #7B4A2A">
+                  <span><span style="display: block; font-size: 15px; font-weight: 600">{{ p.title }}</span><span style="display: block; margin-top: 2px; font-size: 12.5px; color: #6B5A4E">{{ p.text }}</span></span>
+                </label>
+              </sc-for>
+            </div>
+          </fieldset>
+
+          <sc-if value="{{ isEwallet }}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; flex-wrap: wrap; gap: 28px; padding-top: 4px">
+              <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 10px">
+                <div role="tablist" aria-label="E-wallet" style="display: inline-flex; padding: 3px; background: #F5F0EA; border-radius: 6px">
+                  <sc-for list="{{ wallets }}" as="w" hint-placeholder-count="2">
+                    <button type="button" role="tab" aria-selected="{{ w.on }}" onClick="{{ w.pick }}" style="border: 0; padding: 8px 18px; border-radius: 5px; background: {{ w.bg }}; color: {{ w.fg }}; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; min-height: 36px">{{ w.name }}</button>
+                  </sc-for>
+                </div>
+                <div style="position: relative; width: 200px; height: 200px; border: 1px solid #E7DCCD; border-radius: 8px; padding: 14px; background: #FFFFFF">
+                  <svg role="img" aria-label="Sample {{ wallet }} QR code" viewBox="0 0 29 29" style="width: 100%; height: 100%" shape-rendering="crispEdges">
+                    <rect x="0" y="0" width="29" height="29" fill="#FFFFFF"></rect>
+                    <path fill="#2B1A12" d="M0 0h7v7H0zM1 1v5h5V1zM2 2h3v3H2zM22 0h7v7h-7zM23 1v5h5V1zM24 2h3v3h-3zM0 22h7v7H0zM1 23v5h5v-5zM2 24h3v3H2zM9 0h1v2H9zM11 1h2v1h-2zM14 0h1v3h-1zM16 2h2v1h-2zM19 0h1v2h-1zM9 4h3v1H9zM13 5h2v2h-2zM17 4h1v3h-1zM9 8h2v1H9zM12 8h1v2h-1zM15 9h3v1h-3zM19 8h2v2h-2zM0 9h2v1H0zM3 9h1v3H3zM5 10h3v1H5zM22 9h2v1h-2zM25 10h1v2h-1zM27 9h2v2h-2zM9 12h1v3H9zM11 13h3v1h-3zM15 12h1v2h-1zM17 13h3v1h-3zM21 12h1v3h-1zM23 13h2v1h-2zM26 14h3v1h-3zM0 14h3v1H0zM4 15h2v2H4zM7 14h1v3H7zM10 16h2v1h-2zM13 16h1v3h-1zM15 17h2v1h-2zM18 16h1v2h-1zM20 17h3v1h-3zM24 16h1v3h-1zM9 19h2v1H9zM12 20h2v2h-2zM16 19h1v3h-1zM18 20h3v1h-3zM22 19h1v2h-1zM25 20h2v1h-2zM9 23h1v3H9zM11 24h3v1h-3zM15 23h2v2h-2zM18 24h1v3h-1zM20 23h3v1h-3zM24 24h2v2h-2zM27 23h1v3h-1zM10 27h3v2h-3zM14 27h1v2h-1zM16 28h4v1h-4zM21 27h2v1h-2zM25 27h4v2h-4z"></path>
+                  </svg>
+                  <span style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-12deg); background: #B3261E; color: #FFFFFF; font-size: 12px; font-weight: 700; letter-spacing: 0.2em; padding: 4px 10px; border-radius: 4px">SAMPLE</span>
+                </div>
+                <span style="font-size: 12px; color: #6B5A4E">Kaluppa will replace this QR</span>
+              </div>
+              <div style="flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+                <dl style="margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; font-size: 14px">
+                  <dt style="color: #6B5A4E">Account name</dt><dd style="margin: 0; font-weight: 600">[Kaluppa account name]</dd>
+                  <dt style="color: #6B5A4E">{{ wallet }} number</dt><dd style="margin: 0; font-weight: 600">[09XX XXX XXXX]</dd>
+                  <dt style="color: #6B5A4E">Amount to pay</dt><dd style="margin: 0; font-weight: 700; font-size: 18px; color: #7B4A2A">{{ total }}</dd>
+                </dl>
+                <div>
+                  <span id="receipt-label" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Payment receipt · required</span>
+                  <label style="margin-top: 8px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 22px; border: 1.5px dashed #DCCBB5; border-radius: 8px; color: #6B5A4E; font-size: 13px; cursor: pointer; text-align: center">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#7B4A2A" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" x2="12" y1="3" y2="15"></line></svg>
+                    <span><strong style="color: #7B4A2A">Upload your receipt</strong> · JPG, PNG or WebP, up to 5 MB</span>
+                    <input type="file" accept="image/*" aria-labelledby="receipt-label" style="position: absolute; width: 1px; height: 1px; opacity: 0">
+                  </label>
+                  <p style="margin: 8px 0 0; font-size: 12px; color: #6B5A4E">After upload it shows the file name, size and a Replace button.</p>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isCash }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 8px; background: #F7EFE4">
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#7B4A2A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px"><rect width="20" height="12" x="2" y="6" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path></svg>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.6; color: #4A3A30">{{ cashNote }}</p>
+            </div>
+          </sc-if>
+        </div>
+      </section>
+
+      <!-- 4 NOTE -->
+      <section aria-labelledby="s4" style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; overflow: hidden">
+        <header style="display: flex; align-items: center; gap: 12px; padding: 18px 22px; border-bottom: 1px solid #EFE6DA">
+          <span style="width: 28px; height: 28px; display: grid; place-items: center; border-radius: 999px; background: #F3E3C7; color: #7A4A10; font-size: 13px; font-weight: 600">4</span>
+          <h2 id="s4" style="margin: 0; font-size: 16px; font-weight: 600">Note <span style="font-weight: 400; color: #6B5A4E; font-size: 13px">· optional</span></h2>
+        </header>
+        <div style="padding: 20px 22px">
+          <label for="note" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Note for Kaluppa</label>
+          <textarea class="kk-f" id="note" rows="3" placeholder="Anything we should know? e.g. landmark or best time to deliver" style="width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 12px; font: inherit; font-size: 14px; resize: vertical"></textarea>
+        </div>
+      </section>
+    </div>
+
+    <!-- SUMMARY -->
+    <aside aria-labelledby="sum" style="flex: 1 1 340px; min-width: 0; max-width: 420px; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; overflow: hidden">
+      <header style="padding: 18px 22px; border-bottom: 1px solid #EFE6DA; background: #FBF8F4">
+        <span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">3 items</span>
+        <h2 id="sum" style="margin: 2px 0 0; font-size: 18px; font-weight: 600">Order summary</h2>
+      </header>
+      <ul style="list-style: none; margin: 0; padding: 8px 22px">
+        <sc-for list="{{ items }}" as="it" hint-placeholder-count="3">
+          <li style="display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #EFE6DA">
+            <span aria-hidden="true" style="width: 48px; height: 48px; flex-shrink: 0; border-radius: 6px; background: #EADCCB"></span>
+            <div style="flex: 1; min-width: 0">
+              <span style="display: block; font-size: 13.5px; font-weight: 600">{{ it.name }}</span>
+              <span style="display: block; font-size: 12px; color: #6B5A4E">{{ it.qty }} × {{ it.unitPrice }}</span>
+            </div>
+            <span style="font-size: 13.5px; font-weight: 600">{{ it.line }}</span>
+          </li>
+        </sc-for>
+      </ul>
+      <div style="padding: 16px 22px 22px">
+        <div style="display: flex; justify-content: space-between; font-size: 14px; color: #4A3A30"><span>Subtotal</span><span>₱2,020.00</span></div>
+        <div style="margin-top: 6px; display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: #4A3A30"><span>{{ feeLabel }}</span><span>{{ fee }}</span></div>
+        <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid #E7DCCD; display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 15px; font-weight: 600">Total</span><span style="font-size: 24px; font-weight: 600">{{ total }}</span></div>
+
+        <dl style="margin: 16px 0 0; display: flex; flex-direction: column; gap: 10px; font-size: 13px; color: #4A3A30; background: #F7EFE4; border-radius: 6px; padding: 12px 14px">
+          <div style="display: flex; gap: 10px"><dt style="width: 18px; flex-shrink: 0"><svg aria-label="Destination" role="img" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#7B4A2A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg></dt><dd style="margin: 0">{{ destination }}</dd></div>
+          <div style="display: flex; gap: 10px"><dt style="width: 18px; flex-shrink: 0"><svg aria-label="Estimated arrival" role="img" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#7B4A2A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg></dt><dd style="margin: 0"><strong>{{ etaLabel }}</strong><span style="display: block; font-size: 12px; color: #6B5A4E">3–5 business days after Kaluppa confirms</span></dd></div>
+          <div style="display: flex; gap: 10px"><dt style="width: 18px; flex-shrink: 0"><svg aria-label="Payment" role="img" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#7B4A2A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path></svg></dt><dd style="margin: 0">{{ payLabel }}</dd></div>
+        </dl>
+
+        <a href="OrderDetail.dc.html" style="margin-top: 16px; display: flex; align-items: center; justify-content: center; background: #7B4A2A; color: #FFFFFF; text-decoration: none; padding: 15px; border-radius: 5px; font-size: 15px; font-weight: 600">Place order</a>
+        <p style="margin: 12px 0 0; font-size: 12px; line-height: 1.6; color: #6B5A4E">You'll be asked to confirm. Kaluppa confirms within 3 days; if not, the order expires{{ refundTail }}</p>
+      </div>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2150}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { method: 'delivery', pay: 'ewallet', addr: 0, w: 'GCash' }; }
+  renderVals() {
+    const { method, pay, addr, w } = this.state;
+    const peso = (c) => '₱' + (c / 100).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const sel = (on) => ({ border: on ? '2px solid #7B4A2A' : '1px solid #E7DCCD', bg: on ? '#FBF6F0' : '#FFFFFF' });
+    const addrs = [
+      { label: 'Home', isDefault: true, name: 'Juana Dela Cruz', phone: '0917 123 4567', line: 'Lot 12, Purok 3, near the chapel, Balanacan, Mogpog, Marinduque 4901', distance: '26.8', feeC: 29000 },
+      { label: 'Work', isDefault: false, name: 'Juana Dela Cruz', phone: '0917 123 4567', line: 'Municipal Hall, Banahaw Poblacion, Santa Cruz, Marinduque 4902', distance: '2.6', feeC: 5000 }
+    ];
+    const isDelivery = method === 'delivery';
+    const subtotal = 202000;
+    const feeC = isDelivery ? addrs[addr].feeC : 0;
+    const total = subtotal + feeC;
+    const isEwallet = pay === 'ewallet';
+    return {
+      methods: [
+        { key: 'delivery', title: 'Deliver to my address', text: 'Anywhere in Marinduque. Fee based on road distance from Kaluppa.' },
+        { key: 'pickup', title: 'Pick up at Kaluppa', text: 'Pantayin, Santa Cruz. No delivery fee.' }
+      ].map((m) => ({ ...m, on: method === m.key, pick: () => this.setState({ method: m.key }), ...sel(method === m.key) })),
+      isDelivery,
+      isPickup: !isDelivery,
+      s2Title: isDelivery ? 'Delivery address' : 'Pickup at Kaluppa',
+      addresses: addrs.map((a, i) => ({ ...a, on: addr === i, pick: () => this.setState({ addr: i }), feeLabel: peso(a.feeC), ...sel(addr === i) })),
+      pays: [
+        { key: 'ewallet', title: 'GCash or Maya', text: 'Pay now and upload your receipt.' },
+        { key: 'cash', title: isDelivery ? 'Cash on delivery' : 'Cash on pickup', text: isDelivery ? 'Pay the rider when it arrives.' : 'Pay at Kaluppa when you collect it.' }
+      ].map((p) => ({ ...p, on: pay === p.key, pick: () => this.setState({ pay: p.key }), ...sel(pay === p.key) })),
+      isEwallet,
+      isCash: !isEwallet,
+      cashNote: isDelivery ? 'Please prepare ' + peso(total) + ' in cash for the rider. No receipt upload needed.' : 'Pay ' + peso(total) + ' in cash at Kaluppa when you pick up your order.',
+      wallet: w,
+      wallets: ['GCash', 'Maya'].map((name) => ({ name, on: w === name, pick: () => this.setState({ w: name }), bg: w === name ? '#FFFFFF' : 'transparent', fg: w === name ? '#2B1A12' : '#6B5A4E' })),
+      feeLabel: isDelivery ? 'Delivery fee · ' + addrs[addr].distance + ' km' : 'Pickup',
+      fee: isDelivery ? peso(feeC) : 'Free',
+      total: peso(total),
+      destination: isDelivery ? addrs[addr].label + ' · ' + addrs[addr].line : 'Pick up at Kaluppa, Pantayin, Santa Cruz',
+      etaLabel: (isDelivery ? 'Estimated delivery ' : 'Ready for pickup ') + 'Nov 25 – Nov 27',
+      payLabel: isEwallet ? w + ' · receipt required' : (isDelivery ? 'Cash on delivery' : 'Cash on pickup'),
+      refundTail: isEwallet ? ' and your payment is refunded.' : '.',
+      items: [
+        { name: 'Barako Medium Roast', qty: '2 packs', unitPrice: '₱260.00', line: '₱520.00' },
+        { name: 'Liberica Green Beans', qty: '1.5 kg', unitPrice: '₱320.00', line: '₱480.00' },
+        { name: 'Excelsa Green Beans', qty: '3 kg', unitPrice: '₱340.00', line: '₱1,020.00' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

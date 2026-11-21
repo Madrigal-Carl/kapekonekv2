@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Add address</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+.kk-f:focus{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1000px; background: rgba(43,26,18,0.5); display: flex; align-items: center; justify-content: center; padding: 40px">
+  <div role="dialog" aria-modal="true" aria-labelledby="addr-title" style="width: 1080px; max-width: 100%; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 24px 48px -24px rgba(43,26,18,0.5); overflow: hidden; display: flex; flex-direction: column">
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 18px 24px; border-bottom: 1px solid #EFE6DA">
+      <div>
+        <span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Delivery address</span>
+        <h2 id="addr-title" style="margin: 2px 0 0; font-size: 19px; font-weight: 600">Add new address</h2>
+      </div>
+      <a href="Addresses.dc.html" aria-label="Close" style="width: 40px; height: 40px; display: grid; place-items: center; border-radius: 5px; color: #6B5A4E"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></a>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 24px; padding: 20px 24px">
+      <!-- MAP -->
+      <div style="flex: 1 1 460px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; gap: 8px">
+          <div style="position: relative; flex: 1">
+            <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#7A6A5E" stroke-width="2" stroke-linecap="round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+            <label for="q" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Search a place</label>
+            <input class="kk-f" id="q" placeholder="Search a place, street or landmark" style="width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 12px 10px 36px; font: inherit; font-size: 13.5px">
+          </div>
+          <button type="button" onClick="{{ useMine }}" style="display: inline-flex; align-items: center; gap: 6px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; padding: 0 12px; border-radius: 5px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; min-height: 42px; white-space: nowrap">
+            <svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#7B4A2A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path><circle cx="12" cy="12" r="8"></circle></svg>Use my location
+          </button>
+        </div>
+        <div role="application" aria-label="Map. Click to drop your delivery pin." onClick="{{ dropPin }}" style="position: relative; aspect-ratio: 600 / 440; border-radius: 8px; border: 1px solid #E7DCCD; background: #DCE7EA; overflow: hidden; cursor: crosshair">
+          <svg aria-hidden="true" viewBox="0 0 600 440" fill="none" style="position: absolute; inset: 0; width: 100%; height: 100%">
+            <rect x="0" y="0" width="600" height="440" fill="#DCE7EA"></rect>
+            <path d="M542.6 -22.0L542.6 89.3L536.7 86.9L531.6 77.0L521.3 64.6L477.7 64.6L477.7 54.7L464.8 49.7L441.7 48.5L431.4 42.3L428.9 36.1L426.3 23.7L421.2 16.3L416.0 10.1L396.4 -22.0Z" fill="#E8DFCF" stroke="#BFAF95" stroke-width="1.2"></path>
+            <path d="M364.7 193.4L367.2 199.6L380.1 208.2L385.2 215.7L377.5 236.7L336.4 280.1L321.0 301.1L328.7 316.0L321.0 329.6L297.9 348.2L287.6 350.6L277.3 342.0L267.1 332.1L259.3 325.9L251.6 322.2L228.5 301.1L220.8 298.6L210.5 298.6L202.8 296.2L197.7 290.0L184.9 271.4L161.8 247.9L159.2 240.4L161.8 223.1L161.8 218.1L159.2 207.0L159.2 168.6L161.8 157.5L166.9 151.3L187.4 116.6L187.4 109.2L190.0 89.4L192.6 84.4L202.8 81.9L213.1 91.8L228.5 115.4L231.1 110.4L238.8 104.2L243.9 99.3L254.2 110.4L269.6 114.1L285.0 109.2L290.2 94.3L300.4 100.5L308.1 107.9L310.7 115.4L305.6 125.3L315.9 121.6L326.1 125.3L328.7 132.7L321.0 140.1L323.6 142.6L331.3 147.6L336.4 150.0L346.7 142.6L362.1 146.3L374.9 157.5L380.1 169.8L377.5 173.6L372.4 174.8L364.7 174.8L364.7 181.0L364.7 193.4Z" fill="#EFE6D6" stroke="#B49C7B" stroke-width="1.5" stroke-linejoin="round"></path>
+            <circle cx="179.4" cy="171.1" r="3" fill="#8C7A66"></circle><text x="150" y="190" fill="#7A6A5E" font-size="10.5" font-family="Poppins, sans-serif">Boac</text>
+            <circle cx="194.4" cy="150.9" r="3" fill="#8C7A66"></circle><text x="168" y="140" fill="#7A6A5E" font-size="10.5" font-family="Poppins, sans-serif">Mogpog</text>
+            <circle cx="314.4" cy="148.3" r="3" fill="#8C7A66"></circle><text x="292" y="138" fill="#7A6A5E" font-size="10.5" font-family="Poppins, sans-serif">Santa Cruz</text>
+            <circle cx="351" cy="264.9" r="3" fill="#8C7A66"></circle><text x="340" y="284" fill="#7A6A5E" font-size="10.5" font-family="Poppins, sans-serif">Torrijos</text>
+            <circle cx="251.4" cy="310.2" r="3" fill="#8C7A66"></circle><text x="222" y="330" fill="#7A6A5E" font-size="10.5" font-family="Poppins, sans-serif">Buenavista</text>
+            <circle cx="183" cy="260.5" r="3" fill="#8C7A66"></circle><text x="168" y="280" fill="#7A6A5E" font-size="10.5" font-family="Poppins, sans-serif">Gasan</text>
+            <rect x="319" y="151" width="10" height="10" rx="2" fill="#2B1A12"></rect>
+          </svg>
+          <span style="position: absolute; left: 54%; top: 35.5%; transform: translate(-50%, 8px); font-size: 10.5px; font-weight: 600; color: #2B1A12; background: rgba(255,255,255,0.9); padding: 1px 6px; border-radius: 4px; white-space: nowrap; pointer-events: none">Kaluppa</span>
+          <div style="position: absolute; left: {{ pinLeft }}; top: {{ pinTop }}; transform: translate(-50%, -100%); pointer-events: none; display: flex; flex-direction: column; align-items: center">
+            <span style="background: #2B1A12; color: #FFFFFF; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; white-space: nowrap; margin-bottom: 2px">Deliver here</span>
+            <svg aria-hidden="true" viewBox="0 0 24 24" width="34" height="34" fill="#7B4A2A" stroke="#FFFFFF" stroke-width="1.5"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3" fill="#FFFFFF"></circle></svg>
+          </div>
+          <sc-if value="{{ outside }}" hint-placeholder-val="{{ false }}">
+            <div role="alert" style="position: absolute; left: 12px; right: 12px; top: 12px; font-size: 12.5px; color: #7A2A22; background: #FDF0EE; border: 1px solid #F2C9C4; border-radius: 6px; padding: 8px 10px">That spot is outside our delivery area. We deliver anywhere in Marinduque.</div>
+          </sc-if>
+          <span style="position: absolute; left: 12px; bottom: 12px; font-size: 11px; color: #4A3A30; background: rgba(255,255,255,0.9); padding: 3px 8px; border-radius: 4px">Click the map to move the pin · Mapbox in the app</span>
+        </div>
+        <p aria-live="polite" style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #4A3A30">
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#7B4A2A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          Pin at {{ coords }} · fields below were filled from the pin. You can still edit them.
+        </p>
+      </div>
+
+      <!-- FORM -->
+      <form style="flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+        <fieldset style="border: 0; margin: 0; padding: 0">
+          <legend style="font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500; padding: 0">Label</legend>
+          <div style="margin-top: 8px; display: flex; gap: 8px">
+            <sc-for list="{{ labels }}" as="l" hint-placeholder-count="3">
+              <button type="button" aria-pressed="{{ l.on }}" onClick="{{ l.pick }}" style="min-height: 38px; padding: 7px 14px; border-radius: 999px; border: 1px solid {{ l.border }}; background: {{ l.bg }}; color: {{ l.fg }}; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer">{{ l.name }}</button>
+            </sc-for>
+          </div>
+        </fieldset>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+          <div>
+            <label for="rn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Recipient name</label>
+            <input class="kk-f" id="rn" defaultValue="Juana Dela Cruz" style="margin-top: 6px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 12px; font: inherit; font-size: 14px">
+          </div>
+          <div>
+            <label for="rp" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Phone</label>
+            <input class="kk-f" id="rp" inputmode="tel" defaultValue="0917 123 4567" style="margin-top: 6px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 12px; font: inherit; font-size: 14px">
+          </div>
+          <div>
+            <label for="pv" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Province</label>
+            <input id="pv" value="Marinduque" readOnly="{{ true }}" style="margin-top: 6px; width: 100%; border: 1px solid #EFE6DA; background: #FBF8F4; color: #4A3A30; border-radius: 5px; padding: 10px 12px; font: inherit; font-size: 14px">
+          </div>
+          <div>
+            <label for="mu" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Municipality</label>
+            <select class="kk-f" id="mu" value="{{ muni }}" onChange="{{ onMuni }}" style="margin-top: 6px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 12px; font: inherit; font-size: 14px; background: #FFFFFF">
+              <sc-for list="{{ munis }}" as="m" hint-placeholder-count="6"><option value="{{ m }}">{{ m }}</option></sc-for>
+            </select>
+          </div>
+          <div>
+            <label for="bg" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Barangay</label>
+            <select class="kk-f" id="bg" value="{{ brgy }}" onChange="{{ onBrgy }}" style="margin-top: 6px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 12px; font: inherit; font-size: 14px; background: #FFFFFF">
+              <sc-for list="{{ brgys }}" as="b" hint-placeholder-count="8"><option value="{{ b }}">{{ b }}</option></sc-for>
+            </select>
+          </div>
+          <div>
+            <label for="pc" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Postal code</label>
+            <input class="kk-f" id="pc" value="{{ postal }}" readOnly="{{ true }}" style="margin-top: 6px; width: 100%; border: 1px solid #EFE6DA; background: #FBF8F4; color: #4A3A30; border-radius: 5px; padding: 10px 12px; font: inherit; font-size: 14px">
+          </div>
+        </div>
+        <div>
+          <label for="st" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Street, house no., landmark</label>
+          <input class="kk-f" id="st" value="{{ street }}" onInput="{{ onStreet }}" placeholder="e.g. Lot 12, Purok 3, near the chapel" style="margin-top: 6px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 12px; font: inherit; font-size: 14px">
+        </div>
+        <label style="display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer">
+          <input type="checkbox" style="width: 18px; height: 18px; accent-color: #7B4A2A">Set as default address
+        </label>
+        <div style="display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: #4A3A30; background: #F7EFE4; border-radius: 6px; padding: 12px 14px">
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#7B4A2A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px"><path d="M10 17h4V5H2v12h3"></path><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5"></path><circle cx="7.5" cy="17.5" r="2.5"></circle><circle cx="17.5" cy="17.5" r="2.5"></circle></svg>
+          <span>About <strong>{{ km }} km</strong> by road from Kaluppa · delivery fee <strong>{{ fee }}</strong>. The exact fee is confirmed at checkout.</span>
+        </div>
+      </form>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid #EFE6DA; background: #FBF8F4">
+      <a href="Addresses.dc.html" style="display: inline-flex; align-items: center; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; padding: 10px 16px; border-radius: 5px; font-size: 14px; font-weight: 500; text-decoration: none; min-height: 44px">Cancel</a>
+      <a href="Addresses.dc.html" style="display: inline-flex; align-items: center; background: #7B4A2A; color: #FFFFFF; padding: 10px 18px; border-radius: 5px; font-size: 14px; font-weight: 600; text-decoration: none; min-height: 44px">Save address</a>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { x: 194, y: 140, label: 'Home', muni: 'Mogpog', brgy: 'Balanacan', street: 'Lot 12, Purok 3, near the chapel', outside: false };
+  }
+  renderVals() {
+    const BRGY = {"Boac":["Agot","Agumaymayan","Amoingon","Apitong","Balagasan","Balaring","Balimbing","Balogo","Bamban","Bangbangalon","Bantad","Bantay","Bayuti","Binunga","Boi","Boton","Buliasnin","Bunganay","Caganhao","Canat","Catubugan","Cawit","Daig","Daypay","Duyay","Hinapulan","Ihatub","Isok I","Isok II Poblacion","Laylay","Lupac","Mahinhin","Mainit","Malbog","Maligaya","Malusak","Mansiwat","Mataas na Bayan","Maybo","Mercado","Murallon","Ogbac","Pawa","Pili","Poctoy","Poras","Puting Buhangin","Puyog","Sabong","San Miguel","Santol","Sawi","Tabi","Tabigue","Tagwak","Tambunan","Tampus","Tanza","Tugos","Tumagabok","Tumapon"],"Buenavista":["Bagacay","Bagtingon","Barangay I","Barangay II","Barangay III","Barangay IV","Bicas-bicas","Caigangan","Daykitin","Libas","Malbog","Sihi","Timbo","Tungib-Lipata","Yook"],"Gasan":["Antipolo","Bachao Ibaba","Bachao Ilaya","Bacongbacong","Bahi","Bangbang","Banot","Banuyo","Barangay I","Barangay II","Barangay III","Bognuyan","Cabugao","Dawis","Dili","Libtangin","Mahunig","Mangiliol","Masiga","Matandang Gasan","Pangi","Pingan","Tabionan","Tapuyan","Tiguion"],"Mogpog":["Anapog-Sibucao","Argao","Balanacan","Banto","Bintakay","Bocboc","Butansapa","Candahon","Capayang","Danao","Dulong Bayan","Gitnang Bayan","Guisian","Hinadharan","Hinanggayon","Ino","Janagdong","Lamesa","Laon","Magapua","Malayak","Malusak","Mampaitan","Mangyan-Mababad","Market Site","Mataas na Bayan","Mendez","Nangka I","Nangka II","Paye","Pili","Puting Buhangin","Sayao","Silangan","Sumangga","Tarug","Villa Mendez"],"Santa Cruz":["Alobo","Angas","Aturan","Bagong Silang Poblacion","Baguidbirin","Baliis","Balogo","Banahaw Poblacion","Bangcuangan","Banogbog","Biga","Botilao","Buyabod","Dating Bayan","Devilla","Dolores","Haguimit","Hupi","Ipil","Jolo","Kaganhao","Kalangkang","Kamandugan","Kasily","Kilo-kilo","Kiñaman","Labo","Lamesa","Landy","Lapu-lapu Poblacion","Libjo","Lipa","Lusok","Maharlika Poblacion","Makulapnit","Maniwaya","Manlibunan","Masaguisi","Masalukot","Matalaba","Mongpong","Morales","Napo","Pag-asa Poblacion","Pantayin","Polo","Pulong-Parang","Punong","San Antonio","San Isidro","Tagum","Tamayo","Tambangan","Tawiran","Taytay"],"Torrijos":["Bangwayin","Bayakbakin","Bolo","Bonliw","Buangan","Cabuyo","Cagpo","Dampulan","Kay Duke","Mabuhay","Makawayan","Malibago","Malinao","Maranlig","Marlangga","Matuyatuya","Nangka","Pakaskasan","Payanas","Poblacion","Poctoy","Sibuyao","Suha","Talawan","Tigwi"]};
+    const POLY = [[364.7,193.4],[367.2,199.6],[380.1,208.2],[385.2,215.7],[377.5,236.7],[336.4,280.1],[321.0,301.1],[328.7,316.0],[321.0,329.6],[297.9,348.2],[287.6,350.6],[277.3,342.0],[267.1,332.1],[259.3,325.9],[251.6,322.2],[228.5,301.1],[220.8,298.6],[210.5,298.6],[202.8,296.2],[197.7,290.0],[184.9,271.4],[161.8,247.9],[159.2,240.4],[161.8,223.1],[161.8,218.1],[159.2,207.0],[159.2,168.6],[161.8,157.5],[166.9,151.3],[187.4,116.6],[187.4,109.2],[190.0,89.4],[192.6,84.4],[202.8,81.9],[213.1,91.8],[228.5,115.4],[231.1,110.4],[238.8,104.2],[243.9,99.3],[254.2,110.4],[269.6,114.1],[285.0,109.2],[290.2,94.3],[300.4,100.5],[308.1,107.9],[310.7,115.4],[305.6,125.3],[315.9,121.6],[326.1,125.3],[328.7,132.7],[321.0,140.1],[323.6,142.6],[331.3,147.6],[336.4,150.0],[346.7,142.6],[362.1,146.3],[374.9,157.5],[380.1,169.8],[377.5,173.6],[372.4,174.8],[364.7,174.8],[364.7,181.0],[364.7,193.4]];
+    const POSTAL = { Boac: '4900', Mogpog: '4901', 'Santa Cruz': '4902', Torrijos: '4903', Buenavista: '4904', Gasan: '4905' };
+    const TOWNS = { Boac: [13.4467, 121.8406], Mogpog: [13.4744, 121.8619], 'Santa Cruz': [13.4778, 122.0300], Torrijos: [13.3189, 122.0819], Buenavista: [13.2567, 121.9419], Gasan: [13.3247, 121.8461] };
+    const KALUPPA = [13.467, 122.044];
+    const toLL = (x, y) => [13.68 - y / 733.3, 121.70 + (x - 78.8) / (0.97286 * 733.3)];
+    const inside = (x, y) => { let c = false; for (let i = 0, j = POLY.length - 1; i < POLY.length; j = i++) { const [xi, yi] = POLY[i], [xj, yj] = POLY[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+    const hav = (a, b) => { const R = 6371, r = Math.PI / 180; const dLa = (b[0] - a[0]) * r, dLo = (b[1] - a[1]) * r; const h = Math.sin(dLa / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); };
+    const { x, y, label, muni, brgy, street, outside } = this.state;
+    const ll = toLL(x, y);
+    const km = hav(KALUPPA, ll) * 1.35;
+    const feeC = Math.ceil((5000 + Math.max(0, km - 3) * 1000) / 500) * 500;
+    const peso = (c) => '₱' + (c / 100).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fillFrom = (nx, ny) => {
+      if (!inside(nx, ny)) { this.setState({ outside: true }); return; }
+      const p = toLL(nx, ny);
+      let best = 'Boac', bd = 1e9;
+      Object.keys(TOWNS).forEach((t) => { const d = hav(TOWNS[t], p); if (d < bd) { bd = d; best = t; } });
+      const list = BRGY[best];
+      const idx = Math.abs(Math.floor(p[0] * 9137 + p[1] * 7919)) % list.length;
+      this.setState({ x: nx, y: ny, outside: false, muni: best, brgy: list[idx], street: 'Near ' + p[0].toFixed(4) + ', ' + p[1].toFixed(4) });
+    };
+    return {
+      pinLeft: (x / 600 * 100).toFixed(2) + '%',
+      pinTop: (y / 440 * 100).toFixed(2) + '%',
+      outside,
+      coords: ll[0].toFixed(4) + ', ' + ll[1].toFixed(4),
+      dropPin: (e) => { const r = e.currentTarget.getBoundingClientRect(); fillFrom((e.clientX - r.left) / r.width * 600, (e.clientY - r.top) / r.height * 440); },
+      useMine: () => fillFrom(312, 150),
+      labels: ['Home', 'Work', 'Other'].map((n) => ({ name: n, on: label === n, pick: () => this.setState({ label: n }), bg: label === n ? '#7B4A2A' : '#FFFFFF', fg: label === n ? '#FFFFFF' : '#2B1A12', border: label === n ? '#7B4A2A' : '#DCCBB5' })),
+      munis: Object.keys(BRGY),
+      muni,
+      onMuni: (e) => { const m = e.target.value; this.setState({ muni: m, brgy: BRGY[m][0] }); },
+      brgys: BRGY[muni],
+      brgy,
+      onBrgy: (e) => this.setState({ brgy: e.target.value }),
+      postal: POSTAL[muni],
+      street,
+      onStreet: (e) => this.setState({ street: e.target.value }),
+      km: km.toFixed(1),
+      fee: peso(feeC)
+    };
+  }
+}
+</script>
+</body>
+</html>

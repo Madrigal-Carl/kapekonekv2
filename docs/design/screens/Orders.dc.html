@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — My orders</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+.kk-card{transition:box-shadow .2s ease}
+.kk-card:hover{box-shadow:0 14px 32px -20px rgba(43,26,18,.38)}
+button:focus-visible,a:focus-visible{outline:2px solid #7B4A2A;outline-offset:2px}
+@keyframes kkpulse{0%,100%{opacity:1}50%{opacity:.5}}
+.kk-skel{animation:kkpulse 1.6s ease-in-out infinite}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 100vh; background: #F5F0EA">
+  <dc-import name="Navbar" variant="buyer" active="none" cart-count="0" hint-size="100%,64px"></dc-import>
+
+  <div style="max-width: 1080px; margin: 0 auto; padding: 36px 32px 0">
+    <div style="display: inline-flex; align-items: center; gap: 10px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500"><span style="width: 24px; height: 3px; border-radius: 999px; background: #C8913A"></span>Account</div>
+    <h1 style="margin: 10px 0 0; font-weight: 500; font-size: 36px; letter-spacing: -0.02em">My orders</h1>
+
+    <div role="tablist" aria-label="Filter orders" style="margin-top: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px">
+      <sc-for list="{{ groups }}" as="g" hint-placeholder-count="6">
+        <button type="button" role="tab" aria-selected="{{ g.on }}" onClick="{{ g.pick }}" style="text-align: left; display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 8px; border: {{ g.border }}; background: {{ g.bg }}; font: inherit; color: #2B1A12; cursor: pointer; box-shadow: {{ g.shadow }}">
+          <span style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%">
+            <span style="width: 34px; height: 34px; display: grid; place-items: center; border-radius: 8px; background: {{ g.iconBg }}; color: {{ g.iconFg }}">
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ g.icon }}"></path></svg>
+            </span>
+            <span style="font-size: 22px; font-weight: 600; letter-spacing: -0.01em; color: {{ g.countFg }}">{{ g.count }}</span>
+          </span>
+          <span style="display: block">
+            <span style="display: block; font-size: 14px; font-weight: 600">{{ g.label }}</span>
+            <span style="display: block; margin-top: 2px; font-size: 11.5px; line-height: 1.4; color: #6B5A4E">{{ g.hint }}</span>
+          </span>
+        </button>
+      </sc-for>
+    </div>
+    <sc-if value="{{ hasSubs }}" hint-placeholder-val="{{ false }}">
+      <div role="group" aria-label="Filter by status" style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px">
+        <sc-for list="{{ subs }}" as="c" hint-placeholder-count="3">
+          <button type="button" aria-pressed="{{ c.on }}" onClick="{{ c.pick }}" style="display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 12px; border-radius: 999px; border: 1px solid {{ c.border }}; background: {{ c.bg }}; color: {{ c.fg }}; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer">
+            <sc-if value="{{ c.hasDot }}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 999px; background: {{ c.dot }}"></span></sc-if>
+            {{ c.label }} <span style="opacity: 0.75">{{ c.count }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="max-width: 1080px; margin: 0 auto; padding: 24px 32px 80px">
+    <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px">
+      <sc-for list="{{ orders }}" as="o" hint-placeholder-count="5">
+        <li>
+          <article class="kk-card" style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; overflow: hidden">
+            <header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 20px; border-bottom: 1px solid #EFE6DA; background: #FBF8F4">
+              <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px">
+                <span style="font-size: 15px; font-weight: 600; letter-spacing: 0.01em">{{ o.no }}</span>
+                <span style="font-size: 12.5px; color: #6B5A4E">Placed {{ o.date }}</span>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+                <sc-if value="{{ o.refund }}" hint-placeholder-val="{{ false }}"><span style="font-size: 11.5px; font-weight: 600; color: #7A4A10; background: #FBF3E3; border: 1px solid #EBD3A6; padding: 3px 10px; border-radius: 999px">{{ o.refundLabel }}</span></sc-if>
+                <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: {{ o.fg }}; background: {{ o.bg }}; padding: 4px 10px; border-radius: 999px"><span aria-hidden="true" style="width: 6px; height: 6px; border-radius: 999px; background: {{ o.dot }}"></span>{{ o.statusLabel }}</span>
+              </div>
+            </header>
+            <div style="padding: 14px 20px">
+              <table style="width: 100%; border-collapse: collapse; font-size: 13.5px">
+                <caption style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Items in {{ o.no }}</caption>
+                <thead>
+                  <tr style="text-align: left; color: #6B5A4E; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase">
+                    <th scope="col" style="font-weight: 500; padding: 6px 0">Item</th>
+                    <th scope="col" style="font-weight: 500; padding: 6px 0; text-align: right">Unit price</th>
+                    <th scope="col" style="font-weight: 500; padding: 6px 0; text-align: right">Qty</th>
+                    <th scope="col" style="font-weight: 500; padding: 6px 0; text-align: right">Line total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <sc-for list="{{ o.items }}" as="it" hint-placeholder-count="2">
+                    <tr style="border-top: 1px solid #F3ECE2">
+                      <td style="padding: 9px 0; font-weight: 500">{{ it.name }}</td>
+                      <td style="padding: 9px 0; text-align: right; color: #4A3A30">{{ it.unitPrice }}</td>
+                      <td style="padding: 9px 0; text-align: right; color: #4A3A30">{{ it.qty }}</td>
+                      <td style="padding: 9px 0; text-align: right; font-weight: 600">{{ it.line }}</td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+            <footer style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; border-top: 1px solid #EFE6DA">
+              <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #4A3A30">
+                <svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#7B4A2A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>{{ o.dest }}<span style="margin-left: 8px; font-size: 11px; font-weight: 600; color: #4A3A30; border: 1px solid #DCCBB5; padding: 1px 7px; border-radius: 4px">{{ o.pay }}</span>
+              </span>
+              <div style="display: flex; align-items: center; gap: 18px">
+                <span style="font-size: 13px; color: #6B5A4E">Total <strong style="font-size: 16px; color: #2B1A12; font-weight: 600; margin-left: 4px">{{ o.total }}</strong></span>
+                <a href="OrderDetail.dc.html" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; text-decoration: none; color: #7B4A2A; min-height: 40px">View details
+                  <svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </a>
+              </div>
+            </footer>
+          </article>
+        </li>
+      </sc-for>
+    </ul>
+
+    <sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}">
+      <div style="text-align: center; padding: 56px 24px; border: 1px dashed #DCCBB5; border-radius: 8px; background: #FFFFFF">
+        <span style="margin: 0 auto; width: 48px; height: 48px; display: grid; place-items: center; border-radius: 8px; background: #F7EFE4; color: #7B4A2A"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"></path><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg></span>
+        <h2 style="margin: 16px 0 0; font-size: 17px; font-weight: 600">No orders with this status</h2>
+        <p style="margin: 6px 0 0; font-size: 14px; color: #6B5A4E">Orders you place will show up here.</p>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ more }}" hint-placeholder-val="{{ true }}">
+      <div aria-hidden="true" class="kk-skel" style="margin-top: 16px; background: #FFFFFF; border: 1px solid #EFE6DA; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+        <div style="height: 14px; width: 30%; background: #F1E9DE; border-radius: 4px"></div>
+        <div style="height: 10px; width: 70%; background: #F1E9DE; border-radius: 4px"></div>
+        <div style="height: 10px; width: 55%; background: #F1E9DE; border-radius: 4px"></div>
+      </div>
+      <p style="margin: 16px 0 0; text-align: center; font-size: 13px; color: #6B5A4E" aria-live="polite">Loading more orders…</p>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2100}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { group: 'all', sub: 'all' }; }
+  renderVals() {
+    const S = {
+      pending: { label: 'Pending', bg: '#FDF1DC', fg: '#7A4A00', dot: '#D98E04' },
+      reserved: { label: 'Reserved', bg: '#E3EEF8', fg: '#1F4E79', dot: '#2F6690' },
+      processing: { label: 'Processing', bg: '#F3E3C7', fg: '#6E420E', dot: '#C8913A' },
+      out_for_delivery: { label: 'Out for delivery', bg: '#DDF0EA', fg: '#1E5E4A', dot: '#2E8B6E' },
+      ready_for_pickup: { label: 'Ready for pickup', bg: '#DDF0EA', fg: '#1E5E4A', dot: '#2E8B6E' },
+      sold: { label: 'Sold', bg: '#E1F2E4', fg: '#22633A', dot: '#2E7D4F' },
+      cancelled: { label: 'Cancelled', bg: '#EEEAE6', fg: '#5E534B', dot: '#8C8077' },
+      rejected: { label: 'Rejected', bg: '#FBE4E2', fg: '#9B2C24', dot: '#C62828' },
+      expired: { label: 'Expired', bg: '#E9ECEF', fg: '#495057', dot: '#868E96' }
+    };
+    const HOME = 'Delivery \u00b7 Home, Balanacan, Mogpog';
+    const WORK = 'Delivery \u00b7 Work, Banahaw Poblacion, Santa Cruz';
+    const PICK = 'Pickup \u00b7 Kaluppa, Pantayin, Santa Cruz';
+    const all = [
+      { no: 'KK-20261121-0007', date: 'Nov 21, 2026', status: 'pending', dest: HOME, pay: 'GCash', total: '\u20b12,310.00', items: [
+        { name: 'Barako Medium Roast', unitPrice: '\u20b1260.00 / pack', qty: '2', line: '\u20b1520.00' },
+        { name: 'Liberica Green Beans', unitPrice: '\u20b1320.00 / kg', qty: '1.5 kg', line: '\u20b1480.00' },
+        { name: 'Excelsa Green Beans', unitPrice: '\u20b1340.00 / kg', qty: '3 kg', line: '\u20b11,020.00' } ] },
+      { no: 'KK-20261119-0004', date: 'Nov 19, 2026', status: 'out_for_delivery', dest: HOME, pay: 'Cash on delivery', total: '\u20b11,050.00', items: [
+        { name: 'Arabica Light Roast', unitPrice: '\u20b1380.00 / pack', qty: '2', line: '\u20b1760.00' } ] },
+      { no: 'KK-20261118-0010', date: 'Nov 18, 2026', status: 'ready_for_pickup', dest: PICK, pay: 'Cash on pickup', total: '\u20b1420.00', items: [
+        { name: 'Robusta Dark Roast', unitPrice: '\u20b1210.00 / pack', qty: '2', line: '\u20b1420.00' } ] },
+      { no: 'KK-20261117-0012', date: 'Nov 17, 2026', status: 'processing', dest: WORK, pay: 'Maya', total: '\u20b1680.00', items: [
+        { name: 'Robusta Dark Roast', unitPrice: '\u20b1210.00 / pack', qty: '3', line: '\u20b1630.00' } ] },
+      { no: 'KK-20261115-0003', date: 'Nov 15, 2026', status: 'reserved', dest: HOME, pay: 'GCash', total: '\u20b1850.00', items: [
+        { name: 'Robusta Green Beans', unitPrice: '\u20b1280.00 / kg', qty: '2 kg', line: '\u20b1560.00' } ] },
+      { no: 'KK-20261108-0009', date: 'Nov 8, 2026', status: 'sold', dest: WORK, pay: 'Cash on delivery', total: '\u20b1830.00', items: [
+        { name: 'Barako Medium Roast', unitPrice: '\u20b1260.00 / pack', qty: '3', line: '\u20b1780.00' } ] },
+      { no: 'KK-20261104-0002', date: 'Nov 4, 2026', status: 'expired', dest: HOME, pay: 'GCash', total: '\u20b1770.00', refund: true, refundLabel: 'Refund pending', items: [
+        { name: 'Excelsa Ground', unitPrice: '\u20b1240.00 / pack', qty: '2', line: '\u20b1480.00' } ] },
+      { no: 'KK-20261101-0006', date: 'Nov 1, 2026', status: 'rejected', dest: PICK, pay: 'Maya', total: '\u20b1360.00', refund: true, refundLabel: 'Refunded \u00b7 Ref 7023118842', items: [
+        { name: 'Arabica Ground', unitPrice: '\u20b1360.00 / pack', qty: '1', line: '\u20b1360.00' } ] },
+      { no: 'KK-20261028-0011', date: 'Oct 28, 2026', status: 'cancelled', dest: HOME, pay: 'Cash on delivery', total: '\u20b1710.00', items: [
+        { name: 'Robusta Dark Roast', unitPrice: '\u20b1210.00 / pack', qty: '2', line: '\u20b1420.00' } ] }
+    ];
+    const counts = { all: 15, pending: 2, reserved: 1, processing: 1, out_for_delivery: 1, ready_for_pickup: 1, sold: 6, cancelled: 1, rejected: 1, expired: 1 };
+    const GROUPS = [
+      { key: 'all', label: 'All orders', hint: 'Every order you\u2019ve placed', statuses: null, icon: 'M8 6h13 M8 12h13 M8 18h13 M3 6h.01 M3 12h.01 M3 18h.01' },
+      { key: 'to_confirm', label: 'To confirm', hint: 'Waiting for Kaluppa', statuses: ['pending'], icon: 'M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20 M12 6v6l4 2' },
+      { key: 'preparing', label: 'Preparing', hint: 'Confirmed and being packed', statuses: ['reserved', 'processing'], icon: 'm7.5 4.27 9 5.15 M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z m3.3 7 8.7 5 8.7-5 M12 22V12' },
+      { key: 'on_the_way', label: 'On the way', hint: 'Out for delivery or ready to pick up', statuses: ['out_for_delivery', 'ready_for_pickup'], icon: 'M10 17h4V5H2v12h3 M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5 M14 17h1 M7.5 15a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5 M17.5 15a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5' },
+      { key: 'completed', label: 'Completed', hint: 'Delivered or picked up', statuses: ['sold'], icon: 'M22 11.08V12a10 10 0 1 1-5.93-9.14 M22 4 12 14.01l-3-3' },
+      { key: 'closed', label: 'Closed', hint: 'Cancelled, rejected or expired', statuses: ['cancelled', 'rejected', 'expired'], icon: 'M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20 M15 9l-6 6 M9 9l6 6' }
+    ];
+    const { group, sub } = this.state;
+    const G = GROUPS.find((g) => g.key === group) || GROUPS[0];
+    const sum = (list) => (list ? list.reduce((n, k) => n + counts[k], 0) : counts.all);
+    const allowed = sub !== 'all' ? [sub] : G.statuses;
+    const orders = all.filter((o) => !allowed || allowed.includes(o.status)).map((o) => ({ ...o, refund: !!o.refund, statusLabel: S[o.status].label, bg: S[o.status].bg, fg: S[o.status].fg, dot: S[o.status].dot }));
+    const hasSubs = !!(G.statuses && G.statuses.length > 1);
+    return {
+      groups: GROUPS.map((g) => {
+        const on = g.key === G.key;
+        return {
+          ...g,
+          count: sum(g.statuses),
+          on,
+          pick: () => this.setState({ group: g.key, sub: 'all' }),
+          border: on ? '2px solid #7B4A2A' : '1px solid #E7DCCD',
+          bg: on ? '#FBF6F0' : '#FFFFFF',
+          shadow: on ? '0 14px 32px -24px rgba(43,26,18,.45)' : 'none',
+          iconBg: on ? '#7B4A2A' : '#F7EFE4',
+          iconFg: on ? '#FFFFFF' : '#7B4A2A',
+          countFg: on ? '#7B4A2A' : '#2B1A12'
+        };
+      }),
+      hasSubs,
+      subs: hasSubs ? [{ k: 'all', label: 'All', count: sum(G.statuses) }].concat(G.statuses.map((k) => ({ k, label: S[k].label, count: counts[k], dot: S[k].dot }))).map((c) => {
+        const on = sub === c.k;
+        return { ...c, on, hasDot: c.k !== 'all', pick: () => this.setState({ sub: c.k }), bg: on ? '#2B1A12' : '#FFFFFF', fg: on ? '#FFFFFF' : '#2B1A12', border: on ? '#2B1A12' : '#DCCBB5' };
+      }) : [],
+      orders,
+      empty: orders.length === 0,
+      more: G.key === 'all'
+    };
+  }
+}
+</script>
+</body>
+</html>

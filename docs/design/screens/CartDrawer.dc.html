@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Cart</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+button:focus-visible,a:focus-visible{outline:2px solid #7B4A2A;outline-offset:2px}
+</style>
+</helmet>
+<div style="position: relative; width: 1440px; height: 900px; overflow: hidden; background: #FFFFFF">
+  <!-- page behind -->
+  <div aria-hidden="true">
+    <dc-import name="Navbar" variant="buyer" active="products" cart-count="3" hint-size="100%,64px"></dc-import>
+    <div style="max-width: 1280px; margin: 0 auto; padding: 32px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px">
+      <div style="grid-column: span 4; height: 120px; background: #F7EFE4; border-radius: 8px"></div>
+      <div style="height: 360px; border: 1px solid #E7DCCD; border-radius: 8px"></div>
+      <div style="height: 360px; border: 1px solid #E7DCCD; border-radius: 8px"></div>
+      <div style="height: 360px; border: 1px solid #E7DCCD; border-radius: 8px"></div>
+      <div style="height: 360px; border: 1px solid #E7DCCD; border-radius: 8px"></div>
+    </div>
+  </div>
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(43,26,18,0.45)"></div>
+
+  <!-- drawer -->
+  <aside role="dialog" aria-modal="true" aria-labelledby="cart-title" style="position: absolute; top: 0; right: 0; bottom: 0; width: 460px; background: #FFFFFF; border-left: 1px solid #E7DCCD; box-shadow: -24px 0 48px -24px rgba(43,26,18,0.4); display: flex; flex-direction: column">
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid #E7DCCD">
+      <div>
+        <span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">{{ countLabel }}</span>
+        <h2 id="cart-title" style="margin: 2px 0 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em">Your cart</h2>
+      </div>
+      <a href="ProductDetail.dc.html" aria-label="Close cart" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 5px; color: #4A3A30">
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+      </a>
+    </div>
+
+    <ul style="list-style: none; margin: 0; padding: 8px 24px; flex: 1; overflow-y: auto">
+      <sc-for list="{{ items }}" as="it" hint-placeholder-count="3">
+        <li style="padding: 18px 0; border-bottom: 1px solid #EFE6DA">
+          <div style="display: flex; gap: 14px">
+            <span aria-hidden="true" style="width: 72px; height: 72px; flex-shrink: 0; border-radius: 6px; background: #EADCCB; display: grid; place-items: center">
+              <svg viewBox="0 0 120 80" fill="none" stroke="#A07E62" stroke-width="2" style="width: 60%; opacity: 0.7"><ellipse cx="38" cy="40" rx="14" ry="20" transform="rotate(30 38 40)"></ellipse><ellipse cx="80" cy="36" rx="14" ry="20" transform="rotate(-25 80 36)"></ellipse></svg>
+            </span>
+            <div style="flex: 1; min-width: 0">
+              <div style="display: flex; justify-content: space-between; gap: 8px">
+                <span style="font-size: 14.5px; font-weight: 600; line-height: 1.3">{{ it.name }}</span>
+                <button type="button" aria-label="Remove {{ it.name }}" style="width: 36px; height: 36px; flex-shrink: 0; margin: -8px -8px 0 0; border: 0; background: transparent; color: #7A6A5E; cursor: pointer; display: grid; place-items: center; border-radius: 5px">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                </button>
+              </div>
+              <span style="display: block; margin-top: 2px; font-size: 12px; color: #6B5A4E">{{ it.meta }}</span>
+              <span style="display: block; margin-top: 2px; font-size: 12.5px; color: #4A3A30">{{ it.unitPrice }} / {{ it.unit }}</span>
+              <div style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between">
+                <div role="group" aria-label="Quantity for {{ it.name }}" style="display: inline-flex; align-items: center; border: 1px solid #DCCBB5; border-radius: 5px; overflow: hidden">
+                  <button type="button" aria-label="Decrease" onClick="{{ it.dec }}" style="width: 36px; height: 36px; border: 0; background: #FFFFFF; cursor: pointer; display: grid; place-items: center; color: #2B1A12"><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+                  <output style="min-width: 52px; text-align: center; font-size: 13.5px; font-weight: 600; line-height: 36px; border-left: 1px solid #E7DCCD; border-right: 1px solid #E7DCCD">{{ it.qtyLabel }}</output>
+                  <button type="button" aria-label="Increase" onClick="{{ it.inc }}" style="width: 36px; height: 36px; border: 0; background: #FFFFFF; cursor: pointer; display: grid; place-items: center; color: #2B1A12"><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button>
+                </div>
+                <span style="font-size: 15px; font-weight: 600">{{ it.line }}</span>
+              </div>
+              <sc-if value="{{ it.over }}" hint-placeholder-val="{{ false }}">
+                <p role="alert" style="margin: 10px 0 0; display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; color: #7A4A10; background: #FBF3E3; border: 1px solid #EBD3A6; border-radius: 5px; padding: 8px 10px">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+                  Only {{ it.stock }} kg left. Lower the quantity to check out.
+                </p>
+              </sc-if>
+            </div>
+          </div>
+        </li>
+      </sc-for>
+    </ul>
+
+    <div style="border-top: 1px solid #E7DCCD; padding: 20px 24px 24px; background: #FFFFFF">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <span style="font-size: 14px; color: #4A3A30">Subtotal</span>
+        <span style="font-size: 22px; font-weight: 600">{{ subtotal }}</span>
+      </div>
+      <p style="margin: 6px 0 0; font-size: 12.5px; color: #6B5A4E">Choose delivery or pickup and how to pay (GCash, Maya or cash) at checkout.</p>
+      <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px">
+        <sc-if value="{{ canCheckout }}" hint-placeholder-val="{{ false }}">
+          <a href="Checkout.dc.html" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background: #7B4A2A; color: #FFFFFF; text-decoration: none; padding: 12px 16px; border-radius: 5px; font-size: 14px; font-weight: 600; min-height: 48px">Checkout
+            <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+          </a>
+        </sc-if>
+        <sc-if value="{{ blocked }}" hint-placeholder-val="{{ true }}">
+          <button type="button" disabled="{{ true }}" style="width: 100%; border: 0; background: #E3D6C6; color: #6E5A4A; padding: 12px 16px; border-radius: 5px; font: inherit; font-size: 14px; font-weight: 600; min-height: 48px">Checkout</button>
+        </sc-if>
+        <button type="button" style="width: 100%; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; padding: 12px 16px; border-radius: 5px; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; min-height: 48px">Clear cart</button>
+      </div>
+      <p style="margin: 10px 0 0; font-size: 11.5px; color: #7A6A5E; text-align: center">Removing items, clearing the cart and checking out each ask you to confirm first.</p>
+    </div>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { q: [2, 1.5, 4] }; }
+  renderVals() {
+    const base = [
+      { name: 'Barako Medium Roast', meta: 'Liberica · Roasted beans · 250 g', price: 26000, unit: 'pack', step: 1, min: 1, stock: 38 },
+      { name: 'Liberica Green Beans', meta: 'Liberica · Green beans', price: 32000, unit: 'kg', step: 0.5, min: 0.5, stock: 64 },
+      { name: 'Excelsa Green Beans', meta: 'Excelsa · Green beans', price: 34000, unit: 'kg', step: 0.5, min: 0.5, stock: 3 }
+    ];
+    const peso = (c) => '₱' + (c / 100).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const q = this.state.q;
+    const set = (i, v) => { const n = q.slice(); n[i] = v; this.setState({ q: n }); };
+    let subtotal = 0; let anyOver = false;
+    const items = base.map((b, i) => {
+      const qty = q[i];
+      const line = Math.round(b.price * qty);
+      subtotal += line;
+      const over = qty > b.stock; if (over) anyOver = true;
+      return {
+        ...b,
+        unitPrice: peso(b.price),
+        qtyLabel: b.unit === 'kg' ? qty + ' kg' : String(qty),
+        line: peso(line),
+        over,
+        dec: () => set(i, Math.max(b.min, +(qty - b.step).toFixed(1))),
+        inc: () => set(i, +(qty + b.step).toFixed(1))
+      };
+    });
+    return { items, subtotal: peso(subtotal), canCheckout: !anyOver, blocked: anyOver, countLabel: items.length + ' items' };
+  }
+}
+</script>
+</body>
+</html>

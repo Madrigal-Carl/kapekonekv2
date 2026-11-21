@@ -1,0 +1,44 @@
+{
+  "name": "kapekonek-backend",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "migrate:fresh": "node src/database/commands/migrateFresh.js",
+    "db:seed": "node src/database/commands/dbSeed.js"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^10.6.0",
+    "@getbrevo/brevo": "^6.2.0",
+    "@socket.io/redis-adapter": "^8.3.0",
+    "bcrypt": "^6.0.0",
+    "bullmq": "^6.7.8",
+    "cloudinary": "^2.11.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.10",
+    "express": "^5.3.0",
+    "helmet": "^8.3.0",
+    "ioredis": "^6.0.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.12.3",
+    "morgan": "^1.12.1",
+    "socket.io": "^4.8.4",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.15.0",
+    "globals": "^17.14.0",
+    "mongodb-memory-server": "^11.3.0",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.3.2",
+    "vitest": "^5.1.1"
+  }
+}

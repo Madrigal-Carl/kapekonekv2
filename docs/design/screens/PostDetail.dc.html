@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Post</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+button:focus-visible,a:focus-visible{outline:2px solid #7B4A2A;outline-offset:2px}
+.kk-thumb:hover{border-color:#B8946F !important}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 100vh; background: #F5F0EA">
+  <dc-import name="Navbar" variant="guest" active="none" hint-size="100%,64px"></dc-import>
+
+  <div style="max-width: 800px; margin: 0 auto; padding: 28px 24px 0">
+    <nav aria-label="Breadcrumb" style="font-size: 12.5px; color: #6B5A4E"><a href="Main.dc.html" style="color: #6B5A4E; text-decoration: none">Home</a><span aria-hidden="true" style="margin: 0 8px">/</span><span style="color: #2B1A12">Post</span></nav>
+  </div>
+
+  <main style="max-width: 800px; margin: 0 auto; padding: 16px 24px 80px; display: flex; flex-direction: column; gap: 20px">
+
+    <!-- POST -->
+    <article aria-labelledby="post-author" style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; overflow: hidden">
+      <header style="display: flex; align-items: center; gap: 12px; padding: 18px 20px">
+        <span style="width: 48px; height: 48px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: #7B4A2A; color: #FFFFFF; font-size: 15px; font-weight: 600">KP</span>
+        <div style="flex: 1; min-width: 0">
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+            <span id="post-author" style="font-size: 15.5px; font-weight: 600">Kaluppa</span>
+            <span style="font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; background: #2B1A12; color: #F7EFE4; padding: 2px 8px; border-radius: 999px; font-weight: 600">Kaluppa</span>
+          </div>
+          <span style="font-size: 12.5px; color: #6B5A4E"><time datetime="2026-11-21T09:05">Nov 21, 2026 · 9:05 AM</time> · 2 hours ago</span>
+        </div>
+      </header>
+
+      <div style="padding: 0 20px 18px; font-size: 15px; line-height: 1.7; color: #2B1A12">
+        <p style="margin: 0">Fresh Liberica roasts are in! This batch came from three farmer groups in Mogpog and Santa Cruz, roasted medium for that classic barako body.</p>
+        <p style="margin: 12px 0 0">Orders for this batch are open until stock runs out, with delivery anywhere in Marinduque. Thank you to everyone who sorted and dried these cherries.</p>
+      </div>
+
+      <!-- MEDIA VIEWER -->
+      <section aria-label="Photos and videos" style="border-top: 1px solid #EFE6DA; border-bottom: 1px solid #EFE6DA; background: #1E130D">
+        <div style="position: relative; aspect-ratio: 16 / 10; display: flex; align-items: center; justify-content: center; background: {{ current.bg }}">
+          <sc-if value="{{ current.isImage }}" hint-placeholder-val="{{ true }}">
+            <svg aria-hidden="true" viewBox="0 0 120 80" fill="none" stroke="#A07E62" stroke-width="1.2" style="width: 32%; opacity: 0.6"><ellipse cx="38" cy="40" rx="14" ry="20" transform="rotate(30 38 40)"></ellipse><path d="M31 25c6 6 1 13 7 18s4 7 7 8"></path><ellipse cx="80" cy="36" rx="14" ry="20" transform="rotate(-25 80 36)"></ellipse><path d="M85 20c-5 6 0 12-5 17s-3 8-6 9"></path></svg>
+          </sc-if>
+          <sc-if value="{{ current.isVideo }}" hint-placeholder-val="{{ false }}">
+            <button type="button" aria-label="Play video: {{ current.label }}" style="width: 72px; height: 72px; border-radius: 999px; border: 0; background: rgba(255,255,255,0.92); color: #2B1A12; display: grid; place-items: center; cursor: pointer; box-shadow: 0 12px 30px -12px rgba(0,0,0,0.6)">
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z"></path></svg>
+            </button>
+            <div style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 100%); color: #FFFFFF; font-size: 12.5px">
+              <span>0:00</span>
+              <span aria-hidden="true" style="flex: 1; height: 4px; border-radius: 999px; background: rgba(255,255,255,0.35)"><span style="display: block; width: 0%; height: 100%; background: #C8913A; border-radius: 999px"></span></span>
+              <span>{{ current.duration }}</span>
+            </div>
+          </sc-if>
+          <span aria-live="polite" style="position: absolute; right: 12px; top: 12px; font-size: 12px; color: #FFFFFF; background: rgba(0,0,0,0.5); padding: 3px 9px; border-radius: 999px">{{ counter }}</span>
+          <button type="button" aria-label="Previous photo or video" onClick="{{ prev }}" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 999px; border: 0; background: rgba(255,255,255,0.9); color: #2B1A12; display: grid; place-items: center; cursor: pointer">
+            <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+          </button>
+          <button type="button" aria-label="Next photo or video" onClick="{{ next }}" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 999px; border: 0; background: rgba(255,255,255,0.9); color: #2B1A12; display: grid; place-items: center; cursor: pointer">
+            <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+          </button>
+        </div>
+        <div role="group" aria-label="All photos and videos" style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; padding: 10px; background: #FFFFFF">
+          <sc-for list="{{ media }}" as="m" hint-placeholder-count="6">
+            <button class="kk-thumb" type="button" aria-label="Show {{ m.kind }}: {{ m.label }}" aria-pressed="{{ m.on }}" onClick="{{ m.pick }}" style="position: relative; aspect-ratio: 1 / 1; border-radius: 6px; border: 2px solid {{ m.border }}; background: {{ m.bg }}; cursor: pointer; padding: 0; display: grid; place-items: center; overflow: hidden">
+              <sc-if value="{{ m.isVideo }}" hint-placeholder-val="{{ false }}">
+                <span aria-hidden="true" style="width: 28px; height: 28px; border-radius: 999px; background: rgba(255,255,255,0.92); color: #2B1A12; display: grid; place-items: center"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z"></path></svg></span>
+                <span aria-hidden="true" style="position: absolute; right: 4px; bottom: 4px; font-size: 10px; color: #FFFFFF; background: rgba(0,0,0,0.55); padding: 1px 5px; border-radius: 4px">{{ m.duration }}</span>
+              </sc-if>
+              <sc-if value="{{ m.isImage }}" hint-placeholder-val="{{ true }}">
+                <span aria-hidden="true" style="font-size: 11px; font-weight: 600; color: #8B6A4F">{{ m.n }}</span>
+              </sc-if>
+            </button>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- REACTION SUMMARY -->
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <span aria-hidden="true" style="display: inline-flex">
+            <span style="width: 24px; height: 24px; display: grid; place-items: center; border-radius: 999px; background: #7B4A2A; color: #FFFFFF; border: 2px solid #FFFFFF"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M7 10v11H3V10h4Zm2 11V10l4.5-8a2.3 2.3 0 0 1 3.1 2.6L15.6 9H20a2 2 0 0 1 2 2.3l-1.4 8A2 2 0 0 1 18.6 21H9Z"></path></svg></span>
+            <span style="width: 24px; height: 24px; margin-left: -6px; display: grid; place-items: center; border-radius: 999px; background: #C62828; color: #FFFFFF; border: 2px solid #FFFFFF"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.1 3.3 4 7.2 4c2 0 3.6 1.1 4.8 2.8C13.2 5.1 14.8 4 16.8 4c3.9 0 6.3 4.1 4.8 7.7C19.5 16.4 12 21 12 21Z"></path></svg></span>
+            <span style="width: 24px; height: 24px; margin-left: -6px; display: grid; place-items: center; border-radius: 999px; background: #C8913A; color: #2B1A12; border: 2px solid #FFFFFF"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></span>
+          </span>
+          <button type="button" onClick="{{ toggleReacts }}" aria-expanded="{{ showReacts }}" style="border: 0; background: transparent; padding: 6px 0; font: inherit; font-size: 13.5px; color: #4A3A30; cursor: pointer">24 reactions</button>
+        </div>
+        <span style="font-size: 13.5px; color: #4A3A30">8 comments</span>
+      </div>
+      <sc-if value="{{ showReacts }}" hint-placeholder-val="{{ false }}">
+        <ul aria-label="Reaction breakdown" style="list-style: none; margin: 0; padding: 0 20px 14px; display: flex; flex-wrap: wrap; gap: 8px">
+          <li style="font-size: 13px; background: #F5F0EA; border: 1px solid #E7DCCD; border-radius: 999px; padding: 5px 12px"><strong>15</strong> Like</li>
+          <li style="font-size: 13px; background: #F5F0EA; border: 1px solid #E7DCCD; border-radius: 999px; padding: 5px 12px"><strong>7</strong> Love</li>
+          <li style="font-size: 13px; background: #F5F0EA; border: 1px solid #E7DCCD; border-radius: 999px; padding: 5px 12px"><strong>2</strong> Celebrate</li>
+        </ul>
+      </sc-if>
+
+      <!-- READ-ONLY NOTICE in place of react/comment actions -->
+      <div role="note" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin: 0 20px 18px; padding: 12px 14px; border-radius: 6px; background: #F7EFE4; border: 1px solid #EADBC4">
+        <span style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #4A3A30">
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#7B4A2A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          You're viewing this post. Reacting and commenting are open to KapeKonek farmers, Group Managers and Kaluppa.
+        </span>
+      </div>
+    </article>
+
+    <!-- COMMENTS -->
+    <section aria-labelledby="comments-title" style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; padding: 18px 20px 20px">
+      <h2 id="comments-title" style="margin: 0; font-size: 16px; font-weight: 600">Comments <span style="font-weight: 400; color: #6B5A4E">· 8</span></h2>
+      <ol style="list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 18px">
+        <sc-for list="{{ comments }}" as="c" hint-placeholder-count="3">
+          <li>
+            <div style="display: flex; gap: 10px">
+              <span style="width: 36px; height: 36px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: {{ c.bg }}; color: #FFFFFF; font-size: 12px; font-weight: 600">{{ c.initials }}</span>
+              <div style="min-width: 0; flex: 1">
+                <div style="display: inline-block; max-width: 100%; background: #F5F0EA; border-radius: 4px 14px 14px 14px; padding: 10px 14px">
+                  <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px"><span style="font-size: 13.5px; font-weight: 600">{{ c.name }}</span><span style="font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; background: #F3E3C7; color: #7A4A10; padding: 1px 7px; border-radius: 999px; font-weight: 600">{{ c.role }}</span></div>
+                  <p style="margin: 4px 0 0; font-size: 14px; line-height: 1.6; color: #2B1A12">{{ c.text }}</p>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin: 6px 0 0 4px; font-size: 12px; color: #6B5A4E">
+                  <span>{{ c.time }}</span>
+                  <sc-if value="{{ c.hasReacts }}" hint-placeholder-val="{{ true }}"><span style="display: inline-flex; align-items: center; gap: 4px"><svg aria-hidden="true" viewBox="0 0 24 24" width="12" height="12" fill="#C62828"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.1 3.3 4 7.2 4c2 0 3.6 1.1 4.8 2.8C13.2 5.1 14.8 4 16.8 4c3.9 0 6.3 4.1 4.8 7.7C19.5 16.4 12 21 12 21Z"></path></svg>{{ c.reacts }}</span></sc-if>
+                  <sc-if value="{{ c.hasReplies }}" hint-placeholder-val="{{ true }}">
+                    <button type="button" onClick="{{ c.toggle }}" aria-expanded="{{ c.open }}" style="border: 0; background: transparent; padding: 4px 0; font: inherit; font-size: 12.5px; font-weight: 600; color: #7B4A2A; cursor: pointer">{{ c.toggleLabel }}</button>
+                  </sc-if>
+                </div>
+
+                <sc-if value="{{ c.open }}" hint-placeholder-val="{{ false }}">
+                  <ol style="list-style: none; margin: 12px 0 0; padding: 0 0 0 14px; border-left: 2px solid #EFE6DA; display: flex; flex-direction: column; gap: 12px">
+                    <sc-for list="{{ c.replies }}" as="r" hint-placeholder-count="2">
+                      <li style="display: flex; gap: 10px">
+                        <span style="width: 30px; height: 30px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: {{ r.bg }}; color: #FFFFFF; font-size: 11px; font-weight: 600">{{ r.initials }}</span>
+                        <div style="min-width: 0; flex: 1">
+                          <div style="display: inline-block; max-width: 100%; background: #F5F0EA; border-radius: 4px 14px 14px 14px; padding: 9px 13px">
+                            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px"><span style="font-size: 13px; font-weight: 600">{{ r.name }}</span><span style="font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; background: {{ r.roleBg }}; color: {{ r.roleFg }}; padding: 1px 7px; border-radius: 999px; font-weight: 600">{{ r.role }}</span></div>
+                            <p style="margin: 3px 0 0; font-size: 13.5px; line-height: 1.6">{{ r.text }}</p>
+                          </div>
+                          <span style="display: block; margin: 5px 0 0 4px; font-size: 12px; color: #6B5A4E">{{ r.time }}</span>
+                        </div>
+                      </li>
+                    </sc-for>
+                  </ol>
+                </sc-if>
+              </div>
+            </div>
+          </li>
+        </sc-for>
+      </ol>
+      <div style="margin-top: 20px; display: flex; flex-direction: column; align-items: center; gap: 6px">
+        <button type="button" style="border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; padding: 10px 20px; border-radius: 5px; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; min-height: 44px">Load more comments</button>
+        <span style="font-size: 12.5px; color: #6B5A4E">Showing 3 of 5 comments</span>
+      </div>
+    </section>
+
+    <a href="Main.dc.html" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; text-decoration: none">← Back to home</a>
+  </main>
+
+  <dc-import name="Footer" hint-size="100%,300px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2500}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { i: 0, open: { 0: true }, showReacts: false }; }
+  renderVals() {
+    const list = [
+      { type: 'image', label: 'Roasting batch' },
+      { type: 'image', label: 'Beans on the cooling tray' },
+      { type: 'video', label: 'Roaster in action', duration: '0:42' },
+      { type: 'image', label: 'Packing 250 g bags' },
+      { type: 'image', label: 'Finished packs' },
+      { type: 'image', label: 'Cupping table' }
+    ];
+    const { i, open, showReacts } = this.state;
+    const bgFor = (t) => (t === 'video' ? '#3A2419' : '#EADCCB');
+    const cur = list[i];
+    const R = {
+      Farmer: ['#F3E3C7', '#7A4A10'], 'Group Manager': ['#E3EEF8', '#1F4E79'],
+      Kaluppa: ['#2B1A12', '#F7EFE4']
+    };
+    const reply = (r) => ({ ...r, roleBg: R[r.role][0], roleFg: R[r.role][1] });
+    const comments = [
+      { initials: 'RM', bg: '#8A5A12', name: 'Rodel M.', role: 'Farmer', time: '1 hour ago', reacts: 5, text: 'Our group’s Liberica went into this batch! Salamat, Kaluppa.', replies: [
+        { initials: 'KP', bg: '#7B4A2A', name: 'Kaluppa', role: 'Kaluppa', time: '58 minutes ago', text: 'Thank you to your group, Rodel. The cherries were beautifully sorted.' },
+        { initials: 'LR', bg: '#2F6690', name: 'Liza R.', role: 'Group Manager', time: '40 minutes ago', text: 'Proud of the team. More drying next week.' } ] },
+      { initials: 'JB', bg: '#2F6690', name: 'Joel B.', role: 'Group Manager', time: '50 minutes ago', reacts: 2, text: 'Our Torrijos group can deliver more cherries next week.', replies: [
+        { initials: 'KP', bg: '#7B4A2A', name: 'Kaluppa', role: 'Kaluppa', time: '45 minutes ago', text: 'Thanks, Joel! We\u2019ll schedule the pickup at your farm.' } ] },
+      { initials: 'AT', bg: '#8A5A12', name: 'Ana T.', role: 'Farmer', time: '20 minutes ago', reacts: 0, text: 'Will there be Excelsa in the next batch?', replies: [
+        { initials: 'KP', bg: '#7B4A2A', name: 'Kaluppa', role: 'Kaluppa', time: '12 minutes ago', text: 'Yes, Excelsa roasting is planned for early December.' } ] }
+    ].map((c, idx) => {
+      const isOpen = !!open[idx];
+      const n = c.replies.length;
+      return {
+        ...c,
+        replies: c.replies.map(reply),
+        hasReacts: c.reacts > 0,
+        hasReplies: n > 0,
+        open: isOpen,
+        toggleLabel: isOpen ? 'Hide replies' : 'View ' + n + (n === 1 ? ' reply' : ' replies'),
+        toggle: () => this.setState({ open: { ...this.state.open, [idx]: !isOpen } })
+      };
+    });
+    return {
+      current: { ...cur, isImage: cur.type === 'image', isVideo: cur.type === 'video', kind: cur.type === 'video' ? 'Video' : 'Photo', bg: bgFor(cur.type) },
+      counter: (i + 1) + ' / ' + list.length,
+      prev: () => this.setState({ i: (i - 1 + list.length) % list.length }),
+      next: () => this.setState({ i: (i + 1) % list.length }),
+      media: list.map((m, idx) => ({ ...m, n: idx + 1, kind: m.type === 'video' ? 'video' : 'photo', isImage: m.type === 'image', isVideo: m.type === 'video', on: idx === i, bg: bgFor(m.type), border: idx === i ? '#7B4A2A' : '#E7DCCD', pick: () => this.setState({ i: idx }) })),
+      showReacts,
+      toggleReacts: () => this.setState({ showReacts: !showReacts }),
+      comments
+    };
+  }
+}
+</script>
+</body>
+</html>

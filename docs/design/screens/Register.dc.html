@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Create account</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+.kk-f:focus{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
+@media (max-width:900px){.kk-auth-panel{display:none !important}}
+</style>
+</helmet>
+<main style="width: 100%; min-height: 100vh; display: flex; background: #FFFFFF">
+  <section class="kk-auth-panel" aria-hidden="true" style="position: relative; flex: 1 1 50%; min-height: 100vh; overflow: hidden; background: #3A2419; display: flex; flex-direction: column; justify-content: space-between; padding: 40px 48px">
+    <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(43,26,18,0.55) 0%, rgba(43,26,18,0.4) 45%, rgba(28,16,10,0.9) 100%)"></div>
+    <svg viewBox="0 0 400 200" preserveAspectRatio="none" fill="none" style="position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 240px; color: rgba(247,239,228,0.1)">
+      <path d="M-20 190 C 100 150, 260 230, 420 150" stroke="currentColor" stroke-width="1.5"></path>
+      <path d="M-20 166 C 100 126, 260 206, 420 126" stroke="currentColor" stroke-width="1.5"></path>
+      <path d="M-20 142 C 100 102, 260 182, 420 102" stroke="currentColor" stroke-width="1.5"></path>
+      <path d="M-20 118 C 100 78, 260 158, 420 78" stroke="currentColor" stroke-width="1.5"></path>
+    </svg>
+    <svg viewBox="0 0 120 320" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="position: absolute; right: -10px; bottom: 0; height: 300px; color: rgba(200,145,58,0.3)">
+      <path d="M60 318 C 58 250, 72 190, 60 120 C 54 80, 62 40, 68 6"></path>
+      <path d="M60 262 C 40 254, 24 236, 22 214 C 42 218, 58 236, 60 262Z"></path>
+      <path d="M62 222 C 82 214, 98 196, 100 174 C 80 178, 64 196, 62 222Z"></path>
+      <circle cx="70" cy="244" r="6"></circle><circle cx="80" cy="252" r="6"></circle><circle cx="48" cy="196" r="6"></circle>
+    </svg>
+    <span style="position: absolute; right: 20px; top: 20px; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(247,239,228,0.7); border: 1px dashed rgba(247,239,228,0.35); padding: 4px 8px; border-radius: 4px">Photo · farmer with coffee cherries</span>
+    <div style="position: relative; display: flex; align-items: center; gap: 10px">
+      <span style="width: 40px; height: 40px; display: grid; place-items: center; border-radius: 8px; background: rgba(247,239,228,0.9); color: #2B1A12"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="6.5" ry="9" transform="rotate(35 12 12)"></ellipse><path d="M8.8 5.6c3 3 .4 6.4 3.4 8.9s2.1 3.4 3.4 3.9"></path></svg></span>
+      <span style="font-size: 18px; font-weight: 600; color: #FFFFFF">KapeKonek</span>
+    </div>
+    <div style="position: relative; max-width: 460px">
+      <div style="display: inline-flex; align-items: center; gap: 10px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #EBC98F; font-weight: 500"><span style="width: 24px; height: 3px; border-radius: 999px; background: #C8913A"></span>Join KapeKonek</div>
+      <p style="margin: 16px 0 0; font-size: 32px; line-height: 1.18; letter-spacing: -0.02em; font-weight: 500; color: #FFFFFF">Buy Marinduque coffee, or sell your harvest to Kaluppa.</p>
+      <p style="margin: 14px 0 0; font-size: 14.5px; line-height: 1.65; color: rgba(255,255,255,0.78)">Only the basics now. You can finish your profile later.</p>
+    </div>
+  </section>
+
+  <section style="flex: 1 1 50%; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 48px 24px">
+    <div style="width: 100%; max-width: 480px">
+      <div style="display: inline-flex; align-items: center; gap: 10px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500"><span style="width: 24px; height: 3px; border-radius: 999px; background: #C8913A"></span>Create account</div>
+      <h1 style="margin: 12px 0 0; font-size: 28px; font-weight: 500; line-height: 1.15; letter-spacing: -0.02em">Create your account</h1>
+
+      <form style="margin-top: 24px; display: flex; flex-direction: column; gap: 18px">
+        <fieldset style="border: 0; margin: 0; padding: 0">
+          <legend style="font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500; padding: 0">I want to</legend>
+          <div style="margin-top: 8px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+            <sc-for list="{{ roles }}" as="r" hint-placeholder-count="2">
+              <label style="display: flex; gap: 10px; align-items: flex-start; padding: 14px; border-radius: 8px; border: {{ r.border }}; background: {{ r.bg }}; cursor: pointer">
+                <input type="radio" name="role" checked="{{ r.on }}" onChange="{{ r.pick }}" style="margin-top: 2px; width: 18px; height: 18px; accent-color: #7B4A2A">
+                <span><span style="display: block; font-size: 14.5px; font-weight: 600">{{ r.title }}</span><span style="display: block; margin-top: 2px; font-size: 12.5px; color: #6B5A4E; line-height: 1.45">{{ r.text }}</span></span>
+              </label>
+            </sc-for>
+          </div>
+        </fieldset>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px">
+          <div>
+            <label for="fn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">First name</label>
+            <input class="kk-f" id="fn" defaultValue="Juana" autocomplete="given-name" style="margin-top: 8px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 11px 12px; font: inherit; font-size: 14px">
+          </div>
+          <div>
+            <label for="mn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Middle <span style="text-transform: none; letter-spacing: 0; color: #7A6A5E">(optional)</span></label>
+            <input class="kk-f" id="mn" autocomplete="additional-name" style="margin-top: 8px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 11px 12px; font: inherit; font-size: 14px">
+          </div>
+          <div>
+            <label for="ln" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Last name</label>
+            <input class="kk-f" id="ln" defaultValue="Dela Cruz" autocomplete="family-name" style="margin-top: 8px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 11px 12px; font: inherit; font-size: 14px">
+          </div>
+        </div>
+
+        <div>
+          <label for="un" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Username</label>
+          <div style="position: relative; margin-top: 8px">
+            <span aria-hidden="true" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #7A6A5E; font-size: 14px">@</span>
+            <input class="kk-f" id="un" value="{{ username }}" onInput="{{ onUser }}" autocomplete="username" aria-describedby="un-status" style="width: 100%; border: 1px solid {{ unBorder }}; border-radius: 5px; padding: 11px 12px 11px 30px; font: inherit; font-size: 14px">
+          </div>
+          <p id="un-status" aria-live="polite" style="margin: 6px 0 0; display: flex; align-items: center; gap: 6px; font-size: 12px; color: {{ unColor }}; font-weight: 500">{{ unMsg }}</p>
+          <div style="margin-top: 8px; display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; overflow-x: auto; white-space: nowrap">
+            <span style="flex-shrink: 0; font-size: 12px; color: #6B5A4E">Suggestions:</span>
+            <sc-for list="{{ suggestions }}" as="s" hint-placeholder-count="3">
+              <button type="button" onClick="{{ s.pick }}" style="flex-shrink: 0; white-space: nowrap; border: 1px solid #DCCBB5; background: {{ s.bg }}; color: #2B1A12; border-radius: 999px; padding: 5px 11px; font: inherit; font-size: 12.5px; cursor: pointer; min-height: 32px">@{{ s.name }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div>
+          <label for="em" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Email</label>
+          <input class="kk-f" id="em" type="email" autocomplete="email" placeholder="you@example.com" style="margin-top: 8px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 11px 12px; font: inherit; font-size: 14px">
+        </div>
+
+        <div>
+          <label for="pw" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Password</label>
+          <div style="position: relative; margin-top: 8px">
+            <input class="kk-f" id="pw" type="{{ pwType }}" onInput="{{ onPw }}" autocomplete="new-password" aria-describedby="pw-rule" style="width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 11px 48px 11px 12px; font: inherit; font-size: 14px">
+            <button type="button" onClick="{{ toggle }}" aria-label="{{ eyeLabel }}" aria-pressed="{{ show }}" style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border: 0; background: transparent; color: #6B5A4E; display: grid; place-items: center; cursor: pointer">
+              <sc-if value="{{ show }}" hint-placeholder-val="{{ false }}"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.53 13.53 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" x2="22" y1="2" y2="22"></line></svg></sc-if>
+              <sc-if value="{{ hide }}" hint-placeholder-val="{{ true }}"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg></sc-if>
+            </button>
+          </div>
+          <p id="pw-rule" aria-live="polite" style="margin: 8px 0 0; display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: {{ ruleColor }}; font-weight: {{ ruleWeight }}">
+            <sc-if value="{{ ok }}" hint-placeholder-val="{{ false }}"><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></sc-if>
+            At least 8 characters with a letter, a number and a special character
+          </p>
+        </div>
+
+        <div>
+          <label for="cpw" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Confirm password</label>
+          <input class="kk-f" id="cpw" type="{{ pwType }}" autocomplete="new-password" style="margin-top: 8px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 11px 12px; font: inherit; font-size: 14px">
+        </div>
+
+        <a href="{{ next }}" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: #7B4A2A; color: #FFFFFF; text-decoration: none; padding: 13px; border-radius: 5px; font-size: 14.5px; font-weight: 600">Create account</a>
+      </form>
+      <p style="margin: 22px 0 0; padding-top: 18px; border-top: 1px solid #EFE6DA; font-size: 14px; color: #4A3A30; text-align: center">Already have an account? <a href="Login.dc.html" style="font-weight: 600; text-decoration: none">Sign in</a></p>
+    </div>
+  </section>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1150}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { role: 'buyer', username: 'juanadc', pw: '', show: false }; }
+  renderVals() {
+    const { role, username, pw, show } = this.state;
+    const taken = ['juana', 'juanadelacruz'];
+    const valid = /^[a-z0-9._]{3,30}$/.test(username);
+    const isTaken = taken.includes(username);
+    const ok = pw.length >= 8 && /[A-Za-z]/.test(pw) && /\d/.test(pw) && /[^A-Za-z0-9]/.test(pw);
+    const roleList = [
+      { key: 'buyer', title: 'Buy coffee', text: 'Order coffee for delivery or pickup.' },
+      { key: 'farmer', title: 'Sell as a farmer', text: 'Sell beans to Kaluppa. Dashboard access right away.' }
+    ];
+    return {
+      roles: roleList.map((r) => ({ ...r, on: role === r.key, pick: () => this.setState({ role: r.key }), border: role === r.key ? '2px solid #7B4A2A' : '1px solid #E7DCCD', bg: role === r.key ? '#FBF6F0' : '#FFFFFF' })),
+      username,
+      onUser: (e) => this.setState({ username: e.target.value.toLowerCase() }),
+      unMsg: !valid ? '3–30 characters: lowercase letters, numbers, dots or underscores' : (isTaken ? '@' + username + ' is taken. Try a suggestion.' : '@' + username + ' is available'),
+      unColor: !valid ? '#6B5A4E' : (isTaken ? '#9B2C24' : '#22633A'),
+      unBorder: !valid ? '#DCCBB5' : (isTaken ? '#C62828' : '#7FB892'),
+      suggestions: ['juanadc', 'juana.dc', 'jdelacruz'].map((name) => ({ name, bg: username === name ? '#F7EFE4' : '#FFFFFF', pick: () => this.setState({ username: name }) })),
+      ok,
+      ruleColor: ok ? '#22633A' : '#6B5A4E',
+      ruleWeight: ok ? '600' : '400',
+      onPw: (e) => this.setState({ pw: e.target.value }),
+      show,
+      hide: !show,
+      pwType: show ? 'text' : 'password',
+      eyeLabel: show ? 'Hide passwords' : 'Show passwords',
+      toggle: () => this.setState({ show: !show }),
+      next: role === 'buyer' ? 'VerifyEmail.dc.html' : 'Dashboard.dc.html'
+    };
+  }
+}
+</script>
+</body>
+</html>

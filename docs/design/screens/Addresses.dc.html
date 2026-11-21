@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Addresses</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+button:focus-visible,a:focus-visible{outline:2px solid #7B4A2A;outline-offset:2px}
+.kk-act:hover{background:#F7EFE4 !important}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 100vh; background: #F5F0EA">
+  <dc-import name="Navbar" variant="buyer" active="none" cart-count="3" hint-size="100%,64px"></dc-import>
+
+  <div style="max-width: 1080px; margin: 0 auto; padding: 36px 32px 0; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+    <div>
+      <div style="display: inline-flex; align-items: center; gap: 10px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500"><span style="width: 24px; height: 3px; border-radius: 999px; background: #C8913A"></span>Account</div>
+      <h1 style="margin: 10px 0 0; font-weight: 500; font-size: 36px; letter-spacing: -0.02em">Addresses</h1>
+      <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30">Where we deliver your orders. We deliver anywhere in Marinduque.</p>
+    </div>
+    <a href="AddressModal.dc.html" style="display: inline-flex; align-items: center; gap: 8px; background: #7B4A2A; color: #FFFFFF; text-decoration: none; padding: 12px 18px; border-radius: 5px; font-size: 14px; font-weight: 600; min-height: 44px">
+      <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>Add new address
+    </a>
+  </div>
+
+  <div style="max-width: 1080px; margin: 0 auto; padding: 24px 32px 80px">
+    <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px">
+      <sc-for list="{{ list }}" as="a" hint-placeholder-count="3">
+        <li style="background: #FFFFFF; border: {{ a.border }}; border-radius: 8px; overflow: hidden">
+          <div style="display: flex; flex-wrap: wrap; gap: 18px; padding: 18px 20px; align-items: flex-start">
+            <span style="width: 44px; height: 44px; flex-shrink: 0; display: grid; place-items: center; border-radius: 8px; background: #F7EFE4; color: #7B4A2A">
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ a.icon }}"></path></svg>
+            </span>
+            <div style="flex: 1 1 360px; min-width: 0">
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+                <span style="font-size: 15px; font-weight: 600">{{ a.label }}</span>
+                <sc-if value="{{ a.isDefault }}" hint-placeholder-val="{{ false }}"><span style="font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; background: #7B4A2A; color: #FFFFFF; padding: 2px 7px; border-radius: 4px">Default</span></sc-if>
+              </div>
+              <p style="margin: 6px 0 0; font-size: 14px"><strong style="font-weight: 600">{{ a.name }}</strong><span style="color: #6B5A4E"> · {{ a.phone }}</span></p>
+              <p style="margin: 2px 0 0; font-size: 13.5px; line-height: 1.55; color: #4A3A30">{{ a.street }}</p>
+              <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #4A3A30">{{ a.area }}</p>
+              <p style="margin: 8px 0 0; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: {{ a.pinColor }}">
+                <svg aria-hidden="true" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>{{ a.pinText }}
+              </p>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center">
+              <a class="kk-act" href="AddressModal.dc.html" style="padding: 8px 12px; border-radius: 5px; font-size: 13px; font-weight: 600; text-decoration: none; min-height: 40px; display: inline-flex; align-items: center">Edit</a>
+              <sc-if value="{{ a.canDefault }}" hint-placeholder-val="{{ true }}">
+                <button class="kk-act" type="button" onClick="{{ a.makeDefault }}" style="border: 0; background: transparent; padding: 8px 12px; border-radius: 5px; font: inherit; font-size: 13px; font-weight: 600; color: #7B4A2A; cursor: pointer; min-height: 40px">Set as default</button>
+              </sc-if>
+              <button class="kk-act" type="button" aria-label="Delete {{ a.label }} address" style="border: 0; background: transparent; padding: 8px 12px; border-radius: 5px; font: inherit; font-size: 13px; font-weight: 600; color: #9B2C24; cursor: pointer; min-height: 40px">Delete</button>
+            </div>
+          </div>
+        </li>
+      </sc-for>
+    </ul>
+    <p style="margin: 18px 0 0; font-size: 12.5px; color: #6B5A4E">You can save up to 10 addresses. Deleting asks you to confirm. The default address is pre-selected at checkout.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { def: 0 }; }
+  renderVals() {
+    const HOME = 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z';
+    const WORK = 'M3 7h18v13H3Z M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2 M3 12h18';
+    const OTHER = 'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z M12 7a3 3 0 1 0 0 6a3 3 0 1 0 0-6';
+    const data = [
+      { label: 'Home', icon: HOME, name: 'Juana Dela Cruz', phone: '0917 123 4567', street: 'Lot 12, Purok 3, near the chapel', area: 'Balanacan, Mogpog, Marinduque 4901', pinned: true },
+      { label: 'Work', icon: WORK, name: 'Juana Dela Cruz', phone: '0917 123 4567', street: 'Municipal Hall, ground floor', area: 'Banahaw Poblacion, Santa Cruz, Marinduque 4902', pinned: true },
+      { label: 'Mama’s house', icon: OTHER, name: 'Lourdes Dela Cruz', phone: '0998 765 4321', street: 'Blue gate beside the sari-sari store', area: 'Caganhao, Boac, Marinduque 4900', pinned: false }
+    ];
+    const def = this.state.def;
+    return {
+      list: data.map((a, i) => ({
+        ...a,
+        isDefault: def === i,
+        canDefault: def !== i,
+        makeDefault: () => this.setState({ def: i }),
+        border: def === i ? '2px solid #7B4A2A' : '1px solid #E7DCCD',
+        pinText: a.pinned ? 'Pinned on map' : 'No pin yet · add one for a more accurate delivery fee',
+        pinColor: a.pinned ? '#22633A' : '#7A4A10'
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

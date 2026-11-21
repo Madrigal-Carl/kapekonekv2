@@ -1,0 +1,259 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-11-21T10:26:22Z"
+  },
+  "title": "KapeKonek — Phase 1 Pages",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 5700,
+      "title": "Landing — guest",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Products.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 2800,
+      "title": "Products — infinite scroll",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "ProductDetail.dc.html": {
+      "x": 3040,
+      "y": 0,
+      "w": 1440,
+      "h": 2500,
+      "title": "Product detail + reviews",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "CartDrawer.dc.html": {
+      "x": 4560,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Cart drawer",
+      "is_interactive": true
+    },
+    "Checkout.dc.html": {
+      "x": 0,
+      "y": 6120,
+      "w": 1440,
+      "h": 2150,
+      "title": "Checkout — delivery or pickup, e-wallet or cash",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Orders.dc.html": {
+      "x": 1520,
+      "y": 6120,
+      "w": 1440,
+      "h": 2100,
+      "title": "My orders",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "OrderDetail.dc.html": {
+      "x": 3040,
+      "y": 6120,
+      "w": 1440,
+      "h": 1750,
+      "title": "Order detail — delivery, COD + chat with Kaluppa",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Profile.dc.html": {
+      "x": 4560,
+      "y": 6120,
+      "w": 1440,
+      "h": 1300,
+      "title": "Profile",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Settings.dc.html": {
+      "x": 6080,
+      "y": 6120,
+      "w": 1440,
+      "h": 1500,
+      "title": "Settings — security",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Login.dc.html": {
+      "x": 0,
+      "y": 8640,
+      "w": 1440,
+      "h": 900,
+      "title": "Sign in",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Register.dc.html": {
+      "x": 1520,
+      "y": 8640,
+      "w": 1440,
+      "h": 1150,
+      "title": "Sign up",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "ForgotPassword.dc.html": {
+      "x": 3040,
+      "y": 8640,
+      "w": 1440,
+      "h": 900,
+      "title": "Forgot password",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "ResetPassword.dc.html": {
+      "x": 4560,
+      "y": 8640,
+      "w": 1440,
+      "h": 900,
+      "title": "Reset password",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "VerifyEmail.dc.html": {
+      "x": 6080,
+      "y": 8640,
+      "w": 1440,
+      "h": 900,
+      "title": "Verify email",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Navbar.dc.html": {
+      "x": 0,
+      "y": 10210,
+      "w": 1440,
+      "h": 64,
+      "title": "Navbar (component)",
+      "is_interactive": true
+    },
+    "Footer.dc.html": {
+      "x": 1520,
+      "y": 10210,
+      "w": 1440,
+      "h": 340,
+      "title": "Footer (component)",
+      "is_interactive": true
+    },
+    "Modals.dc.html": {
+      "x": 3040,
+      "y": 10210,
+      "w": 1440,
+      "h": 1000,
+      "title": "Confirmation modals"
+    },
+    "Dashboard.dc.html": {
+      "x": 4560,
+      "y": 10210,
+      "w": 1440,
+      "h": 900,
+      "title": "Dashboard placeholder — other roles",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "PostDetail.dc.html": {
+      "x": 6080,
+      "y": 0,
+      "w": 1440,
+      "h": 2500,
+      "title": "Post detail — guests & buyers (view only)",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Addresses.dc.html": {
+      "x": 7600,
+      "y": 6120,
+      "w": 1440,
+      "h": 1100,
+      "title": "Addresses",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "AddressModal.dc.html": {
+      "x": 9120,
+      "y": 6120,
+      "w": 1440,
+      "h": 1000,
+      "title": "Add / edit address — map pin auto-fill",
+      "is_interactive": true
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Navbar.dc.html",
+    "Footer.dc.html",
+    "Products.dc.html",
+    "ProductDetail.dc.html",
+    "CartDrawer.dc.html",
+    "PostDetail.dc.html",
+    "Checkout.dc.html",
+    "Orders.dc.html",
+    "OrderDetail.dc.html",
+    "Profile.dc.html",
+    "Settings.dc.html",
+    "Addresses.dc.html",
+    "AddressModal.dc.html",
+    "Login.dc.html",
+    "Register.dc.html",
+    "ForgotPassword.dc.html",
+    "ResetPassword.dc.html",
+    "VerifyEmail.dc.html",
+    "Modals.dc.html",
+    "Dashboard.dc.html"
+  ],
+  "notes": {
+    "row1": {
+      "x": 0,
+      "y": -300,
+      "text": "Storefront — guests & buyers",
+      "kind": "title1",
+      "maxW": 7520
+    },
+    "row2": {
+      "x": 0,
+      "y": 5820,
+      "text": "Buying & account — verified buyers",
+      "kind": "title1",
+      "maxW": 10560
+    },
+    "row3": {
+      "x": 0,
+      "y": 8340,
+      "text": "Auth — split layout, forms swap on the right",
+      "kind": "title1",
+      "maxW": 7520
+    },
+    "row4": {
+      "x": 0,
+      "y": 9910,
+      "text": "Shared components & other roles",
+      "kind": "title1",
+      "maxW": 6000
+    },
+    "palette": {
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "fill": "orange",
+      "size": "m",
+      "text": "Look: AgriCentral's layout language in coffee tones.\n\nEspresso #2B1A12 — headings, dark bands\nRoast #7B4A2A — buttons, links, focus\nCaramel #C8913A — eyebrow bars, icon tiles (decor only)\nCrema #F7EFE4 — soft sections\nFoam #F5F0EA — app background\nSand #E7DCCD — borders\n\nType: Poppins. 5px controls, 8px cards, thin borders, long soft hover shadows.\n\nPhoto boxes are placeholders: the seeder fills them with real stock photos."
+    }
+  },
+  "designSystems": []
+}
