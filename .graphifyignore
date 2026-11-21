@@ -1,0 +1,4 @@
+# Vendored Claude Code skills, not project code
+.claude/
+# Static assets
+frontend/public/

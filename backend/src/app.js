@@ -1,14 +1,24 @@
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
+import morgan from 'morgan';
+import { env } from './config/env.js';
+import { errorHandler, notFound } from './middlewares/error.middleware.js';
+import routes from './routes/index.js';
 
 const app = express();
 
+app.set('trust proxy', 1); // Render sits behind one proxy: real client IPs for rate limits
 app.use(helmet());
-// shortcut: CORS/env/error middleware are wired in M1 (config/env.js); this is the M0 boot check only.
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }));
+app.use(cors({ origin: env.CLIENT_URL, credentials: true }));
 app.use(express.json({ limit: '100kb' }));
+app.use(cookieParser());
+if (env.NODE_ENV !== 'test') app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
-app.get('/api/health', (_req, res) => res.json({ success: true, data: { status: 'ok' } }));
+app.use('/api', routes);
+
+app.use(notFound);
+app.use(errorHandler);
 
 export default app;

@@ -389,3 +389,15 @@ No order chat (Change 01). Socket.IO carries only `notification:new` and `order:
 - `.env.example` in both apps with every PRODUCT-SPEC §12 variable.
 - Verified: `npm run dev` starts both; `/api/health` → `{"success":true,"data":{"status":"ok"}}`; page font is Poppins (all 4 weights load) and `--color-roast` = `#7B4A2A`; root lint + tests green.
 - Not run for M0: `migrate:fresh` (commands land in M2), graphify (nothing to graph yet), screen comparison (blank page only).
+
+### M1 — done (2026-11-21)
+
+- **Config**: `env.js` validates every variable with Zod at boot (blank = missing; lists every bad key); `db.js`; `valkey.js` factory `createValkeyConnection(name)` + shared `getValkey()` + `closeValkeyConnections()`; `cloudinary.js`; `mail.js` `sendMail()` with `brevo` / `log` (`storage/mail/*.json`).
+- **HTTP core**: `AppError` (code derived from status), `asyncHandler`, `sendSuccess`, shared `validate({ body, params, query })` (flat `errors` map, Express 5 `req.query` redefined), error middleware (AppError, Mongo 11000 → 409 with field, CastError → 404, bad JSON → 400, unknown → 500 without internals), 404 middleware; helmet, CORS (`CLIENT_URL`, credentials), 100 kb JSON limit, cookie-parser, morgan, `trust proxy`.
+- **Utils**: cursor pagination (`cursorFilter`, `cursorSort`, `pageResult`, `encodeCursor`/`decodeCursor`), `cookieOptions()` / `setAuthCookies` / `clearAuthCookies`, access/refresh tokens with `tv` (tokenVersion) and `rem`, `escapeHtml`, `withLock` (SET NX PX + compare-and-delete).
+- **Email**: BullMQ queue `email` (3 attempts, exponential backoff), worker with a handler map running inside the API, coffee HTML + text layout, `TEST` job.
+- **Realtime / jobs**: Socket.IO with the Valkey adapter and `realtime.toUser`; order-expiry scheduler (shell: the sweep is a no-op until Task 4.5) behind `lock:order-expiry`; `POST /api/cron/expire-orders` (`x-cron-secret`, constant-time); `GET /api/health` → Mongo + Valkey checks, 503 when degraded; graceful shutdown HTTP → Socket.IO → scheduler → worker → queue → Valkey → Mongo (10 s hard stop).
+- **Tests**: 44 backend tests (env, validate, errors, pagination on tied sorts, cookies/tokens, email queue + worker + escaping, lock + scheduler, cron, health). `tests/globalSetup.js` downloads mongod before tests (a first run from the repo root used to time out while downloading it).
+- **Verified against the real services**: Atlas Mongo + Aiven Valkey → `/api/health` `ok`; a queued `TEST` email went through Valkey and the worker into `storage/mail/`; SIGTERM shuts down cleanly (exit 0).
+- **Blocker for the user**: `backend/.env` has `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` and `CRON_SECRET` shorter than the minimums, so `npm run dev` refuses to start until they are regenerated. (The checks above ran with temporary secrets.)
+- Not run: Playwright (no pages changed), `migrate:fresh` (commands arrive in M2).

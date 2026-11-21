@@ -15,3 +15,8 @@ Each item was missing or contradictory in the docs. The choice is applied; chang
 | 9 | Token lifetimes for verify-email / reset-password links. | Verify 24 h, reset 60 min, both single-use (sha256 hash stored). |
 | 10 | Timezone for order-number dates and business-day ETAs (server runs UTC). | `Asia/Manila` for both. |
 | 11 | BUILD-GUIDE says wait for OK before M0; the first message said start M0. | Followed the message: plan, then M0, then stop for `.env`. |
+| 12 | `npm i ioredis` installed v6, but `ioredis-mock` (needed for Valkey unit tests) only supports v5. | Pinned `ioredis@^5.11` (bullmq 6 and `@socket.io/redis-adapter` accept ≥5; the reference app uses 5.x). `ioredis-mock` moved from M2 to M1. |
+| 13 | Minimum secret lengths are unspecified. | `env.js` requires `JWT_*_SECRET` ≥32 characters and `CRON_SECRET` ≥16; the app refuses to boot otherwise. |
+| 14 | Refresh-token JWT lifetime without "remember me" (the cookie is a session cookie). | 1 day, as in `_reference`; with remember me, 30 days. The choice rides in the token (`rem`). |
+| 15 | Health check response when a dependency is down. | `503` with `{ status: 'degraded', checks: { mongo, valkey } }`, so Render's health check sees it. |
+| 16 | `EMAIL_JOBS` lists every job in the plan, but only `TEST` has a template in M1. | Each job is added with its template in the milestone that needs it (VERIFY_EMAIL/RESET_PASSWORD in M2, …); `enqueueEmail` refuses unknown names. |
