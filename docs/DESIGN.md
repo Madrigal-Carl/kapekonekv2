@@ -36,7 +36,7 @@ Each file is a self-contained HTML page written for the design canvas. Read it a
   --color-espresso-2: #3A2419;    /* hero/auth panel base under the photo */
   --color-roast: #7B4A2A;         /* primary buttons, links, active states */
   --color-roast-hover: #653B20;
-  --color-caramel: #C8913A;       /* eyebrow bars, stars, decor (never body text on white) */
+  --color-caramel: #C8913A;       /* icon tiles, stars, decor (never body text on white) */
   --color-caramel-light: #EBC98F; /* caramel text on dark backgrounds */
   --color-caramel-tint: #F3E3C7;  /* icon tiles, role badges */
   --color-caramel-ink: #8A5A12;   /* category labels, small caramel text on white */
@@ -101,7 +101,7 @@ Put these in one `constants/orderStatus.js` map used by `StatusPill`, tabs and t
   - Section H2 38px / 1.12 / 500 / -0.02em → 28px
   - Page H1 36–40px / 500 → 28px
   - Card title 15.5px / 600 · Body 15–16px / 1.65 · Small 12.5–13.5px
-  - **Eyebrow**: 11px / 500 / uppercase / tracking 0.16em / `ink-3`, preceded by a 24×3px caramel bar (rounded)
+  - **Eyebrow**: 11px / 500 / uppercase / tracking 0.16em / `ink-3` (on dark: `caramel-light`). **Text only, with no bar, dash or line before it.**
   - **Field label**: 10.5px / 500 / uppercase / tracking 0.16em / `ink-2`
   - **Category label**: 10.5px / 600 / uppercase / tracking 0.14em / `caramel-ink`
 - **Containers**: storefront 1280px max, 32px side padding (20px mobile). Account pages 1080px. Post page 800px. Auth form 400px (sign-up 480px).
@@ -116,7 +116,7 @@ Put these in one `constants/orderStatus.js` map used by `StatusPill`, tabs and t
 |---|---|---|
 | `Navbar` (`guest` / `buyer`) | Navbar | Logo → role home. Products, How it works. Cart icon + count. Guest: Log in, Get started. Buyer: bell with unread count, avatar button → **dropdown** (name, @username, Profile, Orders, Addresses, Settings, Log out). Mobile menu button. |
 | `Footer` | Footer | Espresso background. Shop / Help / Legal columns, © line. |
-| `Eyebrow`, `SectionHeading` | all | Bar + uppercase label, then H2 + lead paragraph. |
+| `Eyebrow`, `SectionHeading` | all | Uppercase label (no bar), then H2 + lead paragraph. |
 | `Button` | all | `primary` (roast), `outline` (white + sand-strong), `danger`, `light` (crema on dark), `glass` (white/10 on dark), `caramel` (on dark), `link`. |
 | `Input`, `Label`, `FieldHint`, `Select`, `Textarea` | Login, Register, Settings, Profile, Checkout | |
 | `PasswordInput` + `PasswordRule` | Login, Register, ResetPassword, Settings | Eye toggle (aria-pressed). Rule line "At least 8 characters with a letter, a number and a special character" turns green with a check when valid. |
@@ -130,8 +130,7 @@ Put these in one `constants/orderStatus.js` map used by `StatusPill`, tabs and t
 | `StatusPill`, `RefundBadge` | Orders, OrderDetail | |
 | `OrderGroupTabs` + `StatusChips` | Orders | Six group cards (icon tile, count, label, hint): All orders, To confirm (pending), Preparing (reserved + processing), On the way (out for delivery + ready for pickup), Completed (sold), Closed (cancelled + rejected + expired). Active card: 2px roast border, highlight bg, roast icon tile. Groups with several statuses show status chips underneath (All · each status with its color dot); the active chip is espresso-filled. |
 | `OrderCard` | Orders | Header band (number, date, pills), item table, footer (destination line + payment chip, total, View details). |
-| `StatusTimeline` | OrderDetail | "Status history". Done steps roast, current step teal, upcoming grey. |
-| `OrderDetail` layout | OrderDetail | Full width, one column: status banner (rider name/phone when out for delivery), Items with totals, then the address/pickup and payment cards side by side (`repeat(auto-fit, minmax(260px, 1fr))`, gap 20px), then Status history. No chat. |
+| `StatusTimeline` | OrderDetail | Done steps roast, current step teal, upcoming grey. |
 | `AccountCard` | Profile, Settings, Addresses | Card with header band, body grid, footer band with actions. **No side menu** — account navigation lives in the avatar dropdown only. |
 | `AuthLayout` | Login, Register, ForgotPassword, ResetPassword, VerifyEmail | Split: left brand panel (photo + espresso gradient + contour lines, logo, eyebrow, tagline) hidden under 900px; right swaps forms via `<Outlet />`. |
 | `AddressCard` | Addresses, Checkout | Label, Default badge, recipient · phone, street, area, pin status; actions Edit / Set as default / Delete. In Checkout it's a radio card showing distance + fee. |
@@ -178,7 +177,7 @@ Put these in one `constants/orderStatus.js` map used by `StatusPill`, tabs and t
 - Addresses: set default, edit, delete (confirm), add (opens modal).
 - Address modal: click/drag pin → fields fill; municipality select drives barangay options and postal code; outside-area pin shows the error.
 - Orders: group cards filter the list; status chips narrow it inside a group; infinite scroll.
-- Order detail: status banner and timeline reflect history and update live on `order:updated`.
+- Order detail: full-width layout (no chat); the timeline and status banner update live on `order:updated`.
 - Register: role cards, username availability (green/red), 3 one-line suggestion chips, password rule.
 - Verify email: resend button with 60-second cooldown.
 - Navbar: avatar dropdown (click, Esc, outside-click to close), cart count, unread count.

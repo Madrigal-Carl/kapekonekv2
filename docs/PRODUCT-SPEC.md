@@ -66,7 +66,7 @@ All models use `timestamps: true`. Money is stored as integer centavos.
   - Indexes: `{buyer, createdAt}`, `{buyer, status, createdAt}`, `{status, createdAt}`.
 - **Counter**: `{_id, seq}`.
 - **Review**: `product`, `buyer`, `order`, `rating` 1–5, `comment` 10–1000, `editedAt?`. Unique `{product, buyer}`.
-- **Notification**: `user`, `type` (`order_status|system`), `title`, `body`, `link`, `data`, `readAt`.
+- **Notification**: `user`, `type` (`order_status|order_new|system`), `title`, `body`, `link`, `data`, `readAt`.
 - **Post**:
   - `author`, `body`.
   - `media[] {type:'image'|'video', url, publicId, width?, height?, durationSec?, posterUrl?}` (0–10 items).
@@ -104,7 +104,7 @@ All models use `timestamps: true`. Money is stored as integer centavos.
 | processing → **ready_for_pickup** | Kaluppa | Pickup orders only. |
 | out_for_delivery / ready_for_pickup → **sold** | Kaluppa | For cash orders, sets `payment.cashCollectedAt`. `soldCount += qty`. Unlocks reviews. |
 
-- **Final statuses**: sold, cancelled, rejected, expired.
+- **Final statuses**: sold, cancelled, rejected, expired. There is no order chat.
 - **Refunds**:
   - When an **e-wallet** order is cancelled, rejected or expired, `refund.status` becomes `pending`. Cash orders stay `not_applicable`.
   - Kaluppa marks it refunded with a reference number (`PATCH /orders/:id/refund`).
@@ -215,9 +215,8 @@ seed values: ₱50 base for the first 3 km, ₱10 per km after, round up to ₱5
 
 ## 5. Realtime (Socket.IO + Valkey adapter)
 
-- Used only for notifications and order updates.
-- Cookie auth at handshake. Each socket joins its own room `user:<id>`.
-- Events: `notification:new`, `order:updated {orderId, status}`.
+- Cookie auth at handshake. One room per user: `user:<id>`.
+- Events: `notification:new`, `order:updated {orderId, status}`. There are no chat events.
 - The client invalidates the matching queries on each event.
 
 ## 6. Emails (BullMQ)
@@ -269,8 +268,7 @@ seed values: ₱50 base for the first 3 km, ₱10 per km after, round up to ₱5
   - items with subtotal, delivery fee and total;
   - delivery address or pickup card;
   - payment card (e-wallet: receipt, verification and refund status; cash: amount to pay);
-  - timeline ("Status history"); cancel while pending (with reason).
-  - Full-width layout (see `OrderDetail.dc.html`); there is no chat.
+  - timeline; cancel while pending (with reason). **No chat**: the content spans the full width (see `OrderDetail.dc.html`).
 - **Profile** (no side menu; navigation lives in the avatar dropdown: Profile, Orders, Addresses, Settings, Log out), **Settings**, **Auth** pages, **Dashboard placeholder** (farmer, Group Manager, Kaluppa), **403/404**.
 
 ## 9. Validation rules (shared Zod)
@@ -344,6 +342,6 @@ Seeders follow `_reference/backend/src/seeder.js`:
 ## 13. Out of scope for Phase 1
 
 - Kaluppa / Group Manager / farmer screens beyond the placeholder, including the settings UI for delivery fees, pickup location and QR.
-- Posting, reacting, commenting; in-app messaging of any kind (a future dashboard feature).
+- Posting, reacting, commenting; any messaging/chat (including order chat).
 - Product management; the farmer shop; bean sales.
 - Analytics; a rider role; courier integrations; a holiday calendar for ETAs; delivery outside Marinduque.

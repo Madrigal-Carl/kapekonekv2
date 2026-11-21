@@ -1,7 +1,5 @@
 # KapeKonek — Phase 1 Build Prompt (guests & buyers)
 
-> Order chat was removed later by Change 01 (`docs/prompts/CHANGE-01-REMOVE-ORDER-CHAT.md`).
-
 You are building **KapeKonek** from scratch in this repository: a coffee marketplace for Kaluppa in Marinduque (delivery anywhere in Marinduque or pickup at Kaluppa; e-wallet or cash). Phase 1 covers everything a **guest** and a **buyer** use, plus the backend those flows need.
 
 ## 0. Read first (do not skip)
@@ -140,16 +138,16 @@ npx playwright install chromium
 - Playwright, delivery: verified buyer adds a new address by dropping a pin → checkout → delivery + cash on delivery → *pending* → cancel with a reason (no refund badge).
 - Playwright, pickup: a second order → pickup + GCash with a receipt → *pending*.
 
-### M5 — Chat & notifications
+### M5 — Notifications & live order updates
 
-- Models: Conversation, Message, Notification.
-- Chat endpoints, socket events, read state, closing on final statuses, Kaluppa moderation access.
+- Model: Notification.
 - Notification creation for every event in PRODUCT-SPEC §7, plus the queued emails in §6.
-- Frontend: `ChatPanel` in Order detail (real time), the navbar bell dropdown with unread count, mark-all-read and load more.
+- Socket events `notification:new` and `order:updated` to `user:<id>`.
+- Frontend: the navbar bell dropdown (unread count, mark all read, load more) and live refresh of Orders and Order detail on `order:updated`. **There is no order chat**: don't build any conversation or message feature.
 
 **Done when**:
-- tests cover access rules (the owner buyer and Kaluppa yes; other buyers no) and that a closed chat refuses messages;
-- Playwright with two browser contexts (buyer + Kaluppa via the API/socket) sees messages arrive live.
+- tests cover notification creation per status, unread counts, and mark read/all;
+- Playwright: Kaluppa moves the buyer's order to *out for delivery* through the API, and the buyer's bell and order page update live in a second browser context.
 
 ### M6 — Profile & settings
 
@@ -189,7 +187,7 @@ For every page:
 - [ ] Checkout supports all four combinations (delivery/pickup × e-wallet/cash) with the right required fields. The delivery fee and ETA are computed server-side and shown live. Placing an order creates *pending* and queues emails.
 - [ ] Every status transition works only for Kaluppa (and the buyer's own pending cancel). Delivery orders go through *out for delivery* (with an optional rider) and pickup orders through *ready for pickup*. Stock moves only at *reserved* and comes back on cancel/reject. Pending orders expire after 3 days (scheduler + cron route).
 - [ ] E-wallet orders that are cancelled, rejected or expired show "Refund pending"; marking refunded shows the reference number. Cash orders never show a refund.
-- [ ] "Chat with Kaluppa" is real time and read-only after cancelled/rejected/expired; Kaluppa messages are labeled.
+- [ ] There is no order chat anywhere (UI, API, sockets, data).
 - [ ] Notifications dropdown: unread count, mark all read, load more, live updates.
 - [ ] Profile and settings flows work; changing email requires re-verification.
 - [ ] Storefront pages redirect non-buyer roles to `/dashboard/overview`.

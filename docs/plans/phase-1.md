@@ -13,7 +13,8 @@
 ## Global Constraints
 
 - JavaScript ES modules both sides, no TypeScript; JSDoc on public service and repository functions.
-- Backend flow: `route → authenticate/optionalAuth → verified → can()/role() → validate() → controller → service → repository → model`. Only repositories import models. Outside APIs only in `src/clients/`, only called by services. Sockets only through `realtime.toUser`, and only for `notification:new` and `order:updated` (no order chat — Change 01).
+- Backend flow: `route → authenticate/optionalAuth → verified → can()/role() → validate() → controller → service → repository → model`. Only repositories import models. Outside APIs only in `src/clients/`, only called by services. Sockets only through `realtime.toUser`, and only for `notification:new` and `order:updated` (no order chat — Changes 01/02).
+- Eyebrow labels are text only: no bar, dash or line before them, on light or dark (Change 02, DESIGN.md §3).
 - Response: `{ success, message?, data, meta? }` / `{ success:false, message, code, errors }`; `errors` is a flat `field → message` map. Codes: `VALIDATION_ERROR, UNAUTHENTICATED, FORBIDDEN, EMAIL_NOT_VERIFIED, NOT_FOUND, CONFLICT, RATE_LIMITED, SERVER_ERROR` (+ domain codes `ADDRESS_NEEDS_PIN`, `OUTSIDE_DELIVERY_AREA` at 422).
 - Money = integer centavos; line total `Math.round(priceCentavos * quantity)`; format only on the frontend with `Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' })`.
 - Quantity: `kg` → step 0.5, min 0.5; `pack`/`piece` → integers, min 1. Same Zod rule both sides.
@@ -270,7 +271,7 @@ frontend/e2e/            Playwright specs + helpers (mailbox reader, api login)
 
 **Files:** `layouts/StorefrontLayout.jsx`, `components/layout/{Navbar,Footer,AvatarMenu,MobileMenu}.jsx`, `components/ui/{SectionHeading,ChipToggle,StarRating,QuantityStepper,EmptyState,Skeleton}.jsx`, `components/product/{ProductCard,HeroCarousel,ReviewList,ReviewForm}.jsx`, `components/post/{MediaViewer,ReactionSummary,CommentThread}.jsx`, `pages/storefront/{Landing,Products,ProductDetail,PostDetail}.jsx`, hooks/services for products, categories, reviews, posts, settings; tests for `lib/quantity.js` (`stepFor(unit)`, `clampQuantity`).
 
-- [ ] Copy Main, Products, ProductDetail, PostDetail, Navbar, Footer screens. Landing "What KapeKonek does" third card: bell icon, tag "Updates", title "Know where your order is", text "Email and in-app notifications at every step, from confirmation to delivery." Products filters synced to the URL; `useInfiniteQuery` + IntersectionObserver; "Loading more coffee…". Add/Cart/Write review go through `useRequireAuthAction`.
+- [ ] Copy Main, Products, ProductDetail, PostDetail, Navbar, Footer screens. `SectionHeading` = text-only `Eyebrow` + H2 + lead (no bar — Change 02). Landing "What KapeKonek does" third card: bell icon, tag "Updates", title "Know where your order is", text "Email and in-app notifications at every step, from confirmation to delivery." Products filters synced to the URL; `useInfiniteQuery` + IntersectionObserver; "Loading more coffee…". Add/Cart/Write review go through `useRequireAuthAction`.
 
 ### Task 3.6: Playwright storefront
 
@@ -348,7 +349,7 @@ No order chat (Change 01). Socket.IO carries only `notification:new` and `order:
 
 ### Task 5.2: Notifications and status emails
 
-- [ ] Notification endpoints (cursor list, unread count, read one, read all); `type` is `order_status|system` only; create notifications for every §7 event (buyer: every status change, refund marked; Kaluppa: new order) and emit `notification:new`; every status change emits `order:updated`; `ORDER_STATUS_CHANGED` email for every status with rider / pickup / reason + refund note; demo notification seeder. Tests: unread count after events; read-all; other user's notification → 404; `/auth/me` permissions contain no `chat.*`; `GET /api/conversations/x/messages` → 404.
+- [ ] Notification endpoints (cursor list, unread count, read one, read all); `type` is `order_status|order_new|system` (`order_new` = Kaluppa's new-order notification); create notifications for every §7 event (buyer: every status change, refund marked; Kaluppa: new order) and emit `notification:new`; every status change emits `order:updated`; `ORDER_STATUS_CHANGED` email for every status with rider / pickup / reason + refund note; demo notification seeder. Tests: unread count after events; read-all; other user's notification → 404; `/auth/me` permissions contain no `chat.*`; `GET /api/conversations/x/messages` → 404.
 
 ### Task 5.3: Frontend realtime
 
@@ -414,3 +415,11 @@ No order chat (Change 01). Socket.IO carries only `notification:new` and `order:
 - **Visual check** (1440 and 390 px against the `.dc.html` files): Login, Register, Forgot, Reset, Verify, Dashboard, logout modal match. Fixed a 66 px horizontal overflow on mobile Register and a 7 px checkbox offset on Login.
 - **Fixed along the way**: nodemon watched `storage/mail/`, so every logged email restarted the dev API; it now watches only `src/` and `.env`. Playwright now runs its own API (5100) and web server (5174).
 - Not done here: brand-panel photos (seeded media arrives in M3), `Select`/`Textarea` (added with the first form that needs them).
+
+### Change 02 — done (2026-11-22)
+
+Source: `docs/prompts/CHANGE-02-NO-EYEBROW-BAR-NO-CHAT.md`, applied after M2 and before M3, with the user's updated `CLAUDE.md`, `docs/` and screens.
+
+- **Eyebrow bar removed**: `components/ui/Eyebrow.jsx` is text only (same size, weight, tracking, colors). No page drew the bar inline, so every built page (auth panel and forms, Verify email + link confirm, Dashboard overview, 403/404, the `/` placeholder) changed through the component. Checked at 1440 and 390 px against the updated screens.
+- **No order chat**: re-checked after Change 01. No chat code, sockets, routes, seeds or tests exist; `chat.use`/`chat.moderate` were never part of the matrix (17 permissions). Re-seeded roles and cleared `perm:user:*`. The replaced `canvas.json` had the Order detail title back as "… + chat with Kaluppa"; reverted to "Order detail — delivery, COD".
+- **Plan**: M5 and the full-width Order detail already matched; aligned the Notification `type` with the new spec (`order_status|order_new|system`) and noted the text-only eyebrow in Global Constraints and Task 3 (`SectionHeading`).

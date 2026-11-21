@@ -252,7 +252,7 @@
       "w": 500,
       "fill": "orange",
       "size": "m",
-      "text": "Look: AgriCentral's layout language in coffee tones.\n\nEspresso #2B1A12 — headings, dark bands\nRoast #7B4A2A — buttons, links, focus\nCaramel #C8913A — eyebrow bars, icon tiles (decor only)\nCrema #F7EFE4 — soft sections\nFoam #F5F0EA — app background\nSand #E7DCCD — borders\n\nType: Poppins. 5px controls, 8px cards, thin borders, long soft hover shadows.\n\nPhoto boxes are placeholders: the seeder fills them with real stock photos."
+      "text": "Look: AgriCentral's layout language in coffee tones.\n\nEspresso #2B1A12 — headings, dark bands\nRoast #7B4A2A — buttons, links, focus\nCaramel #C8913A — icon tiles, stars, decor (never body text)\nCrema #F7EFE4 — soft sections\nFoam #F5F0EA — app background\nSand #E7DCCD — borders\n\nType: Poppins. 5px controls, 8px cards, thin borders, long soft hover shadows.\n\nPhoto boxes are placeholders: the seeder fills them with real stock photos."
     }
   },
   "designSystems": []
