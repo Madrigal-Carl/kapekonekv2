@@ -35,7 +35,7 @@ test('buyer signs up, verifies the email from the mailbox and lands on the store
   const link = await latestMailLink(email, '/verify-email/confirm')
   await page.goto(new URL(link).pathname + new URL(link).search)
   await expect(page).toHaveURL('/')
-  await expect(page.getByRole('heading', { name: 'Welcome, Ella' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Account menu for Ella Buyer' })).toBeVisible()
 })
 
 test('farmer signs up and goes straight to the dashboard with the unverified banner', async ({ page }) => {

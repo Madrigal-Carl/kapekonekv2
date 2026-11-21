@@ -42,6 +42,12 @@
   --color-notice-line-strong: #DDBE86; /* button on a notice banner */
   --color-disabled-bg: #E3D6C6; --color-disabled-ink: #6E5A4A;
 
+  /* role avatars & badges (PostDetail) */
+  --color-manager: #2F6690; --color-manager-tint: #E3EEF8; --color-manager-ink: #1F4E79;
+  --color-caramel-badge: #7A4A10; /* text on caramel-tint badges */
+  --color-media: #1E130D;         /* media viewer backdrop */
+  --color-sold-out-bg: #EEEAE6; --color-sold-out-ink: #6E635B; --color-sold-out-label: #5E534B;
+
   /* map */
   --color-water: #DCE7EA; --color-land: #EFE6D6;
 
@@ -57,6 +63,8 @@
 :root {
   /* espresso overlay over hero and auth-panel photos */
   --overlay-espresso: linear-gradient(180deg, rgb(43 26 18 / 0.55) 0%, rgb(43 26 18 / 0.4) 45%, rgb(28 16 10 / 0.9) 100%);
+  /* landing hero (Main.dc.html) */
+  --overlay-hero: linear-gradient(180deg, rgb(43 26 18 / 0.55) 0%, rgb(43 26 18 / 0.35) 50%, rgb(28 16 10 / 0.85) 100%);
 }
 
 /* Base from the screens' <helmet> styles */
