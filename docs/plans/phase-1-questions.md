@@ -27,3 +27,5 @@ Each item was missing or contradictory in the docs. The choice is applied; chang
 | 21 | Design markup quirk: on Login/ForgotPassword the "← Back" link and the eyebrow are both inline-flex, so they share one line. | Stacked (the eyebrow's 28 px top margin shows that was the intent). |
 | 22 | `/` before the storefront exists (M3), yet M2 flows land there. | A small placeholder page (sign in / sign up, or welcome + log out); M3 replaces it. |
 | 23 | E2E reused the dev servers, whose nodemon restarted on every logged email. | nodemon watches `src/` and `.env` only; Playwright starts its own API on 5100 and Vite on 5174. |
+| 24 | Pickup opening hours are `[Opening hours]` in the spec and screens; Kaluppa's real hours are unknown. | Seeded as a sample, "Monday to Saturday, 8:00 AM to 5:00 PM" (`constants/settings.js`). Kaluppa should confirm; it changes in one setting (`pickup.location`). |
+| 25 | Product price filter unit. | `minPrice`/`maxPrice` are pesos (what the buyer types in the Price (₱) boxes); the service converts to centavos. |

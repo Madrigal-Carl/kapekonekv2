@@ -6,5 +6,6 @@ export * from './permission.model.js';
 export * from './product.model.js';
 export * from './review.model.js';
 export * from './role.model.js';
+export * from './setting.model.js';
 export * from './token.model.js';
 export * from './user.model.js';
