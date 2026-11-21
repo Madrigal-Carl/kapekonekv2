@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build everything a guest and a buyer use in KapeKonek (storefront, auth, addresses with a Mapbox pin, cart, checkout for delivery/pickup × e-wallet/cash, orders with the full status machine, order chat, notifications, profile, settings) plus the backend those flows need, matching the approved `.dc.html` screens.
+**Goal:** Build everything a guest and a buyer use in KapeKonek (storefront, auth, addresses with a Mapbox pin, cart, checkout for delivery/pickup × e-wallet/cash, orders with the full status machine, notifications with live order updates, profile, settings) plus the backend those flows need, matching the approved `.dc.html` screens.
 
 **Architecture:** Two apps in one repo. `backend/` is one Express 5 process that also runs the BullMQ email worker, the Socket.IO server (Valkey adapter) and the order-expiry scheduler; requests flow route → auth guards → `validate()` → controller → service → repository → model. `frontend/` is a React 19 + Vite SPA; data flows Zod form → TanStack Query hook → service → axios.
 
@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - JavaScript ES modules both sides, no TypeScript; JSDoc on public service and repository functions.
-- Backend flow: `route → authenticate/optionalAuth → verified → can()/role() → validate() → controller → service → repository → model`. Only repositories import models. Outside APIs only in `src/clients/`, only called by services. Sockets only through `realtime.toUser / toConversation`.
+- Backend flow: `route → authenticate/optionalAuth → verified → can()/role() → validate() → controller → service → repository → model`. Only repositories import models. Outside APIs only in `src/clients/`, only called by services. Sockets only through `realtime.toUser`, and only for `notification:new` and `order:updated` (no order chat — Change 01).
 - Response: `{ success, message?, data, meta? }` / `{ success:false, message, code, errors }`; `errors` is a flat `field → message` map. Codes: `VALIDATION_ERROR, UNAUTHENTICATED, FORBIDDEN, EMAIL_NOT_VERIFIED, NOT_FOUND, CONFLICT, RATE_LIMITED, SERVER_ERROR` (+ domain codes `ADDRESS_NEEDS_PIN`, `OUTSIDE_DELIVERY_AREA` at 422).
 - Money = integer centavos; line total `Math.round(priceCentavos * quantity)`; format only on the frontend with `Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' })`.
 - Quantity: `kg` → step 0.5, min 0.5; `pack`/`piece` → integers, min 1. Same Zod rule both sides.
@@ -25,7 +25,7 @@
 - Every email goes through BullMQ (3 attempts, exponential backoff); user text escaped in templates. `MAIL_TRANSPORT=log` writes to `backend/storage/mail/`.
 - Shutdown order: HTTP → Socket.IO → scheduler → worker → queue → Valkey → Mongo.
 - Mapbox Directions/Geocoding only on the backend (`MAPBOX_ACCESS_TOKEN`); delivery fee always recomputed server-side.
-- Throttles: login 5/min, verification resend 1/min, `/geo/reverse` 30/min, chat messages 30/min, username endpoints and forgot-password throttled.
+- Throttles: login 5/min, verification resend 1/min, `/geo/reverse` 30/min, username endpoints and forgot-password throttled.
 - UI: match the `.dc.html` screen exactly; colors only via `@theme` tokens in `frontend/src/index.css` (no hex in components); mobile-first; skeleton/empty/error on every list; focus rings; focus-trapped, Esc-closable modals/drawers/menus; touch targets ≥44px.
 - Confirmation modals: logout, remove cart item, clear cart, proceed to checkout, place order, cancel order (with reason), delete address.
 - Account-gated actions go through `useRequireAuthAction()` (guest → `/login?redirect=<path>`; unverified buyer → `/verify-email`).
@@ -176,7 +176,7 @@ frontend/e2e/            Playwright specs + helpers (mailbox reader, api login)
 
 **Files:** `sockets/index.js`, `sockets/realtime.js`, `schedulers/orderExpiry.scheduler.js`, `routes/cron.routes.js`, `routes/health.routes.js`, `routes/index.js`, `server.js`; tests `tests/cron.test.js`, `tests/health.test.js` (update).
 
-**Interfaces:** `initSockets(httpServer) => io` (Valkey pub/sub adapter; handshake auth added in M5); `realtime.init(io)`, `realtime.toUser(id, event, payload)`, `realtime.toConversation(id, event, payload)` (no-ops before init); `runOrderExpiry() => { expired }` (acquires `lock:order-expiry` with `SET NX PX`; the expiry body is filled in Task 4.5), `startOrderExpiryScheduler()`, `stopOrderExpiryScheduler()`; `POST /api/cron/expire-orders` (header `x-cron-secret` = `CRON_SECRET`).
+**Interfaces:** `initSockets(httpServer) => io` (Valkey pub/sub adapter; handshake auth added in M5); `realtime.init(io)`, `realtime.toUser(id, event, payload)` (no-op before init); `runOrderExpiry() => { expired }` (acquires `lock:order-expiry` with `SET NX PX`; the expiry body is filled in Task 4.5), `startOrderExpiryScheduler()`, `stopOrderExpiryScheduler()`; `POST /api/cron/expire-orders` (header `x-cron-secret` = `CRON_SECRET`).
 
 - [ ] Tests: cron without/with wrong secret → 401 `UNAUTHENTICATED`; correct → 200 `{ data: { expired: 0 } }` (`runOrderExpiry` mocked); health → 200 `{ status:'ok', checks:{ mongo:'up'|'down', valkey:'up'|'down' } }` and 503 when a check is down.
 - [ ] `server.js` closes in the Global Constraints order on SIGTERM/SIGINT, each step in try/catch, hard exit after 10 s.
@@ -222,7 +222,7 @@ frontend/e2e/            Playwright specs + helpers (mailbox reader, api login)
 
 **Files:** `components/ui/{Button,Input,Label,FieldHint,Select,Textarea,PasswordInput,PasswordRule,RadioCard,Eyebrow,Modal,ConfirmDialog,Spinner}.jsx`, `layouts/{AuthLayout,DashboardLayout}.jsx`, `pages/auth/{Login,Register,ForgotPassword,ResetPassword,VerifyEmail,VerifyEmailConfirm}.jsx`, `pages/dashboard/Overview.jsx`, `pages/errors/{Forbidden,NotFound}.jsx`.
 
-- [ ] Each page copied from its `.dc.html` (DESIGN §3 "Copying the design exactly"); Register: role cards, live username availability (debounced), 3 suggestion chips, password rule; VerifyEmail: resend with 60 s cooldown; logout via `ConfirmDialog` (Modals.dc.html logout variant); Dashboard: role label, greeting by Manila time of day, unverified banner with Resend.
+- [ ] Each page copied from its `.dc.html` (DESIGN §3 "Copying the design exactly"); Register: role cards, live username availability (debounced), 3 suggestion chips, password rule; VerifyEmail: resend with 60 s cooldown, helper text exactly "Adding to cart, checking out and reviewing need a verified email."; logout via `ConfirmDialog` (Modals.dc.html logout variant); Dashboard: role label, greeting by Manila time of day, unverified banner with Resend.
 - [ ] Component test: `ConfirmDialog` traps focus and closes on Esc (vitest + `@testing-library/react`, jsdom — see questions).
 
 ### Task 2.6: Playwright auth flows
@@ -263,14 +263,14 @@ frontend/e2e/            Playwright specs + helpers (mailbox reader, api login)
 
 **Interfaces:** `verifyMediaUrl(url) => { ok, contentType }` (GET, 200 + `image/*`|`video/*`); `uploadSeedMedia(key, url)` → Cloudinary `seed/<key>` `overwrite:false`, falls back to the remote URL on failure.
 
-- [ ] Products per PRODUCT-SPEC §11 (4 varieties × green kg / roasted 250 g pack / ground 250 g pack, low-stock, one out of stock, 4–6 featured; hidden fertilizer ~5, seedlings 1 per variety). Settings with §2 values. 3 hero slides. ~8 posts with comments/replies/reactions. Demo: extra buyers get sold orders + reviews; ≥2 products with ≥12 reviews.
+- [ ] Products per PRODUCT-SPEC §11 (4 varieties × green kg / roasted 250 g pack / ground 250 g pack, low-stock, one out of stock, 4–6 featured; hidden fertilizer ~5, seedlings 1 per variety). Settings with §2 values. 3 hero slides. ~8 posts with comments/replies/reactions. Demo: extra buyers get sold orders + reviews (review text never mentions messaging or chat); ≥2 products with ≥12 reviews.
 - [ ] Tests: `db:seed` twice → no duplicate categories/products/settings/posts; demo skipped on the second plain run; `--only=settings` touches settings only.
 
 ### Task 3.5: Storefront UI
 
 **Files:** `layouts/StorefrontLayout.jsx`, `components/layout/{Navbar,Footer,AvatarMenu,MobileMenu}.jsx`, `components/ui/{SectionHeading,ChipToggle,StarRating,QuantityStepper,EmptyState,Skeleton}.jsx`, `components/product/{ProductCard,HeroCarousel,ReviewList,ReviewForm}.jsx`, `components/post/{MediaViewer,ReactionSummary,CommentThread}.jsx`, `pages/storefront/{Landing,Products,ProductDetail,PostDetail}.jsx`, hooks/services for products, categories, reviews, posts, settings; tests for `lib/quantity.js` (`stepFor(unit)`, `clampQuantity`).
 
-- [ ] Copy Main, Products, ProductDetail, PostDetail, Navbar, Footer screens. Products filters synced to the URL; `useInfiniteQuery` + IntersectionObserver; "Loading more coffee…". Add/Cart/Write review go through `useRequireAuthAction`.
+- [ ] Copy Main, Products, ProductDetail, PostDetail, Navbar, Footer screens. Landing "What KapeKonek does" third card: bell icon, tag "Updates", title "Know where your order is", text "Email and in-app notifications at every step, from confirmation to delivery." Products filters synced to the URL; `useInfiniteQuery` + IntersectionObserver; "Loading more coffee…". Add/Cart/Write review go through `useRequireAuthAction`.
 
 ### Task 3.6: Playwright storefront
 
@@ -306,11 +306,11 @@ frontend/e2e/            Playwright specs + helpers (mailbox reader, api login)
 
 ### Task 4.4: Order placement
 
-**Files:** `models/conversation.model.js`, `models/notification.model.js` (schemas; endpoints in M5), `repositories/{order,counter,conversation,notification}.repository.js`, `services/{order,notification}.service.js`, `templates/email/{orderPlaced,kaluppaNewOrder}.template.js`, order schema/routes/controller; test `tests/orderPlace.test.js`.
+**Files:** `models/notification.model.js` (schema; endpoints in M5), `repositories/{order,counter,notification}.repository.js`, `services/{order,notification}.service.js`, `templates/email/{orderPlaced,kaluppaNewOrder}.template.js`, order schema/routes/controller; test `tests/orderPlace.test.js`.
 
 **Interfaces:** `nextOrderNumber(date) => 'KK-YYYYMMDD-NNNN'` (Counter `_id: order:YYYYMMDD` Manila); `placeOrder(user, body) => order`; `listMyOrders(user, { status, cursor })`; `countMyOrders(user) => { [status]: n }`; `getOrderFor(user, id)`.
 
-- [ ] Tests: each of the 4 combinations succeeds with its required fields and fails without (delivery without address → 400; e-wallet without receipt → 400; receipt `publicId` outside `kapekonek/receipts/` → 400; cash with receipt → 400; pickup without phone and no profile phone → 400 `errors.contactPhone`; pickup phone saved to profile); client `deliveryFeeCentavos` ignored; two concurrent placements → one 201 + one 409; stale cart (price changed → order uses new price; inactive → 409 listing it); order number Manila date; cart cleared, conversation created, `ORDER_PLACED` + `KALUPPA_NEW_ORDER` enqueued, buyer + Kaluppa notifications created.
+- [ ] Tests: each of the 4 combinations succeeds with its required fields and fails without (delivery without address → 400; e-wallet without receipt → 400; receipt `publicId` outside `kapekonek/receipts/` → 400; cash with receipt → 400; pickup without phone and no profile phone → 400 `errors.contactPhone`; pickup phone saved to profile); client `deliveryFeeCentavos` ignored; two concurrent placements → one 201 + one 409; stale cart (price changed → order uses new price; inactive → 409 listing it); order number Manila date; cart cleared, `ORDER_PLACED` + `KALUPPA_NEW_ORDER` enqueued, buyer + Kaluppa notifications created.
 
 ### Task 4.5: Status machine, cancel, refund, expiry
 
@@ -328,7 +328,7 @@ frontend/e2e/            Playwright specs + helpers (mailbox reader, api login)
 
 **Files:** `components/order/{CartDrawer,StatusPill,RefundBadge,StatusTimeline,EtaLine,OrderCard,OrderGroupTabs,StatusChips,CancelOrderDialog}.jsx`, `components/map/{MapPicker,AddressFormModal,AddressCard}.jsx`, `components/order/{DeliveryMethodCards,PaymentCards,ReceiptUpload}.jsx`, `pages/account/{Addresses,Checkout,Orders,OrderDetail}.jsx`, `constants/orderStatus.js`, hooks/services for cart, addresses, locations, geo, delivery, orders, uploads, settings; test `src/constants/orderGroups.test.js` (group → statuses mapping).
 
-- [ ] Copy CartDrawer, Addresses, AddressModal, Checkout, Orders, OrderDetail, Modals. Map via `react-map-gl/mapbox`; geocoding only through `/geo/*`. Every confirmation modal in Global Constraints.
+- [ ] Copy CartDrawer, Addresses, AddressModal, Checkout, Orders, OrderDetail, Modals. OrderDetail is full width with no right column: status banner (rider name/phone when out for delivery), Items + totals, address/pickup and payment cards side by side (`repeat(auto-fit, minmax(260px, 1fr))`, gap 20px), then "Status history"; check at 1440 and 390 px. Map via `react-map-gl/mapbox`; geocoding only through `/geo/*`. Every confirmation modal in Global Constraints.
 
 ### Task 4.8: Playwright orders
 
@@ -336,21 +336,23 @@ frontend/e2e/            Playwright specs + helpers (mailbox reader, api login)
 
 ---
 
-## M5 — Chat & notifications
+## M5 — Notifications & live order updates
 
-### Task 5.1: Chat
+No order chat (Change 01). Socket.IO carries only `notification:new` and `order:updated`.
 
-**Files:** `models/message.model.js`, `services/chat.service.js`, repositories/routes/controller/schema; socket handshake (cookie `accessToken`) + room joins in `sockets/index.js`; test `tests/chat.test.js`.
+### Task 5.1: Socket auth and user rooms
 
-- [ ] Tests: owner buyer and Kaluppa can read/send; another buyer → 403 (or 404); closed chat (cancelled/rejected/expired) refuses `POST` with 409; message 2001 chars → 400; read marks `lastReadAt` and emits `conversation:read`; new message emits `message:new` to the conversation and notifies the other side unless they are viewing; 31st message in a minute → 429.
+**Files:** `sockets/index.js` (handshake reads the `accessToken` cookie; each socket joins `user:<id>`; no other rooms or client events), test `tests/sockets.test.js`.
+
+- [ ] Tests: handshake without a valid cookie is refused; `realtime.toUser(id, 'order:updated', …)` reaches only that user's sockets; the server registers no `conversation:*` / `message:*` handlers.
 
 ### Task 5.2: Notifications and status emails
 
-- [ ] Notification endpoints (cursor list, unread count, read one, read all); create notifications for every §7 event; `ORDER_STATUS_CHANGED` for every status with rider / pickup / reason + refund note; demo seeders for chats and notifications. Tests: unread count after events; read-all; other user's notification → 404.
+- [ ] Notification endpoints (cursor list, unread count, read one, read all); `type` is `order_status|system` only; create notifications for every §7 event (buyer: every status change, refund marked; Kaluppa: new order) and emit `notification:new`; every status change emits `order:updated`; `ORDER_STATUS_CHANGED` email for every status with rider / pickup / reason + refund note; demo notification seeder. Tests: unread count after events; read-all; other user's notification → 404; `/auth/me` permissions contain no `chat.*`; `GET /api/conversations/x/messages` → 404.
 
 ### Task 5.3: Frontend realtime
 
-- [ ] `lib/socket.js` + `hooks/useRealtime.js` invalidating queries per event; `ChatPanel`/`MessageBubble` in Order detail; navbar bell dropdown (unread count, mark all read, load more). Playwright: two contexts (buyer page + Kaluppa via API) → message appears live.
+- [ ] `lib/socket.js` + `hooks/useRealtime.js` listening only to `notification:new` and `order:updated`, invalidating the notification and order queries; navbar bell dropdown (unread count, mark all read, load more). Playwright: buyer on `/orders/:id` while Kaluppa moves the order to *out for delivery* via the API → the bell count and the status banner (with rider) update live without reload.
 
 ---
 

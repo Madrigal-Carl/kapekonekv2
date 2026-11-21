@@ -337,7 +337,7 @@ class Component extends DCLogic {
       features: [
         { tag: 'Marketplace', title: 'Coffee straight from Kaluppa', text: 'Every product is sourced and sold by Kaluppa, labeled by variety and type.', icon: 'M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z M3 6h18 M16 10a4 4 0 0 1-8 0' },
         { tag: 'Delivery', title: 'Delivered across Marinduque', text: 'Save your addresses with a map pin, see the fee upfront, and track every step.', icon: 'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z M12 7a3 3 0 1 0 0 6a3 3 0 1 0 0-6' },
-        { tag: 'Messaging', title: 'Chat with Kaluppa on every order', text: 'Ask about your order right from the order page.', icon: 'M7.9 20A9 9 0 1 0 4 16.1L2 22Z' }
+        { tag: 'Updates', title: 'Know where your order is', text: 'Email and in-app notifications at every step, from confirmation to delivery.', icon: 'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9 M10.3 21a1.94 1.94 0 0 0 3.4 0' }
       ],
       faqs: faqs.map((f, i) => ({ ...f, open: this.state.open === i, rotate: this.state.open === i ? 'rotate(180deg)' : 'none', toggle: () => this.setState({ open: this.state.open === i ? -1 : i }) }))
     };

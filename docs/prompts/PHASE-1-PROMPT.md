@@ -1,5 +1,7 @@
 # KapeKonek — Phase 1 Build Prompt (guests & buyers)
 
+> Order chat was removed later by Change 01 (`docs/prompts/CHANGE-01-REMOVE-ORDER-CHAT.md`).
+
 You are building **KapeKonek** from scratch in this repository: a coffee marketplace for Kaluppa in Marinduque (delivery anywhere in Marinduque or pickup at Kaluppa; e-wallet or cash). Phase 1 covers everything a **guest** and a **buyer** use, plus the backend those flows need.
 
 ## 0. Read first (do not skip)

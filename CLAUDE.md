@@ -20,7 +20,7 @@ A coffee marketplace with a CRM side, built for Kaluppa in Marinduque.
   - There are no pickup stations and no Station Partners.
 - **Payment**: e-wallet (GCash/Maya QR + receipt upload), or cash (cash on delivery / cash on pickup).
 - **Addresses**: buyers keep an address book (up to 10, one default) with a Mapbox map pin that auto-fills the fields; typing it all by hand also works.
-- **Order chat**: buyer ↔ Kaluppa.
+- **Order updates**: email and in-app notifications at every status change. There is no order chat (removed by Change 01).
 - Planned features: in-app messaging, a post feed, role dashboards, and Kaluppa settings screens (delivery fee, pickup location, QR).
 
 | Role | Slug | Home after login | Created by | Must verify email to act? |
@@ -64,7 +64,7 @@ route → authenticate / optionalAuth → verified → can()/role() → validate
 - **Services** hold every business rule: permission-dependent behaviour, the order state machine, stock, delivery quotes, refunds, queueing emails, emitting socket events, creating notifications. Services call repositories, never models. Calls to outside APIs (Mapbox, Cloudinary, Brevo) live in small client modules under `src/clients/`, used only by services.
 - **Repositories** are the only files that import models. One per aggregate. Intent-named functions (`findPurchasableBySlug`, `reserveStock`, `listByBuyerCursor`), not a generic pass-through.
 - **Errors**: services throw `AppError(statusCode, message, { code, errors })`. One error middleware formats every response, including Mongo duplicate-key errors (→ `409 CONFLICT` with the field in `errors`). Controllers are wrapped in `asyncHandler`.
-- **Realtime**: services emit through a `realtime` module (`realtime.toUser(id, event, payload)`, `realtime.toConversation(id, event, payload)`). Controllers and repositories never touch Socket.IO.
+- **Realtime**: services emit through a `realtime` module (`realtime.toUser(id, event, payload)`). Socket.IO is used only for notifications and order updates (`notification:new`, `order:updated`). Controllers and repositories never touch Socket.IO.
 
 ### Response shape
 
@@ -93,7 +93,7 @@ route → authenticate / optionalAuth → verified → can()/role() → validate
 
 ## Email verification rule
 
-- **Buyers** must verify before any authenticated action (cart, checkout, orders, reviews, chat, profile, settings, notifications). Unverified buyers can still view public storefront pages.
+- **Buyers** must verify before any authenticated action (cart, checkout, orders, reviews, profile, settings, notifications). Unverified buyers can still view public storefront pages.
 - **Other roles** may use their dashboards while unverified.
 - Backend: `verified` middleware → `403 { code: "EMAIL_NOT_VERIFIED" }` for unverified users holding the `buyer` role. Apply to every buyer-facing route.
 - Frontend: the axios interceptor sends the user to `/verify-email` on that code.

@@ -130,8 +130,8 @@ Put these in one `constants/orderStatus.js` map used by `StatusPill`, tabs and t
 | `StatusPill`, `RefundBadge` | Orders, OrderDetail | |
 | `OrderGroupTabs` + `StatusChips` | Orders | Six group cards (icon tile, count, label, hint): All orders, To confirm (pending), Preparing (reserved + processing), On the way (out for delivery + ready for pickup), Completed (sold), Closed (cancelled + rejected + expired). Active card: 2px roast border, highlight bg, roast icon tile. Groups with several statuses show status chips underneath (All · each status with its color dot); the active chip is espresso-filled. |
 | `OrderCard` | Orders | Header band (number, date, pills), item table, footer (destination line + payment chip, total, View details). |
-| `StatusTimeline` | OrderDetail | Done steps roast, current step teal, upcoming grey. |
-| `ChatPanel`, `MessageBubble` | OrderDetail | "Chat with Kaluppa". Mine: roast bubble right. Kaluppa: crema bubble left with "KALUPPA" tag. |
+| `StatusTimeline` | OrderDetail | "Status history". Done steps roast, current step teal, upcoming grey. |
+| `OrderDetail` layout | OrderDetail | Full width, one column: status banner (rider name/phone when out for delivery), Items with totals, then the address/pickup and payment cards side by side (`repeat(auto-fit, minmax(260px, 1fr))`, gap 20px), then Status history. No chat. |
 | `AccountCard` | Profile, Settings, Addresses | Card with header band, body grid, footer band with actions. **No side menu** — account navigation lives in the avatar dropdown only. |
 | `AuthLayout` | Login, Register, ForgotPassword, ResetPassword, VerifyEmail | Split: left brand panel (photo + espresso gradient + contour lines, logo, eyebrow, tagline) hidden under 900px; right swaps forms via `<Outlet />`. |
 | `AddressCard` | Addresses, Checkout | Label, Default badge, recipient · phone, street, area, pin status; actions Edit / Set as default / Delete. In Checkout it's a radio card showing distance + fee. |
@@ -178,7 +178,7 @@ Put these in one `constants/orderStatus.js` map used by `StatusPill`, tabs and t
 - Addresses: set default, edit, delete (confirm), add (opens modal).
 - Address modal: click/drag pin → fields fill; municipality select drives barangay options and postal code; outside-area pin shows the error.
 - Orders: group cards filter the list; status chips narrow it inside a group; infinite scroll.
-- Order detail: chat sends and receives in real time; timeline reflects history.
+- Order detail: status banner and timeline reflect history and update live on `order:updated`.
 - Register: role cards, username availability (green/red), 3 one-line suggestion chips, password rule.
 - Verify email: resend button with 60-second cooldown.
 - Navbar: avatar dropdown (click, Esc, outside-click to close), cart count, unread count.

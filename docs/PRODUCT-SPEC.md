@@ -22,11 +22,9 @@ Roles: `kaluppa` (super-admin), `group_manager`, `farmer`, `buyer`.
 | `cart.manage`, `addresses.manage` | ✓ | | | ✓ |
 | `orders.create`, `orders.view_own`, `orders.cancel_own` | ✓ | | | ✓ |
 | `reviews.create`, `reviews.update_own` | ✓ | | | ✓ |
-| `chat.use` | ✓ | | | ✓ |
 | `notifications.view`, `profile.update` | ✓ | ✓ | ✓ | ✓ |
 | `dashboard.view` | | ✓ | ✓ | ✓ |
 | `orders.manage` (confirm, process, ship, complete, reject, cancel, refund) | | | | ✓ |
-| `chat.moderate` (read/reply to every order chat) | | | | ✓ |
 | `settings.manage` (delivery fee, pickup location, payment QR — Phase 2 UI) | | | | ✓ |
 | `posts.react`, `posts.comment` (Phase 2 UI) | | ✓ | ✓ | ✓ |
 | `posts.create` (Phase 2 UI) | | ✓ | ✓ | ✓ |
@@ -68,9 +66,7 @@ All models use `timestamps: true`. Money is stored as integer centavos.
   - Indexes: `{buyer, createdAt}`, `{buyer, status, createdAt}`, `{status, createdAt}`.
 - **Counter**: `{_id, seq}`.
 - **Review**: `product`, `buyer`, `order`, `rating` 1–5, `comment` 10–1000, `editedAt?`. Unique `{product, buyer}`.
-- **Conversation**: `type` (`order|direct`), `order?` (unique sparse), `participants[] {user, role, lastReadAt}`, `isClosed`, `lastMessage`. Order chats are **buyer ↔ Kaluppa** (the buyer, plus every user with `chat.moderate`).
-- **Message**: `conversation`, `sender`, `senderRole`, `body` (1–2000).
-- **Notification**: `user`, `type` (`order_status|order_message|system`), `title`, `body`, `link`, `data`, `readAt`.
+- **Notification**: `user`, `type` (`order_status|system`), `title`, `body`, `link`, `data`, `readAt`.
 - **Post**:
   - `author`, `body`.
   - `media[] {type:'image'|'video', url, publicId, width?, height?, durationSec?, posterUrl?}` (0–10 items).
@@ -108,7 +104,7 @@ All models use `timestamps: true`. Money is stored as integer centavos.
 | processing → **ready_for_pickup** | Kaluppa | Pickup orders only. |
 | out_for_delivery / ready_for_pickup → **sold** | Kaluppa | For cash orders, sets `payment.cashCollectedAt`. `soldCount += qty`. Unlocks reviews. |
 
-- **Final statuses**: sold, cancelled, rejected, expired. The chat closes on cancelled, rejected and expired.
+- **Final statuses**: sold, cancelled, rejected, expired.
 - **Refunds**:
   - When an **e-wallet** order is cancelled, rejected or expired, `refund.status` becomes `pending`. Cash orders stay `not_applicable`.
   - Kaluppa marks it refunded with a reference number (`PATCH /orders/:id/refund`).
@@ -146,7 +142,7 @@ seed values: ₱50 base for the first 3 km, ₱10 per km after, round up to ₱5
 
 **Then:**
 1. Snapshot the items, address or pickup location, fee and distance. Generate the order number and set status *pending*.
-2. Create the conversation (buyer + Kaluppa) and clear the cart.
+2. Clear the cart.
 3. Queue `ORDER_PLACED` to the buyer and `KALUPPA_NEW_ORDER` to `KALUPPA_ORDERS_EMAIL`.
 4. Create notifications and emit `order:updated`.
 
@@ -206,12 +202,6 @@ seed values: ₱50 base for the first 3 km, ₱10 per km after, round up to ₱5
   - `PATCH /orders/:id/status {status, reasonCode?, reason?, note?, rider?}`
   - `PATCH /orders/:id/refund {referenceNumber}`
 
-**Chat**:
-- `GET /orders/:id/conversation`
-- `GET /conversations/:id/messages?cursor`
-- `POST /conversations/:id/messages` (T 30/min; refused when closed)
-- `POST /conversations/:id/read`
-
 **Notifications**:
 - `GET /notifications?cursor`, `GET /notifications/unread-count`
 - `PATCH /notifications/:id/read`, `PATCH /notifications/read-all`
@@ -225,8 +215,9 @@ seed values: ₱50 base for the first 3 km, ₱10 per km after, round up to ₱5
 
 ## 5. Realtime (Socket.IO + Valkey adapter)
 
-- Cookie auth at handshake. Rooms `user:<id>` and `conversation:<id>`, joined with access checks.
-- Events: `message:new`, `conversation:read`, `notification:new`, `order:updated {orderId, status}`.
+- Used only for notifications and order updates.
+- Cookie auth at handshake. Each socket joins its own room `user:<id>`.
+- Events: `notification:new`, `order:updated {orderId, status}`.
 - The client invalidates the matching queries on each event.
 
 ## 6. Emails (BullMQ)
@@ -241,7 +232,7 @@ seed values: ₱50 base for the first 3 km, ₱10 per km after, round up to ₱5
 
 ## 7. In-app notifications
 
-**Buyer**: every status change (with rider or ETA details), new chat message (unless viewing that chat), refund marked. **Kaluppa**: new order and new buyer message. These are stored now; the Kaluppa UI comes in Phase 2.
+**Buyer**: every status change (with rider or ETA details), refund marked. **Kaluppa**: new order. These are stored now; the Kaluppa UI comes in Phase 2.
 
 ## 8. Pages (screen files in `docs/DESIGN.md` §5)
 
@@ -278,7 +269,8 @@ seed values: ₱50 base for the first 3 km, ₱10 per km after, round up to ₱5
   - items with subtotal, delivery fee and total;
   - delivery address or pickup card;
   - payment card (e-wallet: receipt, verification and refund status; cash: amount to pay);
-  - timeline; cancel while pending (with reason); **Chat with Kaluppa**.
+  - timeline ("Status history"); cancel while pending (with reason).
+  - Full-width layout (see `OrderDetail.dc.html`); there is no chat.
 - **Profile** (no side menu; navigation lives in the avatar dropdown: Profile, Orders, Addresses, Settings, Log out), **Settings**, **Auth** pages, **Dashboard placeholder** (farmer, Group Manager, Kaluppa), **403/404**.
 
 ## 9. Validation rules (shared Zod)
@@ -289,7 +281,7 @@ seed values: ₱50 base for the first 3 km, ₱10 per km after, round up to ₱5
   - `recipientName` 2–80, `phone` as above, `street` 5–200, `customLabel` ≤30;
   - `municipality` must be in the list, and `barangay` must belong to that municipality;
   - `location` optional (lat 13.15–13.62, lng 121.80–122.20).
-- Review comment 10–1000. Message 1–2000. Cancel "other" 5–300. Rider name 2–60.
+- Review comment 10–1000. Cancel "other" 5–300. Rider name 2–60.
 - Uploads: avatar 2 MB (jpg/png/webp), receipt 5 MB (jpg/png/webp/heic).
 
 ## 10. Commands
@@ -303,7 +295,7 @@ npm test        npm run test:e2e
 
 Seeders follow `_reference/backend/src/seeder.js`:
 - Reference data is upserted by natural key.
-- Demo activity (orders, reviews, chats, notifications, comments, reactions) is skipped if it already exists, unless run from `migrate:fresh`.
+- Demo activity (orders, reviews, notifications, comments, reactions) is skipped if it already exists, unless run from `migrate:fresh`.
 
 ## 11. Seed data
 
@@ -332,7 +324,7 @@ Seeders follow `_reference/backend/src/seeder.js`:
 - **Orders** for `buyer@`:
   - about 15, covering all 9 statuses, with delivery and pickup orders and both payment methods mixed;
   - fees computed by the real formula (with the fallback distance if Mapbox isn't configured);
-  - histories, rider notes, ETAs, refund states (pending + one refunded), chats with Kaluppa, notifications.
+  - histories, rider notes, ETAs, refund states (pending + one refunded), notifications.
 - **Reviews**: extra buyers get sold orders and reviews; at least 2 products have ≥12 reviews.
 - **Posts**: about 8 (text-only, multi-image, one video), with comments, replies and reactions from farmers, the Group Manager and Kaluppa.
 
@@ -352,6 +344,6 @@ Seeders follow `_reference/backend/src/seeder.js`:
 ## 13. Out of scope for Phase 1
 
 - Kaluppa / Group Manager / farmer screens beyond the placeholder, including the settings UI for delivery fees, pickup location and QR.
-- Posting, reacting, commenting; direct messages outside orders.
+- Posting, reacting, commenting; in-app messaging of any kind (a future dashboard feature).
 - Product management; the farmer shop; bean sales.
 - Analytics; a rider role; courier integrations; a holiday calendar for ETAs; delivery outside Marinduque.
