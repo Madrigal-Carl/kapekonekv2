@@ -1,10 +1,12 @@
 import { ArrowRight, Bell, ShoppingBag } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
-import { toast } from 'sonner'
+import { CartDrawer } from '@/components/order/CartDrawer'
 import { BeanMark } from '@/components/ui/BeanMark'
 import { useAuth } from '@/hooks/useAuth'
+import { useCart } from '@/hooks/useCart'
 import { useRequireAuthAction } from '@/hooks/useRequireAuthAction'
 import { cn } from '@/lib/cn'
+import { useCartDrawer } from '@/stores/cart.store'
 import { AvatarMenu } from './AvatarMenu'
 import { MobileMenu } from './MobileMenu'
 
@@ -16,8 +18,8 @@ export function Navbar() {
   const requireAuth = useRequireAuthAction()
   const { pathname } = useLocation()
   const onProducts = pathname.startsWith('/products')
-  // shortcut: the cart count and drawer arrive with the cart API in M4.
-  const cartCount = 0
+  const cartCount = useCart().data?.count ?? 0
+  const showCart = useCartDrawer((s) => s.show)
 
   return (
     <header className="sticky top-0 z-40 h-16 w-full border-b border-sand bg-white/94 backdrop-blur">
@@ -43,7 +45,7 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-1 sm:gap-1.5">
-          <button type="button" aria-label={`Cart, ${cartCount} items`} onClick={() => requireAuth(() => toast('Your cart opens in the next update.'))} className={iconButton}>
+          <button type="button" aria-label={`Cart, ${cartCount} items`} onClick={() => requireAuth(showCart)} className={iconButton}>
             <ShoppingBag aria-hidden="true" className="size-5" strokeWidth={1.75} />
             {cartCount > 0 && (
               <span className="absolute right-1 top-1 h-[18px] min-w-[18px] rounded-full bg-roast px-[5px] text-center text-[10.5px] font-semibold leading-[18px] text-white">{cartCount}</span>
@@ -74,6 +76,7 @@ export function Navbar() {
           <MobileMenu />
         </div>
       </div>
+      {isAuthenticated && <CartDrawer />}
     </header>
   )
 }

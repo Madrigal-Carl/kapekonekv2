@@ -1,5 +1,5 @@
 import { RotateCw, Search } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { ProductCard } from '@/components/product/ProductCard'
 import { Button } from '@/components/ui/Button'
@@ -10,6 +10,7 @@ import { inputClasses } from '@/components/ui/Input'
 import { ProductCardSkeleton } from '@/components/ui/Skeleton'
 import { COFFEE_TYPES, PRODUCT_SORTS, VARIETIES } from '@/constants/catalog'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { useInfiniteSentinel } from '@/hooks/useInfiniteSentinel'
 import { useProducts } from '@/hooks/useProducts'
 import { cn } from '@/lib/cn'
 
@@ -69,14 +70,7 @@ export function Products() {
   const products = data?.pages.flatMap((p) => p.items) ?? []
   const total = data?.pages[0].meta.total ?? 0
 
-  const sentinel = useRef(null)
-  useEffect(() => {
-    const node = sentinel.current
-    if (!node || !hasNextPage) return undefined
-    const observer = new IntersectionObserver(([entry]) => entry.isIntersecting && !isFetchingNextPage && fetchNextPage(), { rootMargin: '400px' })
-    observer.observe(node)
-    return () => observer.disconnect()
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+  const sentinel = useInfiniteSentinel({ hasNextPage, isFetchingNextPage, fetchNextPage })
 
   const priceInput = (id, label, value, onChange, placeholder) => (
     <>

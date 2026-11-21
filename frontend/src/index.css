@@ -51,12 +51,24 @@
   /* map */
   --color-water: #DCE7EA; --color-land: #EFE6D6;
 
+  /* order statuses (DESIGN.md "Order status colors"); bg / ink / dot */
+  --color-st-pending-bg: #FDF1DC; --color-st-pending-ink: #7A4A00; --color-st-pending-dot: #D98E04;
+  --color-st-reserved-bg: #E3EEF8; --color-st-reserved-ink: #1F4E79; --color-st-reserved-dot: #2F6690;
+  --color-st-processing-bg: #F3E3C7; --color-st-processing-ink: #6E420E; --color-st-processing-dot: #C8913A;
+  --color-st-transit-bg: #DDF0EA; --color-st-transit-ink: #1E5E4A; --color-st-transit-dot: #2E8B6E; --color-st-transit-line: #BFE0D3;
+  --color-st-sold-bg: #E1F2E4; --color-st-sold-ink: #22633A; --color-st-sold-dot: #2E7D4F;
+  --color-st-cancelled-bg: #EEEAE6; --color-st-cancelled-ink: #5E534B; --color-st-cancelled-dot: #8C8077;
+  --color-st-rejected-bg: #FBE4E2; --color-st-rejected-ink: #9B2C24; --color-st-rejected-dot: #C62828;
+  --color-st-expired-bg: #E9ECEF; --color-st-expired-ink: #495057; --color-st-expired-dot: #868E96;
+  --color-table-line: #F3ECE2;    /* order item table rows */
+
   --radius-control: 5px;   /* buttons, inputs */
   --radius-card: 8px;
   --shadow-card-hover: 0 14px 32px -20px rgba(43,26,18,.38);
   --shadow-dropdown: 0 18px 40px -20px rgba(43,26,18,.45);
   --shadow-modal: 0 24px 48px -24px rgba(43,26,18,.5);
   --shadow-drawer: -24px 0 48px -24px rgba(43,26,18,.4);
+  --shadow-tab-active: 0 14px 32px -24px rgba(43,26,18,.45); /* active order group card */
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 

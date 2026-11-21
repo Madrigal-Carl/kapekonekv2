@@ -77,7 +77,7 @@ function Summary({ productId }) {
 
 /** Quantity, total and "Add to cart"; keyed by product so the quantity resets per product. */
 function PurchasePanel({ product }) {
-  const addToCart = useAddToCart()
+  const { add: addToCart, isPending: adding } = useAddToCart()
   const { priceCentavos, unit, stock } = product
   const out = stock <= 0
   const [quantity, setQuantity] = useState(stepFor(unit))
@@ -94,7 +94,7 @@ function PurchasePanel({ product }) {
         </div>
       )}
 
-      <Button onClick={() => addToCart(product, quantity)} disabled={out} className="mt-6 w-full py-[15px] text-[15px]">
+      <Button onClick={() => addToCart(product, quantity)} disabled={out} pending={adding} className="mt-6 w-full py-[15px] text-[15px]">
         <ShoppingBag aria-hidden="true" className="size-[18px]" strokeWidth={2} />
         {out ? 'Sold out' : 'Add to cart'}
       </Button>

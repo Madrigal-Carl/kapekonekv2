@@ -7,7 +7,7 @@ const point = (lat, lng) => ({ type: 'Point', coordinates: [lng, lat] });
 
 /** Juana's three addresses (PRODUCT-SPEC §11). */
 const JUANA = [
-  { label: 'Home', recipientName: 'Juana Dela Cruz', phone: '09171234567', municipality: 'Mogpog', barangay: 'Balanacan', street: 'Lot 12, Purok 3, near the chapel', location: point(13.5285, 121.865), isDefault: true },
+  { label: 'Home', recipientName: 'Juana Dela Cruz', phone: '09171234567', municipality: 'Mogpog', barangay: 'Balanacan', street: 'Lot 12, Purok 3, near the chapel', location: point(13.527, 121.87), isDefault: true },
   { label: 'Work', recipientName: 'Juana Dela Cruz', phone: '09171234567', municipality: 'Santa Cruz', barangay: 'Banahaw Poblacion', street: 'Municipal Hall, ground floor', location: point(13.476, 122.028) },
   { label: 'Other', customLabel: 'Mama’s house', recipientName: 'Lourdes Dela Cruz', phone: '09987654321', municipality: 'Boac', barangay: 'Caganhao', street: 'Blue gate beside the sari-sari store' },
 ];

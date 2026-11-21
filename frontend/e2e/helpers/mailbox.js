@@ -16,7 +16,9 @@ export async function latestMailLink(to, pathPrefix, { timeout = 15_000 } = {}) 
   while (Date.now() < deadline) {
     const files = (await readdir(MAIL_DIR).catch(() => [])).filter((f) => f.endsWith(`-${safeTo}.json`)).sort()
     for (const file of files.reverse()) {
-      const { text } = JSON.parse(await readFile(path.join(MAIL_DIR, file), 'utf8'))
+      // The worker may still be writing the file: skip it this round and look again.
+      const text = await readFile(path.join(MAIL_DIR, file), 'utf8').then((raw) => JSON.parse(raw).text).catch(() => null)
+      if (!text) continue
       const link = text.match(/https?:\/\/\S+/g)?.find((url) => new URL(url).pathname.startsWith(pathPrefix))
       if (link) return link
     }

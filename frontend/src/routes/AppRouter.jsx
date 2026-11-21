@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { DASHBOARD_ROLES } from '@/constants/roles'
+import { AccountLayout } from '@/layouts/AccountLayout'
 import { DashboardLayout } from '@/layouts/DashboardLayout'
 import { RootLayout } from '@/layouts/RootLayout'
 import { StorefrontLayout } from '@/layouts/StorefrontLayout'
@@ -9,6 +10,10 @@ import { Register } from '@/pages/auth/Register'
 import { ResetPassword } from '@/pages/auth/ResetPassword'
 import { VerifyEmail } from '@/pages/auth/VerifyEmail'
 import { VerifyEmailConfirm } from '@/pages/auth/VerifyEmailConfirm'
+import { Addresses } from '@/pages/account/Addresses'
+import { Checkout } from '@/pages/account/Checkout'
+import { OrderDetail } from '@/pages/account/OrderDetail'
+import { Orders } from '@/pages/account/Orders'
 import { Overview } from '@/pages/dashboard/Overview'
 import { Forbidden } from '@/pages/errors/Forbidden'
 import { NotFound } from '@/pages/errors/NotFound'
@@ -47,6 +52,26 @@ export const router = createBrowserRouter([
       { path: '/reset-password', element: <ResetPassword /> },
       { path: '/verify-email/confirm', element: <VerifyEmailConfirm /> },
       { element: <ProtectedRoute />, children: [{ path: '/verify-email', element: <VerifyEmail /> }] },
+      {
+        // Buyer account pages: signed in and verified; each page checks its own permission.
+        element: <ProtectedRoute requireVerified />,
+        children: [
+          {
+            element: <AccountLayout />,
+            children: [
+              { element: <ProtectedRoute permissions={['cart.manage', 'orders.create']} />, children: [{ path: '/checkout', element: <Checkout /> }] },
+              {
+                element: <ProtectedRoute permissions={['orders.view_own']} />,
+                children: [
+                  { path: '/orders', element: <Orders /> },
+                  { path: '/orders/:id', element: <OrderDetail /> },
+                ],
+              },
+              { element: <ProtectedRoute permissions={['addresses.manage']} />, children: [{ path: '/addresses', element: <Addresses /> }] },
+            ],
+          },
+        ],
+      },
       {
         element: <ProtectedRoute roles={DASHBOARD_ROLES} permissions={['dashboard.view']} />,
         children: [

@@ -16,3 +16,7 @@ export const PRODUCT_SORTS = [
 ]
 
 export const LOW_STOCK = 5
+
+/** "Liberica · Roasted beans · 250 g" under a product name in the cart, checkout and order pages. */
+export const productMeta = ({ variety, coffeeType, unitLabel }) =>
+  [VARIETIES[variety], COFFEE_TYPES[coffeeType]?.long, unitLabel].filter(Boolean).join(' · ')

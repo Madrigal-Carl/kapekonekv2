@@ -287,7 +287,7 @@ frontend/e2e/            Playwright specs + helpers (mailbox reader, api login)
 
 **Interfaces:** mapbox client `drivingDistanceKm(from, to)`, `reverseGeocode(lat, lng)`, `forwardGeocode(query)`; `computeFee(distanceKm, rules) => feeCentavos`; `quoteForPoint({ lat, lng }) => { distanceKm, feeCentavos, distanceSource, eta }`; `quoteForAddress(address)`; `addBusinessDays(date, n)` in Manila; `etaWindow(from = now)`.
 
-- [ ] Tests: fee 2 km → 5000; 3 km → 5000; 7.2 km → 5000 + 4.2×1000 = 9200 → rounded up to 9500; > `maxKm` → 422 `OUTSIDE_DELIVERY_AREA`; point outside bounds → 422 `OUTSIDE_DELIVERY_AREA`; Mapbox throws → `distanceSource:'fallback'` with haversine × 1.35; second quote for same 4dp point served from cache (client called once); address without pin and forward geocode fails → 422 `ADDRESS_NEEDS_PIN`; ETA from Fri → Wed–Fri next week; from `2026-11-23T17:00Z` (Tue Manila) counts from Tuesday.
+- [x] Tests: fee 2 km → 5000; 3 km → 5000; 7.2 km → 5000 + 4.2×1000 = 9200 → rounded up to 9500; > `maxKm` → 422 `OUTSIDE_DELIVERY_AREA`; point outside bounds → 422 `OUTSIDE_DELIVERY_AREA`; Mapbox throws → `distanceSource:'fallback'` with haversine × 1.35; second quote for same 4dp point served from cache (client called once); address without pin and forward geocode fails → 422 `ADDRESS_NEEDS_PIN`; ETA from Fri → Wed–Fri next week; from `2026-11-23T17:00Z` (Tue Manila) counts from Tuesday.
 
 ### Task 4.2: Addresses
 
@@ -295,7 +295,7 @@ frontend/e2e/            Playwright specs + helpers (mailbox reader, api login)
 
 **Interfaces:** `listAddresses(user)` (each with `pinned` and, if quotable, `quote`), `createAddress`, `updateAddress`, `deleteAddress` (soft), `setDefault`.
 
-- [ ] Tests: first address becomes default; 11th → 409 `CONFLICT` "You can save up to 10 addresses"; deleting the default promotes the newest remaining; another user's address → 404; barangay not in municipality → 400 `errors.barangay`; location outside 13.15–13.62 / 121.80–122.20 → 400; postal code derived, client value ignored.
+- [x] Tests: first address becomes default; 11th → 409 `CONFLICT` "You can save up to 10 addresses"; deleting the default promotes the newest remaining; another user's address → 404; barangay not in municipality → 400 `errors.barangay`; location outside 13.15–13.62 / 121.80–122.20 → 400; postal code derived, client value ignored.
 
 ### Task 4.3: Cart and uploads
 
@@ -303,7 +303,7 @@ frontend/e2e/            Playwright specs + helpers (mailbox reader, api login)
 
 **Interfaces:** `getCart(user) => { lines: [{ product, quantity, lineTotalCentavos, flags: ('OUT_OF_STOCK'|'OVER_STOCK'|'INACTIVE'|'NOT_PURCHASABLE')[] }], subtotalCentavos, canCheckout }`; `addItem`, `setQuantity`, `removeItem`, `clearCart`; `createUploadSignature(user, type)` → folder `${CLOUDINARY_ROOT_FOLDER}/receipts/<userId>` or `/avatars/<userId>`.
 
-- [ ] Tests: 0.75 kg → 400; 1.5 pack → 400; farmer adding Coffee → 403 (no `catalog.coffee`); quantity above stock → line flagged `OVER_STOCK`, `canCheckout:false`; unverified buyer → 403 `EMAIL_NOT_VERIFIED`.
+- [x] Tests: 0.75 kg → 400; 1.5 pack → 400; farmer adding Coffee → 403 (no `catalog.coffee`); quantity above stock → line flagged `OVER_STOCK`, `canCheckout:false`; unverified buyer → 403 `EMAIL_NOT_VERIFIED`.
 
 ### Task 4.4: Order placement
 
@@ -311,7 +311,7 @@ frontend/e2e/            Playwright specs + helpers (mailbox reader, api login)
 
 **Interfaces:** `nextOrderNumber(date) => 'KK-YYYYMMDD-NNNN'` (Counter `_id: order:YYYYMMDD` Manila); `placeOrder(user, body) => order`; `listMyOrders(user, { status, cursor })`; `countMyOrders(user) => { [status]: n }`; `getOrderFor(user, id)`.
 
-- [ ] Tests: each of the 4 combinations succeeds with its required fields and fails without (delivery without address → 400; e-wallet without receipt → 400; receipt `publicId` outside `kapekonek/receipts/` → 400; cash with receipt → 400; pickup without phone and no profile phone → 400 `errors.contactPhone`; pickup phone saved to profile); client `deliveryFeeCentavos` ignored; two concurrent placements → one 201 + one 409; stale cart (price changed → order uses new price; inactive → 409 listing it); order number Manila date; cart cleared, `ORDER_PLACED` + `KALUPPA_NEW_ORDER` enqueued, buyer + Kaluppa notifications created.
+- [x] Tests: each of the 4 combinations succeeds with its required fields and fails without (delivery without address → 400; e-wallet without receipt → 400; receipt `publicId` outside `kapekonek/receipts/` → 400; cash with receipt → 400; pickup without phone and no profile phone → 400 `errors.contactPhone`; pickup phone saved to profile); client `deliveryFeeCentavos` ignored; two concurrent placements → one 201 + one 409; stale cart (price changed → order uses new price; inactive → 409 listing it); order number Manila date; cart cleared, `ORDER_PLACED` + `KALUPPA_NEW_ORDER` enqueued, buyer + Kaluppa notifications created.
 
 ### Task 4.5: Status machine, cancel, refund, expiry
 
@@ -319,21 +319,21 @@ frontend/e2e/            Playwright specs + helpers (mailbox reader, api login)
 
 **Interfaces:** `TRANSITIONS` table `{ from, to, who: 'buyer'|'staff'|'system', methods?: ['delivery'|'pickup'], requiresReason?, effects[] }`; `transition(actor, orderId, { status, reasonCode, reason, note, rider })`; `cancelByBuyer(user, id, { reasonCode, reason })`; `markRefunded(actor, id, { referenceNumber })`; `expirePendingOrders(now) => count`.
 
-- [ ] Tests: every allowed transition in PRODUCT-SPEC §3 succeeds; every other pair → 409; `out_for_delivery` on pickup and `ready_for_pickup` on delivery → 409; buyer cancel only from pending and only own; reserved with insufficient stock for item 2 → 409 listing it and item 1's stock restored; two parallel reserves on the last unit → one succeeds; cancel/reject after reserved returns stock; `sold` sets `cashCollectedAt` for cash and adds `soldCount`; e-wallet cancelled/rejected/expired → `refund.status:'pending'`, cash stays `not_applicable`; refund needs pending refund; expiry only touches pending older than 3 days; expiry racing a reserve leaves the order reserved; lock held → second run returns `{ expired: 0 }`.
+- [x] Tests: every allowed transition in PRODUCT-SPEC §3 succeeds; every other pair → 409; `out_for_delivery` on pickup and `ready_for_pickup` on delivery → 409; buyer cancel only from pending and only own; reserved with insufficient stock for item 2 → 409 listing it and item 1's stock restored; two parallel reserves on the last unit → one succeeds; cancel/reject after reserved returns stock; `sold` sets `cashCollectedAt` for cash and adds `soldCount`; e-wallet cancelled/rejected/expired → `refund.status:'pending'`, cash stays `not_applicable`; refund needs pending refund; expiry only touches pending older than 3 days; expiry racing a reserve leaves the order reserved; lock held → second run returns `{ expired: 0 }`.
 
 ### Task 4.6: Order/address seeders
 
-- [ ] `buyer@` gets the three addresses of §11 and ~15 orders over all 9 statuses (delivery/pickup, e-wallet/cash, rider notes, ETAs, one refunded + pending refunds); extra buyers one address each. Fees via `computeFee` with fallback distance when no Mapbox token.
+- [x] `buyer@` gets the three addresses of §11 and ~15 orders over all 9 statuses (delivery/pickup, e-wallet/cash, rider notes, ETAs, one refunded + pending refunds); extra buyers one address each. Fees via `computeFee` with fallback distance when no Mapbox token.
 
 ### Task 4.7: Cart, address, checkout, order UI
 
 **Files:** `components/order/{CartDrawer,StatusPill,RefundBadge,StatusTimeline,EtaLine,OrderCard,OrderGroupTabs,StatusChips,CancelOrderDialog}.jsx`, `components/map/{MapPicker,AddressFormModal,AddressCard}.jsx`, `components/order/{DeliveryMethodCards,PaymentCards,ReceiptUpload}.jsx`, `pages/account/{Addresses,Checkout,Orders,OrderDetail}.jsx`, `constants/orderStatus.js`, hooks/services for cart, addresses, locations, geo, delivery, orders, uploads, settings; test `src/constants/orderGroups.test.js` (group → statuses mapping).
 
-- [ ] Copy CartDrawer, Addresses, AddressModal, Checkout, Orders, OrderDetail, Modals. OrderDetail is full width with no right column: status banner (rider name/phone when out for delivery), Items + totals, address/pickup and payment cards side by side (`repeat(auto-fit, minmax(260px, 1fr))`, gap 20px), then "Status history"; check at 1440 and 390 px. Map via `react-map-gl/mapbox`; geocoding only through `/geo/*`. Every confirmation modal in Global Constraints.
+- [x] Copy CartDrawer, Addresses, AddressModal, Checkout, Orders, OrderDetail, Modals. OrderDetail is full width with no right column: status banner (rider name/phone when out for delivery), Items + totals, address/pickup and payment cards side by side (`repeat(auto-fit, minmax(260px, 1fr))`, gap 20px), then "Status history"; check at 1440 and 390 px. Map via `react-map-gl/mapbox`; geocoding only through `/geo/*`. Every confirmation modal in Global Constraints.
 
 ### Task 4.8: Playwright orders
 
-- [ ] Delivery: verified buyer adds an address by dropping a pin → checkout → delivery + cash on delivery → pending → cancel with reason → no refund badge. Pickup: second order → pickup + GCash with a receipt → pending. Guard: unverified buyer on `/checkout` → `/verify-email`.
+- [x] Delivery: verified buyer adds an address by dropping a pin → checkout → delivery + cash on delivery → pending → cancel with reason → no refund badge. Pickup: second order → pickup + GCash with a receipt → pending. Guard: unverified buyer on `/checkout` → `/verify-email`.
 
 ---
 
@@ -433,3 +433,15 @@ Source: `docs/prompts/CHANGE-02-NO-EYEBROW-BAR-NO-CHAT.md`, applied after M2 and
 - **Tests**: backend 135 (catalog, reviews, settings, posts, seeders incl. idempotency and `--only=settings`, delivery fee, Manila date); frontend 41 (adds `quantity`, `timeAgo`); Playwright 13 (auth 8 + storefront 5: landing/FAQ/post, products filter + scroll + reload, guest Add → login → back, buyer review, mobile menu + keyboard account menu).
 - **Visual check** at 1440 and 390 px against Main, Products, ProductDetail, PostDetail, Navbar, Footer: matches; fixed portrait post covers stretching their cards, a clipped 4th line in post previews, and the 390 px header overflowing.
 - **Shortcuts until M4/M5**: Add / Add to cart / cart button show a "cart opens in the next update" toast for signed-in buyers (`useAddToCart`); the notifications bell has no count; Terms/Privacy links point home.
+
+### M4 — done (2026-11-22)
+
+- **Geo & delivery**: Mapbox client (Directions v5, Geocoding v6 forward/reverse, 6 s timeout); `/geo/reverse`, `/geo/search` (30/min per user), `/delivery/quote` (address or point). Quotes use road distance rounded to 0.1 km, cached in Valkey 24 h (the straight-line fallback is never cached); outside the Marinduque bounds or past `maxKm` → 422 `OUTSIDE_DELIVERY_AREA`; an unpinned address that can't be geocoded → 422 `ADDRESS_NEEDS_PIN`. ETA = 3–5 Manila business days.
+- **Addresses**: up to 10, one default (first is default; deleting the default promotes the newest), optional GeoJSON pin, list carries each address's `quote` or `quoteError`.
+- **Cart & uploads**: per-line flags (`INACTIVE`, `OUT_OF_STOCK`, `OVER_STOCK`, `NOT_PURCHASABLE`) and `canCheckout`; signed Cloudinary uploads (`avatar`, `receipt` under `receipts/<userId>`).
+- **Orders**: placement under a 30 s per-buyer lock, fee always recomputed, receipt must be the buyer's own upload, pickup phone saved to the profile; status machine (reserve deducts stock atomically with rollback, rider details, cash collected, refunds pending/refunded), buyer cancel with reason, expiry sweep; emails `ORDER_PLACED`, `KALUPPA_NEW_ORDER`, `ORDER_STATUS_CHANGED` through BullMQ; in-app notifications; `order:updated` emitted.
+- **Seeders**: `addresses` (Juana's Home/Work/Mama's house, one pinned address per extra buyer); Juana gets 15 orders across all 9 statuses (delivery/pickup × e-wallet/cash, rider, ETAs, one refunded with ref 7023118842, pending refunds) with notifications; reserved stock and sales applied. `migrate:fresh --seed` ran on Atlas.
+- **UI**: `AccountLayout`; cart drawer (steppers, stock warnings, disabled Checkout, remove/clear/checkout confirmations) with the navbar count; Checkout (method, address radio cards with distance and fee, pickup card + phone, GCash/Maya QR tabs with SAMPLE stamp, receipt upload with progress, cash note, note, live summary, place-order confirmation); Addresses + address modal (Mapbox map lazy-loaded, search, use my location, draggable pin → `/geo/reverse` fills the fields, outside-area error, fee preview); Orders (6 group cards, status chips, URL filters, infinite scroll); Order detail (status banner with rider/ETA, items + totals, address/pickup and payment cards, status timeline, cancel with reason). `Modal` gained a right-drawer placement and only the top dialog handles Esc/Tab.
+- **Tests**: backend 210; frontend 63 (adds order groups + timeline, quantity/phone formatting); Playwright 16 (adds delivery + COD + cancel with a map-pinned address, pickup + GCash receipt upload, unverified buyer → `/verify-email`). The mailbox helper now skips half-written mail files.
+- **Visual check** at 1440 and 390 px against CartDrawer, Checkout, Addresses, AddressModal, Orders, OrderDetail, Modals: matches; fixed Juana's Home pin sitting in the bay, the map hint overlapping the Mapbox logo, a broken total divider, and the place search squeezing at 390 px.
+- **Still to come (M5)**: live updates on `order:updated` in the UI, the notification bell count and list.

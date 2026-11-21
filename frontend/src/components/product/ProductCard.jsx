@@ -12,7 +12,7 @@ const badge = 'absolute left-2.5 top-2.5 rounded-[4px] px-2 py-1 text-[10.5px] f
  * @param {{ product: object, featured?: boolean }} props
  */
 export function ProductCard({ product, featured = false }) {
-  const addToCart = useAddToCart()
+  const { add: addToCart } = useAddToCart()
   const { name, slug, shortDescription, priceCentavos, unit, stock, images, ratingAverage, ratingCount, variety, coffeeType, category } = product
   const href = `/products/${slug}`
   const out = stock <= 0
