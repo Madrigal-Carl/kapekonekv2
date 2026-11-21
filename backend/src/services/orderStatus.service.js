@@ -76,6 +76,15 @@ const TITLES = {
   sold: 'is complete', cancelled: 'was cancelled', rejected: 'was rejected', expired: 'expired',
 };
 
+/** The buyer's in-app notification for the order's current status (also used by the seeder). */
+export const buyerNotice = (order) => ({
+  type: 'order_status',
+  title: `Order ${order.orderNumber} ${TITLES[order.status]}`,
+  body: updateText(order),
+  link: `/orders/${order._id}`,
+  data: { orderId: order._id, orderNumber: order.orderNumber, status: order.status },
+});
+
 /** Email, notification and live update for the buyer. Failures are logged; the change itself stands. */
 async function announce(order) {
   const presented = await presentOrder(order);
@@ -91,13 +100,7 @@ async function announce(order) {
   } catch (error) {
     console.error(`[orders] could not queue the status email for ${order.orderNumber}: ${error.message}`);
   }
-  await notifyUsers([order.buyer], {
-    type: 'order_status',
-    title: `Order ${order.orderNumber} ${TITLES[order.status]}`,
-    body: updateText(order),
-    link: `/orders/${order._id}`,
-    data: { orderId: order._id, orderNumber: order.orderNumber, status: order.status },
-  });
+  await notifyUsers([order.buyer], buyerNotice(order));
   realtime.toUser(order.buyer, 'order:updated', { orderId: order._id, status: order.status });
   return presented;
 }

@@ -1,3 +1,4 @@
+import { seedAddresses } from './addresses.seeder.js';
 import { seedCategories } from './categories.seeder.js';
 import { seedDemo } from './demo.seeder.js';
 import { seedPosts } from './posts.seeder.js';
@@ -13,6 +14,7 @@ export const SEEDERS = [
   { name: 'categories', run: seedCategories },
   { name: 'products', run: seedProducts },
   { name: 'settings', run: seedSettings },
+  { name: 'addresses', run: seedAddresses },
   { name: 'posts', run: seedPosts },
   { name: 'demo', run: seedDemo },
 ];

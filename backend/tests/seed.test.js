@@ -17,14 +17,15 @@ vi.mock('../src/database/seeders/media.js', async (importOriginal) => {
 
 const { runSeeders } = await import('../src/database/seeders/index.js');
 const { assertCanDropDatabase } = await import('../src/database/commands/migrateFresh.js');
-const { User, Role, Permission, Category, Product, Setting, Post, PostComment, Reaction, Order, Review } = await import('../src/models/index.js');
+const { User, Role, Permission, Category, Product, Setting, Post, PostComment, Reaction, Order, Review, Address, Notification } = await import('../src/models/index.js');
+const { ORDER_STATUSES } = await import('../src/constants/orderStatus.js');
 
 beforeAll(startMemoryDb);
 afterAll(stopMemoryDb);
 
 const counts = async () => ({ roles: await Role.countDocuments(), permissions: await Permission.countDocuments(), users: await User.countDocuments() });
 const allCounts = async () => Object.fromEntries(await Promise.all(
-  Object.entries({ Category, Product, Setting, Post, PostComment, Reaction, Order, Review }).map(async ([name, model]) => [name, await model.countDocuments()]),
+  Object.entries({ Category, Product, Setting, Post, PostComment, Reaction, Order, Review, Address, Notification }).map(async ([name, model]) => [name, await model.countDocuments()]),
 ));
 
 describe('runSeeders', () => {
@@ -91,6 +92,28 @@ describe('catalog, settings, posts and demo seeders', () => {
     expect(await Review.countDocuments({ comment: /chat|messag/i })).toBe(0);
     const order = await Order.findOne({ status: 'sold' }).lean();
     expect(order.orderNumber).toMatch(/^KK-\d{8}-\d{4}$/);
+
+    const juana = await User.findOne({ email: 'buyer@kapekonek.test' });
+    const addresses = await Address.find({ user: juana._id }).sort({ createdAt: 1 }).lean();
+    expect(addresses.map((a) => [a.label, a.isDefault, Boolean(a.location)])).toEqual([['Home', true, true], ['Work', false, true], ['Other', false, false]]);
+    expect(addresses[2]).toMatchObject({ customLabel: 'Mama’s house', municipality: 'Boac', barangay: 'Caganhao', postalCode: '4900' });
+    const buyer01 = await User.findOne({ email: 'buyer01@kapekonek.test' });
+    expect(await Address.countDocuments({ user: buyer01._id })).toBe(1);
+
+    const mine = await Order.find({ buyer: juana._id }).lean();
+    expect(mine.length).toBeGreaterThanOrEqual(15);
+    expect(new Set(mine.map((o) => o.status))).toEqual(new Set(ORDER_STATUSES));
+    expect(new Set(mine.map((o) => `${o.fulfillment.method}/${o.payment.method}`)).size).toBe(4);
+    expect(mine.filter((o) => o.refund.status === 'refunded')).toHaveLength(1);
+    expect(mine.filter((o) => o.refund.status === 'pending').length).toBeGreaterThanOrEqual(1);
+    expect(mine.find((o) => o.status === 'out_for_delivery').fulfillment.rider.name).toBeTruthy();
+    for (const o of mine.filter((x) => ['reserved', 'processing', 'out_for_delivery', 'ready_for_pickup'].includes(x.status))) {
+      expect(o.fulfillment.etaFrom).toBeTruthy();
+      expect(o.statusHistory.map((h) => h.status)).toContain('reserved');
+    }
+    for (const o of mine.filter((x) => x.status === 'pending')) expect(Date.now() - o.createdAt.getTime()).toBeLessThan(2 * 86_400_000);
+    for (const o of mine.filter((x) => x.fulfillment.method === 'delivery')) expect(o.deliveryFeeCentavos).toBeGreaterThanOrEqual(5000);
+    expect(await Notification.countDocuments({ user: juana._id })).toBeGreaterThanOrEqual(mine.length - 1);
 
     await runSeeders({ log });
     expect(await allCounts()).toEqual(first);

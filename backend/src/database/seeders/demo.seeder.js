@@ -1,8 +1,13 @@
 import { SETTING_DEFAULTS } from '../../constants/settings.js';
+import { ROLES } from '../../constants/permissions.js';
+import { listActiveByUser } from '../../repositories/address.repository.js';
+import { insertNotifications } from '../../repositories/notification.repository.js';
+import { getSetting } from '../../services/setting.service.js';
+import { buildBuyerOrders, noticesFor } from './buyerOrders.js';
 import { countOrders, insertOrders } from '../../repositories/order.repository.js';
-import { addSoldCount, listProductsByCategoryIds } from '../../repositories/product.repository.js';
+import { addSoldCount, listProductsByCategoryIds, reserveStock } from '../../repositories/product.repository.js';
 import { insertReviews } from '../../repositories/review.repository.js';
-import { findUsersByEmails } from '../../repositories/user.repository.js';
+import { findUserIdsByRole, findUsersByEmails } from '../../repositories/user.repository.js';
 import { categoryIdsBySlug } from '../../repositories/category.repository.js';
 import { getLocations } from '../../services/location.service.js';
 import { recomputeRating } from '../../services/review.service.js';
@@ -125,5 +130,27 @@ export async function seedDemo() {
   await insertReviews(reviews.map(({ orderIndex, ...r }) => ({ ...r, order: inserted[orderIndex]._id })));
   for (const [productId, quantity] of sold) await addSoldCount(productId, quantity);
   for (const productId of new Set(reviews.map((r) => r.product))) await recomputeRating(productId);
-  return `${orders.length} sold orders, ${reviews.length} reviews`;
+
+  const juana = await seedJuanaOrders(users.buyer, products);
+  return `${orders.length} sold orders, ${reviews.length} reviews, ${juana} orders for buyer@ in every status`;
+}
+
+const ADDRESS_KEYS = { Home: 'home', Work: 'work', Other: 'mama' };
+
+/** Juana's orders across all statuses, with notifications; reserved stock and sales are applied to the products. */
+async function seedJuanaOrders(buyer, products) {
+  const addresses = Object.fromEntries((await listActiveByUser(buyer._id)).map((a) => [ADDRESS_KEYS[a.label], a]));
+  if (!addresses.home || !addresses.work || !addresses.mama) throw new Error('Run the addresses seeder first.');
+  const [kaluppaId] = await findUserIdsByRole(ROLES.KALUPPA);
+  const [fee, eta, pickup] = await Promise.all([getSetting('delivery.fee'), getSetting('delivery.eta'), getSetting('pickup.location')]);
+  const { orders, reserved, sold } = await buildBuyerOrders({ buyer, kaluppaId, addresses, products, fee, eta, pickup });
+  const inserted = (await insertOrders(orders)).map((o) => o.toObject());
+  const kaluppaNotices = inserted.filter((o) => o.status === 'pending').map((o) => ({
+    user: kaluppaId, type: 'order_new', title: `New order ${o.orderNumber}`, body: `${buyer.firstName} ${buyer.lastName}`, link: `/orders/${o._id}`,
+    data: { orderId: o._id, orderNumber: o.orderNumber, status: o.status }, createdAt: o.createdAt,
+  }));
+  await insertNotifications([...noticesFor(inserted), ...kaluppaNotices]);
+  for (const [productId, quantity] of reserved) await reserveStock(productId, quantity);
+  for (const [productId, quantity] of sold) await addSoldCount(productId, quantity);
+  return inserted.length;
 }
