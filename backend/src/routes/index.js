@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import addressRoutes from './address.routes.js';
 import authRoutes from './auth.routes.js';
+import cartRoutes from './cart.routes.js';
 import catalogRoutes from './catalog.routes.js';
 import cronRoutes from './cron.routes.js';
 import geoRoutes from './geo.routes.js';
@@ -18,5 +19,6 @@ router.use(settingRoutes);
 router.use(postRoutes);
 router.use(geoRoutes);
 router.use(addressRoutes);
+router.use(cartRoutes);
 
 export default router;
