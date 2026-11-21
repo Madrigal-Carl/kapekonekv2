@@ -1,10 +1,20 @@
+import { seedCategories } from './categories.seeder.js';
+import { seedDemo } from './demo.seeder.js';
+import { seedPosts } from './posts.seeder.js';
+import { seedProducts } from './products.seeder.js';
 import { seedRoles } from './roles.seeder.js';
+import { seedSettings } from './settings.seeder.js';
 import { seedUsers } from './users.seeder.js';
 
-/** Ordered: each seeder runs after the ones it depends on. M3+ append categories, products, settings, … */
+/** Ordered: each seeder runs after the ones it depends on. */
 export const SEEDERS = [
   { name: 'roles', run: seedRoles },
   { name: 'users', run: seedUsers },
+  { name: 'categories', run: seedCategories },
+  { name: 'products', run: seedProducts },
+  { name: 'settings', run: seedSettings },
+  { name: 'posts', run: seedPosts },
+  { name: 'demo', run: seedDemo },
 ];
 
 /**

@@ -59,4 +59,7 @@ export async function replacePassword(userId, password) {
 export const upsertSeedUser = ({ email, ...data }) =>
   User.updateOne({ email }, { $setOnInsert: { email, ...data } }, { upsert: true });
 
+/** Users with any of the given emails (seeders). */
+export const findUsersByEmails = (emails) => User.find({ email: { $in: emails } }).select('email firstName lastName contactNumber').lean();
+
 export const countUsers = () => User.countDocuments();

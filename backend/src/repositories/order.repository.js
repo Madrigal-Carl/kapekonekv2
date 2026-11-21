@@ -11,3 +11,6 @@ export const findLatestSoldOrderWithProduct = (buyerId, productId) =>
 
 /** Bulk insert (demo seeder). */
 export const insertOrders = (orders) => Order.insertMany(orders);
+
+/** Total orders (demo seeder's "already seeded" check). */
+export const countOrders = () => Order.countDocuments();
