@@ -39,3 +39,35 @@ export const reviewCommentRule = z
   .trim()
   .min(10, 'Write at least 10 characters')
   .max(1000, 'Use 1000 characters or fewer');
+
+export const recipientNameRule = z
+  .string('Enter the recipient name')
+  .trim()
+  .min(2, 'Enter at least 2 characters')
+  .max(80, 'Use 80 characters or fewer');
+
+export const streetRule = z
+  .string('Enter the street, house number or a landmark')
+  .trim()
+  .min(5, 'Add the street, house number or a landmark (at least 5 characters)')
+  .max(200, 'Use 200 characters or fewer');
+
+export const customLabelRule = z.string().trim().max(30, 'Use 30 characters or fewer');
+
+/** Quantity steps by unit: kg in 0.5 steps (min 0.5); packs and pieces whole (min 1). */
+export const QUANTITY_STEP = { kg: 0.5, pack: 1, piece: 1 };
+
+/** @param {'kg'|'pack'|'piece'} unit */
+export const quantityRule = (unit) => {
+  const step = QUANTITY_STEP[unit] ?? 1;
+  return z
+    .number('Enter a quantity')
+    .min(step, `The minimum is ${step}`)
+    .refine((q) => Number.isInteger(q / step), unit === 'kg' ? 'Use 0.5 kg steps' : 'Use whole numbers');
+};
+
+export const cancelReasonRule = z
+  .string()
+  .trim()
+  .min(5, 'Tell us a little more (at least 5 characters)')
+  .max(300, 'Use 300 characters or fewer');

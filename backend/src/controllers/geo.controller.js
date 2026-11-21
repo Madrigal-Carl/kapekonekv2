@@ -1,3 +1,4 @@
+import { quoteForOwnAddress } from '../services/address.service.js';
 import { quoteForPoint } from '../services/deliveryQuote.service.js';
 import * as geo from '../services/geo.service.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -12,5 +13,6 @@ export const search = asyncHandler(async (req, res) => {
 });
 
 export const quote = asyncHandler(async (req, res) => {
-  sendSuccess(res, { data: await quoteForPoint(req.query) });
+  const { addressId, lat, lng } = req.query;
+  sendSuccess(res, { data: await (addressId ? quoteForOwnAddress(req.user, addressId) : quoteForPoint({ lat, lng })) });
 });

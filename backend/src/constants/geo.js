@@ -1,3 +1,5 @@
+export const ADDRESS_LABELS = ['Home', 'Work', 'Other'];
+
 /** Marinduque delivery bounds (PRODUCT-SPEC §9). */
 export const BOUNDS = { minLat: 13.15, maxLat: 13.62, minLng: 121.8, maxLng: 122.2 };
 

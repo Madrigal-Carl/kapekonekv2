@@ -1,6 +1,8 @@
 // The same table runs in frontend/src/schemas/rules.test.js — keep them identical.
 import { describe, expect, it } from 'vitest';
-import { passwordRule, phoneRule, ratingRule, reviewCommentRule, usernameRule } from '../src/schemas/rules.js';
+import {
+  cancelReasonRule, customLabelRule, passwordRule, phoneRule, quantityRule, ratingRule, recipientNameRule, reviewCommentRule, streetRule, usernameRule,
+} from '../src/schemas/rules.js';
 
 const ok = (rule, value) => rule.safeParse(value).success;
 
@@ -41,4 +43,24 @@ describe('shared rules', () => {
     ['   too short   ', false],
     ['x'.repeat(1001), false],
   ])('review comment %s → %s', (value, expected) => expect(ok(reviewCommentRule, value)).toBe(expected));
+
+  it.each([
+    ['kg', 0.5, true],
+    ['kg', 1.5, true],
+    ['kg', 0.75, false],
+    ['kg', 0, false],
+    ['pack', 2, true],
+    ['pack', 1.5, false],
+    ['piece', 0, false],
+  ])('quantity %s %s → %s', (unit, value, expected) => expect(ok(quantityRule(unit), value)).toBe(expected));
+
+  it.each([
+    [recipientNameRule, 'J', false],
+    [recipientNameRule, 'Juana Dela Cruz', true],
+    [streetRule, 'Lot', false],
+    [streetRule, 'Lot 12, Purok 3', true],
+    [customLabelRule, 'x'.repeat(31), false],
+    [cancelReasonRule, 'nope', false],
+    [cancelReasonRule, 'Found a closer seller', true],
+  ])('address and cancel rules %#', (rule, value, expected) => expect(ok(rule, value)).toBe(expected));
 });
