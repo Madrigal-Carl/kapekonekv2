@@ -36,3 +36,18 @@ export async function listByBuyerCursor(buyerId, { statuses, cursor, limit }) {
 
 /** @returns {Promise<Array<{ _id: string, n: number }>>} order count per status for one buyer */
 export const countByStatusForBuyer = (buyerId) => Order.aggregate([{ $match: { buyer: buyerId } }, { $group: { _id: '$status', n: { $sum: 1 } } }]);
+
+/**
+ * Apply `update` only while the order still matches `where` (e.g. its current status).
+ * @param {unknown} id
+ * @param {object} where extra filter, usually `{ status }`
+ * @param {object} update Mongo update
+ * @param {'before'|'after'} [returnDocument]
+ * @returns {Promise<object|null>} null when the order changed meanwhile
+ */
+export const updateOrderIf = (id, where, update, returnDocument = 'after') =>
+  Order.findOneAndUpdate({ _id: id, ...where }, update, { returnDocument }).lean();
+
+/** Ids of pending orders placed before `cutoff` (expiry sweep). */
+export const findExpirableIds = async (cutoff) =>
+  (await Order.find({ status: 'pending', createdAt: { $lt: cutoff } }).select('_id').lean()).map((o) => o._id);

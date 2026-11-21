@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { kaluppaNewOrder } from '../src/templates/email/kaluppaNewOrder.template.js';
 import { orderPlaced } from '../src/templates/email/orderPlaced.template.js';
+import { orderStatusChanged } from '../src/templates/email/orderStatusChanged.template.js';
 
 const order = {
   to: 'buyer@kapekonek.test',
@@ -41,5 +42,14 @@ describe('order emails', () => {
     expect(text).toContain('Juana Dela Cruz · 09171234567');
     expect(text).toContain('GCash · receipt uploaded, please verify it');
     expect(text).toContain('Pickup at Kaluppa: free');
+  });
+
+  it('ORDER_STATUS_CHANGED shows the rider and cash to prepare, and the refund note when cancelled', () => {
+    const out = orderStatusChanged({ ...order, status: 'out_for_delivery', statusLabel: 'Out for delivery', detail: 'Rider: Jun R. · 09175550102.', refundStatus: 'not_applicable', rider: { name: 'Jun R.', phone: '09175550102' }, pickup: null });
+    expect(out.subject).toBe('KK-20261121-0007: Out for delivery');
+    expect(out.text).toContain('Rider: Jun R. · 09175550102.');
+    expect(out.text).toContain('Please prepare ₱1,290.00 in cash for the rider.');
+    const cancelled = orderStatusChanged({ ...order, paymentMethod: 'e_wallet', provider: 'GCash', status: 'cancelled', statusLabel: 'Cancelled', detail: 'Ordered by mistake Your e-wallet payment will be refunded.', refundStatus: 'pending', rider: null, pickup: null });
+    expect(cancelled.text).toContain('Kaluppa will send your refund');
   });
 });

@@ -3,6 +3,9 @@ import { EWALLET_PROVIDERS, FULFILLMENT_METHODS, ORDER_STATUSES, PAYMENT_METHODS
 import { csvOf, objectIdRule, pageQuery } from './common.schema.js';
 import { phoneRule } from './rules.js';
 
+const reasonCode = z.string().trim().max(40).optional();
+const reason = z.string().trim().max(300, 'Use 300 characters or fewer').optional();
+
 /** POST /orders. Anything else the client sends (fees, totals) is stripped. */
 export const placeOrderSchema = z
   .object({
@@ -25,3 +28,17 @@ export const placeOrderSchema = z
   });
 
 export const orderListQuery = pageQuery(20, 10).extend({ status: csvOf(ORDER_STATUSES, 'Unknown status') });
+
+/** Buyer cancel; the reason code list and "other" text are checked by the status service. */
+export const cancelOrderSchema = z.object({ reasonCode: z.string('Choose a reason').trim().min(1, 'Choose a reason').max(40), reason });
+
+/** Staff status change (no UI in Phase 1). */
+export const statusChangeSchema = z.object({
+  status: z.enum(ORDER_STATUSES, 'Unknown status'),
+  reasonCode,
+  reason,
+  note: z.string().trim().max(300, 'Use 300 characters or fewer').optional(),
+  rider: z.object({ name: z.string().trim().min(2, 'Enter the rider name').max(60, 'Use 60 characters or fewer'), phone: phoneRule }).optional(),
+});
+
+export const refundSchema = z.object({ referenceNumber: z.string('Enter the reference number').trim().min(4, 'Enter the reference number').max(40) });

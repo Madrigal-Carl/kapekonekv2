@@ -44,3 +44,10 @@ export const listProductsByCategoryIds = (categoryIds) => Product.find({ categor
 
 /** Add to soldCount (demo seeding; M4 order completion). */
 export const addSoldCount = (productId, quantity) => Product.updateOne({ _id: productId }, { $inc: { soldCount: quantity } });
+
+/** Take `quantity` from stock only if enough is left. @returns {Promise<boolean>} */
+export const reserveStock = async (productId, quantity) =>
+  (await Product.updateOne({ _id: productId, stock: { $gte: quantity } }, { $inc: { stock: -quantity } })).modifiedCount === 1;
+
+/** Put reserved stock back (cancel, reject, failed reserve). */
+export const returnStock = (productId, quantity) => Product.updateOne({ _id: productId }, { $inc: { stock: quantity } });
