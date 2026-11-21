@@ -4,9 +4,8 @@ import { authenticate, optionalAuth } from '../middlewares/auth.middleware.js';
 import { can } from '../middlewares/permission.middleware.js';
 import { validate } from '../middlewares/validate.js';
 import { verified } from '../middlewares/verified.middleware.js';
-import {
-  createReviewSchema, idParams, pageQuery, productListQuery, slugParams, updateReviewSchema,
-} from '../schemas/catalog.schema.js';
+import { createReviewSchema, productListQuery, updateReviewSchema } from '../schemas/catalog.schema.js';
+import { idParams, pageQuery, slugParams } from '../schemas/common.schema.js';
 
 const router = Router();
 

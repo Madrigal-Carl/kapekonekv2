@@ -4,18 +4,12 @@ import {
   countByRating, createReview as insertReview, findByProductAndBuyer, listByProductCursor, updateOwnReview,
 } from '../repositories/review.repository.js';
 import { AppError } from '../utils/AppError.js';
+import { authorCard } from '../utils/authorCard.js';
 import { getProductById } from './catalog.service.js';
 import { userCan } from './permission.service.js';
 
-/** "Juana D." and "JD" — reviewers are shown by first name and last initial. */
-function author(buyer) {
-  if (!buyer) return { name: 'KapeKonek buyer', initials: 'KB' };
-  const last = buyer.lastName?.trim() ?? '';
-  return { name: `${buyer.firstName} ${last[0] ?? ''}.`.replace(' .', ''), initials: `${buyer.firstName[0] ?? ''}${last[0] ?? ''}`.toUpperCase() };
-}
-
 const present = ({ _id, rating, comment, createdAt, editedAt, buyer, order }) => ({
-  _id, rating, comment, createdAt, editedAt, author: author(buyer), fulfillment: order?.fulfillment?.method ?? null,
+  _id, rating, comment, createdAt, editedAt, author: authorCard(buyer), fulfillment: order?.fulfillment?.method ?? null,
 });
 
 const soldAt = (order) => order.statusHistory.findLast((h) => h.status === 'sold')?.at ?? null;

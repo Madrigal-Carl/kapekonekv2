@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { COFFEE_TYPES, PRODUCT_SORTS, VARIETIES } from '../constants/catalog.js';
+import { pageQuery } from './common.schema.js';
 import { ratingRule, reviewCommentRule } from './rules.js';
 
 /** "a,b" → ['a','b'], each one of `values`. */
@@ -11,16 +12,6 @@ const csvOf = (values, message) =>
     .pipe(z.array(z.enum(values, message)));
 
 const peso = z.coerce.number('Enter a number').min(0, 'Enter 0 or more').optional();
-
-export const objectIdRule = z.string().regex(/^[a-f\d]{24}$/i, 'Invalid id');
-export const idParams = z.object({ id: objectIdRule });
-export const slugParams = z.object({ slug: z.string().trim().toLowerCase().min(1).max(120) });
-
-export const pageQuery = (max, fallback) =>
-  z.object({
-    cursor: z.string().max(500).optional(),
-    limit: z.coerce.number().int().min(1).max(max, `At most ${max} per page`).default(fallback),
-  });
 
 export const productListQuery = pageQuery(24, 12).extend({
   search: z.string().trim().max(80).optional(),
