@@ -1,6 +1,8 @@
 import { Worker } from 'bullmq';
 import { sendMail } from '../../config/mail.js';
 import { createValkeyConnection } from '../../config/valkey.js';
+import { kaluppaNewOrder } from '../../templates/email/kaluppaNewOrder.template.js';
+import { orderPlaced } from '../../templates/email/orderPlaced.template.js';
 import { resetPassword } from '../../templates/email/resetPassword.template.js';
 import { testEmail } from '../../templates/email/test.template.js';
 import { verifyEmail } from '../../templates/email/verifyEmail.template.js';
@@ -12,6 +14,8 @@ const handlers = {
   [EMAIL_JOBS.TEST]: testEmail,
   [EMAIL_JOBS.VERIFY_EMAIL]: verifyEmail,
   [EMAIL_JOBS.RESET_PASSWORD]: resetPassword,
+  [EMAIL_JOBS.ORDER_PLACED]: orderPlaced,
+  [EMAIL_JOBS.KALUPPA_NEW_ORDER]: kaluppaNewOrder,
 };
 
 /**

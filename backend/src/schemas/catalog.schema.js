@@ -1,15 +1,7 @@
 import { z } from 'zod';
 import { COFFEE_TYPES, PRODUCT_SORTS, VARIETIES } from '../constants/catalog.js';
-import { pageQuery } from './common.schema.js';
+import { csvOf, pageQuery } from './common.schema.js';
 import { ratingRule, reviewCommentRule } from './rules.js';
-
-/** "a,b" → ['a','b'], each one of `values`. */
-const csvOf = (values, message) =>
-  z
-    .string()
-    .optional()
-    .transform((v) => (v ? v.split(',').map((s) => s.trim()).filter(Boolean) : []))
-    .pipe(z.array(z.enum(values, message)));
 
 const peso = z.coerce.number('Enter a number').min(0, 'Enter 0 or more').optional();
 

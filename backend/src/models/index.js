@@ -3,6 +3,7 @@ export * from './address.model.js';
 export * from './cart.model.js';
 export * from './category.model.js';
 export * from './counter.model.js';
+export * from './notification.model.js';
 export * from './order.model.js';
 export * from './permission.model.js';
 export * from './post.model.js';

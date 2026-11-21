@@ -63,3 +63,9 @@ export const upsertSeedUser = ({ email, ...data }) =>
 export const findUsersByEmails = (emails) => User.find({ email: { $in: emails } }).select('email firstName lastName contactNumber').lean();
 
 export const countUsers = () => User.countDocuments();
+
+/** Ids of active users holding a role (e.g. every Kaluppa account). */
+export const findUserIdsByRole = async (role) => (await User.find({ roles: role, status: 'active' }).select('_id').lean()).map((u) => u._id);
+
+/** Save the phone a buyer gave at checkout to their profile. */
+export const updateContactNumber = (userId, contactNumber) => User.updateOne({ _id: userId }, { contactNumber });
