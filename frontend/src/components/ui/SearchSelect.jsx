@@ -144,10 +144,13 @@ export function SearchSelect({
   const sm = size === 'sm'
   return (
     <div className={cn('relative w-full', className)}>
-      {label && (
+      {label ? (
         <span id={ids.label} className="block text-[10.5px] font-medium uppercase tracking-[0.16em] text-ink-2">
           {label}
         </span>
+      ) : (
+        // No visible label: the name is still "<aria-label> <current value>", so it contains the visible text (WCAG 2.5.3).
+        ariaLabel && <span id={ids.label} className="sr-only">{ariaLabel}</span>
       )}
       <button
         ref={setTriggerRef}
@@ -156,8 +159,7 @@ export function SearchSelect({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={open ? ids.list : undefined}
-        aria-labelledby={label ? `${ids.label} ${ids.trigger}` : undefined}
-        aria-label={label ? undefined : ariaLabel}
+        aria-labelledby={label || ariaLabel ? `${ids.label} ${ids.trigger}` : undefined}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? ids.error : undefined}
         disabled={disabled}

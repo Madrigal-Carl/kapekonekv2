@@ -84,6 +84,9 @@ test('pickup: GCash with an uploaded receipt is placed as pending', async ({ pag
   await page.getByLabel('Contact number').fill('0917 555 0199')
   await expect(page.getByRole('radio', { name: /GCash or Maya/ })).toBeChecked()
   await expect(page.getByRole('img', { name: 'Sample GCash QR code' })).toBeVisible()
+  // A 6 MB image is stopped in the browser before anything uploads.
+  await page.locator('input[type="file"]').setInputFiles({ name: 'big-receipt.png', mimeType: 'image/png', buffer: Buffer.alloc(6 * 1024 * 1024, 1) })
+  await expect(page.getByRole('alert').filter({ hasText: 'big-receipt.png is 6.0 MB.' })).toContainText('Images can be up to 5 MB.')
   await page.locator('input[type="file"]').setInputFiles({ name: 'gcash-receipt.png', mimeType: 'image/png', buffer: RECEIPT })
   await expect(page.getByText('gcash-receipt.png')).toBeVisible({ timeout: 30_000 })
   await placeOrder(page)

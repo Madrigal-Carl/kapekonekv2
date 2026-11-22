@@ -75,9 +75,9 @@ describe('SearchSelect', () => {
     expect(withError.getAttribute('aria-invalid')).toBe('true')
   })
 
-  it('labels itself with aria-label when there is no visible label', () => {
+  it('labels itself with aria-label when there is no visible label, keeping the visible value in the name', () => {
     render(<SearchSelect aria-label="Sort products by" icon="sort" size="sm" options={[{ value: 'newest', label: 'Newest' }]} value="newest" onChange={() => {}} />)
-    expect(screen.getByRole('button', { name: 'Sort products by' }).textContent).toContain('Newest')
+    expect(screen.getByRole('button', { name: 'Sort products by Newest' })).toBeTruthy()
   })
 
   it('works inside react-hook-form through Controller', async () => {

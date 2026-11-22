@@ -75,17 +75,33 @@ test('guard: a guest who taps Add signs in and comes back to the product', async
   await expect(page.getByRole('button', { name: /^Account menu for / })).toBeVisible()
 })
 
-test('a buyer with a completed order can review the coffee', async ({ page }) => {
+test('a buyer with a completed order can write, edit and delete their review', async ({ page }) => {
   await page.goto('/login?redirect=/products/arabica-light-roast')
   await signIn(page, 'buyer@kapekonek.test')
   await expect(page).toHaveURL('/products/arabica-light-roast')
-  const form = page.locator('form').filter({ has: page.getByRole('heading', { name: /Write a review|Your review/ }) })
-  await expect(form).toBeVisible()
-  await form.getByRole('button', { name: '4 stars' }).click()
-  await form.getByLabel('Your review').fill('Bright cup, lovely as a pour-over in the morning.')
-  await form.getByRole('button', { name: /Post review|Update review/ }).click()
-  await expect(page.getByText(/Thanks for your review|Your review was updated/)).toBeVisible()
-  await expect(page.getByText('Bright cup, lovely as a pour-over in the morning.')).toBeVisible()
+  const panel = page.locator('#reviews')
+  await expect(panel.getByRole('heading', { name: 'Write a review' })).toBeVisible()
+  await expect(panel.getByText(/^You received this on .+ \(order KK-\d{8}-\d{4}\), so you can review it\.$/)).toBeVisible()
+  await panel.getByRole('button', { name: '4 stars' }).click()
+  await panel.getByLabel('Your review').fill('Bright cup, lovely as a pour-over in the morning.')
+  await panel.getByRole('button', { name: 'Post review' }).click()
+  await expect(page.getByText('Thanks for your review.')).toBeVisible()
+  const mine = panel.getByRole('article', { name: 'Your review' })
+  await expect(mine.getByText(/^Posted /)).toBeVisible()
+  await expect(panel.getByText('Verified purchase').first()).toBeVisible()
+
+  await mine.getByRole('button', { name: 'Edit' }).click()
+  await panel.getByLabel('Your review').fill('Bright cup, even better as a cold brew.')
+  await panel.getByRole('button', { name: 'Save changes' }).click()
+  await expect(mine.getByText(/^Edited /)).toBeVisible()
+  await expect(mine.getByText('Bright cup, even better as a cold brew.')).toBeVisible()
+
+  await mine.getByRole('button', { name: 'Delete' }).click()
+  const confirm = mine.getByRole('alertdialog', { name: 'Delete your review?' })
+  await expect(confirm.getByRole('button', { name: 'Keep it' })).toBeFocused()
+  await confirm.getByRole('button', { name: 'Delete review' }).click()
+  await expect(panel.getByRole('heading', { name: 'Write a review' })).toBeVisible()
+  await expect(page.getByText('Bright cup, even better as a cold brew.')).toHaveCount(0)
 })
 
 test('mobile: the menu opens, closes with Esc and the account menu works by keyboard', async ({ page }) => {
