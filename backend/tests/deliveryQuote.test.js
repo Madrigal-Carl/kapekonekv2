@@ -107,16 +107,16 @@ describe('quoteForAddress', () => {
 describe('routes', () => {
   async function signedIn(email) {
     const agent = request.agent(app);
-    await agent.post('/api/auth/login').send({ identifier: email, password: 'Password123!' }).expect(200);
+    await agent.post('/api/auth/login').send({ identifier: email, password: 'KapeKonek@123' }).expect(200);
     return agent;
   }
 
   it('/delivery/quote needs a verified sign-in', async () => {
     expect((await request(app).get('/api/delivery/quote?lat=13.4&lng=122')).status).toBe(401);
-    const unverified = await signedIn('buyer.unverified@kapekonek.test');
+    const unverified = await signedIn('kapekonek.buyer.unverified@gmail.com');
     expect((await unverified.get('/api/delivery/quote?lat=13.4&lng=122')).body.code).toBe('EMAIL_NOT_VERIFIED');
     mapbox.drivingDistanceKm.mockResolvedValueOnce(5);
-    const buyer = await signedIn('buyer@kapekonek.test');
+    const buyer = await signedIn('kapekonek.buyer@gmail.com');
     const res = await buyer.get('/api/delivery/quote?lat=13.41&lng=122.01');
     expect(res.status).toBe(200);
     expect(res.body.data).toMatchObject({ distanceKm: 5, feeCentavos: 7000, distanceSource: 'mapbox' });
@@ -124,7 +124,7 @@ describe('routes', () => {
   });
 
   it('/geo/reverse snaps the place to our municipality and barangay lists', async () => {
-    const buyer = await signedIn('buyer01@kapekonek.test');
+    const buyer = await signedIn('kapekonek.buyer01@gmail.com');
     mapbox.reverseGeocode.mockResolvedValueOnce([{ name: 'Purok 3', context: { street: 'Purok 3', locality: 'Balanacan', place: 'Mogpog' } }]);
     const res = await buyer.get('/api/geo/reverse?lat=13.51&lng=121.86');
     expect(res.body.data).toEqual({ municipality: 'Mogpog', barangay: 'Balanacan', street: 'Purok 3', postalCode: '4901', insideDeliveryArea: true });
@@ -138,7 +138,7 @@ describe('routes', () => {
   });
 
   it('/geo/search finds a barangay near its town, caches it 7 days, and returns [] when Mapbox only knows the town', async () => {
-    const buyer = await signedIn('buyer02@kapekonek.test');
+    const buyer = await signedIn('kapekonek.buyer02@gmail.com');
     mapbox.forwardGeocode.mockResolvedValueOnce([
       { name: 'Town hall', fullAddress: 'Boac, Marinduque', lat: 13.447, lng: 121.84, context: { place: 'Boac' } },
       { name: 'Agot', fullAddress: 'Agot, Boac, Marinduque', lat: 13.42, lng: 121.86, context: { place: 'Boac' } },
@@ -167,7 +167,7 @@ describe('routes', () => {
   });
 
   it('/geo/search returns places inside Marinduque only', async () => {
-    const buyer = await signedIn('buyer02@kapekonek.test');
+    const buyer = await signedIn('kapekonek.buyer02@gmail.com');
     mapbox.forwardGeocode.mockResolvedValueOnce([
       { name: 'Boac Cathedral', fullAddress: 'Boac, Marinduque', lat: 13.447, lng: 121.84 },
       { name: 'Far away', fullAddress: 'Manila', lat: 14.6, lng: 121 },

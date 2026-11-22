@@ -7,7 +7,7 @@ const WIDTHS = [1440, 390]
 async function signIn(page, identifier, redirect = '/') {
   await page.goto(`/login?redirect=${encodeURIComponent(redirect)}`)
   await page.getByLabel('Email or username').fill(identifier)
-  await page.getByLabel('Password', { exact: true }).fill('Password123!')
+  await page.getByLabel('Password', { exact: true }).fill('KapeKonek@123')
   await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(page).not.toHaveURL(/\/login/)
 }
@@ -52,7 +52,7 @@ test('guest pages have no WCAG A/AA violations', async ({ page, request }) => {
 
 test('buyer pages, drawer, menus and modals have no WCAG A/AA violations', async ({ page }) => {
   test.setTimeout(180_000) // 14 page audits plus 5 overlays
-  await signIn(page, 'buyer@kapekonek.test')
+  await signIn(page, 'kapekonek.buyer@gmail.com')
   const orders = (await (await page.request.get(`${API}/orders?limit=1`)).json()).data
   const problems = await audit(page, ['/', '/orders', `/orders/${orders[0]._id}`, '/addresses', '/profile', '/settings', '/checkout'])
 
@@ -81,16 +81,16 @@ test('buyer pages, drawer, menus and modals have no WCAG A/AA violations', async
 })
 
 test('verify-email and dashboard pages have no WCAG A/AA violations', async ({ page, browser }) => {
-  await signIn(page, 'pedrolopez')
+  await signIn(page, 'buyer.unverified')
   const problems = await audit(page, ['/verify-email'])
   const kaluppa = await (await browser.newContext()).newPage()
-  await signIn(kaluppa, 'kaluppa@kapekonek.test')
+  await signIn(kaluppa, 'kapekonek.kaluppa@gmail.com')
   problems.push(...(await audit(kaluppa, ['/dashboard/overview'])))
   expect(problems, problems.join('\n')).toEqual([])
 })
 
 test('keyboard: cart drawer traps focus and Esc returns it; the bell panel opens and closes by keyboard', async ({ page }) => {
-  await signIn(page, 'buyer@kapekonek.test')
+  await signIn(page, 'kapekonek.buyer@gmail.com')
   await page.request.post(`${API}/cart/items`, {
     data: { productId: (await (await page.request.get(`${API}/products/robusta-dark-roast`)).json()).data._id, quantity: 1 },
   })

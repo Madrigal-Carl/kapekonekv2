@@ -19,7 +19,7 @@ let firstComment;
 beforeAll(async () => {
   await startMemoryDb();
   await runSeeders({ only: ['roles', 'users'], log: () => {} });
-  const [kaluppa, farmer, manager] = await Promise.all(['kaluppa', 'farmer1', 'manager'].map((e) => User.findOne({ email: `${e}@kapekonek.test` })));
+  const [kaluppa, farmer, manager] = await Promise.all(['kaluppa', 'farmer.approved', 'manager.santacruz'].map((e) => User.findOne({ email: `kapekonek.${e}@gmail.com` })));
   const posts = await Post.insertMany([
     { author: farmer._id, body: 'Oldest', createdAt: at(1) },
     { author: kaluppa._id, body: 'Fresh Liberica roasts are in!', media: [{ type: 'image', url: 'https://img/1.jpg' }, { type: 'video', url: 'https://vid/1.mp4', posterUrl: 'https://img/p.jpg', durationSec: 42 }], reactionCounts: { like: 15, love: 7, celebrate: 2 }, commentCount: 4, createdAt: at(5) },
@@ -79,7 +79,7 @@ describe('posts', () => {
 
   it('has no write endpoints in Phase 1', async () => {
     const agent = request.agent(app);
-    await agent.post('/api/auth/login').send({ identifier: 'kaluppa@kapekonek.test', password: 'Password123!' });
+    await agent.post('/api/auth/login').send({ identifier: 'kapekonek.kaluppa@gmail.com', password: 'KapeKonek@123' });
     expect((await agent.post('/api/posts').send({ body: 'x' })).status).toBe(404);
     expect((await agent.post(`/api/posts/${post._id}/comments`).send({ body: 'x' })).status).toBe(404);
     expect((await agent.post(`/api/posts/${post._id}/reactions`).send({ type: 'like' })).status).toBe(404);

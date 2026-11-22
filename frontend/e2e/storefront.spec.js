@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-async function signIn(page, identifier, password = 'Password123!') {
+async function signIn(page, identifier, password = 'KapeKonek@123') {
   await page.getByLabel('Email or username').fill(identifier)
   await page.getByLabel('Password', { exact: true }).fill(password)
   await page.getByRole('button', { name: 'Sign in' }).click()
@@ -70,14 +70,14 @@ test('guard: a guest who taps Add signs in and comes back to the product', async
   await page.getByRole('button', { name: 'Add to cart' }).click()
 
   await expect(page).toHaveURL('/login?redirect=%2Fproducts%2Fbarako-medium-roast')
-  await signIn(page, 'buyer01@kapekonek.test')
+  await signIn(page, 'kapekonek.buyer01@gmail.com')
   await expect(page).toHaveURL('/products/barako-medium-roast')
   await expect(page.getByRole('button', { name: /^Account menu for / })).toBeVisible()
 })
 
 test('a buyer with a completed order can write, edit and delete their review', async ({ page }) => {
   await page.goto('/login?redirect=/products/arabica-light-roast')
-  await signIn(page, 'buyer@kapekonek.test')
+  await signIn(page, 'kapekonek.buyer@gmail.com')
   await expect(page).toHaveURL('/products/arabica-light-roast')
   const panel = page.locator('#reviews')
   await expect(panel.getByRole('heading', { name: 'Write a review' })).toBeVisible()
@@ -119,7 +119,7 @@ test('mobile: the menu opens, closes with Esc and the account menu works by keyb
 
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto('/login')
-  await signIn(page, 'buyer02@kapekonek.test')
+  await signIn(page, 'kapekonek.buyer02@gmail.com')
   const trigger = page.getByRole('button', { name: /^Account menu for / })
   await trigger.click()
   await expect(page.getByRole('menuitem', { name: 'Profile' })).toBeFocused()

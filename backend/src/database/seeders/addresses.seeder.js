@@ -1,6 +1,6 @@
 import { MUNICIPALITY_CENTERS } from '../../constants/geo.js';
 import { countActiveByUser, insertAddresses } from '../../repositories/address.repository.js';
-import { findUsersByEmails } from '../../repositories/user.repository.js';
+import { findUsersByUsernames } from '../../repositories/user.repository.js';
 import { getLocations } from '../../services/location.service.js';
 
 const point = (lat, lng) => ({ type: 'Point', coordinates: [lng, lat] });
@@ -20,17 +20,16 @@ const withPostal = (address, i) => {
 
 /** Addresses for Juana (3) and each extra buyer (1, pinned near their town centre). Users who already have addresses are skipped. */
 export async function seedAddresses() {
-  const emails = ['buyer', ...Array.from({ length: 20 }, (_, i) => `buyer${String(i + 1).padStart(2, '0')}`)].map((e) => `${e}@kapekonek.test`);
-  const users = await findUsersByEmails(emails);
+  const users = await findUsersByUsernames(['buyer', ...Array.from({ length: 20 }, (_, i) => `buyer${String(i + 1).padStart(2, '0')}`)]);
   const towns = getLocations();
   const docs = [];
   for (const user of users) {
     if ((await countActiveByUser(user._id)) > 0) continue;
-    if (user.email === 'buyer@kapekonek.test') {
+    if (user.username === 'buyer') {
       docs.push(...JUANA.map((a, i) => withPostal({ ...a, user: user._id }, i)));
       continue;
     }
-    const n = Number(user.email.slice(5, 7));
+    const n = Number(user.username.slice(5, 7));
     const town = towns[n % towns.length];
     const centre = MUNICIPALITY_CENTERS[town.name];
     docs.push(withPostal({

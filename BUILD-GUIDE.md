@@ -119,7 +119,7 @@ You can also open the canvas next to the running app: https://claude.ai/artifact
 
 Ask Claude:
 ```
-Give me PowerShell commands to log in as kaluppa@kapekonek.test and move my latest order through
+Give me PowerShell commands to log in as kaluppa (password KapeKonek@123) and move my latest order through
 reserved → processing → out_for_delivery (rider Jun, 09175550102) → sold. Then do the same for a
 pickup order with ready_for_pickup, and show how to reject one and mark its refund.
 ```
@@ -130,13 +130,13 @@ Watch the buyer's order page, notifications and emails update.
 ```powershell
 npm run dev
 ```
-Frontend: http://localhost:5173 · Seed accounts (password `Password123!`):
+Frontend: http://localhost:5173 · Seed accounts (password `KapeKonek@123`; sign in with the username or the email from the table `migrate:fresh -- --seed` prints):
 
 | Account | Lands on |
 |---|---|
-| `buyer@kapekonek.test` | storefront (has 3 saved addresses and sample orders) |
-| `buyer.unverified@kapekonek.test` | verify-email page |
-| `kaluppa@kapekonek.test`, `manager@kapekonek.test`, `farmer1@kapekonek.test` | dashboard placeholder |
+| `buyer` | storefront (has 3 saved addresses and sample orders) |
+| `buyer.unverified` | verify-email page |
+| `kaluppa`, `manager.santacruz`, `farmer.approved` | dashboard placeholder |
 
 To reset the data: `cd backend`, then `npm run migrate:fresh -- --seed`.
 

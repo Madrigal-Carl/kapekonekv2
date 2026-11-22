@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema(
     tokenVersion: { type: Number, default: 0 },
     status: { type: String, enum: ['active', 'suspended'], default: 'active' },
     lastLoginAt: { type: Date, default: null },
+    isSeed: { type: Boolean, default: false }, // the mail worker skips these unless SEED_EMAIL_BASE is set
   },
   { timestamps: true },
 );

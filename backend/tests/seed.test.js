@@ -16,6 +16,7 @@ vi.mock('../src/database/seeders/media.js', async (importOriginal) => {
 });
 
 const { runSeeders } = await import('../src/database/seeders/index.js');
+const { seedEmail } = await import('../src/database/seeders/users.seeder.js');
 const { assertCanDropDatabase } = await import('../src/database/commands/migrateFresh.js');
 const { User, Role, Permission, Category, Product, Setting, Post, PostComment, Reaction, Order, Review, Address, Notification } = await import('../src/models/index.js');
 const { ORDER_STATUSES } = await import('../src/constants/orderStatus.js');
@@ -37,14 +38,22 @@ describe('runSeeders', () => {
     expect(await counts()).toEqual(first);
     expect(first).toEqual({ roles: 4, permissions: 18, users: 26 });
 
-    const byEmail = async (local) => User.findOne({ email: `${local}@kapekonek.test` }).select('+password');
+    const byEmail = async (local) => User.findOne({ email: `kapekonek.${local}@gmail.com` }).select('+password');
     expect((await byEmail('kaluppa')).roles).toEqual(['kaluppa']);
-    expect((await byEmail('manager')).roles).toEqual(['group_manager']);
-    expect((await byEmail('farmer1')).emailVerifiedAt).not.toBeNull();
-    expect((await byEmail('farmer2')).emailVerifiedAt).toBeNull();
+    expect((await byEmail('manager.santacruz')).roles).toEqual(['group_manager']);
+    expect((await byEmail('farmer.approved')).emailVerifiedAt).not.toBeNull();
+    expect((await byEmail('farmer.unverified')).emailVerifiedAt).toBeNull();
     expect((await byEmail('buyer')).emailVerifiedAt).not.toBeNull();
     expect((await byEmail('buyer.unverified')).emailVerifiedAt).toBeNull();
-    expect(await (await byEmail('buyer')).comparePassword('Password123!')).toBe(true);
+    expect(await (await byEmail('buyer')).comparePassword('KapeKonek@123')).toBe(true);
+    expect((await byEmail('manager.santacruz')).username).toBe('manager.santacruz');
+    expect(await User.countDocuments({ isSeed: true, email: /@gmail\.com$/ })).toBe(26);
+    expect(await User.exists({ username: 'buyer07', email: 'kapekonek.buyer07@gmail.com' })).toBeTruthy();
+  });
+
+  it('builds seed emails from SEED_EMAIL_BASE when it is set', () => {
+    expect(seedEmail('farmer.approved', 'Carl@gmail.com')).toBe('carl+farmer.approved@gmail.com');
+    expect(seedEmail('buyer', undefined)).toBe('kapekonek.buyer@gmail.com');
   });
 
   it('refuses unknown seeder names', async () => {
@@ -80,6 +89,8 @@ describe('catalog, settings, posts and demo seeders', () => {
     expect(posts.some((p) => p.media.length === 0)).toBe(true);
     expect(posts.some((p) => p.media.filter((m) => m.type === 'image').length > 1)).toBe(true);
     expect(posts.some((p) => p.media.some((m) => m.type === 'video'))).toBe(true);
+    const liberica = posts.find((p) => p.body.startsWith('Fresh Liberica roasts are in!'));
+    expect(liberica.media[4].alt).toBe('Kraft coffee bag held in hand'); // the portrait photo e2e/media.spec.js steps to
     for (const post of posts) {
       expect(post.commentCount).toBe(await PostComment.countDocuments({ post: post._id }));
       const reactions = await Reaction.countDocuments({ targetType: 'post', target: post._id });
@@ -93,11 +104,11 @@ describe('catalog, settings, posts and demo seeders', () => {
     const order = await Order.findOne({ status: 'sold' }).lean();
     expect(order.orderNumber).toMatch(/^KK-\d{8}-\d{4}$/);
 
-    const juana = await User.findOne({ email: 'buyer@kapekonek.test' });
+    const juana = await User.findOne({ email: 'kapekonek.buyer@gmail.com' });
     const addresses = await Address.find({ user: juana._id }).sort({ createdAt: 1 }).lean();
     expect(addresses.map((a) => [a.label, a.isDefault, Boolean(a.location)])).toEqual([['Home', true, true], ['Work', false, true], ['Other', false, false]]);
     expect(addresses[2]).toMatchObject({ customLabel: 'Mama’s house', municipality: 'Boac', barangay: 'Caganhao', postalCode: '4900' });
-    const buyer01 = await User.findOne({ email: 'buyer01@kapekonek.test' });
+    const buyer01 = await User.findOne({ email: 'kapekonek.buyer01@gmail.com' });
     expect(await Address.countDocuments({ user: buyer01._id })).toBe(1);
 
     const mine = await Order.find({ buyer: juana._id }).lean();

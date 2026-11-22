@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/cn'
-import { imageUrl } from '@/lib/image'
+import { MediaStage, MediaThumb } from './Media'
 
 const duration = (sec) => (sec ? `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}` : '')
 const arrow = 'absolute top-1/2 grid size-11 -translate-y-1/2 cursor-pointer place-items-center rounded-full border-0 bg-white/90 text-ink hover:bg-white'
@@ -24,13 +24,7 @@ export function MediaViewer({ media }) {
         if (event.key === 'ArrowRight') go(1)
       }}
     >
-      <div className={cn('relative grid aspect-[16/10] place-items-center', current.type === 'video' ? 'bg-espresso-2' : 'bg-photo')}>
-        {current.type === 'video' ? (
-          // Keyed so switching items stops playback.
-          <video key={current.url} src={current.url} poster={current.posterUrl} controls preload="metadata" aria-label={current.alt} className="size-full bg-black object-contain" />
-        ) : (
-          <img src={imageUrl(current.url, 960)} alt={current.alt ?? ''} className="size-full object-cover" />
-        )}
+      <MediaStage item={current} data-testid="media-stage">
         {many && (
           <>
             <span aria-live="polite" className="absolute right-3 top-3 rounded-full bg-black/50 px-[9px] py-[3px] text-xs text-white">{index + 1} / {media.length}</span>
@@ -42,7 +36,7 @@ export function MediaViewer({ media }) {
             </button>
           </>
         )}
-      </div>
+      </MediaStage>
       {many && (
         <div role="group" aria-label="All photos and videos" className="grid grid-cols-6 gap-2 bg-white p-2.5">
           {media.map((item, i) => {
@@ -61,7 +55,7 @@ export function MediaViewer({ media }) {
               >
                 {/* Name = this text + the visible duration, so speech users can say what they see. */}
                 <span className="sr-only">{`Show ${isVideo ? 'video' : 'photo'}: ${item.alt ?? i + 1}`}</span>
-                {(isVideo ? item.posterUrl : item.url) && <img src={imageUrl(isVideo ? item.posterUrl : item.url, 96)} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />}
+                <MediaThumb item={item} />
                 {isVideo && (
                   <>
                     <span aria-hidden="true" className="relative grid size-7 place-items-center rounded-full bg-white/92 text-ink">

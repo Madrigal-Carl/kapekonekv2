@@ -22,7 +22,7 @@ const { default: app } = await import('../src/app.js');
 const { runSeeders } = await import('../src/database/seeders/index.js');
 const { User } = await import('../src/models/index.js');
 
-const PASSWORD = 'Password123!';
+const PASSWORD = 'KapeKonek@123';
 const lastMail = (job) => mail.findLast((m) => m.job === job);
 const cookie = (res, name) => res.headers['set-cookie']?.find((c) => c.startsWith(`${name}=`));
 
@@ -56,11 +56,11 @@ beforeEach(async () => {
 describe('guards', () => {
   it('guests get 401 and unverified buyers 403 EMAIL_NOT_VERIFIED; unverified farmers may act', async () => {
     expect((await request(app).get('/api/account/profile')).status).toBe(401);
-    const pedro = await signedIn('pedrolopez');
-    const res = await pedro.patch('/api/account/profile').send({ firstName: 'Pedro', lastName: 'Lopez', username: 'pedrolopez' });
+    const pedro = await signedIn('buyer.unverified');
+    const res = await pedro.patch('/api/account/profile').send({ firstName: 'Pedro', lastName: 'Lopez', username: 'buyer.unverified' });
     expect(res.status).toBe(403);
     expect(res.body.code).toBe('EMAIL_NOT_VERIFIED');
-    const nora = await signedIn('noravillareal');
+    const nora = await signedIn('farmer.unverified');
     expect((await nora.get('/api/account/profile')).status).toBe(200);
   });
 });
@@ -79,7 +79,7 @@ describe('profile', () => {
 
   it('refuses a taken username with 409 and a field error; keeping your own is fine', async () => {
     const { agent } = await freshBuyer('profiletaken');
-    const taken = await agent.patch('/api/account/profile').send({ firstName: 'Ana', lastName: 'Reyes', username: 'juanadc' });
+    const taken = await agent.patch('/api/account/profile').send({ firstName: 'Ana', lastName: 'Reyes', username: 'buyer' });
     expect(taken.status).toBe(409);
     expect(taken.body.errors).toEqual({ username: 'Username is already taken' });
     await agent.patch('/api/account/profile').send({ firstName: 'Ana', lastName: 'Reyes', username: 'profiletaken' }).expect(200);
@@ -116,7 +116,7 @@ describe('avatar', () => {
 
   it("refuses someone else's upload or another folder", async () => {
     const { user, agent } = await freshBuyer('avatarbad');
-    const other = await User.findOne({ username: 'juanadc' });
+    const other = await User.findOne({ username: 'buyer' });
     expect((await agent.patch('/api/account/avatar').send(upload(other._id, 'x'))).status).toBe(400);
     const receipt = { url: `https://res.cloudinary.com/test/image/upload/v1/kapekonek/receipts/${user._id}/r.jpg`, publicId: `kapekonek/receipts/${user._id}/r` };
     expect((await agent.patch('/api/account/avatar').send(receipt)).body.errors).toEqual({ avatar: 'Upload your photo again.' });
@@ -142,7 +142,7 @@ describe('change email', () => {
 
   it('refuses a taken email and your own email', async () => {
     const { agent } = await freshBuyer('emailtaken');
-    const taken = await agent.patch('/api/account/email').send({ email: 'buyer@kapekonek.test', currentPassword: PASSWORD });
+    const taken = await agent.patch('/api/account/email').send({ email: 'kapekonek.buyer@gmail.com', currentPassword: PASSWORD });
     expect(taken.status).toBe(409);
     expect(taken.body.errors).toEqual({ email: 'Email is already taken' });
     const same = await agent.patch('/api/account/email').send({ email: 'emailtaken@example.com', currentPassword: PASSWORD });

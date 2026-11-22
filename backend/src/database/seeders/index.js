@@ -5,7 +5,7 @@ import { seedPosts } from './posts.seeder.js';
 import { seedProducts } from './products.seeder.js';
 import { seedRoles } from './roles.seeder.js';
 import { seedSettings } from './settings.seeder.js';
-import { seedUsers } from './users.seeder.js';
+import { seedUsers, signInTable } from './users.seeder.js';
 
 /** Ordered: each seeder runs after the ones it depends on. */
 export const SEEDERS = [
@@ -30,4 +30,5 @@ export async function runSeeders({ only, fresh = false, log = console.log } = {}
     if (only?.length && !only.includes(seeder.name)) continue;
     log(`[seed] ${seeder.name}: ${await seeder.run({ fresh })}`);
   }
+  if (!only?.length || only.includes('users')) log(signInTable());
 }

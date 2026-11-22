@@ -37,7 +37,7 @@ describe('parseEnv', () => {
       CLOUDINARY_ROOT_FOLDER: 'kapekonek',
       ORDER_EXPIRY_DAYS: 3,
       ORDER_EXPIRY_INTERVAL_MINUTES: 5,
-      SEED_DEFAULT_PASSWORD: 'Password123!',
+      SEED_DEFAULT_PASSWORD: 'KapeKonek@123',
     });
     expect(env.VALKEY_PORT).toBe(6379);
     expect(env.CLIENT_URL).toBe('http://localhost:5173'); // trailing slash removed for CORS

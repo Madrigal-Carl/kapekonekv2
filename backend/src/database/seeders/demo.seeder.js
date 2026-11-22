@@ -7,7 +7,7 @@ import { buildBuyerOrders, noticesFor } from './buyerOrders.js';
 import { countOrders, insertOrders } from '../../repositories/order.repository.js';
 import { addSoldCount, listProductsByCategoryIds, reserveStock } from '../../repositories/product.repository.js';
 import { insertReviews } from '../../repositories/review.repository.js';
-import { findUserIdsByRole, findUsersByEmails } from '../../repositories/user.repository.js';
+import { findUserIdsByRole, findUsersByUsernames } from '../../repositories/user.repository.js';
 import { categoryIdsBySlug } from '../../repositories/category.repository.js';
 import { getLocations } from '../../services/location.service.js';
 import { recomputeRating } from '../../services/review.service.js';
@@ -56,7 +56,7 @@ const historyFor = (method, placedAt, soldAt) => [
 
 /**
  * Sold orders and reviews from the extra buyers, so ratings, review lists and "Top rated" have data.
- * Juana (buyer@) gets one sold order without a review, to try "Write a review".
+ * Juana (`buyer`) gets one sold order without a review, to try "Write a review".
  * Skipped once any order exists.
  */
 export async function seedDemo() {
@@ -64,8 +64,8 @@ export async function seedDemo() {
   const ids = await categoryIdsBySlug();
   const products = Object.fromEntries((await listProductsByCategoryIds([ids.coffee])).map((p) => [p.slug, p]));
   if (!products['barako-medium-roast']) throw new Error('Run the products seeder first.');
-  const emails = ['buyer', ...Array.from({ length: 20 }, (_, i) => `buyer${String(i + 1).padStart(2, '0')}`)];
-  const users = Object.fromEntries((await findUsersByEmails(emails.map((e) => `${e}@kapekonek.test`))).map((u) => [u.email.split('@')[0], u]));
+  const handles = ['buyer', ...Array.from({ length: 20 }, (_, i) => `buyer${String(i + 1).padStart(2, '0')}`)];
+  const users = Object.fromEntries((await findUsersByUsernames(handles)).map((u) => [u.username, u]));
   const towns = getLocations();
   const now = Date.now();
   const orders = [];
@@ -115,7 +115,7 @@ export async function seedDemo() {
   };
 
   for (let i = 0; i < 20; i += 1) {
-    const buyer = users[emails[i + 1]];
+    const buyer = users[handles[i + 1]];
     const slugs = basketFor(i);
     const { soldAt } = await addOrder(buyer, slugs, i);
     slugs.forEach((slug, j) => {
@@ -132,7 +132,7 @@ export async function seedDemo() {
   for (const productId of new Set(reviews.map((r) => r.product))) await recomputeRating(productId);
 
   const juana = await seedJuanaOrders(users.buyer, products);
-  return `${orders.length} sold orders, ${reviews.length} reviews, ${juana} orders for buyer@ in every status`;
+  return `${orders.length} sold orders, ${reviews.length} reviews, ${juana} orders for buyer in every status`;
 }
 
 const ADDRESS_KEYS = { Home: 'home', Work: 'work', Other: 'mama' };

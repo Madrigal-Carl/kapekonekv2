@@ -7,7 +7,7 @@ let seq = 0;
  * @param {Record<string, object>} products fixture products by slug
  * @param {{ email?: string, status?: string, method?: 'delivery'|'pickup', paymentMethod?: 'cash'|'e_wallet', items?: Array<[string, number]>, createdAt?: Date, stockReserved?: boolean }} [options]
  */
-export async function makeOrder(products, { email = 'buyer@kapekonek.test', status = 'pending', method = 'delivery', paymentMethod = 'cash', items = [['barako-medium-roast', 2]], createdAt = new Date(), stockReserved } = {}) {
+export async function makeOrder(products, { email = 'kapekonek.buyer@gmail.com', status = 'pending', method = 'delivery', paymentMethod = 'cash', items = [['barako-medium-roast', 2]], createdAt = new Date(), stockReserved } = {}) {
   const buyer = await User.findOne({ email });
   seq += 1;
   const lines = items.map(([slug, quantity]) => {

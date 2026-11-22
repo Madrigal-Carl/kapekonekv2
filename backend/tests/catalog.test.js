@@ -15,7 +15,7 @@ const { Product } = await import('../src/models/index.js');
 
 async function signedIn(email) {
   const agent = request.agent(app);
-  await agent.post('/api/auth/login').send({ identifier: email, password: 'Password123!' }).expect(200);
+  await agent.post('/api/auth/login').send({ identifier: email, password: 'KapeKonek@123' }).expect(200);
   return agent;
 }
 
@@ -27,8 +27,8 @@ beforeAll(async () => {
   await runSeeders({ only: ['roles', 'users'], log: () => {} });
   await seedCatalogFixture();
   guest = request(app);
-  farmer = await signedIn('farmer1@kapekonek.test');
-  buyer = await signedIn('buyer@kapekonek.test');
+  farmer = await signedIn('kapekonek.farmer.approved@gmail.com');
+  buyer = await signedIn('kapekonek.buyer@gmail.com');
 });
 afterAll(stopMemoryDb);
 

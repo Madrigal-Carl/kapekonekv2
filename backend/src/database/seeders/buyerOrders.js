@@ -1,4 +1,4 @@
-// Juana's (buyer@) demo orders: every status, both methods, both payments, refunds and notifications (PRODUCT-SPEC §11).
+// Juana's (`buyer`) demo orders: every status, both methods, both payments, refunds and notifications (PRODUCT-SPEC §11).
 import { MUNICIPALITY_CENTERS } from '../../constants/geo.js';
 import { BUYER_CANCEL_REASONS, REJECT_REASONS } from '../../constants/orderStatus.js';
 import { quoteForPoint } from '../../services/deliveryQuote.service.js';

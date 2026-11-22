@@ -4,7 +4,7 @@ import { orderPlaced } from '../src/templates/email/orderPlaced.template.js';
 import { orderStatusChanged } from '../src/templates/email/orderStatusChanged.template.js';
 
 const order = {
-  to: 'buyer@kapekonek.test',
+  to: 'kapekonek.buyer@gmail.com',
   name: 'Juana <b>',
   orderNumber: 'KK-20261121-0007',
   url: 'http://localhost:5173/orders/abc',

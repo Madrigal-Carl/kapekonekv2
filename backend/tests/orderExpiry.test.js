@@ -25,7 +25,7 @@ beforeAll(async () => {
   await startMemoryDb();
   await runSeeders({ only: ['roles', 'users'], log: () => {} });
   ({ products } = await seedCatalogFixture());
-  kaluppa = await User.findOne({ email: 'kaluppa@kapekonek.test' });
+  kaluppa = await User.findOne({ email: 'kapekonek.kaluppa@gmail.com' });
 });
 afterAll(stopMemoryDb);
 beforeEach(async () => {

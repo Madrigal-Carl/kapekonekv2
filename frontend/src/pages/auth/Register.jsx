@@ -27,7 +27,7 @@ const PANEL = {
 
 const ROLES = [
   { value: 'buyer', title: 'Buy coffee', description: 'Order coffee for delivery or pickup.' },
-  { value: 'farmer', title: 'Sell as a farmer', description: 'Sell beans to Kaluppa. Dashboard access right away.' },
+  { value: 'farmer', title: 'Sell as a farmer', description: 'Record your farms and sell beans to Kaluppa. Verify your email to start.' },
 ]
 
 const FIELDS = ['firstName', 'middleName', 'lastName', 'username', 'email', 'password', 'role']

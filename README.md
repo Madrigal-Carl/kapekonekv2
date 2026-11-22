@@ -45,17 +45,20 @@ npm run dev                            # API on :5000, web on :5173
 
 ## Seed accounts
 
-Every account uses the password `SEED_DEFAULT_PASSWORD` (default `Password123!`). You can sign in with the email or the username.
+Every account is a Gmail address with the password `KapeKonek@123` (`SEED_DEFAULT_PASSWORD`). You can sign in with the email or the username; `migrate:fresh -- --seed` prints this table.
 
-| Email | Username | Role | Verified |
+- Leave `SEED_EMAIL_BASE` empty and the emails are `kapekonek.<username>@gmail.com`. The mail worker never emails these accounts: it writes the message to `backend/storage/mail/` with a `skipped-seed` note.
+- Set `SEED_EMAIL_BASE=yourname@gmail.com` and they become `yourname+<username>@gmail.com`, so every email really reaches your inbox.
+
+| Email (without `SEED_EMAIL_BASE`) | Username | Role | Email verified |
 |---|---|---|---|
-| `kaluppa@kapekonek.test` | `kaluppa` | Kaluppa (admin) | yes |
-| `manager@kapekonek.test` | `lizaramos` | Group Manager | yes |
-| `farmer1@kapekonek.test` | `rodelmendoza` | Farmer | yes |
-| `farmer2@kapekonek.test` | `noravillareal` | Farmer | no |
-| `buyer@kapekonek.test` | `juanadc` | Buyer (with addresses and orders) | yes |
-| `buyer.unverified@kapekonek.test` | `pedrolopez` | Buyer | no: blocked until verified |
-| `buyer01@` … `buyer20@kapekonek.test` | | Buyers (reviewers) | yes |
+| `kapekonek.kaluppa@gmail.com` | `kaluppa` | Kaluppa (admin) | yes |
+| `kapekonek.manager.santacruz@gmail.com` | `manager.santacruz` | Group Manager | yes |
+| `kapekonek.farmer.approved@gmail.com` | `farmer.approved` | Farmer | yes |
+| `kapekonek.farmer.unverified@gmail.com` | `farmer.unverified` | Farmer | no |
+| `kapekonek.buyer@gmail.com` | `buyer` | Buyer (with addresses and orders) | yes |
+| `kapekonek.buyer.unverified@gmail.com` | `buyer.unverified` | Buyer | no: blocked until verified |
+| `kapekonek.buyer01@gmail.com` … `kapekonek.buyer20@gmail.com` | `buyer01` … `buyer20` | Buyers (reviewers) | yes |
 
 ## Deploy
 

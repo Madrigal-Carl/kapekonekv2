@@ -527,3 +527,27 @@ Source: `docs/prompts/CHANGE-03-SELECTS-MAP-ZOOM-UPLOADS-REVIEWS-CART.md`, after
 - **03E** `bf84f31`: `/reviews/me` also returns `pendingOrderId` so "Almost there" links the order. Finding: since the Valkey fail-fast change (`ae3c411`) the cache connection has no offline queue, so `migrate:fresh --seed` failed clearing `perm:user:*` ("Stream isn't writeable"); the clear now waits up to 5 s for the connection.
 - **03F** `fbc40a6`: label only; the backend test name "remembers for 30 days" describes cookie behavior and stays.
 - **Verify** `82773b5`: backend 242 tests, frontend 84, lint clean both; `migrate:fresh --seed` (18 permissions, 50 reviews, all from buyers with a sold order of the product); Playwright 24/24. axe caught the sort trigger's `aria-label` hiding its visible value (label-content-name-mismatch); it is now named "Sort products by Newest". Clicked through at 1440 and 390: address zoom (municipality → 12.5, barangay → 15 + ring, no `/geo/reverse` calls from the selects, street kept), sort, stepper and drawer caps, API 409, review write/edit/delete and the other panel states, 6 MB receipt and avatar refused, login label.
+
+## Change 04 — Fixed post media frames, Gmail seed accounts (done 2026-11-23)
+
+### Part 1 — Post media frames
+- [x] Reproduced on Kaluppa's "Fresh Liberica roasts are in!" post at 1440px: stage heights 500, 938, 469, 500, **1191**, 498 px (390px: 237, 445, 223, 237, 565, 237).
+- [x] Shared `components/post/Media.jsx`: `MediaStage` (16/10, `max-h-[560px]`, `overflow-hidden`, `bg-media` #1E130D, absolute `object-contain` image or video with poster; `cover` for cards) and `MediaThumb` (square `object-cover`). Used by `MediaViewer` (post page) and the landing post cards.
+- [x] Cloudinary: stage `c_limit,w_1600` (`imageUrl(url, 800)`), thumbnails `c_fill,g_auto,w_320,h_320` (new `squareUrl`, unit-tested).
+- [x] Seeder keeps the portrait photos in that post (comment + seed test on item 5).
+- [x] `e2e/media.spec.js`: steps through every item at 1440 and 390 and asserts one stage height (≤ 560).
+
+### Part 2 — Seed accounts
+- [x] Handles `kaluppa`, `manager.santacruz`, `farmer.approved`, `farmer.unverified`, `buyer`, `buyer.unverified`, `buyer01`…`buyer20` are the usernames; `seedEmail(handle)` → `you+<handle>@gmail.com` with `SEED_EMAIL_BASE`, else `kapekonek.<handle>@gmail.com`. Password `KapeKonek@123` (env default too). Seeders upsert by username and look users up by handle.
+- [x] `isSeed: true` on seeded users. Without `SEED_EMAIL_BASE` the worker writes the email to `storage/mail/` with `note: "skipped-seed"` instead of sending (tested with Brevo mocked, both ways).
+- [x] Login already accepted email or username; an e2e now signs in as `buyer`.
+- [x] `migrate:fresh -- --seed` prints the sign-in table; README table, BUILD-GUIDE accounts and `.env.example` comment updated (SETUP and PRODUCT-SPEC §11 already matched).
+
+### Part 3 — Copy
+- [x] Register farmer card: "Record your farms and sell beans to Kaluppa. Verify your email to start."
+
+### Log
+- **Root cause of the tall photo**: the stage relied on `aspect-ratio: 16/10` alone. `aspect-ratio` is only a preferred size: with `overflow: visible`, the box's automatic minimum height is its content, and the `<img>` (a grid item with `height: 100%` that resolved to its natural height) was a 1600px-wide portrait, so the stage grew to fit it. Nothing capped the height either. Fixed by `overflow: hidden` + `max-height: 560px` on the stage and an absolutely positioned `object-contain` image, so the content can no longer size the frame. The stage also used `object-cover`; the design asks for `contain`.
+- The new farmer card text contains "email", so the signup e2e's `getByLabel('Email')` became ambiguous; it is now `exact: true`.
+- Tests switched to the new handles and password. The username-suggestion test now creates its own `juanadc` because no seed account owns it any more.
+- Verify: backend 245 tests, frontend 85, lint clean in both; `migrate:fresh --seed` OK; Playwright 26/26 (24 earlier + 2 media).

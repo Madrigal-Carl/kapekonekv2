@@ -29,7 +29,7 @@ app.get('/any', authenticate, canAny('orders.manage', 'dashboard.view'), ok);
 app.get('/dashboard', authenticate, verified, ok);
 app.use(errorHandler);
 
-const user = (local) => User.findOne({ email: `${local}@kapekonek.test` });
+const user = (local) => User.findOne({ email: `kapekonek.${local}@gmail.com` });
 const as = (u) => `accessToken=${signAccessToken(u)}`;
 
 beforeAll(async () => {
@@ -56,7 +56,7 @@ describe('permission guards', () => {
   });
 
   it('canAny passes with one of the permissions', async () => {
-    expect((await request(app).get('/any').set('Cookie', as(await user('farmer1')))).status).toBe(200);
+    expect((await request(app).get('/any').set('Cookie', as(await user('farmer.approved')))).status).toBe(200);
     expect((await request(app).get('/any').set('Cookie', as(await user('buyer')))).status).toBe(403);
   });
 
@@ -75,13 +75,13 @@ describe('verified', () => {
   });
 
   it('lets an unverified farmer through', async () => {
-    expect((await request(app).get('/dashboard').set('Cookie', as(await user('farmer2')))).status).toBe(200);
+    expect((await request(app).get('/dashboard').set('Cookie', as(await user('farmer.unverified')))).status).toBe(200);
   });
 });
 
 describe('authenticate', () => {
   it('refuses a suspended user', async () => {
-    const u = await User.create({ firstName: 'S', lastName: 'U', username: 'suspended', email: 's@kapekonek.test', password: 'Password123!', roles: ['buyer'], emailVerifiedAt: new Date(), status: 'suspended' });
+    const u = await User.create({ firstName: 'S', lastName: 'U', username: 'suspended', email: 's@kapekonek.test', password: 'KapeKonek@123', roles: ['buyer'], emailVerifiedAt: new Date(), status: 'suspended' });
     const res = await request(app).get('/cart').set('Cookie', as(u));
     expect(res.status).toBe(403);
   });
@@ -98,7 +98,7 @@ describe('authenticate', () => {
 
 describe('permission cache', () => {
   it('serves from cache until cleared', async () => {
-    const u = await user('farmer1');
+    const u = await user('farmer.approved');
     expect(await resolvePermissions(u)).not.toContain('orders.manage');
     expect(await getValkey().ttl(`perm:user:${u._id}`)).toBeGreaterThan(590);
 

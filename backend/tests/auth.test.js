@@ -22,7 +22,7 @@ const juana = {
   lastName: 'Santos',
   username: 'juanasantos',
   email: 'Juana.Santos@Example.com',
-  password: 'Password123!',
+  password: 'KapeKonek@123',
   role: 'buyer',
 };
 const tokenOf = (url) => new URL(url).searchParams.get('token');
@@ -55,7 +55,7 @@ describe('register', () => {
   });
 
   it('reports taken email and username as field errors', async () => {
-    const res = await request(app).post('/api/auth/register').send({ ...juana, email: 'buyer@kapekonek.test', username: 'juanadc' });
+    const res = await request(app).post('/api/auth/register').send({ ...juana, email: 'kapekonek.buyer@gmail.com', username: 'buyer' });
     expect(res.status).toBe(409);
     expect(res.body.errors).toEqual({ email: 'Email is already taken', username: 'Username is already taken' });
   });
@@ -68,21 +68,21 @@ describe('register', () => {
 
   it('refuses someone already signed in', async () => {
     const agent = request.agent(app);
-    await agent.post('/api/auth/login').send({ identifier: 'buyer@kapekonek.test', password: 'Password123!' });
+    await agent.post('/api/auth/login').send({ identifier: 'kapekonek.buyer@gmail.com', password: 'KapeKonek@123' });
     expect((await agent.post('/api/auth/register').send(juana)).status).toBe(403);
   });
 });
 
 describe('login', () => {
   it('accepts a username and remembers for 30 days when asked', async () => {
-    const res = await request(app).post('/api/auth/login').send({ identifier: 'JuanaDC', password: 'Password123!', remember: true });
+    const res = await request(app).post('/api/auth/login').send({ identifier: 'Buyer', password: 'KapeKonek@123', remember: true });
     expect(res.status).toBe(200);
-    expect(res.body.data.user.username).toBe('juanadc');
+    expect(res.body.data.user.username).toBe('buyer');
     expect(cookie(res, 'refreshToken')).toMatch(/Max-Age=2592000/);
   });
 
   it('gives the same message for a wrong password and an unknown account', async () => {
-    const wrong = await request(app).post('/api/auth/login').send({ identifier: 'buyer@kapekonek.test', password: 'Nope123!' });
+    const wrong = await request(app).post('/api/auth/login').send({ identifier: 'kapekonek.buyer@gmail.com', password: 'Nope123!' });
     const unknown = await request(app).post('/api/auth/login').send({ identifier: 'ghost@kapekonek.test', password: 'Nope123!' });
     expect(wrong.status).toBe(401);
     expect(unknown.status).toBe(401);
@@ -90,7 +90,7 @@ describe('login', () => {
   });
 
   it('throttles the 6th attempt in a minute', async () => {
-    const attempt = () => request(app).post('/api/auth/login').send({ identifier: 'buyer@kapekonek.test', password: 'Wrong123!' });
+    const attempt = () => request(app).post('/api/auth/login').send({ identifier: 'kapekonek.buyer@gmail.com', password: 'Wrong123!' });
     for (let i = 0; i < 5; i += 1) expect((await attempt()).status).toBe(401);
     const res = await attempt();
     expect(res.status).toBe(429);
@@ -101,7 +101,7 @@ describe('login', () => {
 describe('session', () => {
   it('returns me, refreshes and logs out', async () => {
     const agent = request.agent(app);
-    await agent.post('/api/auth/login').send({ identifier: 'farmer2@kapekonek.test', password: 'Password123!' });
+    await agent.post('/api/auth/login').send({ identifier: 'kapekonek.farmer.unverified@gmail.com', password: 'KapeKonek@123' });
 
     const me = await agent.get('/api/auth/me');
     expect(me.status).toBe(200);
@@ -144,7 +144,7 @@ describe('email verification', () => {
 
   it('resends a new link (old one stops working), at most once a minute', async () => {
     const agent = request.agent(app);
-    await agent.post('/api/auth/login').send({ identifier: 'buyer.unverified@kapekonek.test', password: 'Password123!' });
+    await agent.post('/api/auth/login').send({ identifier: 'kapekonek.buyer.unverified@gmail.com', password: 'KapeKonek@123' });
     expect((await agent.post('/api/auth/email/verification-notification')).status).toBe(200);
     const first = tokenOf(lastMail('verify-email').data.url);
     expect((await agent.post('/api/auth/email/verification-notification')).status).toBe(429);
@@ -158,7 +158,7 @@ describe('email verification', () => {
 
   it('tells a verified user there is nothing to resend', async () => {
     const agent = request.agent(app);
-    await agent.post('/api/auth/login').send({ identifier: 'buyer@kapekonek.test', password: 'Password123!' });
+    await agent.post('/api/auth/login').send({ identifier: 'kapekonek.buyer@gmail.com', password: 'KapeKonek@123' });
     expect((await agent.post('/api/auth/email/verification-notification')).status).toBe(409);
   });
 });
@@ -173,7 +173,7 @@ describe('password reset', () => {
   it('resets the password, signs out old sessions and is single-use', async () => {
     await request(app).post('/api/auth/register').send({ ...juana, email: 'reset@example.com', username: 'resetme' });
     const old = request.agent(app);
-    await old.post('/api/auth/login').send({ identifier: 'resetme', password: 'Password123!', remember: true });
+    await old.post('/api/auth/login').send({ identifier: 'resetme', password: 'KapeKonek@123', remember: true });
 
     await request(app).post('/api/auth/forgot-password').send({ email: 'RESET@example.com' });
     const url = lastMail('reset-password').data.url;
@@ -190,16 +190,17 @@ describe('password reset', () => {
 
 describe('usernames', () => {
   it('suggests exactly 3 available names', async () => {
+    await User.create({ firstName: 'Juana', lastName: 'Dela Cruz', username: 'juanadc', email: 'juanadc@example.com', password: 'KapeKonek@123' });
     const res = await request(app).get('/api/auth/username-suggestions').query({ firstName: 'Juana', lastName: 'Dela Cruz' });
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(3);
-    expect(res.body.data).not.toContain('juanadc'); // seeded buyer@ owns it
+    expect(res.body.data).not.toContain('juanadc'); // taken just above
     expect(res.body.data).toEqual(['juana.dc', 'jdelacruz', 'juana.delacruz']);
   });
 
   it('reports availability', async () => {
-    const taken = await request(app).get('/api/auth/username-availability').query({ username: 'juanadc' });
-    expect(taken.body.data).toEqual({ username: 'juanadc', available: false });
+    const taken = await request(app).get('/api/auth/username-availability').query({ username: 'buyer' });
+    expect(taken.body.data).toEqual({ username: 'buyer', available: false });
     const free = await request(app).get('/api/auth/username-availability').query({ username: 'brand.new' });
     expect(free.body.data.available).toBe(true);
     expect((await request(app).get('/api/auth/username-availability').query({ username: 'Bad Name' })).status).toBe(400);

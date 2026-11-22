@@ -15,7 +15,7 @@ const { Cart, Product } = await import('../src/models/index.js');
 
 async function signedIn(email) {
   const agent = request.agent(app);
-  await agent.post('/api/auth/login').send({ identifier: email, password: 'Password123!' }).expect(200);
+  await agent.post('/api/auth/login').send({ identifier: email, password: 'KapeKonek@123' }).expect(200);
   return agent;
 }
 
@@ -28,7 +28,7 @@ beforeAll(async () => {
   await startMemoryDb();
   await runSeeders({ only: ['roles', 'users'], log: () => {} });
   ({ products } = await seedCatalogFixture());
-  buyer = await signedIn('buyer@kapekonek.test');
+  buyer = await signedIn('kapekonek.buyer@gmail.com');
 });
 afterAll(stopMemoryDb);
 beforeEach(async () => {
@@ -40,7 +40,7 @@ beforeEach(async () => {
 describe('cart', () => {
   it('needs a verified buyer', async () => {
     expect((await request(app).get('/api/cart')).status).toBe(401);
-    const unverified = await signedIn('buyer.unverified@kapekonek.test');
+    const unverified = await signedIn('kapekonek.buyer.unverified@gmail.com');
     const res = await unverified.get('/api/cart');
     expect(res.status).toBe(403);
     expect(res.body.code).toBe('EMAIL_NOT_VERIFIED');
@@ -81,7 +81,7 @@ describe('cart', () => {
   });
 
   it("refuses coffee to a farmer (no catalog.coffee) and hidden products to everyone", async () => {
-    const farmer = await signedIn('farmer1@kapekonek.test');
+    const farmer = await signedIn('kapekonek.farmer.approved@gmail.com');
     expect((await farmer.post('/api/cart/items').send({ productId: id('barako-medium-roast'), quantity: 1 })).status).toBe(403);
     expect((await add('hidden-old-roast', 1)).status).toBe(404);
     expect((await add('organic-fertilizer-25kg', 1)).status).toBe(404);

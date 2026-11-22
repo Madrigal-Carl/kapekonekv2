@@ -63,9 +63,9 @@ describe('socket auth and user rooms', () => {
   });
 
   it('delivers realtime.toUser only to that user’s sockets', async () => {
-    const buyer = await open(await cookieFor('buyer@kapekonek.test'));
-    const other = await open(await cookieFor('kaluppa@kapekonek.test'));
-    const buyerId = (await User.findOne({ email: 'buyer@kapekonek.test' }).lean())._id;
+    const buyer = await open(await cookieFor('kapekonek.buyer@gmail.com'));
+    const other = await open(await cookieFor('kapekonek.kaluppa@gmail.com'));
+    const buyerId = (await User.findOne({ email: 'kapekonek.buyer@gmail.com' }).lean())._id;
 
     const [mine, theirs] = await Promise.all([
       nextEvent(buyer, 'order:updated'),
@@ -77,7 +77,7 @@ describe('socket auth and user rooms', () => {
   });
 
   it('registers no chat handlers and joins no room besides the user room', async () => {
-    await open(await cookieFor('buyer@kapekonek.test'));
+    await open(await cookieFor('kapekonek.buyer@gmail.com'));
     const [socket] = await io.fetchSockets();
     expect([...socket.rooms].filter((room) => room !== socket.id)).toEqual([expect.stringMatching(/^user:[a-f0-9]{24}$/)]);
     const server = io.of('/').sockets.get(socket.id);

@@ -1,36 +1,37 @@
 import mongoose from 'mongoose';
 import { countPosts, insertComments, insertPosts, insertReactions } from '../../repositories/post.repository.js';
-import { findUsersByEmails } from '../../repositories/user.repository.js';
+import { findUsersByUsernames } from '../../repositories/user.repository.js';
 import { seedMedia } from './media.js';
 
 const HOUR = 60;
 const DAY = 24 * HOUR;
 const REACTIONS = ['like', 'love', 'celebrate'];
 
-// author: account local part; ago: minutes before seeding; comments: [author, text, minutesAfterPost, replies[]]
+// author: account handle (= username); ago: minutes before seeding; comments: [author, text, minutesAfterPost, replies[]]
 const POSTS = [
   {
     author: 'kaluppa', ago: 2 * HOUR,
     body: 'Fresh Liberica roasts are in! This batch came from three farmer groups in Mogpog and Santa Cruz, roasted medium for that classic barako body.\n\nOrders for this batch are open until stock runs out, with delivery anywhere in Marinduque. Thank you to everyone who sorted and dried these cherries.',
+    // Keep the portrait photos (roasted-cooling-tray, coffee-bag-hand): the e2e media check steps through them (Change 04).
     media: ['roasted-roaster-arm', 'roasted-cooling-tray', 'video-roasted-beans', 'roasted-pouring', 'coffee-bag-hand', 'coffee-pouches'],
     comments: [
-      ['farmer1', 'Our group’s Liberica went into this batch! Salamat, Kaluppa.', 20, [
+      ['farmer.approved', 'Our group’s Liberica went into this batch! Salamat, Kaluppa.', 20, [
         ['kaluppa', 'Thank you to your group, Rodel. The cherries were beautifully sorted.', 22],
-        ['manager', 'Proud of the team. More drying next week.', 40],
+        ['manager.santacruz', 'Proud of the team. More drying next week.', 40],
       ]],
-      ['manager', 'Our Mogpog group can deliver more cherries next week.', 30, [
+      ['manager.santacruz', 'Our Mogpog group can deliver more cherries next week.', 30, [
         ['kaluppa', 'Thanks, Liza! We’ll schedule the pickup at your farm.', 35],
       ]],
-      ['farmer2', 'Will there be Excelsa in the next batch?', 60, [
+      ['farmer.unverified', 'Will there be Excelsa in the next batch?', 60, [
         ['kaluppa', 'Yes, Excelsa roasting is planned for early December.', 68],
       ]],
     ],
   },
   {
-    author: 'farmer1', ago: 1 * DAY,
+    author: 'farmer.approved', ago: 1 * DAY,
     body: 'First picking of the season done in our group’s farm. Cherries are drying now.',
     media: ['cherries-branch', 'green-beans-drying'],
-    comments: [['kaluppa', 'Looking good, Rodel! Send us word when they’re ready for sorting.', 45, [['farmer1', 'Will do. About two weeks of drying left.', 90]]]],
+    comments: [['kaluppa', 'Looking good, Rodel! Send us word when they’re ready for sorting.', 45, [['farmer.approved', 'Will do. About two weeks of drying left.', 90]]]],
   },
   {
     author: 'kaluppa', ago: 3 * DAY,
@@ -39,16 +40,16 @@ const POSTS = [
     comments: [],
   },
   {
-    author: 'manager', ago: 4 * DAY,
+    author: 'manager.santacruz', ago: 4 * DAY,
     body: 'Group meeting this Saturday at the Balanacan barangay hall, 9 AM. We’ll talk about pruning schedules and the next delivery to Kaluppa.',
     media: [],
-    comments: [['farmer2', 'I’ll be there. Can we also talk about the nursery seedlings?', 120, [['manager', 'Yes, I’ll add it to the agenda.', 150]]]],
+    comments: [['farmer.unverified', 'I’ll be there. Can we also talk about the nursery seedlings?', 120, [['manager.santacruz', 'Yes, I’ll add it to the agenda.', 150]]]],
   },
   {
-    author: 'farmer2', ago: 6 * DAY,
+    author: 'farmer.unverified', ago: 6 * DAY,
     body: 'Our Excelsa trees are flowering early this year. Hoping for a good harvest.',
     media: ['cherries-ripe'],
-    comments: [['manager', 'Great news, Nora. Keep an eye out for berry borer after the rains.', 200, []]],
+    comments: [['manager.santacruz', 'Great news, Nora. Keep an eye out for berry borer after the rains.', 200, []]],
   },
   {
     author: 'kaluppa', ago: 8 * DAY,
@@ -57,7 +58,7 @@ const POSTS = [
     comments: [],
   },
   {
-    author: 'farmer1', ago: 10 * DAY,
+    author: 'farmer.approved', ago: 10 * DAY,
     body: 'Sorting green beans by hand before they go to Kaluppa. Slow work, but it shows in the cup.',
     media: ['green-beans-washing', 'green-beans-heap', 'green-beans-bowls'],
     comments: [['kaluppa', 'It really does. These were some of the cleanest beans we received this month.', 300, []]],
@@ -78,9 +79,9 @@ export async function seedPosts() {
   if ((await countPosts()) > 0) return 'skipped (posts exist)';
   const [media, users] = await Promise.all([
     seedMedia(),
-    findUsersByEmails(['kaluppa', 'manager', 'farmer1', 'farmer2'].map((e) => `${e}@kapekonek.test`)),
+    findUsersByUsernames(['kaluppa', 'manager.santacruz', 'farmer.approved', 'farmer.unverified']),
   ]);
-  const user = Object.fromEntries(users.map((u) => [u.email.split('@')[0], u._id]));
+  const user = Object.fromEntries(users.map((u) => [u.username, u._id]));
   const community = Object.keys(user);
   const now = new Date();
   const posts = [];

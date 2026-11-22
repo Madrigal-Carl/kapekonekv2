@@ -19,7 +19,7 @@ const { Address } = await import('../src/models/index.js');
 
 async function signedIn(email) {
   const agent = request.agent(app);
-  await agent.post('/api/auth/login').send({ identifier: email, password: 'Password123!' }).expect(200);
+  await agent.post('/api/auth/login').send({ identifier: email, password: 'KapeKonek@123' }).expect(200);
   return agent;
 }
 
@@ -38,8 +38,8 @@ let other;
 beforeAll(async () => {
   await startMemoryDb();
   await runSeeders({ only: ['roles', 'users'], log: () => {} });
-  buyer = await signedIn('buyer@kapekonek.test');
-  other = await signedIn('buyer01@kapekonek.test');
+  buyer = await signedIn('kapekonek.buyer@gmail.com');
+  other = await signedIn('kapekonek.buyer01@gmail.com');
 });
 afterAll(stopMemoryDb);
 beforeEach(() => Address.deleteMany({}));
@@ -47,7 +47,7 @@ beforeEach(() => Address.deleteMany({}));
 describe('addresses', () => {
   it('needs a verified buyer with addresses.manage', async () => {
     expect((await request(app).get('/api/addresses')).status).toBe(401);
-    const farmer = await signedIn('farmer1@kapekonek.test');
+    const farmer = await signedIn('kapekonek.farmer.approved@gmail.com');
     expect((await farmer.get('/api/addresses')).status).toBe(403);
   });
 

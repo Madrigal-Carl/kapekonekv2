@@ -1,6 +1,8 @@
 import { Worker } from 'bullmq';
-import { sendMail } from '../../config/mail.js';
+import { env } from '../../config/env.js';
+import { logMail, sendMail } from '../../config/mail.js';
 import { createValkeyConnection } from '../../config/valkey.js';
+import { isSeedEmail } from '../../repositories/user.repository.js';
 import { emailChangedNotice } from '../../templates/email/emailChangedNotice.template.js';
 import { kaluppaNewOrder } from '../../templates/email/kaluppaNewOrder.template.js';
 import { orderPlaced } from '../../templates/email/orderPlaced.template.js';
@@ -23,13 +25,15 @@ const handlers = {
 };
 
 /**
- * Render and send one email job.
+ * Render and send one email job. Seed accounts are never emailed unless SEED_EMAIL_BASE points them at your own inbox.
  * @param {{ name: string, data: { to: string } }} job
  */
 export async function processEmailJob({ name, data }) {
   const render = handlers[name];
   if (!render) throw new Error(`Unknown email job: ${name}`);
-  return sendMail({ to: data.to, ...render(data) });
+  const message = { to: data.to, ...render(data) };
+  if (!env.SEED_EMAIL_BASE && (await isSeedEmail(data.to))) return logMail(message, 'skipped-seed');
+  return sendMail(message);
 }
 
 let worker;

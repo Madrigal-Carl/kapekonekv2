@@ -15,7 +15,7 @@ const { isValidBarangay } = await import('../src/services/location.service.js');
 
 async function signedIn(email) {
   const agent = request.agent(app);
-  await agent.post('/api/auth/login').send({ identifier: email, password: 'Password123!' }).expect(200);
+  await agent.post('/api/auth/login').send({ identifier: email, password: 'KapeKonek@123' }).expect(200);
   return agent;
 }
 
@@ -71,9 +71,9 @@ describe('settings', () => {
 
   it('shows e-wallet details only to a verified, signed-in user', async () => {
     expect((await request(app).get('/api/settings/payment')).status).toBe(401);
-    const unverified = await signedIn('buyer.unverified@kapekonek.test');
+    const unverified = await signedIn('kapekonek.buyer.unverified@gmail.com');
     expect((await unverified.get('/api/settings/payment')).body.code).toBe('EMAIL_NOT_VERIFIED');
-    const res = await (await signedIn('buyer@kapekonek.test')).get('/api/settings/payment');
+    const res = await (await signedIn('kapekonek.buyer@gmail.com')).get('/api/settings/payment');
     expect(res.status).toBe(200);
     expect(res.body.data).toMatchObject({ providers: ['GCash', 'Maya'], isSample: true, accountName: expect.any(String), accountNumber: expect.any(String) });
   });

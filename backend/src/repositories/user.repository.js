@@ -56,11 +56,15 @@ export async function replacePassword(userId, password) {
  * Seeder upsert by email. Existing users keep their password and profile.
  * @param {object} data includes an already-hashed `password`
  */
-export const upsertSeedUser = ({ email, ...data }) =>
-  User.updateOne({ email }, { $setOnInsert: { email, ...data } }, { upsert: true });
+export const upsertSeedUser = ({ username, ...data }) =>
+  User.updateOne({ username }, { $setOnInsert: { username, ...data, isSeed: true } }, { upsert: true });
 
-/** Users with any of the given emails (seeders). */
-export const findUsersByEmails = (emails) => User.find({ email: { $in: emails } }).select('email firstName lastName contactNumber').lean();
+/** Users with any of the given usernames (seeders: seed usernames are their handles). */
+export const findUsersByUsernames = (usernames) =>
+  User.find({ username: { $in: usernames } }).select('username email firstName lastName contactNumber').lean();
+
+/** Whether an address belongs to a seeded account (the mail worker skips those). */
+export const isSeedEmail = async (email) => Boolean(await User.exists({ email: email?.toLowerCase(), isSeed: true }));
 
 export const countUsers = () => User.countDocuments();
 

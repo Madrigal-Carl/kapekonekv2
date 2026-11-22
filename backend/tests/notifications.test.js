@@ -19,7 +19,7 @@ const { Notification, User } = await import('../src/models/index.js');
 
 async function signedIn(email) {
   const agent = request.agent(app);
-  await agent.post('/api/auth/login').send({ identifier: email, password: 'Password123!' }).expect(200);
+  await agent.post('/api/auth/login').send({ identifier: email, password: 'KapeKonek@123' }).expect(200);
   return agent;
 }
 
@@ -32,9 +32,9 @@ beforeAll(async () => {
   await startMemoryDb();
   await runSeeders({ only: ['roles', 'users'], log: () => {} });
   ({ products } = await seedCatalogFixture());
-  kaluppa = await signedIn('kaluppa@kapekonek.test');
-  buyer = await signedIn('buyer@kapekonek.test');
-  buyerId = (await User.findOne({ email: 'buyer@kapekonek.test' }).lean())._id;
+  kaluppa = await signedIn('kapekonek.kaluppa@gmail.com');
+  buyer = await signedIn('kapekonek.buyer@gmail.com');
+  buyerId = (await User.findOne({ email: 'kapekonek.buyer@gmail.com' }).lean())._id;
 });
 afterAll(stopMemoryDb);
 
@@ -81,7 +81,7 @@ describe('notifications', () => {
 
   it('guests get 401 and unverified buyers 403 EMAIL_NOT_VERIFIED', async () => {
     await request(app).get('/api/notifications').expect(401);
-    const unverified = await signedIn('buyer.unverified@kapekonek.test');
+    const unverified = await signedIn('kapekonek.buyer.unverified@gmail.com');
     const res = await unverified.get('/api/notifications/unread-count').expect(403);
     expect(res.body.code).toBe('EMAIL_NOT_VERIFIED');
   });

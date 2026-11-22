@@ -15,7 +15,7 @@ import { useProducts } from '@/hooks/useProducts'
 import { useLanding } from '@/hooks/useSettings'
 import { cn } from '@/lib/cn'
 import { timeAgo } from '@/lib/date'
-import { imageUrl } from '@/lib/image'
+import { MediaStage } from '@/components/post/Media'
 
 const VARIETY_CARDS = [
   { slug: 'liberica', name: 'Liberica', text: 'Large, uneven beans with a bold, smoky cup. The bean behind kapeng barako.' },
@@ -96,7 +96,6 @@ function LatestPosts() {
           {isPending && [1, 2, 3].map((i) => <Skeleton key={i} className="h-[380px] rounded-card" />)}
           {posts?.map((post) => {
             const cover = post.media.find((m) => m.type === 'image') ?? post.media[0]
-            const coverUrl = cover?.type === 'video' ? cover.posterUrl : cover?.url
             return (
               <article key={post._id} className="flex flex-col overflow-hidden rounded-card border border-sand bg-white transition-shadow hover:shadow-card-hover">
                 <div className="flex items-center gap-3 p-4">
@@ -110,11 +109,7 @@ function LatestPosts() {
                   </div>
                 </div>
                 <p className="mx-4 mb-3.5 mt-0 line-clamp-3 text-sm leading-[1.6] text-ink-2">{post.body}</p>
-                {coverUrl && (
-                  <div className="relative aspect-[16/10] overflow-hidden bg-photo">
-                    <img src={imageUrl(coverUrl, 400)} alt={cover.alt ?? ''} loading="lazy" className="absolute inset-0 size-full object-cover" />
-                  </div>
-                )}
+                {cover && <MediaStage item={cover} cover />}
                 <Link to={`/posts/${post._id}`} className="mt-auto block px-4 py-3.5 text-[13px] font-semibold text-roast no-underline">
                   View post →<span className="sr-only"> by {post.author.name}</span>
                 </Link>

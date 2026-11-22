@@ -5,7 +5,7 @@ const API = 'http://localhost:5100/api'
 async function signIn(page, identifier) {
   await page.goto('/login')
   await page.getByLabel('Email or username').fill(identifier)
-  await page.getByLabel('Password', { exact: true }).fill('Password123!')
+  await page.getByLabel('Password', { exact: true }).fill('KapeKonek@123')
   await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(page).toHaveURL('/')
 }
@@ -21,7 +21,7 @@ async function placeDeliveryOrder(api) {
 }
 
 test('live: Kaluppa moves the order to out for delivery and the bell and banner update without a reload', async ({ page }) => {
-  await signIn(page, 'buyer05@kapekonek.test')
+  await signIn(page, 'kapekonek.buyer05@gmail.com')
   await page.request.patch(`${API}/notifications/read-all`)
   const order = await placeDeliveryOrder(page.request)
 
@@ -34,7 +34,7 @@ test('live: Kaluppa moves the order to out for delivery and the bell and banner 
   })
 
   const kaluppa = await request.newContext()
-  expect((await kaluppa.post(`${API}/auth/login`, { data: { identifier: 'kaluppa@kapekonek.test', password: 'Password123!' } })).ok()).toBe(true)
+  expect((await kaluppa.post(`${API}/auth/login`, { data: { identifier: 'kapekonek.kaluppa@gmail.com', password: 'KapeKonek@123' } })).ok()).toBe(true)
   const move = (body) => kaluppa.patch(`${API}/orders/${order._id}/status`, { data: body })
   expect((await move({ status: 'reserved' })).ok()).toBe(true)
   expect((await move({ status: 'processing' })).ok()).toBe(true)

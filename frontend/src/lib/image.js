@@ -16,3 +16,11 @@ export const imageUrl = (url, width) => (isCloudinary(url) ? resized(url, width 
  * @param {number[]} widths image widths in px
  */
 export const imageSrcSet = (url, widths) => (isCloudinary(url) ? widths.map((w) => `${resized(url, w)} ${w}w`).join(', ') : undefined)
+
+/**
+ * A square, subject-centred crop (thumbnails), at 2× `size` CSS px. Other URLs come back unchanged.
+ * @param {string | null | undefined} url
+ * @param {number} size rendered side in CSS px
+ */
+export const squareUrl = (url, size) =>
+  isCloudinary(url) ? url.replace(UPLOAD, `${UPLOAD}f_auto,q_auto,c_fill,g_auto,w_${size * 2},h_${size * 2}/`) : (url ?? undefined)
