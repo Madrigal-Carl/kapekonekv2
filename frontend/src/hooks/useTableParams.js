@@ -13,15 +13,17 @@ const KEEPS_PAGE = new Set(['page', 'open', 'mode'])
  */
 export function useTableParams(defaults = {}) {
   const [search, setSearch] = useSearchParams()
-  const defaultsRef = useRef(defaults)
+  // Callers pass a fresh object literal each render; key the memo on its contents.
+  const defaultsKey = JSON.stringify(defaults)
+  const base = useMemo(() => JSON.parse(defaultsKey), [defaultsKey])
   const timer = useRef(null)
   useEffect(() => () => clearTimeout(timer.current), [])
 
   const params = useMemo(() => {
-    const out = { q: '', page: 1, ...defaultsRef.current }
+    const out = { q: '', page: 1, ...base }
     for (const [key, value] of search) out[key] = key === 'page' ? Math.max(1, Number(value) || 1) : value
     return out
-  }, [search])
+  }, [search, base])
 
   const apply = useCallback(
     (patch) =>
@@ -29,7 +31,8 @@ export function useTableParams(defaults = {}) {
         (prev) => {
           const next = new URLSearchParams(prev)
           for (const [key, value] of Object.entries(patch)) {
-            const blank = value === '' || value == null || value === defaultsRef.current[key] || (key === 'page' && Number(value) <= 1)
+            // Only the default leaves the URL; '' stays when the default is narrower (an "All" choice over `status=active`).
+            const blank = value == null || (key === 'page' ? Number(value) <= 1 : String(value) === String(base[key] ?? ''))
             if (blank) next.delete(key)
             else next.set(key, String(value))
           }
@@ -38,7 +41,7 @@ export function useTableParams(defaults = {}) {
         },
         { replace: true },
       ),
-    [setSearch],
+    [setSearch, base],
   )
 
   const set = useCallback(

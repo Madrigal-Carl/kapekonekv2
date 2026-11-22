@@ -41,6 +41,13 @@ describe('useTableParams', () => {
     expect(t.search).toBe('')
   })
 
+  it('keeps an "All" choice when the default is narrower', () => {
+    const t = harness('/x')
+    act(() => t.set({ status: '' }))
+    expect(t.search).toBe('?status=')
+    expect(t.params.status).toBe('')
+  })
+
   it('debounces the search by 300 ms', () => {
     vi.useFakeTimers()
     const t = harness('/x?page=2')
