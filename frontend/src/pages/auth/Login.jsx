@@ -73,7 +73,7 @@ export function Login() {
         </div>
         <label className="flex min-h-8 cursor-pointer items-center gap-2.5 text-sm text-ink">
           <input type="checkbox" className="m-[3px_3px_3px_4px] size-[18px] accent-roast" {...register('remember')} />
-          Remember me for 30 days
+          Remember me
         </label>
         <Button type="submit" pending={login.isPending} className="py-[13px] text-[14.5px]">
           Sign in
