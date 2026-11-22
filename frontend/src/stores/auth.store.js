@@ -7,6 +7,8 @@ export const useAuthStore = create((set) => ({
   status: 'loading',
   setSession: (session) => set({ session, status: 'ready' }),
   clear: () => set({ session: null, status: 'ready' }),
+  /** Swap in the updated user after a profile change (roles and permissions stay). */
+  setUser: (user) => set((s) => (s.session ? { session: { ...s.session, user } } : {})),
   /** Re-read the session from the server (boot, after verifying the email). */
   load: async () => {
     try {

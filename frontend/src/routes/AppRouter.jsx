@@ -14,6 +14,8 @@ import { Addresses } from '@/pages/account/Addresses'
 import { Checkout } from '@/pages/account/Checkout'
 import { OrderDetail } from '@/pages/account/OrderDetail'
 import { Orders } from '@/pages/account/Orders'
+import { Profile } from '@/pages/account/Profile'
+import { Settings } from '@/pages/account/Settings'
 import { Overview } from '@/pages/dashboard/Overview'
 import { Forbidden } from '@/pages/errors/Forbidden'
 import { NotFound } from '@/pages/errors/NotFound'
@@ -68,6 +70,13 @@ export const router = createBrowserRouter([
                 ],
               },
               { element: <ProtectedRoute permissions={['addresses.manage']} />, children: [{ path: '/addresses', element: <Addresses /> }] },
+              {
+                element: <ProtectedRoute permissions={['profile.update']} />,
+                children: [
+                  { path: '/profile', element: <Profile /> },
+                  { path: '/settings', element: <Settings /> },
+                ],
+              },
             ],
           },
         ],

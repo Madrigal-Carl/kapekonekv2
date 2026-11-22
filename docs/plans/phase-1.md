@@ -361,11 +361,11 @@ No order chat (Change 01). Socket.IO carries only `notification:new` and `order:
 
 ### Task 6.1: Account endpoints
 
-- [ ] `GET/PATCH /account/profile`, `PATCH/DELETE /account/avatar` (Cloudinary destroy old), `PATCH /account/email` (current password; unverifies, queues `VERIFY_EMAIL` to new + `EMAIL_CHANGED_NOTICE` to old), `PATCH /account/password` (current password; `tokenVersion++`; re-issue this session's cookies). Tests: username taken → 409; email change flow; other sessions' refresh fails after password change.
+- [x] `GET/PATCH /account/profile`, `PATCH/DELETE /account/avatar` (Cloudinary destroy old), `PATCH /account/email` (current password; unverifies, queues `VERIFY_EMAIL` to new + `EMAIL_CHANGED_NOTICE` to old), `PATCH /account/password` (current password; `tokenVersion++`; re-issue this session's cookies). Tests: username taken → 409; email change flow; other sessions' refresh fails after password change.
 
 ### Task 6.2: Profile and Settings pages
 
-- [ ] Copy Profile.dc.html and Settings.dc.html; avatar via signed upload. Playwright both flows.
+- [x] Copy Profile.dc.html and Settings.dc.html; avatar via signed upload. Playwright both flows.
 
 ---
 
@@ -453,3 +453,12 @@ Source: `docs/prompts/CHANGE-02-NO-EYEBROW-BAR-NO-CHAT.md`, applied after M2 and
 - **Frontend**: `lib/socket.js` (refreshes the session once and reconnects when the handshake is refused) and `useRealtime` mounted once in `App`, invalidating the notification and order queries on `notification:new` / `order:updated`; navbar bell with unread count and a panel (newest first, unread marks, mark all as read, load more, skeleton/empty/error, Esc and outside click close it).
 - **Tests**: backend 219 (adds socket auth + rooms, notifications); frontend 63; Playwright 17 (adds a buyer on `/orders/:id` watching Kaluppa move the order to out for delivery: banner with rider and bell count update without a reload, then mark all as read).
 - **Visual check**: the bell panel at 1440 and 390 px (no screen designs the panel; it follows the avatar menu's tokens).
+
+### M6 — done (2026-11-22)
+
+- **Account API** (`authenticate → verified → can('profile.update')`): `GET/PATCH /account/profile` (names, username, optional phone; a taken username is a duplicate-key 409 with `errors.username`), `PATCH/DELETE /account/avatar` (only an upload from the user's own `avatars/<userId>` folder; the replaced/removed image is deleted from Cloudinary, best effort), `PATCH /account/email` (current password; unverifies, `VERIFY_EMAIL` to the new address, new `EMAIL_CHANGED_NOTICE` to the old one), `PATCH /account/password` (current password; `tokenVersion++`; this session's cookies re-issued with its remember-me choice). Both password-checking routes are capped at 5/min per user. Avatar and receipt ownership share `isOwnUpload()`.
+- **UI**: `/profile` (photo band with signed upload + progress and Remove, fields with the live username check incl. "This is your current username", phone hint, read-only email with Verified badge, Discard/Save) and `/settings` (change email with notice → guard opens `/verify-email`; change password with the shared eye toggle and rule line). The navbar avatar and name update straight away. `useUsernameStatus` moved out of Register so both pages share it.
+- **Gotcha**: react-hook-form 7.92 merges the form's `resetOptions` into every `reset()`, so with `keepDirtyValues` Discard kept the edits; Profile passes `keepDirtyValues: false` explicitly.
+- **Tests**: backend 231 (adds 12 account tests: guards, profile + taken username, avatar ownership + cleanup, email change flow with link, tokenVersion signs out the other session but not this one, rate limit); frontend 69 (adds the account schemas); Playwright 20 (adds guest → login → `/profile`; profile edit + taken username + Discard + real Cloudinary photo upload/remove; email change → verify page → link, then password change signing out a second browser).
+- **Visual check** at 1440 and 390 px against Profile and Settings: match, no horizontal overflow.
+- **graphify**: code graph updated with `graphify update .` (no LLM). The 21 changed docs/screens still need semantic re-extraction (`/graphify . --update` with subagents).

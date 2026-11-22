@@ -8,13 +8,14 @@ import { Eyebrow } from '@/components/ui/Eyebrow'
 import { FieldHint, Input, Label } from '@/components/ui/Input'
 import { PasswordInput, PasswordRule } from '@/components/ui/PasswordInput'
 import { RadioCard } from '@/components/ui/RadioCard'
-import { useRegister, useUsernameAvailability, useUsernameSuggestions } from '@/hooks/useAuth'
+import { useRegister, useUsernameSuggestions } from '@/hooks/useAuth'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { useUsernameStatus } from '@/hooks/useUsernameStatus'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
 import { cn } from '@/lib/cn'
 import { registerSchema } from '@/schemas/auth.schema'
-import { PASSWORD_RULE, USERNAME_RULE, usernameRule } from '@/schemas/rules'
+import { PASSWORD_RULE } from '@/schemas/rules'
 
 const PANEL = {
   eyebrow: 'Join KapeKonek',
@@ -30,19 +31,6 @@ const ROLES = [
 ]
 
 const FIELDS = ['firstName', 'middleName', 'lastName', 'username', 'email', 'password', 'role']
-
-/** Live username status under the field: rule, checking, taken (red) or available (green). */
-function useUsernameStatus(username, serverError) {
-  const debounced = useDebouncedValue(username, 350)
-  const valid = usernameRule.safeParse(debounced).success
-  const availability = useUsernameAvailability(debounced, valid)
-  if (serverError) return { tone: 'taken', message: serverError }
-  if (!usernameRule.safeParse(username).success) return { tone: 'muted', message: USERNAME_RULE }
-  if (debounced !== username || availability.isFetching) return { tone: 'muted', message: `Checking @${username}…` }
-  if (availability.data?.available === false) return { tone: 'taken', message: `@${username} is taken. Try a suggestion.` }
-  if (availability.data?.available) return { tone: 'available', message: `@${username} is available` }
-  return { tone: 'muted', message: USERNAME_RULE }
-}
 
 export function Register() {
   const signup = useRegister()
