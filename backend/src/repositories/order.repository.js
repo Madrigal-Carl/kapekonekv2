@@ -58,3 +58,30 @@ export const updateOrderIf = (id, where, update, returnDocument = 'after') =>
 /** Ids of pending orders placed before `cutoff` (expiry sweep). */
 export const findExpirableIds = async (cutoff) =>
   (await Order.find({ status: 'pending', createdAt: { $lt: cutoff } }).select('_id').lean()).map((o) => o._id);
+
+/** Orders waiting for Kaluppa to confirm, and how many of them carry an e-wallet receipt to check. */
+export async function countOrdersToConfirm() {
+  const [all, receipts] = await Promise.all([
+    Order.countDocuments({ status: 'pending' }),
+    Order.countDocuments({ status: 'pending', 'payment.method': 'e_wallet' }),
+  ]);
+  return { all, receipts };
+}
+
+/** The oldest orders waiting for confirmation. */
+export const listOrdersToConfirm = (limit) =>
+  Order.find({ status: 'pending' }).sort({ createdAt: 1 }).limit(limit).select('orderNumber items totalCentavos payment.method fulfillment.method status createdAt').lean();
+
+/**
+ * Sold-order totals per month (Asia/Manila), keyed "YYYY-MM", for orders sold since `since`.
+ * @returns {Promise<Map<string, number>>}
+ */
+export async function sumSalesByMonth(since) {
+  const rows = await Order.aggregate([
+    { $match: { status: 'sold' } },
+    { $addFields: { soldAt: { $ifNull: [{ $max: { $map: { input: { $filter: { input: '$statusHistory', cond: { $eq: ['$$this.status', 'sold'] } } }, in: '$$this.at' } } }, '$updatedAt'] } } },
+    { $match: { soldAt: { $gte: since } } },
+    { $group: { _id: { $dateToString: { format: '%Y-%m', date: '$soldAt', timezone: 'Asia/Manila' } }, total: { $sum: '$totalCentavos' } } },
+  ]);
+  return new Map(rows.map((r) => [r._id, r.total]));
+}

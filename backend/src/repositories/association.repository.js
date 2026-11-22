@@ -51,3 +51,5 @@ export const claimManager = async (associationId, managerId) =>
   (await Association.updateOne({ _id: associationId, groupManager: null, archivedAt: null }, { groupManager: managerId })).modifiedCount === 1;
 
 export const clearManager = (associationId) => Association.updateOne({ _id: associationId }, { groupManager: null });
+
+export const countActiveAssociations = () => Association.countDocuments({ archivedAt: null });

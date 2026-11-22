@@ -58,3 +58,24 @@ export async function findFarmerIdsInScope({ associationId, status }) {
 }
 
 export const findProfilesByUsers = (userIds) => FarmerProfile.find({ user: { $in: userIds } }).populate(ASSOCIATIONS).lean();
+
+const waitingIn = (associationId) => ({
+  $or: [{ association: associationId, status: 'pending' }, { 'transferRequest.association': associationId }],
+});
+
+/** Requests and transfers waiting for this association's decision. */
+export const countWaiting = (associationId) => FarmerProfile.countDocuments(waitingIn(associationId));
+
+/** The oldest waiting requests, with the farmer's name. */
+export const listWaiting = (associationId, limit) =>
+  FarmerProfile.find(waitingIn(associationId)).sort({ requestedAt: 1, _id: 1 }).limit(limit)
+    .populate('user', 'firstName lastName').populate('association', 'name').populate('transferRequest.association', 'name').lean();
+
+/** Approved and waiting farmers across every association. */
+export async function countFarmersEverywhere() {
+  const [approved, waiting] = await Promise.all([
+    FarmerProfile.countDocuments({ status: 'approved' }),
+    FarmerProfile.countDocuments({ $or: [{ status: 'pending' }, { transferRequest: { $ne: null } }] }),
+  ]);
+  return { approved, waiting };
+}

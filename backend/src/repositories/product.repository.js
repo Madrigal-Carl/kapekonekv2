@@ -51,3 +51,10 @@ export const reserveStock = async (productId, quantity) =>
 
 /** Put reserved stock back (cancel, reject, failed reserve). */
 export const returnStock = (productId, quantity) => Product.updateOne({ _id: productId }, { $inc: { stock: quantity } });
+
+/** Active products below their low-stock line: 10, or 50 for seedlings (PHASE-2-SPEC §4). */
+export async function findLowStock(limit) {
+  const products = await Product.find({ isActive: true, stock: { $lt: 50 } })
+    .sort({ stock: 1 }).populate('category', 'slug').select('name slug stock unit unitLabel category').lean();
+  return products.filter((p) => p.stock < (p.category?.slug === 'seedlings' ? 50 : 10)).slice(0, limit);
+}
