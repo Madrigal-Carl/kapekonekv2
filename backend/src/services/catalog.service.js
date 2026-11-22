@@ -3,9 +3,8 @@ import { findLineQuantity } from '../repositories/cart.repository.js';
 import { listCategories } from '../repositories/category.repository.js';
 import { countProducts, findActiveById, findActiveBySlug, listProductsPage } from '../repositories/product.repository.js';
 import { AppError } from '../utils/AppError.js';
+import { escapeRegex } from '../utils/escapeRegex.js';
 import { userCan } from './permission.service.js';
-
-const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const notFound = () => new AppError(404, "We couldn't find that product.");
 
 /**

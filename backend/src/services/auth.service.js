@@ -5,6 +5,7 @@ import { BCRYPT_ROUNDS } from '../models/user.model.js';
 import { TOKEN_PURPOSES } from '../models/token.model.js';
 import { EMAIL_JOBS } from '../queues/email.jobs.js';
 import { enqueueEmail } from '../queues/email.queue.js';
+import { findAssociationByManager } from '../repositories/association.repository.js';
 import { consumeToken, createToken, deleteUnusedTokens } from '../repositories/token.repository.js';
 import {
   createUser,
@@ -42,14 +43,22 @@ export const publicUser = (user) => ({
   avatar: user.avatar?.url ? { url: user.avatar.url } : null,
   roles: user.roles,
   mustChangePassword: Boolean(user.mustChangePassword),
+  associationId: user.associationId ? String(user.associationId) : null,
   createdAt: user.createdAt,
 });
+
+/** The association whose records the user acts on (policy scope): a Group Manager's association. Farmers join in M8.4. */
+export async function associationIdOf(user) {
+  if (!user.roles.includes('group_manager')) return null;
+  return (await findAssociationByManager(user._id))?._id ?? null;
+}
 
 /**
  * The `/auth/me` payload.
  * @returns {Promise<{ user: object, roles: string[], permissions: string[] }>}
  */
 export async function buildSession(user) {
+  user.associationId ??= await associationIdOf(user);
   return { user: publicUser(user), roles: user.roles, permissions: await resolvePermissions(user) };
 }
 
@@ -62,6 +71,7 @@ export async function userFromAccessToken(token) {
   const user = await findUserById(sub);
   if (!user || user.tokenVersion !== tv) throw expired();
   if (user.status !== 'active') throw new AppError(403, 'This account is suspended. Contact Kaluppa for help.');
+  user.associationId = await associationIdOf(user);
   return user;
 }
 
@@ -70,6 +80,16 @@ async function issueLink(user, purpose, ttlMs) {
   await deleteUnusedTokens(user._id, purpose);
   await createToken({ user: user._id, purpose, tokenHash: sha256(raw), email: user.email, expiresAt: new Date(Date.now() + ttlMs) });
   return raw;
+}
+
+/** Email a new account (Group Manager, farmer with an email) a 60-minute link to set its password. */
+export async function sendAccountInvite(user) {
+  const token = await issueLink(user, TOKEN_PURPOSES.RESET_PASSWORD, RESET_TTL_MS);
+  await enqueueEmail(EMAIL_JOBS.ACCOUNT_INVITE, {
+    to: user.email,
+    name: user.firstName,
+    url: `${env.CLIENT_URL}/reset-password?token=${token}&email=${encodeURIComponent(user.email)}`,
+  });
 }
 
 /** Email a fresh verification link to the user's current address. */

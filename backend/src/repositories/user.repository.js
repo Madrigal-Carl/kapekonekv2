@@ -1,4 +1,5 @@
 import { User } from '../models/user.model.js';
+import { pageList } from '../utils/pageList.js';
 
 /** @param {unknown} id */
 export const findUserById = (id) => User.findById(id);
@@ -26,8 +27,8 @@ export const findTakenUsernames = async (usernames) =>
  * @param {{ email: string, username: string }} fields
  * @returns {Promise<{ email: boolean, username: boolean }>}
  */
-export async function findIdentityConflicts({ email, username }) {
-  const found = await User.find({ $or: [{ email }, { username }] }, { email: 1, username: 1 }).lean();
+export async function findIdentityConflicts({ email, username }, exceptId = null) {
+  const found = await User.find({ $or: [{ email }, { username }], ...(exceptId && { _id: { $ne: exceptId } }) }, { email: 1, username: 1 }).lean();
   return { email: found.some((u) => u.email === email), username: found.some((u) => u.username === username) };
 }
 
@@ -104,3 +105,26 @@ export const updateAvatar = (userId, avatar) =>
 
 /** Switch to a new email; it must be verified again. */
 export const replaceEmail = (userId, email) => User.findByIdAndUpdate(userId, { email, emailVerifiedAt: null }, AFTER);
+
+export const findGroupManagerById = (id) => User.findOne({ _id: id, roles: 'group_manager' }).lean();
+
+/**
+ * Page of Group Managers, newest first. Each search word must match a name or the username; `orIds` also match
+ * (managers of associations whose name matches). `assignedIds` splits active from unassigned.
+ * @param {{ words: RegExp[], orIds: unknown[], status?: 'active'|'unassigned'|'archived', assignedIds: unknown[], page: number, limit: number }} query
+ */
+export function listGroupManagers({ words, orIds, status, assignedIds, page, limit }) {
+  const byWords = words.length && { $and: words.map((w) => ({ $or: [{ firstName: w }, { lastName: w }, { username: w }] })) };
+  const filter = {
+    roles: 'group_manager',
+    ...(byWords && { $or: [byWords, { _id: { $in: orIds } }] }),
+    ...(status === 'archived' && { status: 'suspended' }),
+    ...(status === 'active' && { status: 'active', _id: { $in: assignedIds } }),
+    ...(status === 'unassigned' && { status: 'active', _id: { $nin: assignedIds } }),
+  };
+  return pageList(User.find(filter).sort({ createdAt: -1, _id: -1 }), { page, limit });
+}
+
+/** Suspend (archive) or reactivate an account; suspending also ends every open session. */
+export const setAccountStatus = (userId, status) =>
+  User.findByIdAndUpdate(userId, { status, ...(status === 'suspended' && { $inc: { tokenVersion: 1 } }) }, { new: true }).lean();

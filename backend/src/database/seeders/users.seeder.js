@@ -11,6 +11,7 @@ const LAST = ['Reyes', 'Santos', 'Garcia', 'Mendoza', 'Villanueva', 'Bautista', 
 const ACCOUNTS = [
   { handle: 'kaluppa', firstName: 'Kaluppa', lastName: 'Admin', roles: ['kaluppa'], verified: true },
   { handle: 'manager.santacruz', firstName: 'Liza', lastName: 'Ramos', roles: ['group_manager'], verified: true },
+  { handle: 'manager.unassigned', firstName: 'Ramon', lastName: 'Aguilar', roles: ['group_manager'], verified: true },
   { handle: 'farmer.approved', firstName: 'Rodel', lastName: 'Mendoza', roles: ['farmer'], verified: true },
   { handle: 'farmer.unverified', firstName: 'Nora', lastName: 'Villareal', roles: ['farmer'], verified: false },
   { handle: 'buyer', firstName: 'Juana', lastName: 'Dela Cruz', roles: ['buyer'], verified: true, contactNumber: '09175550102' },
@@ -55,6 +56,7 @@ export async function seedUsers() {
 const NOTES = {
   'kaluppa': 'Kaluppa (admin)',
   'manager.santacruz': 'Group Manager',
+  'manager.unassigned': 'Group Manager, no association',
   'farmer.approved': 'Farmer',
   'farmer.unverified': 'Farmer, email not verified',
   'buyer': 'Buyer with addresses and orders',

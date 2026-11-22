@@ -3,6 +3,7 @@ import { env } from '../../config/env.js';
 import { logMail, sendMail } from '../../config/mail.js';
 import { createValkeyConnection } from '../../config/valkey.js';
 import { isSeedEmail } from '../../repositories/user.repository.js';
+import { accountInvite } from '../../templates/email/accountInvite.template.js';
 import { emailChangedNotice } from '../../templates/email/emailChangedNotice.template.js';
 import { kaluppaNewOrder } from '../../templates/email/kaluppaNewOrder.template.js';
 import { orderPlaced } from '../../templates/email/orderPlaced.template.js';
@@ -18,6 +19,7 @@ const handlers = {
   [EMAIL_JOBS.TEST]: testEmail,
   [EMAIL_JOBS.VERIFY_EMAIL]: verifyEmail,
   [EMAIL_JOBS.RESET_PASSWORD]: resetPassword,
+  [EMAIL_JOBS.ACCOUNT_INVITE]: accountInvite,
   [EMAIL_JOBS.EMAIL_CHANGED_NOTICE]: emailChangedNotice,
   [EMAIL_JOBS.ORDER_PLACED]: orderPlaced,
   [EMAIL_JOBS.KALUPPA_NEW_ORDER]: kaluppaNewOrder,

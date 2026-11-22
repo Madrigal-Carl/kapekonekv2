@@ -1,7 +1,7 @@
 // The same table runs in frontend/src/schemas/rules.test.js — keep them identical.
 import { describe, expect, it } from 'vitest';
 import {
-  cancelReasonRule, customLabelRule, kindForFormat, passwordRule, phoneRule, quantityRule, ratingRule, recipientNameRule, reviewCommentRule, streetRule, uploadRule, usernameRule,
+  associationDescriptionRule, associationNameRule, cancelReasonRule, customLabelRule, kindForFormat, passwordRule, phoneRule, quantityRule, ratingRule, recipientNameRule, reviewCommentRule, streetRule, uploadRule, usernameRule,
 } from '../src/schemas/rules.js';
 
 const ok = (rule, value) => rule.safeParse(value).success;
@@ -62,6 +62,9 @@ describe('shared rules', () => {
     [customLabelRule, 'x'.repeat(31), false],
     [cancelReasonRule, 'nope', false],
     [cancelReasonRule, 'Found a closer seller', true],
+    [associationNameRule, 'B', false],
+    [associationNameRule, 'Boac Highland Growers', true],
+    [associationDescriptionRule, 'x'.repeat(501), false],
   ])('address and cancel rules %#', (rule, value, expected) => expect(ok(rule, value)).toBe(expected));
 });
 

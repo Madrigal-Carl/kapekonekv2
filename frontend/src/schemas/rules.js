@@ -54,6 +54,9 @@ export const streetRule = z
 
 export const customLabelRule = z.string().trim().max(30, 'Use 30 characters or fewer');
 
+export const associationNameRule = z.string().trim().min(2, 'Use at least 2 characters').max(80, 'Use 80 characters or fewer');
+export const associationDescriptionRule = z.string().trim().max(500, 'Use 500 characters or fewer');
+
 /** Quantity steps by unit: kg in 0.5 steps (min 0.5); packs and pieces whole (min 1). */
 export const QUANTITY_STEP = { kg: 0.5, pack: 1, piece: 1 };
 

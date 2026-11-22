@@ -31,3 +31,6 @@ export async function endDirectChatsBetween(userId, otherUserIds) {
   const ids = await findConversationIdsByKeys(otherUserIds.map((other) => directKey(userId, other)));
   if (ids.length) await closeMemberships(ids);
 }
+
+/** Every membership of the chat turns read-only (an archived association's group chat). */
+export const closeChat = (conversationId) => closeMemberships([conversationId]);

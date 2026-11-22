@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import accountRoutes from './account.routes.js';
+import associationRoutes from './association.routes.js';
 import addressRoutes from './address.routes.js';
 import authRoutes from './auth.routes.js';
 import cartRoutes from './cart.routes.js';
@@ -26,5 +27,6 @@ router.use(cartRoutes);
 router.use(orderRoutes);
 router.use(notificationRoutes);
 router.use(accountRoutes);
+router.use(associationRoutes);
 
 export default router;
