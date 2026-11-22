@@ -5,6 +5,7 @@ import { LogoutDialog } from '@/components/auth/LogoutDialog'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/cn'
 import { ACCOUNT_LINKS } from './accountLinks'
+import { imageUrl } from '@/lib/image'
 
 const itemClasses = 'flex items-center gap-2.5 rounded-control px-3 py-2.5 text-sm no-underline hover:bg-crema focus-visible:bg-crema'
 
@@ -48,12 +49,13 @@ export function AvatarMenu() {
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={`Account menu for ${user.fullName}`}
         onClick={() => setOpen((o) => !o)}
         className="flex min-h-[42px] cursor-pointer items-center gap-1.5 rounded-full border border-sand bg-white py-1 pl-1 pr-1.5 text-ink-2"
       >
+        {/* Name = "Account menu for <name>" + the visible initials, so speech users can say "JD". */}
+        <span className="sr-only">Account menu for {user.fullName}</span>
         <span className="grid size-8 place-items-center overflow-hidden rounded-full bg-roast text-xs font-semibold text-white">
-          {user.avatar?.url ? <img src={user.avatar.url} alt="" className="size-full object-cover" /> : user.initials}
+          {user.avatar?.url ? <img src={imageUrl(user.avatar.url, 40)} alt="" className="size-full object-cover" /> : user.initials}
         </span>
         <ChevronDown aria-hidden="true" className={cn('size-4 transition-transform', open && 'rotate-180')} strokeWidth={2} />
       </button>

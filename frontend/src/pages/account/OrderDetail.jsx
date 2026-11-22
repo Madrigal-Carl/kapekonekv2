@@ -16,6 +16,7 @@ import { addressLabel, addressLine } from '@/lib/address'
 import { cn } from '@/lib/cn'
 import { formatDate, formatDateTime } from '@/lib/date'
 import { formatPeso, formatPhone } from '@/lib/format'
+import { imageUrl } from '@/lib/image'
 
 const CLOSED = ['cancelled', 'rejected', 'expired']
 const shortDate = (d) => format(new Date(d), 'MMM d')
@@ -168,7 +169,7 @@ function PaymentCard({ order }) {
         <div className="mt-3 flex flex-wrap items-center gap-3">
           {p.receipt?.url ? (
             <a href={p.receipt.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[12.5px] font-semibold no-underline">
-              <img src={p.receipt.url} alt="Your payment receipt" className="size-12 rounded-[6px] border border-sand object-cover" />
+              <img src={imageUrl(p.receipt.url, 48)} alt="Your payment receipt" loading="lazy" className="size-12 rounded-[6px] border border-sand object-cover" />
               View receipt
             </a>
           ) : (
@@ -250,7 +251,7 @@ export function OrderDetail() {
             {o.items.map((item) => (
               <div key={item.product} className="flex flex-wrap items-center gap-3.5 border-b border-table-line py-3">
                 <span aria-hidden="true" className="size-14 shrink-0 overflow-hidden rounded-[6px] bg-photo">
-                  {item.image && <img src={item.image} alt="" className="size-full object-cover" />}
+                  {item.image && <img src={imageUrl(item.image, 64)} alt="" loading="lazy" className="size-full object-cover" />}
                 </span>
                 <div className="min-w-0 flex-1">
                   <Link to={`/products/${item.slug}`} className="text-sm font-semibold text-ink no-underline hover:text-roast">

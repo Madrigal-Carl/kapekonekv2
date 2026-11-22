@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/cn'
+import { imageUrl } from '@/lib/image'
 
 const duration = (sec) => (sec ? `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}` : '')
 const arrow = 'absolute top-1/2 grid size-11 -translate-y-1/2 cursor-pointer place-items-center rounded-full border-0 bg-white/90 text-ink hover:bg-white'
@@ -28,7 +29,7 @@ export function MediaViewer({ media }) {
           // Keyed so switching items stops playback.
           <video key={current.url} src={current.url} poster={current.posterUrl} controls preload="metadata" aria-label={current.alt} className="size-full bg-black object-contain" />
         ) : (
-          <img src={current.url} alt={current.alt ?? ''} className="size-full object-cover" />
+          <img src={imageUrl(current.url, 960)} alt={current.alt ?? ''} className="size-full object-cover" />
         )}
         {many && (
           <>
@@ -50,7 +51,6 @@ export function MediaViewer({ media }) {
               <button
                 key={item.url + i}
                 type="button"
-                aria-label={`Show ${isVideo ? 'video' : 'photo'}: ${item.alt ?? i + 1}`}
                 aria-pressed={i === index}
                 onClick={() => setIndex(i)}
                 className={cn(
@@ -59,13 +59,15 @@ export function MediaViewer({ media }) {
                   isVideo ? 'bg-espresso-2' : 'bg-photo',
                 )}
               >
-                {(isVideo ? item.posterUrl : item.url) && <img src={isVideo ? item.posterUrl : item.url} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />}
+                {/* Name = this text + the visible duration, so speech users can say what they see. */}
+                <span className="sr-only">{`Show ${isVideo ? 'video' : 'photo'}: ${item.alt ?? i + 1}`}</span>
+                {(isVideo ? item.posterUrl : item.url) && <img src={imageUrl(isVideo ? item.posterUrl : item.url, 96)} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />}
                 {isVideo && (
                   <>
                     <span aria-hidden="true" className="relative grid size-7 place-items-center rounded-full bg-white/92 text-ink">
                       <Play className="size-[13px] fill-current" strokeWidth={0} />
                     </span>
-                    {item.durationSec && <span aria-hidden="true" className="absolute bottom-1 right-1 rounded-[4px] bg-black/55 px-[5px] py-px text-[10px] text-white">{duration(item.durationSec)}</span>}
+                    {item.durationSec && <span className="absolute bottom-1 right-1 rounded-[4px] bg-black/55 px-[5px] py-px text-[10px] text-white">{duration(item.durationSec)}</span>}
                   </>
                 )}
               </button>

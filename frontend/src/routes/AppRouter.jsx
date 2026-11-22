@@ -1,29 +1,33 @@
+import { lazy } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { DASHBOARD_ROLES } from '@/constants/roles'
 import { AccountLayout } from '@/layouts/AccountLayout'
 import { DashboardLayout } from '@/layouts/DashboardLayout'
 import { RootLayout } from '@/layouts/RootLayout'
 import { StorefrontLayout } from '@/layouts/StorefrontLayout'
-import { ForgotPassword } from '@/pages/auth/ForgotPassword'
-import { Login } from '@/pages/auth/Login'
-import { Register } from '@/pages/auth/Register'
-import { ResetPassword } from '@/pages/auth/ResetPassword'
-import { VerifyEmail } from '@/pages/auth/VerifyEmail'
-import { VerifyEmailConfirm } from '@/pages/auth/VerifyEmailConfirm'
-import { Addresses } from '@/pages/account/Addresses'
-import { Checkout } from '@/pages/account/Checkout'
-import { OrderDetail } from '@/pages/account/OrderDetail'
-import { Orders } from '@/pages/account/Orders'
-import { Profile } from '@/pages/account/Profile'
-import { Settings } from '@/pages/account/Settings'
-import { Overview } from '@/pages/dashboard/Overview'
-import { Forbidden } from '@/pages/errors/Forbidden'
-import { NotFound } from '@/pages/errors/NotFound'
-import { Landing } from '@/pages/storefront/Landing'
-import { PostDetail } from '@/pages/storefront/PostDetail'
-import { ProductDetail } from '@/pages/storefront/ProductDetail'
-import { Products } from '@/pages/storefront/Products'
+import { Forbidden } from '@/pages/errors/Forbidden' // the guards render it too
 import { GuestRoute, ProtectedRoute, StorefrontRoute } from './guards'
+
+// Each page is its own chunk, loaded on first visit (RootLayout's Suspense shows the spinner).
+const page = (load, name) => lazy(() => load().then((m) => ({ default: m[name] })))
+const ForgotPassword = page(() => import('@/pages/auth/ForgotPassword'), 'ForgotPassword')
+const Login = page(() => import('@/pages/auth/Login'), 'Login')
+const Register = page(() => import('@/pages/auth/Register'), 'Register')
+const ResetPassword = page(() => import('@/pages/auth/ResetPassword'), 'ResetPassword')
+const VerifyEmail = page(() => import('@/pages/auth/VerifyEmail'), 'VerifyEmail')
+const VerifyEmailConfirm = page(() => import('@/pages/auth/VerifyEmailConfirm'), 'VerifyEmailConfirm')
+const Addresses = page(() => import('@/pages/account/Addresses'), 'Addresses')
+const Checkout = page(() => import('@/pages/account/Checkout'), 'Checkout')
+const OrderDetail = page(() => import('@/pages/account/OrderDetail'), 'OrderDetail')
+const Orders = page(() => import('@/pages/account/Orders'), 'Orders')
+const Profile = page(() => import('@/pages/account/Profile'), 'Profile')
+const Settings = page(() => import('@/pages/account/Settings'), 'Settings')
+const Overview = page(() => import('@/pages/dashboard/Overview'), 'Overview')
+const NotFound = page(() => import('@/pages/errors/NotFound'), 'NotFound')
+const Landing = page(() => import('@/pages/storefront/Landing'), 'Landing')
+const PostDetail = page(() => import('@/pages/storefront/PostDetail'), 'PostDetail')
+const ProductDetail = page(() => import('@/pages/storefront/ProductDetail'), 'ProductDetail')
+const Products = page(() => import('@/pages/storefront/Products'), 'Products')
 
 export const router = createBrowserRouter([
   {

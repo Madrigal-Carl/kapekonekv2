@@ -61,7 +61,6 @@ export const useUsernameAvailability = (username, enabled) =>
     queryKey: authKeys.usernameAvailability(username),
     queryFn: () => authService.usernameAvailability(username),
     enabled,
-    staleTime: 30_000,
   })
 
 export const useUsernameSuggestions = (firstName, lastName) =>

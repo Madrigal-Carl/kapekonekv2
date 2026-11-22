@@ -5,6 +5,7 @@ import { FieldHint } from '@/components/ui/Input'
 import { useUploadImage } from '@/hooks/useUploads'
 import { errorMessage } from '@/lib/applyServerErrors'
 import { cn } from '@/lib/cn'
+import { imageUrl } from '@/lib/image'
 
 const TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
 const MAX_BYTES = 5 * 1024 * 1024
@@ -41,7 +42,7 @@ export function ReceiptUpload({ value, onChange, error }) {
       <input ref={input} id={`${id}-file`} type="file" accept={TYPES.join(',')} aria-labelledby={`${id}-label`} aria-describedby={`${id}-hint`} onChange={choose} className="sr-only" />
       {value ? (
         <div className="mt-2 flex items-center gap-3 rounded-card border border-sand p-3">
-          <img src={value.url} alt="Your payment receipt" className="size-14 shrink-0 rounded-[6px] bg-photo object-cover" />
+          <img src={imageUrl(value.url, 56)} alt="Your payment receipt" className="size-14 shrink-0 rounded-[6px] bg-photo object-cover" />
           <div className="min-w-0 flex-1">
             <span className="block truncate text-[13.5px] font-semibold">{value.name ?? 'Receipt'}</span>
             {value.size && <span className="block text-xs text-ink-3">{sizeText(value.size)} · uploaded</span>}

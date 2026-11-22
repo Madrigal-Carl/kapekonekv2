@@ -13,6 +13,7 @@ import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
 import { cn } from '@/lib/cn'
 import { formatPhone } from '@/lib/format'
 import { profileSchema } from '@/schemas/account.schema'
+import { imageUrl } from '@/lib/image'
 
 const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const PHOTO_MAX_BYTES = 2 * 1024 * 1024
@@ -61,7 +62,7 @@ function PhotoBand({ user }) {
   return (
     <div className="flex flex-wrap items-center gap-5 border-b border-sand-soft p-6">
       <span className="grid size-[88px] shrink-0 place-items-center overflow-hidden rounded-full bg-roast text-[28px] font-semibold text-white">
-        {user.avatar?.url ? <img src={user.avatar.url} alt="Your profile photo" className="size-full object-cover" /> : user.initials}
+        {user.avatar?.url ? <img src={imageUrl(user.avatar.url, 88)} alt="Your profile photo" className="size-full object-cover" /> : user.initials}
       </span>
       <div>
         <p className="text-base font-semibold">Profile photo</p>

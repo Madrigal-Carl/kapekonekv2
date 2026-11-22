@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom'
 import { BeanMark } from '@/components/ui/BeanMark'
 import { CoffeeBranch, Contours } from '@/components/ui/Contours'
 import { cn } from '@/lib/cn'
+import { imageSrcSet, imageUrl } from '@/lib/image'
 
 /** Shown while the slides load or if Kaluppa has none (the screen's first slide). */
 const FALLBACK = [{
@@ -49,7 +50,7 @@ export function HeroCarousel({ slides }) {
               className="relative flex min-h-[560px] min-w-0 flex-[0_0_100%] items-center pb-[120px] pt-[72px] sm:min-h-[660px]"
             >
               <div aria-hidden="true" className="absolute inset-0 bg-espresso-2">
-                {slide.image && <img src={slide.image.url} alt="" className="size-full object-cover" fetchPriority={i === 0 ? 'high' : undefined} />}
+                {slide.image && <img src={imageUrl(slide.image.url, 960)} srcSet={imageSrcSet(slide.image.url, [640, 1280, 1920, 2560])} sizes="100vw" alt="" className="size-full object-cover" fetchPriority={i === 0 ? 'high' : undefined} loading={i === 0 ? undefined : 'lazy'} />}
               </div>
               <div aria-hidden="true" className="absolute inset-0 bg-[image:var(--overlay-hero)]" />
               <Contours className="h-[220px] text-crema/9" />

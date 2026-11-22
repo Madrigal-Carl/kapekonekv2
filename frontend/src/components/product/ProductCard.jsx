@@ -4,6 +4,7 @@ import { Star } from '@/components/ui/StarRating'
 import { COFFEE_TYPES, LOW_STOCK, VARIETIES } from '@/constants/catalog'
 import { useAddToCart } from '@/hooks/useCart'
 import { formatPeso } from '@/lib/format'
+import { imageUrl } from '@/lib/image'
 
 const badge = 'absolute left-2.5 top-2.5 rounded-[4px] px-2 py-1 text-[10.5px] font-semibold uppercase tracking-[0.1em]'
 
@@ -23,7 +24,7 @@ export function ProductCard({ product, featured = false }) {
   return (
     <article className="flex flex-col overflow-hidden rounded-card border border-sand bg-white transition-shadow hover:shadow-card-hover">
       <Link to={href} tabIndex={-1} aria-hidden="true" className="relative block aspect-[4/3] overflow-hidden bg-photo">
-        {image && <img src={image.url} alt="" loading="lazy" className="size-full object-cover" />}
+        {image && <img src={imageUrl(image.url, 320)} alt="" loading="lazy" className="size-full object-cover" />}
         {featured && <span className={`${badge} bg-espresso font-medium text-crema`}>Featured</span>}
         {!featured && out && (
           <>

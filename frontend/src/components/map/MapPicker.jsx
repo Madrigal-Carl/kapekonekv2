@@ -52,8 +52,7 @@ export function MapPicker({ value, onPick, origin, error, busy }) {
               setListOpen(true)
             }}
             placeholder="Search a place, street or landmark"
-            aria-controls="place-results"
-            aria-expanded={results.length > 0}
+            aria-controls={results.length > 0 ? 'place-results' : undefined}
             className={cn(inputClasses, 'py-2.5 pl-9 text-[13.5px]')}
           />
           {results.length > 0 && (

@@ -26,6 +26,7 @@ import { cn } from '@/lib/cn'
 import { formatPeso, formatPhone, quantityWords } from '@/lib/format'
 import { checkoutSchema } from '@/schemas/order.schema'
 import { useCartDrawer } from '@/stores/cart.store'
+import { imageUrl } from '@/lib/image'
 
 const FIELDS = ['addressId', 'contactPhone', 'provider', 'receipt', 'note']
 const etaText = (eta) => (eta ? `${format(new Date(eta.from), 'MMM d')} – ${format(new Date(eta.to), 'MMM d')}` : null)
@@ -367,7 +368,7 @@ export function Checkout() {
                     </div>
                     <div className="relative size-[200px] rounded-card border border-sand bg-white p-3.5">
                       {payment.data?.qrImageUrl ? (
-                        <img src={payment.data.qrImageUrl} alt={`${provider} QR code for Kaluppa`} className="size-full object-contain" />
+                        <img src={imageUrl(payment.data.qrImageUrl, 240)} alt={`${provider} QR code for Kaluppa`} className="size-full object-contain" />
                       ) : payment.data ? (
                         <QRCodeSVG value={`${payment.data.qrPayload}:${provider}`} role="img" aria-label={`Sample ${provider} QR code`} className="size-full" />
                       ) : (
@@ -439,7 +440,7 @@ export function Checkout() {
             {lines.map(({ product, quantity, lineTotalCentavos }) => (
               <li key={product._id} className="flex gap-3 border-b border-sand-soft py-3">
                 <span aria-hidden="true" className="size-12 shrink-0 overflow-hidden rounded-[6px] bg-photo">
-                  {product.image && <img src={product.image} alt="" className="size-full object-cover" />}
+                  {product.image && <img src={imageUrl(product.image, 64)} alt="" loading="lazy" className="size-full object-cover" />}
                 </span>
                 <div className="min-w-0 flex-1">
                   <span className="block text-[13.5px] font-semibold">{product.name}</span>

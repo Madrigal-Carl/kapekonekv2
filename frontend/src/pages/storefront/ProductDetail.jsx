@@ -15,6 +15,7 @@ import { useProduct, useReviewSummary } from '@/hooks/useProducts'
 import { cn } from '@/lib/cn'
 import { formatPeso } from '@/lib/format'
 import { stepFor } from '@/lib/quantity'
+import { imageUrl } from '@/lib/image'
 
 const pill = 'rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.1em]'
 const UNIT_NOUN = { kg: ['kg', 'kg'], pack: ['pack', 'packs'], piece: ['piece', 'pieces'] }
@@ -26,7 +27,7 @@ function Gallery({ images, name }) {
   return (
     <div className="min-w-0 flex-[1_1_480px]">
       <div className="relative aspect-square overflow-hidden rounded-card border border-sand bg-photo">
-        {current && <img src={current.url} alt={current.alt ?? name} className="size-full object-cover" />}
+        {current && <img src={imageUrl(current.url, 640)} alt={current.alt ?? name} className="size-full object-cover" />}
       </div>
       {images.length > 1 && (
         <div role="group" aria-label="Product photos" className="mt-3 grid grid-cols-4 gap-3">
@@ -39,7 +40,7 @@ function Gallery({ images, name }) {
               onClick={() => setIndex(i)}
               className={cn('aspect-square cursor-pointer overflow-hidden rounded-[6px] border-2 bg-photo p-0', i === index ? 'border-roast' : 'border-sand')}
             >
-              <img src={image.url} alt="" loading="lazy" className="size-full object-cover" />
+              <img src={imageUrl(image.url, 96)} alt="" loading="lazy" className="size-full object-cover" />
             </button>
           ))}
         </div>
