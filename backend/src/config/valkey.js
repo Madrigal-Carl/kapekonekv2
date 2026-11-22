@@ -31,8 +31,13 @@ export function createValkeyConnection(name, overrides = {}) {
 }
 
 let cache;
-/** Shared connection for cache, locks and rate limits. Commands fail fast instead of queueing while Valkey is down. */
-export const getValkey = () => (cache ??= createValkeyConnection('cache', { maxRetriesPerRequest: 1 }));
+/**
+ * Shared connection for cache, locks and rate limits. While Valkey is down, commands reject at once
+ * (no offline queue) and a stalled socket gives up after 2 s, so callers fall back instead of waiting
+ * out reconnect attempts (≈20 s per request otherwise).
+ */
+export const getValkey = () =>
+  (cache ??= createValkeyConnection('cache', { maxRetriesPerRequest: 1, enableOfflineQueue: false, commandTimeout: 2000 }));
 
 export async function closeValkeyConnections() {
   await Promise.allSettled([...connections].map((c) => c.quit()));
