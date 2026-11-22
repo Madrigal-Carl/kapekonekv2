@@ -70,7 +70,8 @@ async function issueLink(user, purpose, ttlMs) {
   return raw;
 }
 
-async function sendVerificationEmail(user) {
+/** Email a fresh verification link to the user's current address. */
+export async function sendVerificationEmail(user) {
   const token = await issueLink(user, TOKEN_PURPOSES.VERIFY_EMAIL, VERIFY_TTL_MS);
   await enqueueEmail(EMAIL_JOBS.VERIFY_EMAIL, {
     to: user.email,

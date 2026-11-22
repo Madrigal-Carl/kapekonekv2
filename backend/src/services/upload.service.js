@@ -11,6 +11,17 @@ export const UPLOAD_TYPES = {
 export const uploadFolder = (type, userId) => `${env.CLOUDINARY_ROOT_FOLDER}/${UPLOAD_TYPES[type].folder}/${userId}`;
 
 /**
+ * Whether `{ url, publicId }` is an upload of this type from this user's own folder on our Cloudinary cloud.
+ * @param {{ _id: unknown }} user
+ * @param {'avatar'|'receipt'} type
+ * @param {{ url: string, publicId: string }} asset
+ */
+export const isOwnUpload = (user, type, { url, publicId }) =>
+  publicId.startsWith(`${uploadFolder(type, user._id)}/`) &&
+  url.startsWith(`https://res.cloudinary.com/${env.CLOUDINARY_CLOUD_NAME}/`) &&
+  url.includes(`/${publicId}`);
+
+/**
  * Signed params for a direct browser upload into the user's own folder.
  * `maxBytes` is for the client's check; Cloudinary can't enforce size on a signed upload.
  * @param {{ _id: unknown }} user

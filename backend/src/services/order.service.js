@@ -17,7 +17,7 @@ import { quoteForAddress } from './deliveryQuote.service.js';
 import { notifyKaluppa, notifyUsers } from './notification.service.js';
 import { userCan } from './permission.service.js';
 import { getSetting } from './setting.service.js';
-import { uploadFolder } from './upload.service.js';
+import { isOwnUpload } from './upload.service.js';
 
 const fieldError = (field, message) => new AppError(400, 'Please check the highlighted fields.', { errors: { [field]: message } });
 const notFound = () => new AppError(404, "We couldn't find that order.");
@@ -59,9 +59,7 @@ export const orderEmailData = (order, eta) => ({
 /** E-wallet receipts must be the buyer's own Cloudinary upload. */
 function receiptFor(user, { paymentMethod, receipt }, now) {
   if (paymentMethod !== 'e_wallet') return {};
-  const folder = `${uploadFolder('receipt', user._id)}/`;
-  const ownUrl = receipt.url.startsWith(`https://res.cloudinary.com/${env.CLOUDINARY_CLOUD_NAME}/`) && receipt.url.includes(`/${receipt.publicId}`);
-  if (!receipt.publicId.startsWith(folder) || !ownUrl) throw fieldError('receipt', 'Upload your receipt again, then place the order.');
+  if (!isOwnUpload(user, 'receipt', receipt)) throw fieldError('receipt', 'Upload your receipt again, then place the order.');
   return { receipt, submittedAt: now };
 }
 

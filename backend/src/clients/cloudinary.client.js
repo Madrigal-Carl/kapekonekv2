@@ -22,3 +22,15 @@ export async function uploadFromUrl(url, { path, resourceType }) {
     durationSec: result.duration ? Math.round(result.duration) : undefined,
   };
 }
+
+/**
+ * Delete an uploaded image. Best effort: a failure is logged, never thrown, so the user's change still goes through.
+ * @param {string} publicId
+ */
+export async function destroyImage(publicId) {
+  try {
+    await cloudinary.uploader.destroy(publicId, { resource_type: 'image', invalidate: true });
+  } catch (error) {
+    console.error(`[cloudinary] could not delete ${publicId}: ${error.message}`);
+  }
+}

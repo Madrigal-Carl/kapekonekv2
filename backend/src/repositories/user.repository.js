@@ -69,3 +69,21 @@ export const findUserIdsByRole = async (role) => (await User.find({ roles: role,
 
 /** Save the phone a buyer gave at checkout to their profile. */
 export const updateContactNumber = (userId, contactNumber) => User.updateOne({ _id: userId }, { contactNumber });
+
+/** @param {unknown} id */
+export const findByIdWithPassword = (id) => User.findById(id).select('+password');
+
+const AFTER = { returnDocument: 'after', runValidators: true };
+
+/**
+ * Update name, username and phone. A taken username surfaces as a duplicate-key error (→ 409).
+ * @param {{ firstName: string, middleName: string|null, lastName: string, username: string, contactNumber: string|null }} fields
+ */
+export const updateProfileFields = (userId, fields) => User.findByIdAndUpdate(userId, fields, AFTER);
+
+/** @param {{ url: string, publicId: string } | null} avatar null removes it */
+export const updateAvatar = (userId, avatar) =>
+  User.findByIdAndUpdate(userId, avatar ? { avatar } : { $unset: { avatar: 1 } }, AFTER);
+
+/** Switch to a new email; it must be verified again. */
+export const replaceEmail = (userId, email) => User.findByIdAndUpdate(userId, { email, emailVerifiedAt: null }, AFTER);
