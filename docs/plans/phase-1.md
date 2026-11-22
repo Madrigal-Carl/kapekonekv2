@@ -371,12 +371,12 @@ No order chat (Change 01). Socket.IO carries only `notification:new` and `order:
 
 ## M7 — Polish & verification
 
-- [ ] Screenshot every page at 1440/390 vs screens; fix.
-- [ ] Accessibility pass (labels, focus order, keyboard dropdown/drawer/modals, contrast).
-- [ ] `/impeccable` polish + audit within the screens; taste review.
-- [ ] Route-level `lazy()`, Cloudinary `f_auto,q_auto,w_…`, lazy images, query `staleTime` 30 s default.
-- [ ] `README.md` (setup, env, commands, seed accounts, deploy notes).
-- [ ] PHASE-1-PROMPT §4 checklist all green.
+- [x] Screenshot every page at 1440/390 vs screens; fix.
+- [x] Accessibility pass (labels, focus order, keyboard dropdown/drawer/modals, contrast).
+- [x] `/impeccable` polish + audit within the screens; taste review.
+- [x] Route-level `lazy()`, Cloudinary `f_auto,q_auto,w_…`, lazy images, query `staleTime` 30 s default.
+- [x] `README.md` (setup, env, commands, seed accounts, deploy notes).
+- [x] PHASE-1-PROMPT §4 checklist all green.
 
 ---
 
@@ -462,3 +462,13 @@ Source: `docs/prompts/CHANGE-02-NO-EYEBROW-BAR-NO-CHAT.md`, applied after M2 and
 - **Tests**: backend 231 (adds 12 account tests: guards, profile + taken username, avatar ownership + cleanup, email change flow with link, tokenVersion signs out the other session but not this one, rate limit); frontend 69 (adds the account schemas); Playwright 20 (adds guest → login → `/profile`; profile edit + taken username + Discard + real Cloudinary photo upload/remove; email change → verify page → link, then password change signing out a second browser).
 - **Visual check** at 1440 and 390 px against Profile and Settings: match, no horizontal overflow.
 - **graphify**: code graph updated with `graphify update .` (no LLM). The 21 changed docs/screens still need semantic re-extraction (`/graphify . --update` with subagents).
+
+### M7 — done (2026-11-22)
+
+- **Screen sweep**: 20 pages × 1440/390 compared with the screens; no horizontal overflow (also at 320 after the navbar wordmark hides below 360px). Fixed: order-detail item rows on phones, checkout section header wrap, "coming for Kaluppa" copy.
+- **Accessibility**: `e2e/a11y.spec.js` runs axe (WCAG 2.1 A/AA) over guest, buyer, verify-email and dashboard pages at 1440/390, plus the cart drawer, notifications, account menu, logout dialog and address modal; keyboard test for the drawer focus trap and the bell. Fixed: accessible names that hid the visible text (avatar button, video thumbnails), invalid `aria-expanded` on the place search, the guest 404 link.
+- **Impeccable audit + polish**: 17/20 (report in `.impeccable/audit/`). Added balanced headings, pretty paragraphs, themed selection/caret, tabular numerals, static skeletons under reduced motion. Kept as approved: section kickers, 01–04 numbers, 10.5px uppercase labels.
+- **Taste review** (review only): its marketing-site rules (no carousel, one section per screen, dealt moments) conflict with the approved screens and were not applied; the tap-size, edge and 320px checks were, giving the navbar fix above.
+- **Performance**: every page `lazy()` behind one `Suspense`; `imageUrl()`/`imageSrcSet()` add `f_auto,q_auto,c_limit,w_…` to Cloudinary URLs; below-the-fold images `loading="lazy"`; TanStack Query `staleTime` 30 s. Main bundle 110 kB gzipped; mapbox-gl only loads with the map.
+- **README.md**: setup, env, commands, seed accounts, Render/Vercel deploy and cross-site cookies.
+- **Verified**: lint clean in both apps; backend 231 + frontend 72 unit tests; Playwright 24/24; `migrate:fresh --seed` on Atlas, then `db:seed` again skips existing data; no `.env` tracked; no chat code anywhere.

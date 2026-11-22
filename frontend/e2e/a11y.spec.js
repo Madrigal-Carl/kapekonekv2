@@ -51,6 +51,7 @@ test('guest pages have no WCAG A/AA violations', async ({ page, request }) => {
 })
 
 test('buyer pages, drawer, menus and modals have no WCAG A/AA violations', async ({ page }) => {
+  test.setTimeout(180_000) // 14 page audits plus 5 overlays
   await signIn(page, 'buyer@kapekonek.test')
   const orders = (await (await page.request.get(`${API}/orders?limit=1`)).json()).data
   const problems = await audit(page, ['/', '/orders', `/orders/${orders[0]._id}`, '/addresses', '/profile', '/settings', '/checkout'])
