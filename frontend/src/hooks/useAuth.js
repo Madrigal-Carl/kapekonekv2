@@ -8,7 +8,7 @@ export const authKeys = {
   usernameSuggestions: (firstName, lastName) => ['auth', 'username-suggestions', firstName, lastName],
 }
 
-/** The session plus convenience flags. Only buyers must verify their email. */
+/** The session plus convenience flags. Buyers and farmers must verify their email; a temporary password must be replaced first. */
 export function useAuth() {
   const session = useAuthStore((s) => s.session)
   const status = useAuthStore((s) => s.status)
@@ -21,7 +21,8 @@ export function useAuth() {
     isLoading: status === 'loading',
     isAuthenticated: Boolean(session),
     isVerified,
-    mustVerify: roles.includes('buyer') && !isVerified,
+    mustVerify: (roles.includes('buyer') || roles.includes('farmer')) && !isVerified,
+    mustChangePassword: Boolean(session?.user.mustChangePassword),
   }
 }
 
@@ -45,6 +46,12 @@ export const useLogout = () =>
 export function useVerifyEmail() {
   const load = useAuthStore((s) => s.load)
   return useMutation({ mutationFn: authService.verifyEmail, onSuccess: load })
+}
+
+/** Replace a temporary password; the server re-issues the session. */
+export function useSetFirstPassword() {
+  const setSession = useAuthStore((s) => s.setSession)
+  return useMutation({ mutationFn: authService.setFirstPassword, onSuccess: setSession })
 }
 
 export const useResendVerification = () => useMutation({ mutationFn: authService.resendVerification })

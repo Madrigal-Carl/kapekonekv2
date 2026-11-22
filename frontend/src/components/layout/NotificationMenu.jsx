@@ -6,7 +6,10 @@ import { cn } from '@/lib/cn'
 import { timeAgo } from '@/lib/date'
 
 /** Navbar bell: unread count, a panel with the latest notifications, mark all read and load more. Esc / outside click close it. */
-export function NotificationMenu({ buttonClassName }) {
+const NAVBAR_BADGE = 'right-[5px] top-[5px] h-[18px] min-w-[18px] bg-danger px-[5px] text-[10.5px] leading-[18px]'
+
+/** @param {{ buttonClassName: string, badgeClassName?: string }} props the dashboard top bar passes its roast badge (DashTopbar.dc.html) */
+export function NotificationMenu({ buttonClassName, badgeClassName = NAVBAR_BADGE }) {
   const [open, setOpen] = useState(false)
   const root = useRef(null)
   const trigger = useRef(null)
@@ -60,7 +63,7 @@ export function NotificationMenu({ buttonClassName }) {
       >
         <Bell aria-hidden="true" className="size-5" strokeWidth={1.75} />
         {count > 0 && (
-          <span className="absolute right-[5px] top-[5px] h-[18px] min-w-[18px] rounded-full bg-danger px-[5px] text-center text-[10.5px] font-semibold leading-[18px] text-white">
+          <span aria-hidden="true" className={cn('absolute rounded-full text-center font-semibold text-white', badgeClassName)}>
             {count > 99 ? '99+' : count}
           </span>
         )}

@@ -56,6 +56,15 @@ describe('GET /dashboard/badges', () => {
   });
 });
 
+describe('GET /dashboard/org', () => {
+  it('gives the sidebar card for a farmer, a Group Manager and nothing for Kaluppa', async () => {
+    expect((await waiting.agent.get('/api/dashboard/org')).body.data).toEqual({ kind: 'farmer', status: 'pending', association: { id: associations.santacruz.id, name: 'Santa Cruz Growers' } });
+    const manager = await signedIn(app, 'manager.santacruz');
+    expect((await manager.get('/api/dashboard/org')).body.data).toEqual({ kind: 'group_manager', association: { id: associations.santacruz.id, name: 'Santa Cruz Growers' }, farmers: 0, waiting: 2 });
+    expect((await (await signedIn(app, 'kaluppa')).get('/api/dashboard/org')).body.data).toBeNull();
+  });
+});
+
 describe('GET /dashboard/overview', () => {
   it('farmer: status, association, cap and empty records', async () => {
     const { data } = (await waiting.agent.get('/api/dashboard/overview')).body;
@@ -90,7 +99,7 @@ describe('GET /dashboard/overview', () => {
     expect(data.kpis.salesThisMonthCentavos).toBeGreaterThan(0);
     expect(data.salesByMonth.values.at(-1)).toBe(data.kpis.salesThisMonthCentavos);
     expect(data.orders).toHaveLength(2);
-    expect(data.orders[0]).toMatchObject({ id: expect.any(String), orderNumber: expect.stringMatching(/^KK-/), status: 'pending' });
+    expect(data.orders[0]).toMatchObject({ id: expect.any(String), orderNumber: expect.stringMatching(/^KK-/), status: 'pending', buyerName: expect.any(String), buyerRole: 'buyer', paymentProvider: null });
     expect(Array.isArray(data.lowStock)).toBe(true);
   });
 });

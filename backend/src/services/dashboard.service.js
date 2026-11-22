@@ -47,6 +47,19 @@ export async function badgesFor(user) {
   return badges;
 }
 
+/** The sidebar's association card (Sidebar.dc.html): farmer request state, or the Group Manager's counts; none for Kaluppa. */
+export async function orgCardFor(user) {
+  if (seesEveryAssociation(user)) return null;
+  if (await userCan(user, 'farmers.approve')) {
+    if (!user.associationId) return { kind: 'group_manager', association: null, farmers: 0, waiting: 0 };
+    const [association, counts, waiting] = await Promise.all([findAssociationById(user.associationId), countFarmersByAssociation([user.associationId]), countWaiting(user.associationId)]);
+    return { kind: 'group_manager', association: { id: String(association._id), name: association.name }, farmers: counts.get(String(user.associationId)).approved, waiting };
+  }
+  const profile = await findProfileByUser(user._id);
+  const association = profile?.status === 'none' ? null : profile?.association;
+  return { kind: 'farmer', status: profile?.status ?? 'none', association: association ? { id: String(association._id), name: association.name } : null };
+}
+
 async function farmerOverview(user) {
   const profile = await findProfileByUser(user._id);
   const association = profile?.association;
@@ -82,6 +95,7 @@ async function managerOverview(user) {
       name: fullName(p.user),
       initials: `${p.user.firstName[0]}${p.user.lastName[0]}`.toUpperCase(),
       kind: p.transferRequest?.association ? 'transfer' : 'request',
+      from: p.transferRequest?.association ? p.association?.name ?? null : null,
       requestedAt: p.transferRequest?.requestedAt ?? p.requestedAt,
     })),
     harvestByMonth: { ...emptySeries(12), series: [] },
@@ -118,16 +132,17 @@ async function kaluppaOverview() {
     orders: orders.map((o) => ({
       id: String(o._id),
       orderNumber: o.orderNumber,
-      firstItem: o.items[0]?.name ?? '',
-      itemCount: o.items.length,
+      buyerName: o.buyer ? fullName(o.buyer) : 'Deleted account',
+      buyerRole: o.buyer?.roles.includes('farmer') ? 'farmer' : 'buyer',
       totalCentavos: o.totalCentavos,
       paymentMethod: o.payment.method,
+      paymentProvider: o.payment.provider ?? null,
       fulfillmentMethod: o.fulfillment.method,
       status: o.status,
       createdAt: o.createdAt,
     })),
     beans: [],
-    lowStock: lowStock.map((p) => ({ id: String(p._id), name: p.name, slug: p.slug, stock: p.stock, unit: p.unit, unitLabel: p.unitLabel ?? null })),
+    lowStock: lowStock.map((p) => ({ id: String(p._id), name: p.name, slug: p.slug, category: p.category?.slug ?? null, stock: p.stock, unit: p.unit, unitLabel: p.unitLabel ?? null })),
   };
 }
 

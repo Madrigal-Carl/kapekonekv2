@@ -70,7 +70,8 @@ export async function countOrdersToConfirm() {
 
 /** The oldest orders waiting for confirmation. */
 export const listOrdersToConfirm = (limit) =>
-  Order.find({ status: 'pending' }).sort({ createdAt: 1 }).limit(limit).select('orderNumber items totalCentavos payment.method fulfillment.method status createdAt').lean();
+  Order.find({ status: 'pending' }).sort({ createdAt: 1 }).limit(limit).select('orderNumber buyer totalCentavos payment.method payment.provider fulfillment.method status createdAt')
+    .populate('buyer', 'firstName lastName roles').lean();
 
 /**
  * Sold-order totals per month (Asia/Manila), keyed "YYYY-MM", for orders sold since `since`.

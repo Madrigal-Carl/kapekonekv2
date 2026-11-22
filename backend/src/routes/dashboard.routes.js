@@ -7,6 +7,7 @@ import { verified } from '../middlewares/verified.middleware.js';
 const router = Router();
 router.use('/dashboard', authenticate, verified, can('dashboard.view'));
 router.get('/dashboard/badges', dashboard.badges);
+router.get('/dashboard/org', dashboard.org);
 router.get('/dashboard/overview', dashboard.overview);
 
 export default router;

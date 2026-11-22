@@ -11,6 +11,7 @@ export const verifyEmail = (token) => api.post('/auth/email/verify', { token })
 export const resendVerification = () => api.post('/auth/email/verification-notification')
 export const forgotPassword = (body) => api.post('/auth/forgot-password', body)
 export const resetPassword = (body) => api.post('/auth/reset-password', body)
+export const setFirstPassword = (body) => api.patch('/auth/password/first', body).then(data)
 /** @returns {Promise<{ username: string, available: boolean }>} */
 export const usernameAvailability = (username) => api.get('/auth/username-availability', { params: { username } }).then(data)
 /** @returns {Promise<string[]>} */

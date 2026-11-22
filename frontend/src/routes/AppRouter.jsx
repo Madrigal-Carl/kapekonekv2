@@ -22,12 +22,35 @@ const OrderDetail = page(() => import('@/pages/account/OrderDetail'), 'OrderDeta
 const Orders = page(() => import('@/pages/account/Orders'), 'Orders')
 const Profile = page(() => import('@/pages/account/Profile'), 'Profile')
 const Settings = page(() => import('@/pages/account/Settings'), 'Settings')
-const Overview = page(() => import('@/pages/dashboard/Overview'), 'Overview')
+const SetPassword = page(() => import('@/pages/auth/SetPassword'), 'SetPassword')
+const Overview = page(() => import('@/pages/dashboard/overview/Overview'), 'Overview')
+const ComingSoon = page(() => import('@/pages/dashboard/ComingSoon'), 'ComingSoon')
 const NotFound = page(() => import('@/pages/errors/NotFound'), 'NotFound')
 const Landing = page(() => import('@/pages/storefront/Landing'), 'Landing')
 const PostDetail = page(() => import('@/pages/storefront/PostDetail'), 'PostDetail')
 const ProductDetail = page(() => import('@/pages/storefront/ProductDetail'), 'ProductDetail')
 const Products = page(() => import('@/pages/storefront/Products'), 'Products')
+
+/** Dashboard pages from later milestones: [path, permission]. Each milestone swaps its placeholder for the real page. */
+const DASHBOARD_PAGES = [
+  ['farms', 'farms.manage'],
+  ['trees', 'trees.manage'],
+  ['harvests', 'harvests.manage'],
+  ['inbox/*', 'inbox.use'],
+  ['hub/*', 'dashboard.view'],
+  ['beans', 'dashboard.view'], // farmers and Group Managers sell, Kaluppa reviews
+  ['orders', 'dashboard.view'], // farmers' own orders, Kaluppa manages all
+  ['farm-map', 'map.view'],
+  ['farmers', 'farmers.manage'],
+  ['group-managers', 'group_managers.manage'],
+  ['associations', 'associations.manage'],
+  ['inventory', 'inventory.manage'],
+  ['reviews', 'reviews.moderate'],
+  ['reports', 'reports.view'],
+  ['audit-log', 'audit.view'],
+  ['settings', 'settings.manage'],
+  ['account/*', 'profile.update'],
+]
 
 export const router = createBrowserRouter([
   {
@@ -56,6 +79,7 @@ export const router = createBrowserRouter([
         ],
       },
       { path: '/reset-password', element: <ResetPassword /> },
+      { path: '/set-password', element: <SetPassword /> },
       { path: '/verify-email/confirm', element: <VerifyEmailConfirm /> },
       { element: <ProtectedRoute />, children: [{ path: '/verify-email', element: <VerifyEmail /> }] },
       {
@@ -86,7 +110,8 @@ export const router = createBrowserRouter([
         ],
       },
       {
-        element: <ProtectedRoute roles={DASHBOARD_ROLES} permissions={['dashboard.view']} />,
+        // DESIGN §8.4. Unverified farmers verify first; each page checks its own permission.
+        element: <ProtectedRoute roles={DASHBOARD_ROLES} permissions={['dashboard.view']} requireVerified />,
         children: [
           {
             path: '/dashboard',
@@ -94,6 +119,10 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <Navigate to="overview" replace /> },
               { path: 'overview', element: <Overview /> },
+              ...DASHBOARD_PAGES.map(([path, permission]) => ({
+                element: <ProtectedRoute permissions={[permission]} />,
+                children: [{ path, element: <ComingSoon /> }],
+              })),
             ],
           },
         ],

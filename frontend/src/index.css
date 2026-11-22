@@ -63,6 +63,20 @@
   --color-st-expired-bg: #E9ECEF; --color-st-expired-ink: #495057; --color-st-expired-dot: #868E96;
   --color-table-line: #F3ECE2;    /* order item table rows */
 
+  /* dashboard (DESIGN §8): status pill tones bg / ink / dot */
+  --color-tone-green-bg: #E1F2E4; --color-tone-green-ink: #1E5A34; --color-tone-green-dot: #2E7D4F;
+  --color-tone-amber-bg: #FBF3E3; --color-tone-amber-ink: #6B4209; --color-tone-amber-dot: #C8913A;
+  --color-tone-red-bg: #FDF0EE; --color-tone-red-ink: #8F2D22; --color-tone-red-dot: #C2554A;
+  --color-tone-blue-bg: #E8F0FA; --color-tone-blue-ink: #1F4E86; --color-tone-blue-dot: #2A78D6;
+  --color-tone-gray-bg: #F1ECE6; --color-tone-gray-ink: #4A3A30; --color-tone-gray-dot: #8C7A66;
+  --color-tone-roast-bg: #F3E6DA; --color-tone-roast-ink: #5A3218; --color-tone-roast-dot: #7B4A2A;
+  /* chart series (DESIGN §8.3, validated order: don't reorder) */
+  --color-chart-1: #2a78d6; --color-chart-2: #eb6834; --color-chart-3: #1baf7a; --color-chart-4: #eda100; --color-chart-5: #e87ba4;
+  --color-chart-axis: #CDBBA6;
+  /* avatar tiles */
+  --color-avatar-green: #3F6B4E;
+  --color-logout: #A1362B;
+
   --radius-control: 5px;   /* buttons, inputs */
   --radius-card: 8px;
   --shadow-card-hover: 0 14px 32px -20px rgba(43,26,18,.38);

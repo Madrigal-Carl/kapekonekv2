@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { connectSocket } from '@/lib/socket'
 import { useAuth } from './useAuth'
+import { dashboardKeys } from './useDashboard'
 import { notificationKeys } from './useNotifications'
 import { orderKeys } from './useOrders'
 
@@ -14,8 +15,15 @@ export function useRealtime() {
   useEffect(() => {
     if (!userId) return undefined
     return connectSocket({
-      'notification:new': () => queryClient.invalidateQueries({ queryKey: notificationKeys.all }),
-      'order:updated': () => queryClient.invalidateQueries({ queryKey: orderKeys.all }),
+      // Notifications and order changes also move the dashboard's badges and overview counts.
+      'notification:new': () => {
+        queryClient.invalidateQueries({ queryKey: notificationKeys.all })
+        queryClient.invalidateQueries({ queryKey: dashboardKeys.all })
+      },
+      'order:updated': () => {
+        queryClient.invalidateQueries({ queryKey: orderKeys.all })
+        queryClient.invalidateQueries({ queryKey: dashboardKeys.all })
+      },
     })
   }, [userId, queryClient])
 }
