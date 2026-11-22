@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { MapPin, X } from 'lucide-react'
 import { lazy, Suspense, useId, useState } from 'react'
-import { useForm, useWatch } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
-import { FieldHint, Input, inputClasses, Label } from '@/components/ui/Input'
+import { FieldHint, Input, Label } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
+import { SearchSelect } from '@/components/ui/SearchSelect'
 import { Spinner } from '@/components/ui/Spinner'
 import { useCreateAddress, useUpdateAddress } from '@/hooks/useAddresses'
 import { usePointQuote, useReverseGeocode } from '@/hooks/useGeo'
@@ -178,39 +179,46 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
               <Label htmlFor={`${id}-province`}>Province</Label>
               <input id={`${id}-province`} value="Marinduque" readOnly className={cn(readOnlyClasses, 'mt-1.5')} />
             </div>
-            <div>
-              <Label htmlFor={`${id}-town`}>Municipality</Label>
-              <select
-                id={`${id}-town`}
-                className={cn(inputClasses, 'mt-1.5 py-2.5')}
-                aria-invalid={Boolean(errors.municipality) || undefined}
-                aria-describedby={`${id}-town-hint`}
-                {...register('municipality', { onChange: () => setValue('barangay', '') })}
-              >
-                <option value="">Choose…</option>
-                {locations.data?.map((t) => (
-                  <option key={t.name} value={t.name}>{t.name}</option>
-                ))}
-              </select>
-              <FieldHint id={`${id}-town-hint`} error={errors.municipality?.message} />
-            </div>
-            <div>
-              <Label htmlFor={`${id}-brgy`}>Barangay</Label>
-              <select
-                id={`${id}-brgy`}
-                className={cn(inputClasses, 'mt-1.5 py-2.5')}
-                disabled={!town}
-                aria-invalid={Boolean(errors.barangay) || undefined}
-                aria-describedby={`${id}-brgy-hint`}
-                {...register('barangay')}
-              >
-                <option value="">{town ? 'Choose…' : 'Choose a municipality first'}</option>
-                {town?.barangays.map((b) => (
-                  <option key={b} value={b}>{b}</option>
-                ))}
-              </select>
-              <FieldHint id={`${id}-brgy-hint`} error={errors.barangay?.message} />
-            </div>
+            <Controller
+              name="municipality"
+              control={control}
+              render={({ field }) => (
+                <SearchSelect
+                  label="Municipality"
+                  icon="pin"
+                  placeholder="Select municipality"
+                  searchPlaceholder="Search municipality"
+                  options={locations.data.map((t) => t.name)}
+                  value={field.value || null}
+                  onChange={(value) => {
+                    if (value !== field.value) setValue('barangay', '')
+                    field.onChange(value)
+                  }}
+                  onBlur={field.onBlur}
+                  ref={field.ref}
+                  error={errors.municipality?.message}
+                />
+              )}
+            />
+            <Controller
+              name="barangay"
+              control={control}
+              render={({ field }) => (
+                <SearchSelect
+                  label="Barangay"
+                  icon="home"
+                  placeholder={town ? 'Select barangay' : 'Pick a municipality first'}
+                  searchPlaceholder="Search barangay"
+                  options={town?.barangays ?? []}
+                  value={field.value || null}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  ref={field.ref}
+                  disabled={!town}
+                  error={errors.barangay?.message}
+                />
+              )}
+            />
             <div>
               <Label htmlFor={`${id}-postal`}>Postal code</Label>
               <input id={`${id}-postal`} value={town?.postalCode ?? ''} readOnly className={cn(readOnlyClasses, 'mt-1.5')} />

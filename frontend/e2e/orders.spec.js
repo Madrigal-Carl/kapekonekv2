@@ -42,8 +42,12 @@ test('delivery: pin a new address, check out with cash on delivery, then cancel 
   await expect(map).toBeVisible({ timeout: 20_000 })
   await map.click() // the map opens centred on Marinduque
   await expect(modal.getByText(/^Pin at 13\.\d{4}, 12[12]\.\d{4}/)).toBeVisible({ timeout: 15_000 })
-  await expect(modal.getByLabel('Municipality')).not.toHaveValue('')
-  if ((await modal.getByLabel('Barangay').inputValue()) === '') await modal.getByLabel('Barangay').selectOption({ index: 1 })
+  await expect(modal.getByRole('button', { name: /^Municipality/ })).not.toContainText('Select municipality')
+  const barangay = modal.getByRole('button', { name: /^Barangay/ })
+  if ((await barangay.textContent()).includes('Select barangay')) {
+    await barangay.click()
+    await page.getByRole('option').first().click()
+  }
   await modal.getByLabel('Street, house no., landmark').fill(street)
   await expect(modal.getByText(/by road from Kaluppa · delivery fee/)).toBeVisible({ timeout: 15_000 })
   await modal.getByRole('button', { name: 'Save address' }).click()

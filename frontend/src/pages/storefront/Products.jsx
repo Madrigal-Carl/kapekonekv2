@@ -7,6 +7,7 @@ import { ChipToggle } from '@/components/ui/ChipToggle'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Eyebrow } from '@/components/ui/Eyebrow'
 import { inputClasses } from '@/components/ui/Input'
+import { SearchSelect } from '@/components/ui/SearchSelect'
 import { ProductCardSkeleton } from '@/components/ui/Skeleton'
 import { COFFEE_TYPES, PRODUCT_SORTS, VARIETIES } from '@/constants/catalog'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
@@ -143,10 +144,18 @@ export function Products() {
               {isPending ? 'Loading coffee…' : <>Showing <strong className="font-semibold text-ink">{total}</strong> coffee {total === 1 ? 'product' : 'products'}</>}
             </p>
             <div className="flex items-center gap-2.5">
-              <label htmlFor="sort" className="text-[13px] text-ink-2">Sort by</label>
-              <select id="sort" value={sort} onChange={(e) => setParam('sort', e.target.value === 'newest' ? '' : e.target.value)} className={cn(inputClasses, 'w-auto py-[9px] pr-8 text-[13.5px]')}>
-                {PRODUCT_SORTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-              </select>
+              <span aria-hidden="true" className="whitespace-nowrap text-[13px] text-ink-2">Sort by</span>
+              <SearchSelect
+                aria-label="Sort products by"
+                icon="sort"
+                size="sm"
+                options={PRODUCT_SORTS}
+                value={sort}
+                onChange={(value) => setParam('sort', value === 'newest' ? '' : value)}
+                placeholder="Newest"
+                searchPlaceholder="Search sort options"
+                className="w-[230px]"
+              />
             </div>
           </div>
 
