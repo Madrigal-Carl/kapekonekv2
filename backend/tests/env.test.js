@@ -43,6 +43,12 @@ describe('parseEnv', () => {
     expect(env.CLIENT_URL).toBe('http://localhost:5173'); // trailing slash removed for CORS
   });
 
+  it('refuses short secrets', () => {
+    expect(() => parseEnv({ ...minimal, JWT_ACCESS_SECRET: 'a'.repeat(31) })).toThrow(/JWT_ACCESS_SECRET/);
+    expect(() => parseEnv({ ...minimal, JWT_REFRESH_SECRET: 'b'.repeat(31) })).toThrow(/JWT_REFRESH_SECRET/);
+    expect(() => parseEnv({ ...minimal, CRON_SECRET: 'c'.repeat(15) })).toThrow(/CRON_SECRET/);
+  });
+
   it('parses VALKEY_TLS=false', () => {
     expect(parseEnv({ ...minimal, VALKEY_TLS: 'false' }).VALKEY_TLS).toBe(false);
   });
