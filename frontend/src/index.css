@@ -8,7 +8,7 @@
   --color-espresso-2: #3A2419;    /* hero/auth panel base under the photo */
   --color-roast: #7B4A2A;         /* primary buttons, links, active states */
   --color-roast-hover: #653B20;
-  --color-caramel: #C8913A;       /* eyebrow bars, stars, decor (never body text on white) */
+  --color-caramel: #C8913A;       /* icon tiles, stars, decor (never body text on white) */
   --color-caramel-light: #EBC98F; /* caramel text on dark backgrounds */
   --color-caramel-tint: #F3E3C7;  /* icon tiles, role badges */
   --color-caramel-ink: #8A5A12;   /* category labels, small caramel text on white */

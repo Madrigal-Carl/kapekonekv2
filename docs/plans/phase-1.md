@@ -312,3 +312,8 @@ frontend/e2e/    Playwright specs + helpers (latestMailLink, api login)
 ## Milestone summaries
 
 (Added after each milestone.)
+
+### M0 — checked 2026-11-23
+- Root workspace, scripts, `.gitignore`, both scaffolds, Tailwind v4 without a config file, `@` alias, Poppins 400–700, `vercel.json`, both `.env.example` files: all match Tasks 0.1–0.2.
+- Boot check: `npm run dev` starts both apps; `/api/health` → 200 `ok` once Valkey connects (503 `degraded` for the first second); the browser reports `Poppins` and `--color-roast` `#7B4A2A`.
+- Fixed: a stale `index.css` comment still said "eyebrow bars" (removed in Change 02).
