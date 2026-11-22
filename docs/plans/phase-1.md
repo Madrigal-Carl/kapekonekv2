@@ -2,185 +2,146 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build everything a guest and a buyer use in KapeKonek (storefront, auth, addresses with a Mapbox pin, cart, checkout for delivery/pickup × e-wallet/cash, orders with the full status machine, notifications with live order updates, profile, settings) plus the backend those flows need, matching the approved `.dc.html` screens.
+> **Status (2026-11-23):** rewritten from the current docs on request. The code already exists on `phase-1` (M0–M7 and Changes 01–04 shipped; history and logs are in `docs/plans/phase-1.archive.md`). This plan folds Changes 01–04 into the baseline. Running it against the existing code means **check and align each milestone** (run its tests, compare with its screens, fix gaps), not scaffold again. Milestone 0 waits for the user's OK.
 
-**Architecture:** Two apps in one repo. `backend/` is one Express 5 process that also runs the BullMQ email worker, the Socket.IO server (Valkey adapter) and the order-expiry scheduler; requests flow route → auth guards → `validate()` → controller → service → repository → model. `frontend/` is a React 19 + Vite SPA; data flows Zod form → TanStack Query hook → service → axios.
+**Goal:** Everything a guest and a buyer use in KapeKonek: storefront, auth, addresses with a Mapbox pin, cart, checkout (delivery/pickup × e-wallet/cash), orders with the full status machine, notifications with live order updates, profile and settings. Plus the backend those flows need, matching the approved `.dc.html` screens.
 
-**Tech Stack:** Node ≥22, Express 5, Mongoose, Zod, BullMQ + ioredis (Valkey), Socket.IO, Cloudinary, Brevo, Mapbox (server: Directions + Geocoding; client: `react-map-gl` + `mapbox-gl`), Vitest + Supertest + mongodb-memory-server; React 19, Vite, Tailwind v4 (`@tailwindcss/vite`), TanStack Query, Zustand, react-hook-form, Playwright.
+**Architecture:** One Express 5 process (`backend/`) serves the API and also runs the BullMQ email worker, Socket.IO (Valkey adapter) and the order-expiry scheduler; requests flow route → auth guards → `validate()` → controller → service → repository → model. `frontend/` is a React 19 + Vite SPA; data flows Zod form → TanStack Query hook → service → axios.
 
-**Spec:** `CLAUDE.md`, `docs/PRODUCT-SPEC.md`, `docs/DESIGN.md`, `docs/prompts/PHASE-1-PROMPT.md`, `docs/design/screens/*.dc.html`. Open questions and the choices made: `docs/plans/phase-1-questions.md`.
+**Tech Stack:** Node ≥22, Express 5, Mongoose, Zod, BullMQ + ioredis 5 (Valkey), Socket.IO, Cloudinary, Brevo, Mapbox (server: Directions + Geocoding; client: `react-map-gl` + `mapbox-gl`), Vitest + Supertest + mongodb-memory-server + ioredis-mock; React 19, Vite, Tailwind v4 (`@tailwindcss/vite`), TanStack Query, Zustand, react-hook-form, Testing Library, Playwright.
+
+**Spec:** `CLAUDE.md`, `docs/PRODUCT-SPEC.md`, `docs/DESIGN.md` §1–7, `docs/prompts/PHASE-1-PROMPT.md`, `docs/design/screens/*.dc.html` (Phase 1 screens in DESIGN §5). Gaps and the choices made: `docs/plans/phase-1-questions.md` (items 1–26 apply).
 
 ## Global Constraints
 
 - JavaScript ES modules both sides, no TypeScript; JSDoc on public service and repository functions.
-- Backend flow: `route → authenticate/optionalAuth → verified → can()/role() → validate() → controller → service → repository → model`. Only repositories import models. Outside APIs only in `src/clients/`, only called by services. Sockets only through `realtime.toUser`, and only for `notification:new` and `order:updated` (no order chat — Changes 01/02).
-- Eyebrow labels are text only: no bar, dash or line before them, on light or dark (Change 02, DESIGN.md §3).
-- Response: `{ success, message?, data, meta? }` / `{ success:false, message, code, errors }`; `errors` is a flat `field → message` map. Codes: `VALIDATION_ERROR, UNAUTHENTICATED, FORBIDDEN, EMAIL_NOT_VERIFIED, NOT_FOUND, CONFLICT, RATE_LIMITED, SERVER_ERROR` (+ domain codes `ADDRESS_NEEDS_PIN`, `OUTSIDE_DELIVERY_AREA` at 422).
-- Money = integer centavos; line total `Math.round(priceCentavos * quantity)`; format only on the frontend with `Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' })`.
-- Quantity: `kg` → step 0.5, min 0.5; `pack`/`piece` → integers, min 1. Same Zod rule both sides.
-- Lists use cursor pagination (`?cursor=&limit=` → `meta.nextCursor`, `meta.hasMore`) via one helper encoding `(sortValue, _id)`.
-- Password ≥8 with a letter, a digit and a symbol. Username `^[a-z0-9._]{3,30}$`. Names 1–50. Phone `^09\d{9}$` after removing spaces.
-- Cookies via one `cookieOptions()`: `accessToken` 15 min; `refreshToken` 30 days with remember-me else session; httpOnly; prod `secure:true, sameSite:'none'`, dev `sameSite:'lax'`. Refresh tokens carry `tokenVersion`.
-- Permission cache `perm:user:<id>`, TTL 600 s; `kaluppa` passes every `can()`. Features check permissions, never `role === 'buyer'`; purchasability = category `purchasePermission`.
-- Buyers must be verified for every authenticated buyer action (`403 EMAIL_NOT_VERIFIED`); other roles may act unverified.
-- Every email goes through BullMQ (3 attempts, exponential backoff); user text escaped in templates. `MAIL_TRANSPORT=log` writes to `backend/storage/mail/`.
+- Backend flow: `route → authenticate/optionalAuth → verified → can()/role() → validate() → controller → service → repository → model`. Only repositories import models. Outside APIs only in `src/clients/`, called only by services. Sockets only through `realtime.toUser`, only `notification:new` and `order:updated`. **No order chat** anywhere (UI, API, sockets, data).
+- Response `{ success, message?, data, meta? }` / `{ success:false, message, code, errors, data? }`; `errors` is a flat `field → message` map. Codes: `VALIDATION_ERROR, UNAUTHENTICATED, FORBIDDEN, EMAIL_NOT_VERIFIED, NOT_FOUND, CONFLICT, RATE_LIMITED, SERVER_ERROR`; domain codes `ADDRESS_NEEDS_PIN`, `OUTSIDE_DELIVERY_AREA`, `FILE_TOO_LARGE`, `FILE_TYPE_NOT_ALLOWED` (422), `QUANTITY_EXCEEDS_STOCK`, `ALREADY_REVIEWED` (409), `REVIEW_NOT_ALLOWED` (403).
+- Money = integer centavos; line total `Math.round(priceCentavos * quantity)`; format only in the frontend with `Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' })`.
+- Quantity: `kg` step 0.5 (min 0.5), `pack`/`piece` integers (min 1), compared in integer steps (`Math.round(q * 2)` for kg). Same Zod rule both sides. Cart add **adds to** the line; result ≤ stock or `409 QUANTITY_EXCEEDS_STOCK {stock, inCart, maxAddable}`; never clamp on the server.
+- Cursor pagination everywhere (`?cursor=&limit=` → `meta.nextCursor`, `meta.hasMore`) through one helper encoding `(sortValue, _id)`.
+- Password ≥8 with a letter, a digit and a symbol. Username `^[a-z0-9._]{3,30}$`. Names 1–50. Phone `^09\d{9}$` after removing spaces. Address: recipient 2–80, street 5–200, customLabel ≤30, lat 13.15–13.62, lng 121.80–122.20. Review comment 10–1000, rating 1–5. Cancel "other" 5–300. Rider name 2–60.
+- `UPLOAD_RULES`: `image` jpg/png/webp/heic ≤ 5 MB (avatar, receipt); `file` pdf/mp4/webm ≤ 10 MB. Checked in the browser, re-checked on the server from Cloudinary's stored `bytes`/`format`. Copy: "<name> is 7.2 MB. Images can be up to 5 MB." / "Files can be up to 10 MB."
+- Cookies via one `cookieOptions()`: `accessToken` 15 min; `refreshToken` 30 days with "Remember me", else a session cookie; httpOnly; prod `secure:true, sameSite:'none'`, dev `sameSite:'lax'`. Tokens carry `tokenVersion`, checked on access and refresh.
+- Permission cache `perm:user:<id>` TTL 600 s; `kaluppa` passes every `can()`. Features check permissions, never `role === 'buyer'`; purchasability = category `purchasePermission`.
+- Buyers must verify for every authenticated buyer action (`403 EMAIL_NOT_VERIFIED`). In Phase 1, unverified farmers, Group Managers and Kaluppa may reach the placeholder dashboard (question 26).
+- Every email goes through BullMQ (3 attempts, exponential backoff); user text escaped. `MAIL_TRANSPORT=log` writes to `backend/storage/mail/`. Without `SEED_EMAIL_BASE`, mail to `isSeed` users is logged with `note: "skipped-seed"`, never sent.
 - Shutdown order: HTTP → Socket.IO → scheduler → worker → queue → Valkey → Mongo.
-- Mapbox Directions/Geocoding only on the backend (`MAPBOX_ACCESS_TOKEN`); delivery fee always recomputed server-side.
-- Throttles: login 5/min, verification resend 1/min, `/geo/reverse` 30/min, username endpoints and forgot-password throttled.
-- UI: match the `.dc.html` screen exactly; colors only via `@theme` tokens in `frontend/src/index.css` (no hex in components); mobile-first; skeleton/empty/error on every list; focus rings; focus-trapped, Esc-closable modals/drawers/menus; touch targets ≥44px.
+- Mapbox Directions/Geocoding only on the backend (`MAPBOX_ACCESS_TOKEN`); the delivery fee is always recomputed server-side.
+- Throttles: login 5/min, verification resend 1/min, `/geo/reverse` 30/min; username endpoints, `/geo/search` and forgot-password throttled.
+- Calendar dates (order number, business-day ETA) use `Asia/Manila`.
+- UI: match the `.dc.html` exactly; colors only via the `@theme` tokens in `frontend/src/index.css` (no hex in components); mobile-first; skeleton/empty/error on every list; focus rings; focus-trapped, Esc-closable modals/drawers/menus; touch targets ≥44px; eyebrows are text only (no bar). **No native `<select>`**: always `SearchSelect`.
 - Confirmation modals: logout, remove cart item, clear cart, proceed to checkout, place order, cancel order (with reason), delete address.
 - Account-gated actions go through `useRequireAuthAction()` (guest → `/login?redirect=<path>`; unverified buyer → `/verify-email`).
-- All times that make a calendar date (order number date, business-day ETA) use `Asia/Manila`.
+- Post media frames are fixed: stage 16/10, `max-height: 560px`, `object-contain`; cards 16/10 `object-cover`; thumbnails square `object-cover`.
 
 ## Review Focus
 
-1. **Double "Place order"** (double click, two tabs): exactly one order; the second request gets `409 CONFLICT` "Your cart is empty". → test in Task 4.4.
-2. **Server clock in UTC** (Render): order number date and ETA business days use Manila dates — an order at `2026-11-23T17:00Z` (Tue 01:00 Manila) is `KK-20261124-…`. → test in Task 4.1 (ETA) and 4.4 (order number).
-3. **Open redirect** via `?redirect=//evil.com`, `https://evil.com`, `/\evil.com`, `javascript:…`: ignored, falls back to role home. → test in Task 2.4.
-4. **Several requests hit 401 at once** after the access token expires: one `/auth/refresh` call, all requests retried; a failed refresh clears auth once. → test in Task 2.4.
-5. **Cart goes stale** between viewing and placing (price changed, product deactivated, stock dropped): the order uses current server prices; inactive/over-stock lines refuse the order with `409` listing the lines. → test in Task 4.4.
+1. **Double "Place order"** (double click, two tabs): exactly one order; the second gets `409 CONFLICT` "Your cart is empty". → Task 4.4.
+2. **Server clock in UTC** (Render): an order at `2026-11-23T17:00Z` (Tue 01:00 Manila) is `KK-20261124-…` and its ETA counts from Tuesday. → Tasks 4.1, 4.4.
+3. **Open redirect** through `?redirect=//evil.com`, `https://evil.com`, `/\evil.com`, `javascript:…`: ignored, falls back to the role home. → Task 2.4.
+4. **Several requests get 401 at once** after the access token expires: one `/auth/refresh`, all retried; a failed refresh clears auth once. → Task 2.4.
+5. **Stale cart** between viewing and placing (price changed, product deactivated, stock dropped): the order uses current server prices; inactive or over-stock lines refuse the order with `409` listing them. → Task 4.4.
 
-## Milestone wrap-up (run after every milestone)
+## Milestone wrap-up (after every milestone)
 
 - [ ] `npm run lint` and `npm test` at the root (both apps) → exit 0.
-- [ ] From M2 on: `npm --prefix backend run migrate:fresh -- --seed` → exit 0.
-- [ ] Playwright: every page the milestone touched, at 1440 px and 390 px, compared with its `.dc.html` values (spacing, sizes, colors, copy, states); fix differences.
+- [ ] From M2: `npm --prefix backend run migrate:fresh -- --seed` → exit 0, prints the sign-in table.
+- [ ] Playwright: every page the milestone touched at 1440 px and 390 px against its `.dc.html` (spacing, sizes, colors, copy, states); fix differences.
 - [ ] `/graphify . --update`.
-- [ ] Append a "Milestone summary" under that milestone below.
+- [ ] Add a "Milestone summary" at the end of this file.
 - [ ] Commit on `phase-1`: `feat(m<N>): <summary>`.
 
-## File structure (decided once)
+## File structure
 
 ```
 backend/src/
-  app.js                 express app (no listen) — imported by tests
-  server.js              boot: db, valkey, sockets, worker, scheduler, listen, shutdown
-  config/                env.js, db.js, valkey.js, cloudinary.js, mail.js
-  clients/               mapbox.client.js, cloudinary.client.js (upload/destroy)
-  middlewares/           auth.middleware.js, permission.middleware.js, verified.middleware.js,
-                         validate.js, rateLimit.middleware.js, error.middleware.js
-  schemas/               rules.js + <resource>.schema.js
+  app.js  server.js
+  config/        env.js, db.js, valkey.js, cloudinary.js, mail.js
+  clients/       mapbox.client.js, cloudinary.client.js
+  middlewares/   auth, permission, verified, rateLimit (.middleware.js), validate.js, error.middleware.js
+  schemas/       rules.js (+ UPLOAD_RULES) and <resource>.schema.js
   routes/ controllers/ services/ repositories/ models/   one file per resource
-  queues/                email.jobs.js, email.queue.js, workers/email.worker.js
-  templates/email/       layout.js + one file per job
-  schedulers/            orderExpiry.scheduler.js
-  sockets/               index.js (io + adapter + handshake), realtime.js
-  utils/                 AppError.js, asyncHandler.js, response.js, pagination.js, cookies.js,
-                         tokens.js, escapeHtml.js, businessDays.js, manilaDate.js
-  constants/             permissions.js (slugs + role matrix), orderStatus.js
-  data/                  marinduque-locations.json, postal-codes.js
-  database/commands/     migrateFresh.js, dbSeed.js
-  database/seeders/      <name>.seeder.js, index.js (ordered registry), data/ (media.json, products.js…)
-backend/tests/           <area>.test.js, helpers/ (memory mongo, app agent, login helper)
+  queues/        email.jobs.js, email.queue.js, workers/email.worker.js
+  templates/email/  layout.js + one file per job
+  schedulers/    orderExpiry.scheduler.js
+  sockets/       index.js (io, adapter, handshake), realtime.js
+  utils/         AppError, asyncHandler, response, pagination, cookies, tokens, escapeHtml, businessDays, manilaDate
+  constants/     permissions.js, orderStatus.js
+  data/          marinduque-locations.json, postal-codes.js
+  database/commands/  migrateFresh.js, dbSeed.js
+  database/seeders/   <name>.seeder.js, index.js, data/ (media.json, products.js…)
+backend/tests/   <area>.test.js, helpers/
 frontend/src/
-  api/axios.js  app/ (App.jsx, providers.jsx, queryClient.js)  routes/ (AppRouter + guards)
-  layouts/ (StorefrontLayout, AuthLayout, AccountLayout, DashboardLayout)
+  api/axios.js  app/  routes/  layouts/ (Storefront, Auth, Account, Dashboard)
   pages/<area>/  components/{ui,layout,product,order,post,auth,map}
   hooks/ services/ schemas/ stores/ lib/ constants/
-frontend/e2e/            Playwright specs + helpers (mailbox reader, api login)
+frontend/e2e/    Playwright specs + helpers (latestMailLink, api login)
 ```
 
 ---
 
 ## M0 — Scaffold & install
 
-### Task 0.1: Git and root workspace
+### Task 0.1: Root workspace, backend and frontend scaffolds
 
-**Files:** Create `package.json`, `.gitignore`.
+**Files:** root `package.json`, `.gitignore`, `.gitattributes`; `backend/{package.json,eslint.config.js,src/app.js,src/server.js,tests/health.test.js}`; `frontend/` from `create-vite` (react), `vite.config.js`, `src/{index.css,main.jsx,App.jsx,lib/format.js,lib/format.test.js}`, `vercel.json`.
 
-- [ ] **Step 1:** `git init && git checkout -b phase-1` (repo did not exist).
-- [ ] **Step 2:** Root `package.json` (`private`, `engines.node >=22`), devDependency `concurrently`. Scripts:
-  - `dev`: `concurrently -n api,web -c yellow,cyan "npm --prefix backend run dev" "npm --prefix frontend run dev"`
-  - `setup`: `npm install && npm --prefix backend install && npm --prefix frontend install`
-  - `lint`: `npm --prefix backend run lint && npm --prefix frontend run lint`
-  - `test`: `npm --prefix backend test && npm --prefix frontend test`
-  - `test:e2e`: `npm --prefix frontend run test:e2e`
-- [ ] **Step 3:** `.gitignore`: `node_modules`, `.env*`, `!.env.example`, `dist`, `coverage`, `backend/storage/`, `graphify-out/`, `_reference/`, `playwright-report/`, `test-results/`, `.claude/settings.local.json`.
+**Interfaces:** Produces `app` (default export of `backend/src/app.js`, no `listen`; every supertest imports it) and `formatPeso(centavos) => string`.
 
-### Task 0.2: Backend scaffold with `/api/health`
+- [ ] Repo exists: stay on `phase-1`, no `git init`.
+- [ ] Root scripts: `dev` (`concurrently` backend + frontend dev), `setup` (install both), `lint`, `test`, `test:e2e`. `engines.node: ">=22"`.
+- [ ] `.gitignore`: `node_modules`, `.env*`, `!.env.example`, `dist`, `coverage`, `backend/storage/`, `graphify-out/`, `_reference/`, `playwright-report/`, `test-results/`, `.claude/settings.local.json`.
+- [ ] Backend: PHASE-1-PROMPT M0 packages, `ioredis@^5` (q12), dev `ioredis-mock`. Scripts `dev` (nodemon watching `src/` and `.env` only), `start`, `lint`, `test`, `migrate:fresh`, `db:seed`. Folder tree from PHASE-1-PROMPT M0.
+- [ ] Frontend: PHASE-1-PROMPT M0 packages plus `vitest`, `@testing-library/react`, `jsdom`; `npx playwright install chromium`. Tailwind via `@tailwindcss/vite`, no `tailwind.config.js`, `@` → `src`. `index.css` = DESIGN §2 block verbatim + base (`body` Poppins, `ink`, white; links roast/roast-hover; `:focus-visible` 2px roast outline, 2px offset). Poppins 400/500/600/700 from `@fontsource`. `vercel.json` from `_reference/frontend/vercel.json`.
+- [ ] Tests: `GET /api/health` → 200 `{ success: true, data: { status: 'ok' } }`; `formatPeso(123456)` → `'₱1,234.56'`, `formatPeso(5000)` → `'₱50.00'`.
 
-**Files:** Create `backend/package.json`, `backend/eslint.config.js`, `backend/src/app.js`, `backend/src/server.js`, `backend/tests/health.test.js`, folder tree with `.gitkeep`.
+### Task 0.2: Env examples and boot check
 
-**Interfaces:** Produces `app` (default export of `src/app.js`, an Express app without `listen`) — every later supertest imports it.
-
-- [ ] **Step 1:** `npm i` / `npm i -D` the packages listed in PHASE-1-PROMPT M0 (latest versions). Scripts: `dev: nodemon src/server.js`, `start: node src/server.js`, `lint: eslint .`, `test: vitest run`, `migrate:fresh: node src/database/commands/migrateFresh.js`, `db:seed: node src/database/commands/dbSeed.js` (command files arrive in Task 2.1).
-- [ ] **Step 2: failing test** `tests/health.test.js`: `GET /api/health` → 200, body `{ success: true, data: { status: 'ok' } }`.
-- [ ] **Step 3:** `src/app.js` with helmet, cors, `express.json`, `GET /api/health`; `src/server.js` listens on `process.env.PORT || 5000` (env validation comes in M1).
-- [ ] **Step 4:** `npm test` and `npm run lint` pass.
-
-### Task 0.3: Frontend scaffold with tokens and Poppins
-
-**Files:** `frontend/` from `create-vite` (react template), `vite.config.js`, `src/index.css`, `src/main.jsx`, `src/App.jsx`, `vercel.json`, `src/lib/format.js`, `src/lib/format.test.js`, folder tree with `.gitkeep`.
-
-**Interfaces:** Produces `formatPeso(centavos: number) => string` in `src/lib/format.js`.
-
-- [ ] **Step 1:** Scaffold, install the PHASE-1-PROMPT M0 packages plus `vitest` (frontend `npm test`), `npx playwright install chromium`.
-- [ ] **Step 2:** `vite.config.js`: `react()`, `tailwindcss()`, alias `@` → `src`. No `tailwind.config.js`. Remove the template's demo CSS/assets.
-- [ ] **Step 3:** `src/index.css` = DESIGN.md §2 block verbatim, plus the screens' `<helmet>` base: `body { margin:0; font-family: var(--font-sans); color: var(--color-ink); background: white; -webkit-font-smoothing: antialiased }`, links roast/roast-hover, `:focus-visible` 2px roast outline with 2px offset. `main.jsx` imports `@fontsource/poppins/{400,500,600,700}.css`.
-- [ ] **Step 4: failing test** `formatPeso(123456)` → `'₱1,234.56'`; `formatPeso(5000)` → `'₱50.00'`. Implement with `Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' })`.
-- [ ] **Step 5:** scripts `test: vitest run`, `test:e2e: playwright test`; `vercel.json` copied from `_reference/frontend/vercel.json`.
-
-### Task 0.4: Env examples and boot check
-
-**Files:** `backend/.env.example`, `frontend/.env.example`.
-
-- [ ] **Step 1:** Every variable in PRODUCT-SPEC §12 with the spec's defaults (`ACCESS_TOKEN_EXPIRES=15m`, `MAIL_TRANSPORT=log`, `EMAIL_FROM_NAME=KapeKonek`, `VALKEY_USERNAME=default`, `VALKEY_TLS=true`, `CLOUDINARY_ROOT_FOLDER=kapekonek`, `ORDER_EXPIRY_DAYS=3`, `ORDER_EXPIRY_INTERVAL_MINUTES=5`, `SEED_DEFAULT_PASSWORD=Password123!`); local dev values `PORT=5000`, `CLIENT_URL=http://localhost:5173`, `VITE_API_URL=http://localhost:5000/api`, `VITE_SOCKET_URL=http://localhost:5000`; secrets blank.
-- [ ] **Step 2:** `npm run dev` at root → both start; `curl localhost:5000/api/health` → 200; Playwright screenshot of `localhost:5173` shows a blank page whose computed `font-family` starts with `Poppins` and `--color-roast` resolves to `#7B4A2A`.
-- [ ] **Step 3:** lint + test at root; commit `chore(m0): scaffold backend, frontend and root workspace`. **Stop; ask the user to fill in `.env`.**
+- [ ] `backend/.env.example` and `frontend/.env.example`: every variable in PRODUCT-SPEC §12 with its default (`SEED_DEFAULT_PASSWORD=KapeKonek@123`, `SEED_EMAIL_BASE=` with a comment), local `PORT=5000`, `CLIENT_URL=http://localhost:5173`, `VITE_API_URL=http://localhost:5000/api`, `VITE_SOCKET_URL=http://localhost:5000`; secrets blank.
+- [ ] `npm run dev` starts both; `/api/health` → 200; Playwright: blank page, computed `font-family` starts with `Poppins`, `--color-roast` = `#7B4A2A`.
+- [ ] Lint + test; commit `chore(m0): …`. **Stop and ask the user to fill in `.env`.**
 
 ---
 
 ## M1 — Backend core
 
-### Task 1.1: Env, connections, mail transport
+### Task 1.1: Env and connections
 
-**Files:** `config/env.js`, `config/db.js`, `config/valkey.js`, `config/cloudinary.js`, `config/mail.js`; test `tests/env.test.js`.
+**Interfaces:** `parseEnv(source) => env` (throws naming every bad key); frozen `env`; `createValkeyConnection(name)` (`maxRetriesPerRequest: null`, TLS when `VALKEY_TLS=true`; the cache connection fails fast while Valkey is down); `connectDb()`/`disconnectDb()`; `sendMail({ to, subject, html, text })` (brevo | log).
 
-**Interfaces:** `env` (frozen parsed object); `parseEnv(source) => env` (throws listing every bad key); `createValkeyConnection(name) => IORedis` (`maxRetriesPerRequest: null`, TLS when `VALKEY_TLS=true`); `connectDb()`, `disconnectDb()`; `sendMail({ to, subject, html, text }) => Promise<void>` (brevo | log → `storage/mail/<iso>-<to>-<slug>.json` with html+text).
-
-- [ ] Tests: `parseEnv({})` throws an error whose message names `MONGO_URI` and `JWT_ACCESS_SECRET`; `parseEnv(minimalValid)` applies defaults (`PORT 5000`, `ORDER_EXPIRY_DAYS 3`, `MAIL_TRANSPORT 'log'`); `MAIL_TRANSPORT=brevo` without `BREVO_API_KEY` fails. In `NODE_ENV=test`, a `tests/setup.js` provides a valid env.
+- [ ] Tests: `parseEnv({})` names `MONGO_URI` and `JWT_ACCESS_SECRET`; defaults `PORT 5000`, `ORDER_EXPIRY_DAYS 3`, `MAIL_TRANSPORT 'log'`; `brevo` without `BREVO_API_KEY` fails; JWT secrets <32 chars and `CRON_SECRET` <16 fail (q13).
 
 ### Task 1.2: Errors, validation, responses
 
-**Files:** `utils/AppError.js`, `utils/asyncHandler.js`, `utils/response.js`, `middlewares/validate.js`, `middlewares/error.middleware.js`; tests `tests/validate.test.js`, `tests/error.test.js`.
+**Interfaces:** `new AppError(status, message, { code, errors, data })`; `sendSuccess(res, { data, message, meta, status })`; `validate({ body, params, query })`; `errorHandler`, `notFound`.
 
-**Interfaces:** `new AppError(status, message, { code, errors })`; `sendSuccess(res, { data, message, meta, status = 200 })`; `validate({ body, params, query })` middleware; `errorHandler`, `notFound`.
+- [ ] Tests: `?limit=5` arrives as `5`; unknown body key stripped; failure → 400 `VALIDATION_ERROR` with `errors['items.0.quantity']`; Mongo 11000 on `email` → 409 `errors.email = 'Email is already taken'`; `CastError` → 404; unknown error → 500 without stack in production; unknown route → 404; malformed JSON → 400.
 
-- [ ] `validate`: replaces `req.body`/`req.params` with parsed (coerced, stripped) data; redefines `req.query` (Express 5 getter) — test with a mini app: `?limit=5` arrives as number `5`; unknown body key stripped; failure → 400 `VALIDATION_ERROR` with `errors: { 'items.0.quantity': '…' }` (path joined with `.`).
-- [ ] Error handler: `AppError` → its status/code/errors; Mongo `11000` on `email` → 409 `CONFLICT`, `errors.email = 'Email is already taken'`; Mongoose `CastError` → 404 `NOT_FOUND`; unknown error → 500 `SERVER_ERROR` with no stack when `NODE_ENV=production`; unknown route → 404 `NOT_FOUND`; malformed JSON → 400 `VALIDATION_ERROR`.
+### Task 1.3: Cursor pagination
 
-### Task 1.3: Cursor pagination helper
+**Interfaces:** `cursorFilter({ sortField, direction, cursor })`, `cursorSort({ sortField, direction })`, `pageResult(docs, limit, sortField) => { items, meta }`; cursor = base64url JSON `[sortValue, id]`; repositories fetch `limit + 1`.
 
-**Files:** `utils/pagination.js`; test `tests/pagination.test.js` (mongodb-memory-server).
+- [ ] Tests: 25 docs with 3 distinct prices, pages of 7 asc and desc → all 25 ids once; bad cursor → 400 on `cursor`; Date values round-trip.
 
-**Interfaces:** `cursorFilter({ sortField, direction, cursor }) => mongoFilter`, `cursorSort({ sortField, direction }) => { [sortField]: dir, _id: dir }`, `pageResult(docs, limit, sortField) => { items, meta: { nextCursor, hasMore } }`; cursor = base64url JSON `[sortValue, id]`. Repositories fetch `limit + 1`.
+### Task 1.4: Cookies and tokens
 
-- [ ] Tests: 25 docs with only 3 distinct prices, paging by 7 asc and desc yields all 25 ids exactly once; bad cursor string → `AppError 400 VALIDATION_ERROR` on `cursor`; Date sort values round-trip.
+**Interfaces:** `cookieOptions({ maxAge? })`, `setAuthCookies(res, user, { remember })`, `clearAuthCookies(res)`, `signAccessToken`, `signRefreshToken` (payload `{ sub, tv, rem }`; 30 d with remember, else 1 d — q14), `verifyAccessToken`, `verifyRefreshToken`.
 
-### Task 1.4: Cookies, tokens
-
-**Files:** `utils/cookies.js`, `utils/tokens.js`; test `tests/cookies.test.js`.
-
-**Interfaces:** `cookieOptions({ maxAge? })`; `setAuthCookies(res, user, { remember })`; `clearAuthCookies(res)`; `signAccessToken(user)`, `signRefreshToken(user)` (payload `{ sub, tv }`), `verifyAccessToken`, `verifyRefreshToken`.
-
-- [ ] Tests: prod → `secure:true, sameSite:'none'`; dev → `sameSite:'lax'`, `secure:false`; remember → refresh `maxAge` 30 days; no remember → no `maxAge`/`expires` (session cookie); access cookie maxAge 15 min.
+- [ ] Tests: prod `secure:true, sameSite:'none'`; dev `lax`; remember → refresh `maxAge` 30 days; no remember → no `maxAge`/`expires`; access 15 min.
 
 ### Task 1.5: Email queue, worker, templates
 
-**Files:** `queues/email.jobs.js` (`EMAIL_JOBS = { TEST, VERIFY_EMAIL, RESET_PASSWORD, EMAIL_CHANGED_NOTICE, ORDER_PLACED, ORDER_STATUS_CHANGED, KALUPPA_NEW_ORDER }`), `queues/email.queue.js`, `queues/workers/email.worker.js`, `templates/email/layout.js`, `templates/email/test.template.js`, `utils/escapeHtml.js`; test `tests/email.test.js`.
+**Interfaces:** `enqueueEmail(job, data)` (refuses unknown jobs; q16); `emailHandlers[job](data) => { to, subject, html, text }`; `processEmailJob({ name, data })`; `renderLayout({ preheader, heading, bodyHtml, bodyText, cta? })` (espresso header, crema body, roast CTA).
 
-**Interfaces:** `enqueueEmail(job, data)` (attempts 3, exponential backoff 5 s, removeOnComplete); `emailHandlers[job](data) => { to, subject, html, text }`; `processEmailJob({ name, data })`; `startEmailWorker()`, `closeEmailWorker()`, `closeEmailQueue()`; `renderLayout({ preheader, heading, bodyHtml, bodyText, cta? }) => { html, text }` (espresso header, crema body, roast CTA, Poppins→system fallback).
+- [ ] Tests: `TEST` job with `name: '<b>x</b>'` writes one file containing `&lt;b&gt;x&lt;/b&gt;` and a text part; unknown job throws; recipient with `isSeed` and no `SEED_EMAIL_BASE` → logged with `note: "skipped-seed"`, Brevo not called; with `SEED_EMAIL_BASE` → sent.
 
-- [ ] Tests: `processEmailJob({ name:'TEST', data:{ to:'a@x.test', name:'<b>x</b>' } })` with log transport writes one file in `storage/mail/` containing `&lt;b&gt;x&lt;/b&gt;` and a text part; unknown job name throws. Manual check (after env is filled): `node -e` enqueue TEST → file appears.
+### Task 1.6: Sockets shell, scheduler shell, cron, health, shutdown
 
-### Task 1.6: Sockets, realtime, scheduler shell, cron, health, shutdown
+**Interfaces:** `initSockets(httpServer)`; `realtime.init(io)`, `realtime.toUser(id, event, payload)` (no-op before init); `runOrderExpiry() => { expired }` with `lock:order-expiry` (`SET NX PX`), body filled in Task 4.5; `POST /api/cron/expire-orders` (`x-cron-secret`).
 
-**Files:** `sockets/index.js`, `sockets/realtime.js`, `schedulers/orderExpiry.scheduler.js`, `routes/cron.routes.js`, `routes/health.routes.js`, `routes/index.js`, `server.js`; tests `tests/cron.test.js`, `tests/health.test.js` (update).
-
-**Interfaces:** `initSockets(httpServer) => io` (Valkey pub/sub adapter; handshake auth added in M5); `realtime.init(io)`, `realtime.toUser(id, event, payload)` (no-op before init); `runOrderExpiry() => { expired }` (acquires `lock:order-expiry` with `SET NX PX`; the expiry body is filled in Task 4.5), `startOrderExpiryScheduler()`, `stopOrderExpiryScheduler()`; `POST /api/cron/expire-orders` (header `x-cron-secret` = `CRON_SECRET`).
-
-- [ ] Tests: cron without/with wrong secret → 401 `UNAUTHENTICATED`; correct → 200 `{ data: { expired: 0 } }` (`runOrderExpiry` mocked); health → 200 `{ status:'ok', checks:{ mongo:'up'|'down', valkey:'up'|'down' } }` and 503 when a check is down.
-- [ ] `server.js` closes in the Global Constraints order on SIGTERM/SIGINT, each step in try/catch, hard exit after 10 s.
+- [ ] Tests: cron without/wrong secret → 401; correct → 200 `{ expired: 0 }`; health 200 `{ status:'ok', checks:{ mongo, valkey } }`, 503 `degraded` when one is down (q15).
+- [ ] `server.js` shuts down in the Global Constraints order, each step in try/catch, hard exit after 10 s.
 
 ---
 
@@ -188,94 +149,76 @@ frontend/e2e/            Playwright specs + helpers (mailbox reader, api login)
 
 ### Task 2.1: Models, permission matrix, seed commands
 
-**Files:** `models/{user,role,permission,token}.model.js`, `constants/permissions.js`, `repositories/{user,role,token}.repository.js`, `database/commands/{migrateFresh,dbSeed}.js`, `database/seeders/{index,roles,users}.seeder.js`; tests `tests/seed.test.js`.
+**Interfaces:** `PERMISSIONS`, `ROLE_PERMISSIONS` (PRODUCT-SPEC §1 incl. `reviews.update_own`, `reviews.delete_own`), `ROLE_LABELS`; roles/permissions stored as slugs (q17); `runSeeders({ only?, fresh })`; `seedEmail(handle)` → `<base>+<handle>@gmail.com` with `SEED_EMAIL_BASE`, else `kapekonek.<handle>@gmail.com`. User: bcrypt 12, `select:false`, virtuals `fullName`, `initials`, `isSeed`.
 
-**Interfaces:** `PERMISSIONS` (slug → {name, group}), `ROLE_PERMISSIONS` (role slug → slugs, matrix of PRODUCT-SPEC §1), `ROLE_LABELS`; `runSeeders({ only?, fresh })`. User virtuals `fullName`, `initials`; password `select:false`, bcrypt 12 in a pre-save hook.
-
-- [ ] Tests: `runSeeders` twice → same counts of roles/permissions/users (upsert by slug/email); `kaluppa@`, `manager@`, `farmer1@` (verified), `farmer2@` (unverified), `buyer@` (verified), `buyer.unverified@`, ~20 faker buyers; `migrateFresh` with `NODE_ENV=production` and no `--force` exits non-zero without dropping.
+- [ ] Tests: seeding twice keeps the same counts (upsert by slug / username); handles `kaluppa`, `manager.santacruz`, `farmer.approved` (verified), `farmer.unverified`, `buyer` (verified), `buyer.unverified`, `buyer01`…`buyer20`, all password `KapeKonek@123`; `seedEmail` both ways; `migrateFresh` in production without `--force` exits non-zero without dropping; the seeder clears `perm:user:*` (waits up to 5 s for Valkey).
 
 ### Task 2.2: Permission resolution, guards, rate limiter
 
-**Files:** `services/permission.service.js`, `middlewares/{auth,permission,verified,rateLimit}.middleware.js`; tests `tests/permissions.test.js`, `tests/rateLimit.test.js` (use `ioredis-mock` dev dependency for Valkey).
+**Interfaces:** `resolvePermissions(user)` (cached), `clearPermissionCache(userId)`, `clearAllPermissionCaches()`, `userCan(user, ...slugs)`; middleware `authenticate`, `optionalAuth`, `guestOnly`, `verified`, `role`, `can`, `canAny`; `rateLimit({ name, limit, windowSec, key })` → 429 with `Retry-After`.
 
-**Interfaces:** `resolvePermissions(user) => string[]` (roles ∪ direct, cached `perm:user:<id>` 600 s); `clearPermissionCache(userId)`; `clearAllPermissionCaches()` (seeder); `userCan(user, ...slugs)`; middleware `authenticate`, `optionalAuth`, `guestOnly`, `verified`, `role(...slugs)`, `can(...slugs)`, `canAny(...slugs)`; `rateLimit({ name, limit, windowSec, key: req => string })` → 429 `RATE_LIMITED` with `Retry-After`.
-
-- [ ] Tests: kaluppa passes `can('anything.at_all')`; buyer `can('orders.manage')` → 403 `FORBIDDEN`; second resolve hits cache (repo spy called once); after `clearPermissionCache` a role change is seen; `verified`: unverified buyer → 403 `EMAIL_NOT_VERIFIED`, unverified farmer passes; suspended user → 403; `authenticate` with an access token whose user's `tokenVersion` changed is still accepted until expiry (access) but refresh is refused (Task 2.3).
+- [ ] Tests: kaluppa passes `can('anything.at_all')`; buyer `can('orders.manage')` → 403; second resolve served from cache; cache clear sees a role change; unverified buyer → 403 `EMAIL_NOT_VERIFIED`, unverified farmer passes; suspended → 403; access token with an old `tokenVersion` → 401 (q18).
 
 ### Task 2.3: Auth endpoints
 
-**Files:** `schemas/{rules,auth}.schema.js`, `routes/auth.routes.js`, `controllers/auth.controller.js`, `services/auth.service.js`, `templates/email/{verifyEmail,resetPassword}.template.js`; tests `tests/auth.test.js`, `tests/rules.test.js`.
+**Interfaces:** PRODUCT-SPEC §4 Auth + `POST /auth/refresh` (q2). `/auth/me` → `{ user, roles, permissions }`. Verify/reset tokens: 32 random bytes, sha256 stored, 60 min, single-use (q9). Register `{ firstName, middleName?, lastName, username, email, password, role: 'buyer'|'farmer' }`; login `{ identifier (email or username), password, remember }`.
 
-**Interfaces:** endpoints of PRODUCT-SPEC §4 Auth plus `POST /auth/refresh` (see questions). `/auth/me` → `{ user, roles, permissions }`. Tokens: random 32 bytes, stored as sha256 `tokenHash`; verify 24 h, reset 60 min; `usedAt` makes them single-use. Register body `{ firstName, middleName?, lastName, username, email, password, role: 'buyer'|'farmer' }`. Login `{ identifier, password, remember }`.
-
-- [ ] Tests (`rules.test.js` table shared verbatim with frontend Task 2.4): passwords `Password123!` ok, `password1` (no symbol), `Pass!` (short), `!!!!1111` (no letter) rejected; usernames `juan.dc_1` ok, `Ju`, `UPPER`, `has space`, 31 chars rejected; phone `0917 555 0102` ok, `+639175550102` rejected.
-- [ ] Tests (`auth.test.js`): register buyer → 201, sets cookies, enqueues `VERIFY_EMAIL` (queue mocked); duplicate email → 409 `errors.email`; login by username works; wrong password 401 generic message; 6th login in a minute → 429; verify token works once, second use → 400, expired → 400; reset password bumps `tokenVersion` and an old refresh token → 401; username-suggestions returns exactly 3 available names; forgot-password for an unknown email still 200 (no enumeration).
+- [ ] `rules.test.js` (same table as the frontend): `Password123!` ok; `password1`, `Pass!`, `!!!!1111` rejected; `juan.dc_1` ok; `Ju`, `UPPER`, `has space`, 31 chars rejected; `0917 555 0102` ok, `+639175550102` rejected.
+- [ ] `auth.test.js`: register → 201, cookies, `VERIFY_EMAIL` queued; duplicate email → 409 `errors.email`; login by username and by email; wrong password → 401 generic; 6th login in a minute → 429; verify token works once, reuse/expired → 400; reset bumps `tokenVersion` and the old refresh → 401; suggestions return exactly 3 free names; forgot-password for an unknown email → 200.
 
 ### Task 2.4: Frontend auth foundation
 
-**Files:** `api/axios.js`, `stores/auth.store.js`, `services/auth.service.js`, `hooks/{useAuth,useCan,useRequireAuthAction}.js`, `components/auth/Can.jsx`, `schemas/{rules,auth}.schema.js`, `lib/{applyServerErrors,safeRedirect}.js`, `routes/{AppRouter,StorefrontRoute,GuestRoute,ProtectedRoute,RoleRedirect}.jsx`, `constants/roles.js`; tests `src/schemas/rules.test.js`, `src/lib/safeRedirect.test.js`, `src/api/axios.test.js`.
+**Interfaces:** `safeRedirect(value, fallback)`; `applyServerErrors(error, setError) => boolean`; `useAuth()` → `{ user, roles, permissions, isLoading, isAuthenticated, isVerified }`; `useCan(slug)`; `<Can permission>`; `useRequireAuthAction() => (fn) => void`; guards `StorefrontRoute`, `GuestRoute`, `ProtectedRoute roles permissions requireVerified`, `RoleRedirect`.
 
-**Interfaces:** `safeRedirect(value, fallback) => string`; `applyServerErrors(error, setError) => boolean`; `useAuth()` → `{ user, roles, permissions, isLoading, isAuthenticated, isVerified }`; `useCan(slug) => boolean` (kaluppa always true); `useRequireAuthAction() => (fn) => void`; `<ProtectedRoute roles permissions requireVerified>`.
-
-- [ ] Tests: rules table identical to Task 2.3; `safeRedirect('//evil.com')`, `'https://evil.com'`, `'/\\evil.com'`, `'javascript:alert(1)'` → fallback; `'/orders?x=1'` kept; axios: three parallel 401s → `/auth/refresh` called once and all three retried; refresh failing → auth store cleared once; `EMAIL_NOT_VERIFIED` → navigates to `/verify-email`.
+- [ ] Tests: rules table identical to Task 2.3; `safeRedirect` refuses `//evil.com`, `https://evil.com`, `/\\evil.com`, `javascript:alert(1)` and keeps `/orders?x=1`; three parallel 401s → one refresh, three retries; failed refresh clears auth once; `EMAIL_NOT_VERIFIED` → `/verify-email`.
 
 ### Task 2.5: Auth pages, dashboard placeholder, 403/404
 
-**Files:** `components/ui/{Button,Input,Label,FieldHint,Select,Textarea,PasswordInput,PasswordRule,RadioCard,Eyebrow,Modal,ConfirmDialog,Spinner}.jsx`, `layouts/{AuthLayout,DashboardLayout}.jsx`, `pages/auth/{Login,Register,ForgotPassword,ResetPassword,VerifyEmail,VerifyEmailConfirm}.jsx`, `pages/dashboard/Overview.jsx`, `pages/errors/{Forbidden,NotFound}.jsx`.
+**Files:** `components/ui/{Button,Input,Label,FieldHint,Textarea,PasswordInput,PasswordRule,RadioCard,Eyebrow,Modal,ConfirmDialog,Spinner,SearchSelect}.jsx`, `layouts/{AuthLayout,DashboardLayout}.jsx`, `pages/auth/*`, `pages/dashboard/Overview.jsx`, `pages/errors/{Forbidden,NotFound}.jsx`.
 
-- [ ] Each page copied from its `.dc.html` (DESIGN §3 "Copying the design exactly"); Register: role cards, live username availability (debounced), 3 suggestion chips, password rule; VerifyEmail: resend with 60 s cooldown, helper text exactly "Adding to cart, checking out and reviewing need a verified email."; logout via `ConfirmDialog` (Modals.dc.html logout variant); Dashboard: role label, greeting by Manila time of day, unverified banner with Resend.
-- [ ] Component test: `ConfirmDialog` traps focus and closes on Esc (vitest + `@testing-library/react`, jsdom — see questions).
+- [ ] Copy Login, Register, ForgotPassword, ResetPassword, VerifyEmail, Dashboard, Modals (logout) screens. Login checkbox "Remember me". Register: role cards (farmer text "Record your farms and sell beans to Kaluppa. Verify your email to start."), debounced username availability, 3 suggestion chips, password rule. VerifyEmail: resend with 60 s cooldown, "Adding to cart, checking out and reviewing need a verified email." Unverified buyer lands on `/verify-email` after login/register (q19). Logout = confirm → full load of `/` (q20).
+- [ ] `SearchSelect` per `SearchSelect.dc.html` / DESIGN §4 (icon tile, round chevron, search, highlight, check, "No match for …", count + key hints, portal, flips up, RHF `Controller`). Tests: filter, ↑↓ Enter pick, Esc, disabled, error, RHF value.
+- [ ] Test: `ConfirmDialog` traps focus and closes on Esc.
 
-### Task 2.6: Playwright auth flows
+### Task 2.6: Playwright auth
 
-**Files:** `frontend/playwright.config.js` (webServer: both apps, `MAIL_TRANSPORT=log`), `e2e/helpers/mailbox.js` (`latestMailLink(to, pathPrefix)`), `e2e/auth.spec.js`.
-
-- [ ] Buyer signup → `/verify-email` → open link from mailbox → lands on `/`; farmer signup → `/dashboard/overview`; forgot → reset → login with new password; guard: logged-in farmer visiting `/` → `/dashboard/overview`.
+- [ ] Buyer signup → `/verify-email` → mailbox link → `/`; farmer signup → `/dashboard/overview`; forgot → reset → login; sign in as `buyer` by username; guard: farmer on `/` → `/dashboard/overview`. Playwright runs its own API on 5100 and Vite on 5174 (q23).
 
 ---
 
 ## M3 — Catalog, posts & seeders
 
-### Task 3.1: Catalog models and endpoints
+### Task 3.1: Catalog and reviews
 
-**Files:** `models/{category,product,review,order,counter}.model.js` (Order/Counter schema only — needed for review eligibility and demo seeding), `repositories/{category,product,review}.repository.js`, `services/{catalog,review}.service.js`, routes/controllers/schemas for catalog + reviews; tests `tests/catalog.test.js`, `tests/reviews.test.js`.
+**Interfaces:** `listVisibleCategories(viewer)`; `listProducts(viewer, { search, category, variety[], coffeeType[], minPrice, maxPrice (pesos, q25), featured, sort: newest|price_asc|price_desc|rating|popular, cursor, limit≤24 })`; `getProductBySlug(viewer, slug)` (with `inCart` for a signed-in viewer); `canReview(user, productId) => { canReview, reason: null|'not_purchased'|'not_completed'|'already_reviewed', pendingOrderNumber, pendingOrderId }`; `createReview`, `updateReview`, `deleteReview`, `recomputeRating(productId)`. Order + Counter schemas land here (q6).
 
-**Interfaces:** `listVisibleCategories(viewer)`; `listProducts(viewer, { search, category, variety[], coffeeType[], minPrice, maxPrice, featured, sort: 'newest'|'price_asc'|'price_desc'|'rating'|'popular', cursor, limit≤24 })`; `getProductBySlug(viewer, slug)`; `isPurchasable(viewer, category)`; reviews `listReviews(productId, cursor)`, `getSummary(productId) => { average, count, distribution: {1..5} }`, `getMyReview`, `createReview(user, productId, {rating, comment})`, `updateReview(user, id, …)`, `recomputeRating(productId)`.
-
-- [ ] Tests: guest sees Coffee only; farmer sees Coffee + Fertilizer + Seedlings; hidden-category product slug → 404 for guest; inactive product → 404; `price_asc` and `rating` paging stable across ties (no dup/missing); review without a sold order → 403; second review → 409; create/update recompute `ratingAverage` (1 dp) and `ratingCount`; unverified buyer → 403 `EMAIL_NOT_VERIFIED`.
+- [ ] Tests: guest sees Coffee only; farmer sees all three categories; hidden-category slug → 404 for a guest; inactive → 404; `price_asc` and `rating` paging stable across ties; no sold order → 403 `REVIEW_NOT_ALLOWED`; second → 409 `ALREADY_REVIEWED`; each reason from `/reviews/me`; PATCH/DELETE by a non-author → 404; create/edit/delete recompute `ratingAverage` (1 dp) and `ratingCount`; after delete the user can review again; unverified buyer → 403.
 
 ### Task 3.2: Settings, delivery info, locations
 
-**Files:** `models/setting.model.js`, `repositories/setting.repository.js`, `services/setting.service.js`, `data/marinduque-locations.json` (copied), `data/postal-codes.js`, routes for `/settings/landing`, `/settings/payment`, `/delivery/info`, `/locations`; test `tests/settings.test.js`.
-
-**Interfaces:** `getSetting(key)`; `getLocations() => [{ name, postalCode, barangays: string[] }]`; `isValidBarangay(municipality, barangay)`.
-
-- [ ] Tests: `/locations` → 6 municipalities, 218 barangays, Boac 4900…Gasan 4905; `/settings/payment` needs a verified login; `/delivery/info` public and exposes fee rules + ETA days + pickup, not `origin` secrets beyond the pickup pin.
+- [ ] Tests: `/locations` → 6 municipalities, 218 barangays, Boac 4900 … Gasan 4905; `/settings/payment` needs a verified login; `/delivery/info` is public with fee rules, ETA days and pickup; `/settings/landing` public.
 
 ### Task 3.3: Posts (read-only)
 
-**Files:** `models/{post,postComment,reaction}.model.js`, repository/service/routes/controller for posts; test `tests/posts.test.js`.
-
-- [ ] Tests: `/posts/latest?limit=3` newest published, not deleted; `/posts/:id/comments?limit=5` returns top-level comments each with ≤2 replies and `replyCount`; `/comments/:id/replies` pages by cursor; no write endpoints exist for posts in Phase 1.
+- [ ] Tests: `/posts/latest?limit=3` newest published, not deleted; `/posts/:id/comments?limit=5` with ≤2 replies each and `replyCount`; `/comments/:id/replies` by cursor; no post write routes exist.
 
 ### Task 3.4: Seeders and media
 
-**Files:** `database/seeders/{categories,products,settings,posts,media,demo}.seeder.js`, `database/seeders/data/{products.js,media.json}`; extend `tests/seed.test.js`.
+**Interfaces:** `verifyMediaUrl(url) => { ok, contentType }` (200 + `image/*`|`video/*`); `uploadSeedMedia(key, url)` → Cloudinary `seed/<key>`, `overwrite:false`, remote URL on failure; credits in `seeders/data/media.json`.
 
-**Interfaces:** `verifyMediaUrl(url) => { ok, contentType }` (GET, 200 + `image/*`|`video/*`); `uploadSeedMedia(key, url)` → Cloudinary `seed/<key>` `overwrite:false`, falls back to the remote URL on failure.
-
-- [ ] Products per PRODUCT-SPEC §11 (4 varieties × green kg / roasted 250 g pack / ground 250 g pack, low-stock, one out of stock, 4–6 featured; hidden fertilizer ~5, seedlings 1 per variety). Settings with §2 values. 3 hero slides. ~8 posts with comments/replies/reactions. Demo: extra buyers get sold orders + reviews (review text never mentions messaging or chat); ≥2 products with ≥12 reviews.
-- [ ] Tests: `db:seed` twice → no duplicate categories/products/settings/posts; demo skipped on the second plain run; `--only=settings` touches settings only.
+- [ ] Products, settings (pickup hours sample, q24), 3 hero slides, ~8 posts (text, multi-image with **at least one portrait photo** in "Fresh Liberica roasts are in!", one video) with comments/replies/reactions; demo buyers get sold orders + reviews (≥2 products with ≥12).
+- [ ] Tests: `db:seed` twice → no duplicates; demo skipped on a plain second run; `--only=settings` touches only settings; every seeded review's author has a sold order of that product.
 
 ### Task 3.5: Storefront UI
 
-**Files:** `layouts/StorefrontLayout.jsx`, `components/layout/{Navbar,Footer,AvatarMenu,MobileMenu}.jsx`, `components/ui/{SectionHeading,ChipToggle,StarRating,QuantityStepper,EmptyState,Skeleton}.jsx`, `components/product/{ProductCard,HeroCarousel,ReviewList,ReviewForm}.jsx`, `components/post/{MediaViewer,ReactionSummary,CommentThread}.jsx`, `pages/storefront/{Landing,Products,ProductDetail,PostDetail}.jsx`, hooks/services for products, categories, reviews, posts, settings; tests for `lib/quantity.js` (`stepFor(unit)`, `clampQuantity`).
+**Files:** `layouts/StorefrontLayout.jsx`, `components/layout/{Navbar,Footer,AvatarMenu,MobileMenu}.jsx`, `components/ui/{SectionHeading,ChipToggle,StarRating,QuantityStepper,EmptyState,Skeleton}.jsx`, `components/product/{ProductCard,HeroCarousel,ReviewPanel,ReviewList}.jsx`, `components/post/{Media,MediaViewer,ReactionSummary,CommentThread}.jsx`, `pages/storefront/{Landing,Products,ProductDetail,PostDetail}.jsx`, `lib/quantity.js`, `lib/cloudinary.js`.
 
-- [ ] Copy Main, Products, ProductDetail, PostDetail, Navbar, Footer screens. `SectionHeading` = text-only `Eyebrow` + H2 + lead (no bar — Change 02). Landing "What KapeKonek does" third card: bell icon, tag "Updates", title "Know where your order is", text "Email and in-app notifications at every step, from confirmation to delivery." Products filters synced to the URL; `useInfiniteQuery` + IntersectionObserver; "Loading more coffee…". Add/Cart/Write review go through `useRequireAuthAction`.
+- [ ] Copy Main, Products, ProductDetail, PostDetail, Navbar, Footer, Components (review panel states). Landing third "What KapeKonek does" card: bell icon, "Updates", "Know where your order is", "Email and in-app notifications at every step, from confirmation to delivery." Products: filters in the URL, sort `SearchSelect` (`size="sm"`, `icon="sort"`), `useInfiniteQuery` + IntersectionObserver, "Loading more coffee…". Product detail: stepper capped at `stock − inCart` with "N already in your cart · you can add up to M more", `ReviewPanel` states, "Verified purchase". `MediaStage`/`MediaThumb` with Cloudinary `c_limit,w_1600` and `c_fill,g_auto,w_320,h_320`. Add / Cart / Write review through `useRequireAuthAction`.
+- [ ] Tests: `stepFor(unit)`, `toSteps`, `squareUrl`.
 
 ### Task 3.6: Playwright storefront
 
-- [ ] Landing, products (filter + scroll loads more), product detail, post detail vs screens at 1440/390; guest clicks Add → `/login?redirect=/products/<slug>` → after login returns there.
+- [ ] Landing, products (filter + scroll loads more), product detail, post detail vs screens at 1440/390; guest Add → `/login?redirect=/products/<slug>` → back after login; post media stage height stays the same on every item of the portrait post at both widths.
 
 ---
 
@@ -283,77 +226,62 @@ frontend/e2e/            Playwright specs + helpers (mailbox reader, api login)
 
 ### Task 4.1: Geo, delivery quote, business days
 
-**Files:** `clients/mapbox.client.js`, `services/{deliveryQuote,geo}.service.js`, `utils/{businessDays,manilaDate}.js`, routes `/geo/*`, `/delivery/quote`; tests `tests/deliveryQuote.test.js`, `tests/businessDays.test.js`.
+**Interfaces:** mapbox client `drivingDistanceKm(from, to)`, `reverseGeocode(lat, lng)`, `forwardGeocode(query, { bbox, proximity })`; `computeFee(distanceKm, rules)`; `quoteForPoint({ lat, lng }) => { distanceKm, feeCentavos, distanceSource, eta }`; `quoteForAddress(address)`; `findBarangay(municipality, barangay)` (Valkey `geo:brgy:<muni>:<brgy>`, 7 days; misses cached too); `addBusinessDays(date, n)` (Manila); `etaWindow(from = now)`.
 
-**Interfaces:** mapbox client `drivingDistanceKm(from, to)`, `reverseGeocode(lat, lng)`, `forwardGeocode(query)`; `computeFee(distanceKm, rules) => feeCentavos`; `quoteForPoint({ lat, lng }) => { distanceKm, feeCentavos, distanceSource, eta }`; `quoteForAddress(address)`; `addBusinessDays(date, n)` in Manila; `etaWindow(from = now)`.
-
-- [x] Tests: fee 2 km → 5000; 3 km → 5000; 7.2 km → 5000 + 4.2×1000 = 9200 → rounded up to 9500; > `maxKm` → 422 `OUTSIDE_DELIVERY_AREA`; point outside bounds → 422 `OUTSIDE_DELIVERY_AREA`; Mapbox throws → `distanceSource:'fallback'` with haversine × 1.35; second quote for same 4dp point served from cache (client called once); address without pin and forward geocode fails → 422 `ADDRESS_NEEDS_PIN`; ETA from Fri → Wed–Fri next week; from `2026-11-23T17:00Z` (Tue Manila) counts from Tuesday.
+- [ ] Tests: 2 km → 5000; 3 km → 5000; 7.2 km → 9200 → 9500; > `maxKm` or outside bounds → 422 `OUTSIDE_DELIVERY_AREA`; Mapbox throws → haversine × 1.35, `fallback`; same 4dp point twice → client called once; no pin + geocode fails → 422 `ADDRESS_NEEDS_PIN`; ETA from Friday → Wed–Fri next week; `2026-11-23T17:00Z` counts from Tuesday.
 
 ### Task 4.2: Addresses
 
-**Files:** `models/address.model.js`, repository/service/schema/routes/controller; test `tests/addresses.test.js`.
-
-**Interfaces:** `listAddresses(user)` (each with `pinned` and, if quotable, `quote`), `createAddress`, `updateAddress`, `deleteAddress` (soft), `setDefault`.
-
-- [x] Tests: first address becomes default; 11th → 409 `CONFLICT` "You can save up to 10 addresses"; deleting the default promotes the newest remaining; another user's address → 404; barangay not in municipality → 400 `errors.barangay`; location outside 13.15–13.62 / 121.80–122.20 → 400; postal code derived, client value ignored.
+- [ ] Tests: first address is default; 11th → 409 "You can save up to 10 addresses"; deleting the default promotes the newest remaining; someone else's → 404; barangay outside municipality → 400 `errors.barangay`; location out of bounds → 400; postal code derived, client value ignored.
 
 ### Task 4.3: Cart and uploads
 
-**Files:** `models/cart.model.js`, cart repository/service/schema/routes/controller, `services/upload.service.js` + `/uploads/signature`; tests `tests/cart.test.js`, `tests/uploads.test.js`.
+**Interfaces:** `getCart(user) => { lines: [{ product, quantity, inCart, lineTotalCentavos, flags: ('OUT_OF_STOCK'|'OVER_STOCK'|'INACTIVE'|'NOT_PURCHASABLE')[] }], subtotalCentavos, canCheckout }`; `assertQuantityAllowed(product, resultingQty, inCart)` (shared by add, set, checkout); `addItem` (guarded `$inc` with `$elemMatch`), `setQuantity`, `removeItem`, `clearCart`; `createUploadSignature(user, purpose) => { …, folder, allowed_formats, maxBytes }`; `assertUploadAllowed(publicId, kind)` (Cloudinary Admin API; destroys and throws 422).
 
-**Interfaces:** `getCart(user) => { lines: [{ product, quantity, lineTotalCentavos, flags: ('OUT_OF_STOCK'|'OVER_STOCK'|'INACTIVE'|'NOT_PURCHASABLE')[] }], subtotalCentavos, canCheckout }`; `addItem`, `setQuantity`, `removeItem`, `clearCart`; `createUploadSignature(user, type)` → folder `${CLOUDINARY_ROOT_FOLDER}/receipts/<userId>` or `/avatars/<userId>`.
-
-- [x] Tests: 0.75 kg → 400; 1.5 pack → 400; farmer adding Coffee → 403 (no `catalog.coffee`); quantity above stock → line flagged `OVER_STOCK`, `canCheckout:false`; unverified buyer → 403 `EMAIL_NOT_VERIFIED`.
+- [ ] Tests: 0.75 kg → 400; 1.5 pack → 400; farmer adding Coffee → 403; stock 3, 2 in cart, add 2 → 409 `{stock:3, inCart:2, maxAddable:1}`; kg stock 3, 2.5 in cart: +0.5 ok, +1 → 409; PATCH above stock → 409; two parallel adds → `[200, 409]`; stock dropped later → `OVER_STOCK`, `canCheckout:false`; upload rule at 5 MB ok, 5 MB + 1 refused, 10 MB file ok; server re-check rejects big/wrong-format assets; unverified buyer → 403.
 
 ### Task 4.4: Order placement
 
-**Files:** `models/notification.model.js` (schema; endpoints in M5), `repositories/{order,counter,notification}.repository.js`, `services/{order,notification}.service.js`, `templates/email/{orderPlaced,kaluppaNewOrder}.template.js`, order schema/routes/controller; test `tests/orderPlace.test.js`.
+**Interfaces:** `nextOrderNumber(date)` → `KK-YYYYMMDD-NNNN` (Counter `order:YYYYMMDD`, Manila); `placeOrder(user, body)`; `listMyOrders(user, { status, cursor })` (status = one or comma list); `countMyOrders(user)`; `getOrderFor(user, id)`. Notification schema lands here (q6).
 
-**Interfaces:** `nextOrderNumber(date) => 'KK-YYYYMMDD-NNNN'` (Counter `_id: order:YYYYMMDD` Manila); `placeOrder(user, body) => order`; `listMyOrders(user, { status, cursor })`; `countMyOrders(user) => { [status]: n }`; `getOrderFor(user, id)`.
-
-- [x] Tests: each of the 4 combinations succeeds with its required fields and fails without (delivery without address → 400; e-wallet without receipt → 400; receipt `publicId` outside `kapekonek/receipts/` → 400; cash with receipt → 400; pickup without phone and no profile phone → 400 `errors.contactPhone`; pickup phone saved to profile); client `deliveryFeeCentavos` ignored; two concurrent placements → one 201 + one 409; stale cart (price changed → order uses new price; inactive → 409 listing it); order number Manila date; cart cleared, `ORDER_PLACED` + `KALUPPA_NEW_ORDER` enqueued, buyer + Kaluppa notifications created.
+- [ ] Tests: each of the 4 combinations succeeds with its fields and fails without (delivery without address, e-wallet without receipt, receipt outside `kapekonek/receipts/`, cash with receipt → 400; pickup without any phone → 400 `errors.contactPhone`; pickup phone saved to the profile); client fee ignored; two concurrent placements → one 201, one 409; stale cart (new price used; inactive → 409 listing it); Manila order number; cart cleared; `ORDER_PLACED` + `KALUPPA_NEW_ORDER` queued; buyer and Kaluppa notifications created.
 
 ### Task 4.5: Status machine, cancel, refund, expiry
 
-**Files:** `services/orderStatus.service.js` (transition table), `constants/orderStatus.js`, `templates/email/orderStatusChanged.template.js`, staff routes; fill `runOrderExpiry`; tests `tests/orderStatus.test.js`, `tests/orderExpiry.test.js`.
+**Interfaces:** `TRANSITIONS` `{ from, to, who: 'buyer'|'staff'|'system', methods?, requiresReason?, effects[] }`; `transition(actor, orderId, { status, reasonCode, reason, note, rider })`; `cancelByBuyer(user, id, { reasonCode, reason })`; `markRefunded(actor, id, { referenceNumber })`; `expirePendingOrders(now)`.
 
-**Interfaces:** `TRANSITIONS` table `{ from, to, who: 'buyer'|'staff'|'system', methods?: ['delivery'|'pickup'], requiresReason?, effects[] }`; `transition(actor, orderId, { status, reasonCode, reason, note, rider })`; `cancelByBuyer(user, id, { reasonCode, reason })`; `markRefunded(actor, id, { referenceNumber })`; `expirePendingOrders(now) => count`.
+- [ ] Tests: every allowed transition in PRODUCT-SPEC §3 succeeds, every other pair → 409; `out_for_delivery` on pickup and `ready_for_pickup` on delivery → 409; buyer cancels only own pending; reserve short on item 2 → 409 listing it and item 1 restored; two reserves on the last unit → one wins; cancel/reject after reserved returns stock; `sold` sets `cashCollectedAt` for cash and adds `soldCount`; e-wallet cancelled/rejected/expired → refund `pending`, cash stays `not_applicable`; refund needs a pending refund; expiry touches only pending older than 3 days; expiry racing a reserve leaves it reserved; lock held → `{ expired: 0 }`.
 
-- [x] Tests: every allowed transition in PRODUCT-SPEC §3 succeeds; every other pair → 409; `out_for_delivery` on pickup and `ready_for_pickup` on delivery → 409; buyer cancel only from pending and only own; reserved with insufficient stock for item 2 → 409 listing it and item 1's stock restored; two parallel reserves on the last unit → one succeeds; cancel/reject after reserved returns stock; `sold` sets `cashCollectedAt` for cash and adds `soldCount`; e-wallet cancelled/rejected/expired → `refund.status:'pending'`, cash stays `not_applicable`; refund needs pending refund; expiry only touches pending older than 3 days; expiry racing a reserve leaves the order reserved; lock held → second run returns `{ expired: 0 }`.
+### Task 4.6: Address and order seeders
 
-### Task 4.6: Order/address seeders
-
-- [x] `buyer@` gets the three addresses of §11 and ~15 orders over all 9 statuses (delivery/pickup, e-wallet/cash, rider notes, ETAs, one refunded + pending refunds); extra buyers one address each. Fees via `computeFee` with fallback distance when no Mapbox token.
+- [ ] `buyer` gets the three §11 addresses and ~15 orders across all 9 statuses (both methods and payments, rider notes, ETAs, pending refunds and one refunded); extra buyers one address each; fees via `computeFee` with the fallback distance when Mapbox is unset.
 
 ### Task 4.7: Cart, address, checkout, order UI
 
-**Files:** `components/order/{CartDrawer,StatusPill,RefundBadge,StatusTimeline,EtaLine,OrderCard,OrderGroupTabs,StatusChips,CancelOrderDialog}.jsx`, `components/map/{MapPicker,AddressFormModal,AddressCard}.jsx`, `components/order/{DeliveryMethodCards,PaymentCards,ReceiptUpload}.jsx`, `pages/account/{Addresses,Checkout,Orders,OrderDetail}.jsx`, `constants/orderStatus.js`, hooks/services for cart, addresses, locations, geo, delivery, orders, uploads, settings; test `src/constants/orderGroups.test.js` (group → statuses mapping).
+**Files:** `components/order/{CartDrawer,StatusPill,RefundBadge,StatusTimeline,EtaLine,OrderCard,OrderGroupTabs,StatusChips,CancelOrderDialog,DeliveryMethodCards,PaymentCards}.jsx`, `components/ui/FileDrop.jsx`, `components/map/{MapPicker,AddressFormModal,AddressCard}.jsx`, `pages/account/{Addresses,Checkout,Orders,OrderDetail}.jsx`, `constants/{orderStatus,locations}.js` (`MUNICIPALITY_CENTERS`).
 
-- [x] Copy CartDrawer, Addresses, AddressModal, Checkout, Orders, OrderDetail, Modals. OrderDetail is full width with no right column: status banner (rider name/phone when out for delivery), Items + totals, address/pickup and payment cards side by side (`repeat(auto-fit, minmax(260px, 1fr))`, gap 20px), then "Status history"; check at 1440 and 390 px. Map via `react-map-gl/mapbox`; geocoding only through `/geo/*`. Every confirmation modal in Global Constraints.
+- [ ] Copy CartDrawer, Addresses, AddressModal, Checkout, Orders, OrderDetail, Modals. Cart drawer: stepper capped at stock ("That is all we have"), stacked Checkout/Clear, Checkout disabled while a warning shows; a 409 toasts the server's numbers and refetches. Address modal: new address starts on all of Marinduque with no pin, barangay disabled until a municipality; municipality → `flyTo` zoom 12.5 + pin to center; barangay → `flyTo` 15 + pin + dashed ring; select moves carry `source:'select'` and **never** call `/geo/reverse`; click/drag/search/"Use my location" do; own zoom buttons (+, −, fit) and zoom label bottom-left; `jumpTo` under reduced motion. Checkout: `FileDrop kind="image"` receipt with the too-large state; QR via `qrcode.react` with SAMPLE badge. OrderDetail full width (no chat column). Every confirmation modal from Global Constraints.
+- [ ] Tests: order group → statuses mapping; `FileDrop` refuses 5.1 MB with "… is 5.1 MB. Images can be up to 5 MB."
 
 ### Task 4.8: Playwright orders
 
-- [x] Delivery: verified buyer adds an address by dropping a pin → checkout → delivery + cash on delivery → pending → cancel with reason → no refund badge. Pickup: second order → pickup + GCash with a receipt → pending. Guard: unverified buyer on `/checkout` → `/verify-email`.
+- [ ] Delivery: verified buyer adds an address by dropping a pin → checkout → delivery + cash on delivery → pending → cancel with reason → no refund badge. Pickup: second order → pickup + GCash with a receipt → pending. 6 MB receipt refused. Address zoom: municipality → 12.5, barangay → 15 + ring, no `/geo/reverse` requests. Guard: unverified buyer on `/checkout` → `/verify-email`.
 
 ---
 
 ## M5 — Notifications & live order updates
 
-No order chat (Change 01). Socket.IO carries only `notification:new` and `order:updated`.
+### Task 5.1: Socket auth and rooms
 
-### Task 5.1: Socket auth and user rooms
-
-**Files:** `sockets/index.js` (handshake reads the `accessToken` cookie; each socket joins `user:<id>`; no other rooms or client events), test `tests/sockets.test.js`.
-
-- [x] Tests: handshake without a valid cookie is refused; `realtime.toUser(id, 'order:updated', …)` reaches only that user's sockets; the server registers no `conversation:*` / `message:*` handlers.
+- [ ] Tests: handshake without a valid `accessToken` cookie refused; `realtime.toUser` reaches only that user's sockets; no `conversation:*` or `message:*` handlers.
 
 ### Task 5.2: Notifications and status emails
 
-- [x] Notification endpoints (cursor list, unread count, read one, read all); `type` is `order_status|order_new|system` (`order_new` = Kaluppa's new-order notification); create notifications for every §7 event (buyer: every status change, refund marked; Kaluppa: new order) and emit `notification:new`; every status change emits `order:updated`; `ORDER_STATUS_CHANGED` email for every status with rider / pickup / reason + refund note; demo notification seeder. Tests: unread count after events; read-all; other user's notification → 404; `/auth/me` permissions contain no `chat.*`; `GET /api/conversations/x/messages` → 404.
+- [ ] Endpoints (cursor list, unread count, read one, read all); notifications for every §7 event with `notification:new`; every status change emits `order:updated` and queues `ORDER_STATUS_CHANGED` (rider / pickup address + hours / reason + refund note). Tests: unread count after events; read-all; another user's notification → 404; no `chat.*` permission; `GET /api/conversations/x/messages` → 404.
 
 ### Task 5.3: Frontend realtime
 
-- [x] `lib/socket.js` + `hooks/useRealtime.js` listening only to `notification:new` and `order:updated`, invalidating the notification and order queries; navbar bell dropdown (unread count, mark all read, load more). Playwright: buyer on `/orders/:id` while Kaluppa moves the order to *out for delivery* via the API → the bell count and the status banner (with rider) update live without reload.
+- [ ] `lib/socket.js` + `hooks/useRealtime.js` invalidating notification and order queries; navbar bell dropdown (unread count, mark all read, load more). Playwright: Kaluppa moves the buyer's order to *out for delivery* through the API → in a second context the bell count and the status banner (with rider) update without reload.
 
 ---
 
@@ -361,193 +289,26 @@ No order chat (Change 01). Socket.IO carries only `notification:new` and `order:
 
 ### Task 6.1: Account endpoints
 
-- [x] `GET/PATCH /account/profile`, `PATCH/DELETE /account/avatar` (Cloudinary destroy old), `PATCH /account/email` (current password; unverifies, queues `VERIFY_EMAIL` to new + `EMAIL_CHANGED_NOTICE` to old), `PATCH /account/password` (current password; `tokenVersion++`; re-issue this session's cookies). Tests: username taken → 409; email change flow; other sessions' refresh fails after password change.
+- [ ] `GET/PATCH /account/profile`, `PATCH/DELETE /account/avatar` (server upload re-check; destroy the old asset), `PATCH /account/email` (current password; unverifies, `VERIFY_EMAIL` to new, `EMAIL_CHANGED_NOTICE` to old), `PATCH /account/password` (current password; `tokenVersion++`; re-issue this session's cookies). Tests: username taken → 409; email change flow; another session's refresh fails after a password change.
 
 ### Task 6.2: Profile and Settings pages
 
-- [x] Copy Profile.dc.html and Settings.dc.html; avatar via signed upload. Playwright both flows.
+- [ ] Copy Profile.dc.html (avatar via `FileDrop`, 5 MB) and Settings.dc.html; no side menu. Playwright: both flows.
 
 ---
 
 ## M7 — Polish & verification
 
-- [x] Screenshot every page at 1440/390 vs screens; fix.
-- [x] Accessibility pass (labels, focus order, keyboard dropdown/drawer/modals, contrast).
-- [x] `/impeccable` polish + audit within the screens; taste review.
-- [x] Route-level `lazy()`, Cloudinary `f_auto,q_auto,w_…`, lazy images, query `staleTime` 30 s default.
-- [x] `README.md` (setup, env, commands, seed accounts, deploy notes).
-- [x] PHASE-1-PROMPT §4 checklist all green.
+- [ ] Every Phase 1 page at 1440/390 vs its screen; fix.
+- [ ] Accessibility: labels, focus order, keyboard menus/drawer/modals/`SearchSelect`, contrast; axe on buyer pages (visible label inside the accessible name).
+- [ ] `/impeccable` polish + audit within the screens; taste review.
+- [ ] Route-level `lazy()`, Cloudinary `f_auto,q_auto,w_…`, lazy images, `staleTime` 30 s.
+- [ ] `grep -rn "<select" frontend/src` is empty.
+- [ ] `README.md`: setup, env, commands, seed sign-in table, deploy notes (Render health check `/api/health`, Vercel, cross-site cookies).
+- [ ] PHASE-1-PROMPT §4 checklist all green.
 
 ---
 
 ## Milestone summaries
 
-### M0 — done (2026-11-21)
-
-- Git repo on branch `phase-1`; root `package.json` (`dev`, `setup`, `lint`, `test`, `test:e2e`) with `concurrently`; `.gitignore`; `.gitattributes` (LF).
-- `backend/`: Express 5 + all M0 packages (latest: express 5.3, mongoose 9, zod 4, bullmq 6, ioredis 6, vitest 5); folder tree; `src/app.js` with helmet, CORS, JSON limit and `GET /api/health`; `src/server.js` on `PORT || 5000`; eslint flat config; `tests/health.test.js`.
-- `frontend/`: Vite 8 + React 19 (create-vite, ESLint variant); all M0 packages plus `vitest`; Tailwind v4 via `@tailwindcss/vite`, DESIGN §2 tokens in `src/index.css`; Poppins 400–700 via `@fontsource`; `@` alias; `vercel.json`; bean favicon; `formatPeso()` + test; Playwright Chromium installed.
-- `.env.example` in both apps with every PRODUCT-SPEC §12 variable.
-- Verified: `npm run dev` starts both; `/api/health` → `{"success":true,"data":{"status":"ok"}}`; page font is Poppins (all 4 weights load) and `--color-roast` = `#7B4A2A`; root lint + tests green.
-- Not run for M0: `migrate:fresh` (commands land in M2), graphify (nothing to graph yet), screen comparison (blank page only).
-
-### M1 — done (2026-11-21)
-
-- **Config**: `env.js` validates every variable with Zod at boot (blank = missing; lists every bad key); `db.js`; `valkey.js` factory `createValkeyConnection(name)` + shared `getValkey()` + `closeValkeyConnections()`; `cloudinary.js`; `mail.js` `sendMail()` with `brevo` / `log` (`storage/mail/*.json`).
-- **HTTP core**: `AppError` (code derived from status), `asyncHandler`, `sendSuccess`, shared `validate({ body, params, query })` (flat `errors` map, Express 5 `req.query` redefined), error middleware (AppError, Mongo 11000 → 409 with field, CastError → 404, bad JSON → 400, unknown → 500 without internals), 404 middleware; helmet, CORS (`CLIENT_URL`, credentials), 100 kb JSON limit, cookie-parser, morgan, `trust proxy`.
-- **Utils**: cursor pagination (`cursorFilter`, `cursorSort`, `pageResult`, `encodeCursor`/`decodeCursor`), `cookieOptions()` / `setAuthCookies` / `clearAuthCookies`, access/refresh tokens with `tv` (tokenVersion) and `rem`, `escapeHtml`, `withLock` (SET NX PX + compare-and-delete).
-- **Email**: BullMQ queue `email` (3 attempts, exponential backoff), worker with a handler map running inside the API, coffee HTML + text layout, `TEST` job.
-- **Realtime / jobs**: Socket.IO with the Valkey adapter and `realtime.toUser`; order-expiry scheduler (shell: the sweep is a no-op until Task 4.5) behind `lock:order-expiry`; `POST /api/cron/expire-orders` (`x-cron-secret`, constant-time); `GET /api/health` → Mongo + Valkey checks, 503 when degraded; graceful shutdown HTTP → Socket.IO → scheduler → worker → queue → Valkey → Mongo (10 s hard stop).
-- **Tests**: 44 backend tests (env, validate, errors, pagination on tied sorts, cookies/tokens, email queue + worker + escaping, lock + scheduler, cron, health). `tests/globalSetup.js` downloads mongod before tests (a first run from the repo root used to time out while downloading it).
-- **Verified against the real services**: Atlas Mongo + Aiven Valkey → `/api/health` `ok`; a queued `TEST` email went through Valkey and the worker into `storage/mail/`; SIGTERM shuts down cleanly (exit 0).
-- **Blocker for the user**: `backend/.env` has `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` and `CRON_SECRET` shorter than the minimums, so `npm run dev` refuses to start until they are regenerated. (The checks above ran with temporary secrets.)
-- Not run: Playwright (no pages changed), `migrate:fresh` (commands arrive in M2).
-
-### M2 — done (2026-11-21)
-
-- **Data**: `User` (bcrypt 12 pre-save, `password` select:false, virtuals `fullName`/`initials`, `tokenVersion`, `status`), `Role`, `Permission`, `Token` (sha256 `tokenHash`, TTL on `expiresAt`, single-use `usedAt`). Matrix in `constants/permissions.js` (17 permissions, 4 roles); repositories `user`, `role`, `token`.
-- **Seeding**: `npm run migrate:fresh [-- --seed]` (refuses production without `--force`, drops, syncs every index) and `npm run db:seed [-- --only=roles,users]`; ordered registry in `database/seeders/index.js`. Seeds 6 named accounts + 20 fixed-seed faker buyers, idempotent upserts. Ran on Atlas: 4 roles, 17 permissions, 26 users.
-- **Guards**: `authenticate` / `optionalAuth` / `guestOnly`, `verified` (unverified buyer → 403 `EMAIL_NOT_VERIFIED`), `role`, `can`, `canAny` (kaluppa passes all); permissions cached in `perm:user:<id>` for 600 s, falling back to Mongo if Valkey fails; fixed-window `rateLimit` in Valkey (429 + `Retry-After`, fails open).
-- **Auth API**: register, login (email or username, generic 401, dummy-hash timing, 5/min per IP+identifier), refresh, logout, me, username availability + 3 suggestions, verify email + resend (1/min), forgot (no enumeration) + reset (bumps `tokenVersion`, signs out other sessions). `VERIFY_EMAIL` / `RESET_PASSWORD` email jobs and templates.
-- **Frontend foundation**: axios with single-flight refresh on 401 and the `EMAIL_NOT_VERIFIED` redirect; Zustand session store; TanStack hooks; `useCan`, `<Can>`, `useRequireAuthAction`; `safeRedirect`; `applyServerErrors`; shared `schemas/rules.js` (identical file + identical test table on both sides).
-- **UI**: `Button`, `Input`/`Label`/`FieldHint`, `PasswordInput`/`PasswordRule`, `RadioCard`, `Eyebrow`, `Alert`, `Modal` (focus trap, Esc, focus return), `ConfirmDialog`, `Spinner`; `AuthLayout`, `DashboardLayout`; pages Login, Register (live availability, 3 suggestion chips, password rule), Forgot/Reset password (expired-link state), Verify email (60 s resend cooldown), verify-link confirm, Dashboard overview (role sidebar, Manila-time greeting, unverified banner), 403, 404; logout confirmation. `/` is a placeholder until M3.
-- **Tests**: backend 89 (rules table, seeding, guards + cache, rate limit, 20 auth flows); frontend 29 (rules table, safeRedirect, axios refresh/expiry/verify, ConfirmDialog focus trap + Esc); Playwright 8 (buyer signup → mailbox link → `/`, farmer signup → dashboard, forgot → reset → login + reused link, farmer on `/` → dashboard, guest → login → back, buyer → 403 + `//evil.com` ignored, logout confirm + Esc, wrong password).
-- **Visual check** (1440 and 390 px against the `.dc.html` files): Login, Register, Forgot, Reset, Verify, Dashboard, logout modal match. Fixed a 66 px horizontal overflow on mobile Register and a 7 px checkbox offset on Login.
-- **Fixed along the way**: nodemon watched `storage/mail/`, so every logged email restarted the dev API; it now watches only `src/` and `.env`. Playwright now runs its own API (5100) and web server (5174).
-- Not done here: brand-panel photos (seeded media arrives in M3), `Select`/`Textarea` (added with the first form that needs them).
-
-### Change 02 — done (2026-11-22)
-
-Source: `docs/prompts/CHANGE-02-NO-EYEBROW-BAR-NO-CHAT.md`, applied after M2 and before M3, with the user's updated `CLAUDE.md`, `docs/` and screens.
-
-- **Eyebrow bar removed**: `components/ui/Eyebrow.jsx` is text only (same size, weight, tracking, colors). No page drew the bar inline, so every built page (auth panel and forms, Verify email + link confirm, Dashboard overview, 403/404, the `/` placeholder) changed through the component. Checked at 1440 and 390 px against the updated screens.
-- **No order chat**: re-checked after Change 01. No chat code, sockets, routes, seeds or tests exist; `chat.use`/`chat.moderate` were never part of the matrix (17 permissions). Re-seeded roles and cleared `perm:user:*`. The replaced `canvas.json` had the Order detail title back as "… + chat with Kaluppa"; reverted to "Order detail — delivery, COD".
-- **Plan**: M5 and the full-width Order detail already matched; aligned the Notification `type` with the new spec (`order_status|order_new|system`) and noted the text-only eyebrow in Global Constraints and Task 3 (`SectionHeading`).
-
-### M3 — done (2026-11-22)
-
-- **Catalog API**: `Category`, `Product`, `Review`, `Order`, `Counter`, `Setting`, `Post`, `PostComment`, `Reaction` models and one repository each. Routes: `GET /categories`, `/products` (search, variety, coffeeType, price in pesos, featured, sort newest/price/rating/popular, cursor + `meta.total`), `/products/:slug`, reviews (list, summary, `me`, create with a completed order, edit own), `/locations`, `/delivery/info`, `/settings/landing`, `/settings/payment` (verified), `/posts/latest`, `/posts/:id`, comments (oldest first, 2 reply previews + cursor), replies. Category visibility follows `isPublic` or the category's purchase permission.
-- **Seeders** (`roles → users → categories → products → settings → posts → demo`): 3 categories; 12 coffee products (1 out of stock, 1 low, 5 featured) plus hidden fertilizer (5) and seedlings (4); every setting with 3 hero slides; 8 posts (text-only, multi-image, video) with 13 comments and 27 reactions; 21 sold demo orders (`KK-YYYYMMDD-NNNN`, Manila date) and 50 reviews (Barako 16, Robusta 14), `soldCount` and ratings recomputed. Media: 25 Pexels photos + 1 video in `seeders/data/media.json`, each URL checked (200 + image/video) and uploaded once to Cloudinary as `seed/<key>` (remote URL kept if the upload fails). Posts and demo skip when data exists. `migrate:fresh --seed` ran on Atlas.
-- **Utils for M4**: `feeForDistance`, `haversineKm`, `manilaDateKey`, `nextOrderNumber` (tested).
-- **Storefront UI**: `StorefrontLayout`, `Navbar` (guest/buyer, keyboard account menu, mobile menu), `Footer`; Landing (hero carousel from settings with autoplay that pauses on hover/focus and respects reduced motion, featured, varieties, how it works, latest posts, farmer band, features, one-open FAQ, CTA); Products (URL-synced filters and sort, infinite scroll, skeleton/empty/error); Product detail (gallery, unit-aware quantity stepper, review summary, list and form); Post detail (media viewer, reaction summary, read-only comment thread). The auth brand panel now shows the first hero photo.
-- **Tests**: backend 135 (catalog, reviews, settings, posts, seeders incl. idempotency and `--only=settings`, delivery fee, Manila date); frontend 41 (adds `quantity`, `timeAgo`); Playwright 13 (auth 8 + storefront 5: landing/FAQ/post, products filter + scroll + reload, guest Add → login → back, buyer review, mobile menu + keyboard account menu).
-- **Visual check** at 1440 and 390 px against Main, Products, ProductDetail, PostDetail, Navbar, Footer: matches; fixed portrait post covers stretching their cards, a clipped 4th line in post previews, and the 390 px header overflowing.
-- **Shortcuts until M4/M5**: Add / Add to cart / cart button show a "cart opens in the next update" toast for signed-in buyers (`useAddToCart`); the notifications bell has no count; Terms/Privacy links point home.
-
-### M4 — done (2026-11-22)
-
-- **Geo & delivery**: Mapbox client (Directions v5, Geocoding v6 forward/reverse, 6 s timeout); `/geo/reverse`, `/geo/search` (30/min per user), `/delivery/quote` (address or point). Quotes use road distance rounded to 0.1 km, cached in Valkey 24 h (the straight-line fallback is never cached); outside the Marinduque bounds or past `maxKm` → 422 `OUTSIDE_DELIVERY_AREA`; an unpinned address that can't be geocoded → 422 `ADDRESS_NEEDS_PIN`. ETA = 3–5 Manila business days.
-- **Addresses**: up to 10, one default (first is default; deleting the default promotes the newest), optional GeoJSON pin, list carries each address's `quote` or `quoteError`.
-- **Cart & uploads**: per-line flags (`INACTIVE`, `OUT_OF_STOCK`, `OVER_STOCK`, `NOT_PURCHASABLE`) and `canCheckout`; signed Cloudinary uploads (`avatar`, `receipt` under `receipts/<userId>`).
-- **Orders**: placement under a 30 s per-buyer lock, fee always recomputed, receipt must be the buyer's own upload, pickup phone saved to the profile; status machine (reserve deducts stock atomically with rollback, rider details, cash collected, refunds pending/refunded), buyer cancel with reason, expiry sweep; emails `ORDER_PLACED`, `KALUPPA_NEW_ORDER`, `ORDER_STATUS_CHANGED` through BullMQ; in-app notifications; `order:updated` emitted.
-- **Seeders**: `addresses` (Juana's Home/Work/Mama's house, one pinned address per extra buyer); Juana gets 15 orders across all 9 statuses (delivery/pickup × e-wallet/cash, rider, ETAs, one refunded with ref 7023118842, pending refunds) with notifications; reserved stock and sales applied. `migrate:fresh --seed` ran on Atlas.
-- **UI**: `AccountLayout`; cart drawer (steppers, stock warnings, disabled Checkout, remove/clear/checkout confirmations) with the navbar count; Checkout (method, address radio cards with distance and fee, pickup card + phone, GCash/Maya QR tabs with SAMPLE stamp, receipt upload with progress, cash note, note, live summary, place-order confirmation); Addresses + address modal (Mapbox map lazy-loaded, search, use my location, draggable pin → `/geo/reverse` fills the fields, outside-area error, fee preview); Orders (6 group cards, status chips, URL filters, infinite scroll); Order detail (status banner with rider/ETA, items + totals, address/pickup and payment cards, status timeline, cancel with reason). `Modal` gained a right-drawer placement and only the top dialog handles Esc/Tab.
-- **Tests**: backend 210; frontend 63 (adds order groups + timeline, quantity/phone formatting); Playwright 16 (adds delivery + COD + cancel with a map-pinned address, pickup + GCash receipt upload, unverified buyer → `/verify-email`). The mailbox helper now skips half-written mail files.
-- **Visual check** at 1440 and 390 px against CartDrawer, Checkout, Addresses, AddressModal, Orders, OrderDetail, Modals: matches; fixed Juana's Home pin sitting in the bay, the map hint overlapping the Mapbox logo, a broken total divider, and the place search squeezing at 390 px.
-- **Still to come (M5)**: live updates on `order:updated` in the UI, the notification bell count and list.
-
-### M5 — done (2026-11-22)
-
-- **Sockets**: the handshake reads the `accessToken` cookie (cookie-parser on `io.engine`, same `userFromAccessToken` as HTTP); each socket joins only `user:<id>`; no client events are handled.
-- **Notifications API**: `GET /notifications` (cursor, 15 per page, max 50), `GET /notifications/unread-count`, `PATCH /notifications/:id/read` (someone else's → 404), `PATCH /notifications/read-all`, all behind `authenticate → verified → can('notifications.view')`. Status emails, notifications and `order:updated` were already wired in M4; seeded pending orders now get a proper "placed" title (was "undefined").
-- **Frontend**: `lib/socket.js` (refreshes the session once and reconnects when the handshake is refused) and `useRealtime` mounted once in `App`, invalidating the notification and order queries on `notification:new` / `order:updated`; navbar bell with unread count and a panel (newest first, unread marks, mark all as read, load more, skeleton/empty/error, Esc and outside click close it).
-- **Tests**: backend 219 (adds socket auth + rooms, notifications); frontend 63; Playwright 17 (adds a buyer on `/orders/:id` watching Kaluppa move the order to out for delivery: banner with rider and bell count update without a reload, then mark all as read).
-- **Visual check**: the bell panel at 1440 and 390 px (no screen designs the panel; it follows the avatar menu's tokens).
-
-### M6 — done (2026-11-22)
-
-- **Account API** (`authenticate → verified → can('profile.update')`): `GET/PATCH /account/profile` (names, username, optional phone; a taken username is a duplicate-key 409 with `errors.username`), `PATCH/DELETE /account/avatar` (only an upload from the user's own `avatars/<userId>` folder; the replaced/removed image is deleted from Cloudinary, best effort), `PATCH /account/email` (current password; unverifies, `VERIFY_EMAIL` to the new address, new `EMAIL_CHANGED_NOTICE` to the old one), `PATCH /account/password` (current password; `tokenVersion++`; this session's cookies re-issued with its remember-me choice). Both password-checking routes are capped at 5/min per user. Avatar and receipt ownership share `isOwnUpload()`.
-- **UI**: `/profile` (photo band with signed upload + progress and Remove, fields with the live username check incl. "This is your current username", phone hint, read-only email with Verified badge, Discard/Save) and `/settings` (change email with notice → guard opens `/verify-email`; change password with the shared eye toggle and rule line). The navbar avatar and name update straight away. `useUsernameStatus` moved out of Register so both pages share it.
-- **Gotcha**: react-hook-form 7.92 merges the form's `resetOptions` into every `reset()`, so with `keepDirtyValues` Discard kept the edits; Profile passes `keepDirtyValues: false` explicitly.
-- **Tests**: backend 231 (adds 12 account tests: guards, profile + taken username, avatar ownership + cleanup, email change flow with link, tokenVersion signs out the other session but not this one, rate limit); frontend 69 (adds the account schemas); Playwright 20 (adds guest → login → `/profile`; profile edit + taken username + Discard + real Cloudinary photo upload/remove; email change → verify page → link, then password change signing out a second browser).
-- **Visual check** at 1440 and 390 px against Profile and Settings: match, no horizontal overflow.
-- **graphify**: code graph updated with `graphify update .` (no LLM). The 21 changed docs/screens still need semantic re-extraction (`/graphify . --update` with subagents).
-
-### M7 — done (2026-11-22)
-
-- **Screen sweep**: 20 pages × 1440/390 compared with the screens; no horizontal overflow (also at 320 after the navbar wordmark hides below 360px). Fixed: order-detail item rows on phones, checkout section header wrap, "coming for Kaluppa" copy.
-- **Accessibility**: `e2e/a11y.spec.js` runs axe (WCAG 2.1 A/AA) over guest, buyer, verify-email and dashboard pages at 1440/390, plus the cart drawer, notifications, account menu, logout dialog and address modal; keyboard test for the drawer focus trap and the bell. Fixed: accessible names that hid the visible text (avatar button, video thumbnails), invalid `aria-expanded` on the place search, the guest 404 link.
-- **Impeccable audit + polish**: 17/20 (report in `.impeccable/audit/`). Added balanced headings, pretty paragraphs, themed selection/caret, tabular numerals, static skeletons under reduced motion. Kept as approved: section kickers, 01–04 numbers, 10.5px uppercase labels.
-- **Taste review** (review only): its marketing-site rules (no carousel, one section per screen, dealt moments) conflict with the approved screens and were not applied; the tap-size, edge and 320px checks were, giving the navbar fix above.
-- **Performance**: every page `lazy()` behind one `Suspense`; `imageUrl()`/`imageSrcSet()` add `f_auto,q_auto,c_limit,w_…` to Cloudinary URLs; below-the-fold images `loading="lazy"`; TanStack Query `staleTime` 30 s. Main bundle 110 kB gzipped; mapbox-gl only loads with the map.
-- **README.md**: setup, env, commands, seed accounts, Render/Vercel deploy and cross-site cookies.
-- **Verified**: lint clean in both apps; backend 231 + frontend 72 unit tests; Playwright 24/24; `migrate:fresh --seed` on Atlas, then `db:seed` again skips existing data; no `.env` tracked; no chat code anywhere.
-
----
-
-## Change 03 — Search selects, map zoom, upload limits, review rules, cart quantity fix
-
-Source: `docs/prompts/CHANGE-03-SELECTS-MAP-ZOOM-UPLOADS-REVIEWS-CART.md`, after M7, with the updated `CLAUDE.md`, `docs/` and screens (`SearchSelect`, `Components` new; `AddressModal`, `Products`, `Login`, `ProductDetail`, `CartDrawer`, `Checkout`, `Profile` changed). One commit per part, test first.
-
-**Cart bug — real cause (found before the fix):** `cart.service.addItem` only refused a product with `stock <= 0`. It never compared the resulting line (`inCart + quantity`) with stock, so repeated adds (or one big add) could exceed stock; `setQuantity` (`PATCH`) had no stock check at all. Merging with `$inc` and the 0.5 kg step are exact in binary floating point, so there was no drift. Over-stock lines were caught only at checkout (`OVER_STOCK` flag).
-
-### Part A — Cart quantity (03A)
-- [x] Failing tests: stock 3, 2 in cart, add 2 → `409 QUANTITY_EXCEEDS_STOCK` `{stock: 3, inCart: 2, maxAddable: 1}`; kg: stock 3, 2.5 in cart, +0.5 OK, +1 → 409; `PATCH` above stock → 409.
-- [x] `AppError` gains optional `data`, sent as `data` on the error response.
-- [x] `assertQuantityAllowed(product, resultingQty, inCart)` in `cart.service`: unit step with integer math (`Math.round(q * 2)` for kg), ≤ stock, never clamps; used by add, set and checkout (`createFromCart` re-checks every line).
-- [x] `inCart` on `GET /cart` lines and on `GET /products/:slug` for a signed-in viewer (0 for guests).
-- [x] UI: `QuantityStepper` `max`; Product detail caps at `stock − inCart`, "N already in your cart · you can add up to M more", cap hint, Add disabled at 0; Cart drawer caps at stock with "That is all we have: …"; a 409 toasts the server's numbers and refetches the cart.
-
-### Part B — `SearchSelect` (03B)
-- [x] `components/ui/SearchSelect.jsx` per `SearchSelect.dc.html` (icon tile, round chevron, search, highlighted match, check, "No match for …", count + key hints, flips up, portal, forwardRef, RHF `Controller`).
-- [x] Replacements (the only native selects in `frontend/src`): `pages/storefront/Products.jsx` sort (`size="sm"`, `icon="sort"`, `aria-label="Sort products by"`); `components/map/AddressFormModal.jsx` municipality (`icon="pin"`) and barangay (`icon="home"`, disabled until a municipality).
-- [x] Tests: filtering, keyboard pick, Esc, disabled, error, RHF.
-
-### Part C — Address map zoom (03C)
-- [x] `MUNICIPALITY_CENTERS` in the shared locations constants; municipality → `flyTo` zoom 12.5, pin to center, barangay cleared, postal code filled.
-- [x] Barangay → `/geo/search` (bbox + proximity) cached in TanStack (`staleTime: Infinity`) and Valkey (`geo:brgy:<muni>:<brgy>`, 7 days) → `flyTo` zoom 15 + pin; not found → hint, stay at municipality zoom.
-- [x] Select-driven pin moves carry `source: 'select'` and never reverse-geocode; drag/click/search/"Use my location" still do.
-- [x] New address: island view, no pin; NavigationControl + fit-Marinduque; zoom label; dashed area ring at barangay zoom; fee placeholder; edit opens at zoom 15 on the pin; `jumpTo` under reduced motion.
-
-### Part D — Upload limits (03D)
-- [x] `UPLOAD_RULES` (image: jpg/png/webp/heic 5 MB; file: pdf/mp4/webm 10 MB) in `schemas/rules.js` on both sides + `kindForPurpose()`.
-- [x] `POST /uploads/signature {purpose}` signs `allowed_formats` + folder, returns `maxBytes`.
-- [x] Server re-check of returned `publicId` via Cloudinary Admin API (`bytes`, `format`, `resource_type`); bad → destroy + `422 FILE_TOO_LARGE` / `FILE_TYPE_NOT_ALLOWED` (avatar save, order create).
-- [x] `FileDrop` (`kind`) with the too-large state; used by the checkout receipt and the profile avatar (2 → 5 MB); hint copy per screens.
-- [x] Tests: rule at 5 MB / 5 MB + 1 and 10 MB; signature payload; server reject path (Cloudinary mocked).
-
-### Part E — Reviews (03E)
-- [x] `reviews.delete_own`; buyer + kaluppa get create/update_own/delete_own; farmer comment in the seeder; reseed + clear `perm:user:*`.
-- [x] `canReview(user, productId)` → `{canReview, reason, order, pendingOrderNumber}` (`not_purchased | not_completed | already_reviewed`), permission + eligibility, never role.
-- [x] `GET /products/:id/reviews/me`, `POST` (`403 REVIEW_NOT_ALLOWED`, `409 ALREADY_REVIEWED`), `PATCH /reviews/:id`, `DELETE /reviews/:id` (author only, else 404); every write recomputes the rating.
-- [x] `ReviewPanel` with every state; list badge "Verified purchase"; invalidate list, summary and product.
-- [x] Tests: authorization, eligibility reasons, rating recompute.
-
-### Part F — Copy (03F)
-- [x] Login checkbox "Remember me"; other "30 days" copy tied to it.
-
-### Verify
-- [x] Lint + tests both apps; `migrate:fresh --seed`; Playwright at 1440/390 (address zoom, sort, stepper cap, review edit/delete/write, cart cap, 6 MB receipt refused, login label); `grep -rn "<select" frontend/src` empty.
-
-### Log
-- **03A** `f872b85`: cart bug cause as above. Fix: one `assertQuantityAllowed` (integer step math via `toSteps`), a guarded `$inc` with `$elemMatch` so two parallel adds can't both pass (tested: `[200, 409]`, quantity stays 2), `inCart` on cart lines and product detail; the 409 carries `{stock, inCart, maxAddable}`.
-- **03B** `e934fa3`: `SearchSelect` replaces all three native selects; `grep -rn "<select" frontend/src` is empty.
-- **03C** `f82d8b1`: barangay lookup through `GET /geo/search?municipality=&barangay=` (only a result that names the barangay counts; misses are cached too). The zoom controls are the screen's own buttons (zoom in / out / show all of Marinduque) rather than Mapbox's `NavigationControl`, which can't be styled to the screen; the Mapbox logo moved bottom-right so the zoom label sits bottom-left.
-- **03D** `479894e`: `FileDrop` has two looks: the dashed drop zone (receipt) and a trigger around children (avatar button, receipt Replace); one `checkFile` uses the shared Zod `uploadRule`. A file just over the limit reads "5.1 MB", never "5.0 MB … up to 5 MB". The server check runs on avatar save and order create (verified live by the GCash e2e).
-- **03E** `bf84f31`: `/reviews/me` also returns `pendingOrderId` so "Almost there" links the order. Finding: since the Valkey fail-fast change (`ae3c411`) the cache connection has no offline queue, so `migrate:fresh --seed` failed clearing `perm:user:*` ("Stream isn't writeable"); the clear now waits up to 5 s for the connection.
-- **03F** `fbc40a6`: label only; the backend test name "remembers for 30 days" describes cookie behavior and stays.
-- **Verify** `82773b5`: backend 242 tests, frontend 84, lint clean both; `migrate:fresh --seed` (18 permissions, 50 reviews, all from buyers with a sold order of the product); Playwright 24/24. axe caught the sort trigger's `aria-label` hiding its visible value (label-content-name-mismatch); it is now named "Sort products by Newest". Clicked through at 1440 and 390: address zoom (municipality → 12.5, barangay → 15 + ring, no `/geo/reverse` calls from the selects, street kept), sort, stepper and drawer caps, API 409, review write/edit/delete and the other panel states, 6 MB receipt and avatar refused, login label.
-
-## Change 04 — Fixed post media frames, Gmail seed accounts (done 2026-11-23)
-
-### Part 1 — Post media frames
-- [x] Reproduced on Kaluppa's "Fresh Liberica roasts are in!" post at 1440px: stage heights 500, 938, 469, 500, **1191**, 498 px (390px: 237, 445, 223, 237, 565, 237).
-- [x] Shared `components/post/Media.jsx`: `MediaStage` (16/10, `max-h-[560px]`, `overflow-hidden`, `bg-media` #1E130D, absolute `object-contain` image or video with poster; `cover` for cards) and `MediaThumb` (square `object-cover`). Used by `MediaViewer` (post page) and the landing post cards.
-- [x] Cloudinary: stage `c_limit,w_1600` (`imageUrl(url, 800)`), thumbnails `c_fill,g_auto,w_320,h_320` (new `squareUrl`, unit-tested).
-- [x] Seeder keeps the portrait photos in that post (comment + seed test on item 5).
-- [x] `e2e/media.spec.js`: steps through every item at 1440 and 390 and asserts one stage height (≤ 560).
-
-### Part 2 — Seed accounts
-- [x] Handles `kaluppa`, `manager.santacruz`, `farmer.approved`, `farmer.unverified`, `buyer`, `buyer.unverified`, `buyer01`…`buyer20` are the usernames; `seedEmail(handle)` → `you+<handle>@gmail.com` with `SEED_EMAIL_BASE`, else `kapekonek.<handle>@gmail.com`. Password `KapeKonek@123` (env default too). Seeders upsert by username and look users up by handle.
-- [x] `isSeed: true` on seeded users. Without `SEED_EMAIL_BASE` the worker writes the email to `storage/mail/` with `note: "skipped-seed"` instead of sending (tested with Brevo mocked, both ways).
-- [x] Login already accepted email or username; an e2e now signs in as `buyer`.
-- [x] `migrate:fresh -- --seed` prints the sign-in table; README table, BUILD-GUIDE accounts and `.env.example` comment updated (SETUP and PRODUCT-SPEC §11 already matched).
-
-### Part 3 — Copy
-- [x] Register farmer card: "Record your farms and sell beans to Kaluppa. Verify your email to start."
-
-### Log
-- **Root cause of the tall photo**: the stage relied on `aspect-ratio: 16/10` alone. `aspect-ratio` is only a preferred size: with `overflow: visible`, the box's automatic minimum height is its content, and the `<img>` (a grid item with `height: 100%` that resolved to its natural height) was a 1600px-wide portrait, so the stage grew to fit it. Nothing capped the height either. Fixed by `overflow: hidden` + `max-height: 560px` on the stage and an absolutely positioned `object-contain` image, so the content can no longer size the frame. The stage also used `object-cover`; the design asks for `contain`.
-- The new farmer card text contains "email", so the signup e2e's `getByLabel('Email')` became ambiguous; it is now `exact: true`.
-- Tests switched to the new handles and password. The username-suggestion test now creates its own `juanadc` because no seed account owns it any more.
-- Verify: backend 245 tests, frontend 85, lint clean in both; `migrate:fresh --seed` OK; Playwright 26/26 (24 earlier + 2 media).
+(Added after each milestone.)
