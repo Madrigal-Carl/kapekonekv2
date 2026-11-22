@@ -70,7 +70,7 @@ export async function assertUploadAllowed(purpose, publicId, field) {
   const name = `${asset.originalFilename}.${asset.format}`;
   const kind = kindForFormat(purpose, asset.format);
   const checked = kind && uploadRule(kind).safeParse({ name, size: asset.bytes, format: asset.format });
-  if (checked?.success) return;
+  if (checked?.success) return { kind, bytes: asset.bytes, name };
   await destroyImage(publicId);
   const issue = checked?.error.issues[0];
   const code = issue?.params?.code ?? 'FILE_TYPE_NOT_ALLOWED';

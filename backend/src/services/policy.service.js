@@ -18,6 +18,9 @@ export const isOwner = (user, record) => same(user._id, record.owner ?? record.f
 export const isAssociationManager = (user, associationId) =>
   user.roles.includes(ROLES.GROUP_MANAGER) && same(user.associationId, associationId);
 
+/** Kaluppa acts on every association (farmers, records, reports); others are scoped to their own. */
+export const seesEveryAssociation = (user) => user.roles.includes(ROLES.KALUPPA);
+
 /** @param {{ ownerType: string }} farm */
 export const isKaluppaFarm = (farm) => farm.ownerType === 'kaluppa';
 

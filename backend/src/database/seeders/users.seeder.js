@@ -2,7 +2,9 @@ import { faker } from '@faker-js/faker';
 import bcrypt from 'bcrypt';
 import { env } from '../../config/env.js';
 import { BCRYPT_ROUNDS } from '../../models/user.model.js';
-import { countUsers, upsertSeedUser } from '../../repositories/user.repository.js';
+import { countUsers, findUsersByUsernames, upsertSeedUser } from '../../repositories/user.repository.js';
+import { ensureKaluppaChat } from '../../services/chat.service.js';
+import { onboardFarmer } from '../../services/farmerProfile.service.js';
 
 const FIRST = ['Maria', 'Jose', 'Ana', 'Mark', 'Kristine', 'Paolo', 'Joy', 'Ramon', 'Liezl', 'Carlo', 'Mae', 'Noel', 'Grace', 'Dennis', 'Rowena', 'Jun'];
 const LAST = ['Reyes', 'Santos', 'Garcia', 'Mendoza', 'Villanueva', 'Bautista', 'Aquino', 'Castillo', 'Manalo', 'Lim', 'Rivera', 'Dela Paz', 'Morales', 'Torres'];
@@ -48,6 +50,11 @@ export async function seedUsers() {
   const now = new Date();
   for (const { handle, verified, ...user } of [...ACCOUNTS, ...extraBuyers()]) {
     await upsertSeedUser({ ...user, username: handle, email: seedEmail(handle), password, emailVerifiedAt: verified ? now : null });
+  }
+  // Like real sign-ups: farmers get a profile, farmers and Group Managers a chat with Kaluppa.
+  for (const account of await findUsersByUsernames(ACCOUNTS.map((a) => a.handle))) {
+    if (account.roles.includes('farmer')) await onboardFarmer(account._id);
+    else if (account.roles.includes('group_manager')) await ensureKaluppaChat(account._id);
   }
   return `${await countUsers()} users`;
 }

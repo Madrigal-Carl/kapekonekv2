@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import accountRoutes from './account.routes.js';
 import associationRoutes from './association.routes.js';
+import farmerRoutes from './farmer.routes.js';
 import addressRoutes from './address.routes.js';
 import authRoutes from './auth.routes.js';
 import cartRoutes from './cart.routes.js';
@@ -28,5 +29,6 @@ router.use(orderRoutes);
 router.use(notificationRoutes);
 router.use(accountRoutes);
 router.use(associationRoutes);
+router.use(farmerRoutes);
 
 export default router;

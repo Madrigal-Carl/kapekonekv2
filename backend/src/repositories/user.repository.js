@@ -28,8 +28,8 @@ export const findTakenUsernames = async (usernames) =>
  * @returns {Promise<{ email: boolean, username: boolean }>}
  */
 export async function findIdentityConflicts({ email, username }, exceptId = null) {
-  const found = await User.find({ $or: [{ email }, { username }], ...(exceptId && { _id: { $ne: exceptId } }) }, { email: 1, username: 1 }).lean();
-  return { email: found.some((u) => u.email === email), username: found.some((u) => u.username === username) };
+  const found = await User.find({ $or: [email && { email }, { username }].filter(Boolean), ...(exceptId && { _id: { $ne: exceptId } }) }, { email: 1, username: 1 }).lean();
+  return { email: Boolean(email) && found.some((u) => u.email === email), username: found.some((u) => u.username === username) };
 }
 
 /** Create a user; the model hashes the password. */
@@ -75,7 +75,7 @@ export const upsertSeedUser = ({ username, ...data }) =>
 
 /** Users with any of the given usernames (seeders: seed usernames are their handles). */
 export const findUsersByUsernames = (usernames) =>
-  User.find({ username: { $in: usernames } }).select('username email firstName lastName contactNumber').lean();
+  User.find({ username: { $in: usernames } }).select('username email firstName lastName contactNumber roles').lean();
 
 /** Whether an address belongs to a seeded account (the mail worker skips those). */
 export const isSeedEmail = async (email) => Boolean(await User.exists({ email: email?.toLowerCase(), isSeed: true }));
@@ -105,6 +105,33 @@ export const updateAvatar = (userId, avatar) =>
 
 /** Switch to a new email; it must be verified again. */
 export const replaceEmail = (userId, email) => User.findByIdAndUpdate(userId, { email, emailVerifiedAt: null }, AFTER);
+
+/** Active accounts of a role that have an email, for notices (e.g. Kaluppa when an association has no Group Manager). */
+export const findActiveRecipientsByRole = (role) =>
+  User.find({ roles: role, status: 'active', email: { $ne: null } }, 'firstName email').lean();
+
+/** Recipient fields of one account. */
+export const findRecipient = (id) => User.findById(id, 'firstName lastName email status').lean();
+
+/**
+ * One page of these users (newest first); each search word must match a name or the username.
+ * @param {{ ids: unknown[], words: RegExp[], page: number, limit: number }} query
+ */
+export const listUsersAmong = ({ ids, words, page, limit }) =>
+  pageList(
+    User.find({ _id: { $in: ids }, ...(words.length && { $and: words.map((w) => ({ $or: [{ firstName: w }, { lastName: w }, { username: w }] })) }) })
+      .sort({ createdAt: -1, _id: -1 }),
+    { page, limit },
+  );
+
+/** Replace the password with a temporary one: the next sign-in must set a new password, and other sessions end. */
+export async function setTemporaryPassword(userId, password) {
+  const user = await User.findById(userId);
+  user.password = password;
+  user.mustChangePassword = true;
+  user.tokenVersion += 1;
+  return user.save();
+}
 
 export const findGroupManagerById = (id) => User.findOne({ _id: id, roles: 'group_manager' }).lean();
 

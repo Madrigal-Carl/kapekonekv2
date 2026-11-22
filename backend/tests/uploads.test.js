@@ -21,7 +21,7 @@ describe('farmer_document uploads', () => {
 
   it('accepts a 10 MB pdf and refuses one byte more, deleting it', async () => {
     getUploadedAsset.mockResolvedValueOnce(asset('pdf', 10 * MB));
-    await expect(assertUploadAllowed('farmer_document', 'p1', 'documents')).resolves.toBeUndefined();
+    await expect(assertUploadAllowed('farmer_document', 'p1', 'documents')).resolves.toEqual({ kind: 'file', bytes: 10 * MB, name: 'doc.pdf' });
     getUploadedAsset.mockResolvedValueOnce(asset('pdf', 10 * MB + 1));
     await expect(assertUploadAllowed('farmer_document', 'p2', 'documents')).rejects.toMatchObject({ statusCode: 422, code: 'FILE_TOO_LARGE' });
     expect(destroyImage).toHaveBeenCalledWith('p2');

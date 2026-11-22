@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isAssignedManager, isAssociationManager, isKaluppaFarm, isOwner } from '../src/services/policy.service.js';
+import { isAssignedManager, isAssociationManager, isKaluppaFarm, isOwner, seesEveryAssociation } from '../src/services/policy.service.js';
 
 const id = (n) => `64b000000000000000000${String(n).padStart(3, '0')}`;
 const farmer = { _id: id(1), roles: ['farmer'] };
@@ -36,5 +36,12 @@ describe('policy helpers', () => {
     expect(isAssignedManager(manager, kaluppaFarm)).toBe(true);
     expect(isAssignedManager(otherManager, kaluppaFarm)).toBe(false);
     expect(isAssignedManager(manager, { ...farmerFarm, managedBy: id(3) })).toBe(false); // only Kaluppa farms have managers
+  });
+});
+
+describe('seesEveryAssociation', () => {
+  it('is true for Kaluppa only', () => {
+    expect(seesEveryAssociation({ roles: ['kaluppa'] })).toBe(true);
+    expect(seesEveryAssociation({ roles: ['group_manager'] })).toBe(false);
   });
 });

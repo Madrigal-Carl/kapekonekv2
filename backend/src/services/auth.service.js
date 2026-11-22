@@ -6,6 +6,7 @@ import { TOKEN_PURPOSES } from '../models/token.model.js';
 import { EMAIL_JOBS } from '../queues/email.jobs.js';
 import { enqueueEmail } from '../queues/email.queue.js';
 import { findAssociationByManager } from '../repositories/association.repository.js';
+import { findProfileScope } from '../repositories/farmerProfile.repository.js';
 import { consumeToken, createToken, deleteUnusedTokens } from '../repositories/token.repository.js';
 import {
   createUser,
@@ -21,6 +22,7 @@ import {
 } from '../repositories/user.repository.js';
 import { AppError } from '../utils/AppError.js';
 import { verifyAccessToken, verifyRefreshToken } from '../utils/tokens.js';
+import { onboardFarmer } from './farmerProfile.service.js';
 import { resolvePermissions } from './permission.service.js';
 
 const VERIFY_TTL_MS = 60 * 60 * 1000; // VerifyEmail.dc.html: "The link works for 60 minutes"
@@ -44,13 +46,24 @@ export const publicUser = (user) => ({
   roles: user.roles,
   mustChangePassword: Boolean(user.mustChangePassword),
   associationId: user.associationId ? String(user.associationId) : null,
+  farmerStatus: user.farmerStatus ?? null,
   createdAt: user.createdAt,
 });
 
-/** The association whose records the user acts on (policy scope): a Group Manager's association. Farmers join in M8.4. */
-export async function associationIdOf(user) {
-  if (!user.roles.includes('group_manager')) return null;
-  return (await findAssociationByManager(user._id))?._id ?? null;
+/**
+ * Attach the user's scope for policies and the session: `associationId` (a Group Manager's association, or an
+ * approved farmer's) and `farmerStatus` (farmers only).
+ */
+export async function loadScope(user) {
+  user.associationId = null;
+  user.farmerStatus = null;
+  if (user.roles.includes('group_manager')) user.associationId = (await findAssociationByManager(user._id))?._id ?? null;
+  if (user.roles.includes('farmer')) {
+    const profile = await findProfileScope(user._id);
+    user.farmerStatus = profile?.status ?? 'none';
+    if (profile?.status === 'approved') user.associationId = profile.association;
+  }
+  return user;
 }
 
 /**
@@ -58,7 +71,7 @@ export async function associationIdOf(user) {
  * @returns {Promise<{ user: object, roles: string[], permissions: string[] }>}
  */
 export async function buildSession(user) {
-  user.associationId ??= await associationIdOf(user);
+  if (user.farmerStatus === undefined) await loadScope(user);
   return { user: publicUser(user), roles: user.roles, permissions: await resolvePermissions(user) };
 }
 
@@ -71,8 +84,7 @@ export async function userFromAccessToken(token) {
   const user = await findUserById(sub);
   if (!user || user.tokenVersion !== tv) throw expired();
   if (user.status !== 'active') throw new AppError(403, 'This account is suspended. Contact Kaluppa for help.');
-  user.associationId = await associationIdOf(user);
-  return user;
+  return loadScope(user);
 }
 
 async function issueLink(user, purpose, ttlMs) {
@@ -117,6 +129,7 @@ export async function register({ role, ...fields }) {
     });
   }
   const user = await createUser({ ...fields, roles: [role] });
+  if (role === 'farmer') await onboardFarmer(user._id); // every farmer account has a profile and a Kaluppa chat
   await sendVerificationEmail(user);
   return { user, session: await buildSession(user) };
 }
