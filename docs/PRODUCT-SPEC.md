@@ -21,7 +21,7 @@ Roles: `kaluppa` (super-admin), `group_manager`, `farmer`, `buyer`.
 | `catalog.farm_supplies` (buy Fertilizer, Seedlings — Phase 2 UI) | | ✓ | | ✓ |
 | `cart.manage`, `addresses.manage` | ✓ | | | ✓ |
 | `orders.create`, `orders.view_own`, `orders.cancel_own` | ✓ | | | ✓ |
-| `reviews.create`, `reviews.update_own` | ✓ | | | ✓ |
+| `reviews.create`, `reviews.update_own`, `reviews.delete_own` | ✓ | (later) | | ✓ |
 | `notifications.view`, `profile.update` | ✓ | ✓ | ✓ | ✓ |
 | `dashboard.view` | | ✓ | ✓ | ✓ |
 | `orders.manage` (confirm, process, ship, complete, reject, cancel, refund) | | | | ✓ |
@@ -31,7 +31,7 @@ Roles: `kaluppa` (super-admin), `group_manager`, `farmer`, `buyer`.
 
 - Kaluppa passes every check as super-admin.
 - Guests can read the catalog (public categories only), posts, reviews, and delivery/pickup info. **Buyers and guests can't react to or comment on posts.**
-- Farmers get cart and order permissions when their shop UI ships.
+- Farmers get cart, order and review permissions when their shop UI ships. Review code checks the permissions plus purchase eligibility, never the role, so adding them to `farmer` is a seeder change only.
 - The post reaction/comment roles are the planned default; confirm them before the Phase 2 posting UI.
 
 ## 2. Data models (Mongoose)
@@ -65,7 +65,9 @@ All models use `timestamps: true`. Money is stored as integer centavos.
   - `refund {status:'not_applicable'|'pending'|'refunded', referenceNumber?, refundedAt?, refundedBy?}`.
   - Indexes: `{buyer, createdAt}`, `{buyer, status, createdAt}`, `{status, createdAt}`.
 - **Counter**: `{_id, seq}`.
-- **Review**: `product`, `buyer`, `order`, `rating` 1–5, `comment` 10–1000, `editedAt?`. Unique `{product, buyer}`.
+- **Review**: `product`, `buyer` (the author, any role), `order` (the sold order that made them eligible), `rating` 1–5, `comment` 10–1000, `editedAt?`. Unique `{product, buyer}`.
+  - **Eligibility**: the user has at least one order with status `sold` that contains the product. One review per user per product.
+  - **Own maintenance**: the author can edit (rating, comment; sets `editedAt`) or delete (hard delete) their review at any time. Nobody else can edit it. Create, edit and delete all recompute the product's `ratingAverage` / `ratingCount` (one helper, called in the same request).
 - **Notification**: `user`, `type` (`order_status|order_new|system`), `title`, `body`, `link`, `data`, `readAt`.
 - **Post**:
   - `author`, `body`.
@@ -177,19 +179,29 @@ seed values: ₱50 base for the first 3 km, ₱10 per km after, round up to ₱5
 - `GET /delivery/quote?addressId=` or `?lat&lng` (A, V): `{distanceKm, feeCentavos, distanceSource, eta:{from,to}}`.
 - `GET /delivery/info` (public): pickup location, fee rules for display, ETA days.
 
-**Uploads**: `POST /uploads/signature {type:'avatar'|'receipt'}` (A, V).
+**Uploads**: `POST /uploads/signature {purpose:'avatar'|'receipt'}` (A, V). Each purpose maps to a kind in `UPLOAD_RULES` (§9): avatar and receipt are `image`. The signature carries `allowed_formats` and the folder. When the client sends back a `publicId` (avatar save, checkout), the backend looks the asset up with the Cloudinary Admin API and rejects it (`422 FILE_TOO_LARGE` / `FILE_TYPE_NOT_ALLOWED`, and destroys the asset) if `bytes` or format break the rule. The browser size check is only for a fast message.
 
 **Catalog** (O):
 - `GET /categories`
 - `GET /products` (search, category, variety[], coffeeType[], minPrice, maxPrice, featured, sort, cursor, limit ≤24)
 - `GET /products/:slug`
-- `GET /products/:id/reviews`, `/reviews/summary`, `/reviews/me` (A, V)
+- `GET /products/:id/reviews`, `/reviews/summary`
+- `GET /products/:id/reviews/me` (A, V): `{review|null, canReview, reason}` where `reason` is `null | 'not_purchased' | 'not_completed' | 'already_reviewed'`, plus `pendingOrderNumber` when `not_completed`. Guests don't call it (the UI shows the guest state).
 
-**Reviews** (A, V): `POST /products/:id/reviews`, `PATCH /reviews/:id`.
+**Reviews** (A, V):
+- `POST /products/:id/reviews` (`reviews.create`): `403 REVIEW_NOT_ALLOWED` without a sold order for the product; `409 ALREADY_REVIEWED` if one exists.
+- `PATCH /reviews/:id` (`reviews.update_own`, author only, else `404`).
+- `DELETE /reviews/:id` (`reviews.delete_own`, author only, else `404`). After a delete the user may review again (still eligible).
 
 **Cart** (A, V, `cart.manage`):
 - `GET /cart` (lines, flags, subtotal, `canCheckout`)
 - `POST /cart/items`, `PATCH /cart/items/:productId`, `DELETE /cart/items/:productId`, `DELETE /cart`
+- **Quantity rule (one shared helper, used by add, update and checkout)**:
+  - `POST /cart/items {productId, quantity}` **adds to** the existing line. The resulting line quantity (`existing + quantity`) must be ≤ `stock`; otherwise `409 QUANTITY_EXCEEDS_STOCK` with `{stock, inCart, maxAddable}`. Never clamp silently on the server.
+  - `PATCH` **sets** the line quantity; it must be ≤ `stock`.
+  - Quantities are on the unit step (kg 0.5, pack/piece 1) and ≥ the step. Compare with integer math (`Math.round(q * 2)` for kg) so 0.5 steps never drift.
+  - The UI caps steppers at what's addable: Product detail at `stock − inCart` (shows "N already in your cart · you can add up to M more"), the Cart drawer at `stock`. `+` is disabled at the cap. Add to cart is disabled when `maxAddable` is 0.
+  - If stock drops below a cart line after it was added, the line shows the warning and checkout stays blocked (existing behavior).
 
 **Settings**: `GET /settings/payment` (A, V), `GET /settings/landing` (public).
 
@@ -258,8 +270,9 @@ seed values: ₱50 base for the first 3 km, ₱10 per km after, round up to ₱5
   - cards with label, Default badge, recipient, phone, street, area and pin status;
   - Edit, Set as default, Delete (with confirmation); "Add new address" (max 10).
 - **Address window** (add/edit; used from Addresses and Checkout):
-  - Map side: Mapbox map with a draggable pin, search box and "Use my location". Dropping the pin auto-fills municipality, barangay (when matched), street and postal code through `/geo/reverse`.
-  - Form side: label chips (Home/Work/Other), recipient name, phone, province (fixed), municipality and barangay selects (from `/locations`), street/landmark, postal code (read-only), "Set as default".
+  - Map side: Mapbox map with a draggable pin, zoom controls, search box and "Use my location". Dropping the pin auto-fills municipality, barangay (when matched), street and postal code through `/geo/reverse`.
+  - **Zoom follows the selects**: picking a municipality flies the map to it (zoom ≈ 12.5) and moves the pin to its center; picking a barangay flies closer (zoom ≈ 15) and moves the pin to the barangay. These pin moves come from the selects, so they must **not** call `/geo/reverse` or overwrite the fields. A new address starts zoomed out on all of Marinduque with no pin, and the barangay select is disabled until a municipality is chosen.
+  - Form side: label chips (Home/Work/Other), recipient name, phone, province (fixed), municipality and barangay **SearchSelects** (from `/locations`), street/landmark, postal code (read-only, fills from municipality), "Set as default".
   - Shows a fee preview. The buyer can type everything without a pin; the backend geocodes on save.
   - Pins outside Marinduque show an inline error.
 - **Orders**: six group cards with counts (All orders · To confirm = pending · Preparing = reserved + processing · On the way = out for delivery + ready for pickup · Completed = sold · Closed = cancelled + rejected + expired). Groups with several statuses show status chips to narrow further. Cards show the destination line (Delivery · Home, Barangay, Municipality / Pickup · Kaluppa) and a payment chip.
@@ -279,8 +292,11 @@ seed values: ₱50 base for the first 3 km, ₱10 per km after, round up to ₱5
   - `recipientName` 2–80, `phone` as above, `street` 5–200, `customLabel` ≤30;
   - `municipality` must be in the list, and `barangay` must belong to that municipality;
   - `location` optional (lat 13.15–13.62, lng 121.80–122.20).
-- Review comment 10–1000. Cancel "other" 5–300. Rider name 2–60.
-- Uploads: avatar 2 MB (jpg/png/webp), receipt 5 MB (jpg/png/webp/heic).
+- Review comment 10–1000, rating integer 1–5. Cancel "other" 5–300. Rider name 2–60.
+- **Uploads** (`UPLOAD_RULES` in `schemas/rules.js`, mirrored in the backend config):
+  - `image`: jpg, png, webp, heic · **max 5 MB**. Used by avatar and receipt.
+  - `file`: any non-image file (pdf, mp4, webm) · **max 10 MB**. No buyer flow uploads one yet; the Kaluppa post composer will.
+  - Error copy: "<name> is 7.2 MB. Images can be up to 5 MB." / "Files can be up to 10 MB."
 
 ## 10. Commands
 

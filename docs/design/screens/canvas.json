@@ -33,7 +33,7 @@
       "y": 0,
       "w": 1440,
       "h": 2500,
-      "title": "Product detail + reviews",
+      "title": "Product detail + reviews (edit / delete your own)",
       "expand": "fill",
       "is_interactive": true
     },
@@ -190,7 +190,23 @@
       "y": 6120,
       "w": 1440,
       "h": 1000,
-      "title": "Add / edit address — map pin auto-fill",
+      "title": "Add / edit address — zooms to municipality, then barangay",
+      "is_interactive": true
+    },
+    "Components.dc.html": {
+      "x": 6080,
+      "y": 10210,
+      "w": 1440,
+      "h": 1560,
+      "title": "Shared components — search select, uploads, review states",
+      "is_interactive": true
+    },
+    "SearchSelect.dc.html": {
+      "x": 7600,
+      "y": 10210,
+      "w": 400,
+      "h": 440,
+      "title": "SearchSelect (component)",
       "is_interactive": true
     }
   },
@@ -215,7 +231,9 @@
     "ResetPassword.dc.html",
     "VerifyEmail.dc.html",
     "Modals.dc.html",
-    "Dashboard.dc.html"
+    "Dashboard.dc.html",
+    "Components.dc.html",
+    "SearchSelect.dc.html"
   ],
   "notes": {
     "row1": {
@@ -244,7 +262,7 @@
       "y": 9910,
       "text": "Shared components & other roles",
       "kind": "title1",
-      "maxW": 6000
+      "maxW": 8000
     },
     "palette": {
       "x": -620,

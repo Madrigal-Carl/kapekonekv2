@@ -472,3 +472,49 @@ Source: `docs/prompts/CHANGE-02-NO-EYEBROW-BAR-NO-CHAT.md`, applied after M2 and
 - **Performance**: every page `lazy()` behind one `Suspense`; `imageUrl()`/`imageSrcSet()` add `f_auto,q_auto,c_limit,w_…` to Cloudinary URLs; below-the-fold images `loading="lazy"`; TanStack Query `staleTime` 30 s. Main bundle 110 kB gzipped; mapbox-gl only loads with the map.
 - **README.md**: setup, env, commands, seed accounts, Render/Vercel deploy and cross-site cookies.
 - **Verified**: lint clean in both apps; backend 231 + frontend 72 unit tests; Playwright 24/24; `migrate:fresh --seed` on Atlas, then `db:seed` again skips existing data; no `.env` tracked; no chat code anywhere.
+
+---
+
+## Change 03 — Search selects, map zoom, upload limits, review rules, cart quantity fix
+
+Source: `docs/prompts/CHANGE-03-SELECTS-MAP-ZOOM-UPLOADS-REVIEWS-CART.md`, after M7, with the updated `CLAUDE.md`, `docs/` and screens (`SearchSelect`, `Components` new; `AddressModal`, `Products`, `Login`, `ProductDetail`, `CartDrawer`, `Checkout`, `Profile` changed). One commit per part, test first.
+
+**Cart bug — real cause (found before the fix):** `cart.service.addItem` only refused a product with `stock <= 0`. It never compared the resulting line (`inCart + quantity`) with stock, so repeated adds (or one big add) could exceed stock; `setQuantity` (`PATCH`) had no stock check at all. Merging with `$inc` and the 0.5 kg step are exact in binary floating point, so there was no drift. Over-stock lines were caught only at checkout (`OVER_STOCK` flag).
+
+### Part A — Cart quantity (03A)
+- [ ] Failing tests: stock 3, 2 in cart, add 2 → `409 QUANTITY_EXCEEDS_STOCK` `{stock: 3, inCart: 2, maxAddable: 1}`; kg: stock 3, 2.5 in cart, +0.5 OK, +1 → 409; `PATCH` above stock → 409.
+- [ ] `AppError` gains optional `data`, sent as `data` on the error response.
+- [ ] `assertQuantityAllowed(product, resultingQty, inCart)` in `cart.service`: unit step with integer math (`Math.round(q * 2)` for kg), ≤ stock, never clamps; used by add, set and checkout (`createFromCart` re-checks every line).
+- [ ] `inCart` on `GET /cart` lines and on `GET /products/:slug` for a signed-in viewer (0 for guests).
+- [ ] UI: `QuantityStepper` `max`; Product detail caps at `stock − inCart`, "N already in your cart · you can add up to M more", cap hint, Add disabled at 0; Cart drawer caps at stock with "That is all we have: …"; a 409 toasts the server's numbers and refetches the cart.
+
+### Part B — `SearchSelect` (03B)
+- [ ] `components/ui/SearchSelect.jsx` per `SearchSelect.dc.html` (icon tile, round chevron, search, highlighted match, check, "No match for …", count + key hints, flips up, portal, forwardRef, RHF `Controller`).
+- [ ] Replacements (the only native selects in `frontend/src`): `pages/storefront/Products.jsx` sort (`size="sm"`, `icon="sort"`, `aria-label="Sort products by"`); `components/map/AddressFormModal.jsx` municipality (`icon="pin"`) and barangay (`icon="home"`, disabled until a municipality).
+- [ ] Tests: filtering, keyboard pick, Esc, disabled, error, RHF.
+
+### Part C — Address map zoom (03C)
+- [ ] `MUNICIPALITY_CENTERS` in the shared locations constants; municipality → `flyTo` zoom 12.5, pin to center, barangay cleared, postal code filled.
+- [ ] Barangay → `/geo/search` (bbox + proximity) cached in TanStack (`staleTime: Infinity`) and Valkey (`geo:brgy:<muni>:<brgy>`, 7 days) → `flyTo` zoom 15 + pin; not found → hint, stay at municipality zoom.
+- [ ] Select-driven pin moves carry `source: 'select'` and never reverse-geocode; drag/click/search/"Use my location" still do.
+- [ ] New address: island view, no pin; NavigationControl + fit-Marinduque; zoom label; dashed area ring at barangay zoom; fee placeholder; edit opens at zoom 15 on the pin; `jumpTo` under reduced motion.
+
+### Part D — Upload limits (03D)
+- [ ] `UPLOAD_RULES` (image: jpg/png/webp/heic 5 MB; file: pdf/mp4/webm 10 MB) in `schemas/rules.js` on both sides + `kindForPurpose()`.
+- [ ] `POST /uploads/signature {purpose}` signs `allowed_formats` + folder, returns `maxBytes`.
+- [ ] Server re-check of returned `publicId` via Cloudinary Admin API (`bytes`, `format`, `resource_type`); bad → destroy + `422 FILE_TOO_LARGE` / `FILE_TYPE_NOT_ALLOWED` (avatar save, order create).
+- [ ] `FileDrop` (`kind`) with the too-large state; used by the checkout receipt and the profile avatar (2 → 5 MB); hint copy per screens.
+- [ ] Tests: rule at 5 MB / 5 MB + 1 and 10 MB; signature payload; server reject path (Cloudinary mocked).
+
+### Part E — Reviews (03E)
+- [ ] `reviews.delete_own`; buyer + kaluppa get create/update_own/delete_own; farmer comment in the seeder; reseed + clear `perm:user:*`.
+- [ ] `canReview(user, productId)` → `{canReview, reason, order, pendingOrderNumber}` (`not_purchased | not_completed | already_reviewed`), permission + eligibility, never role.
+- [ ] `GET /products/:id/reviews/me`, `POST` (`403 REVIEW_NOT_ALLOWED`, `409 ALREADY_REVIEWED`), `PATCH /reviews/:id`, `DELETE /reviews/:id` (author only, else 404); every write recomputes the rating.
+- [ ] `ReviewPanel` with every state; list badge "Verified purchase"; invalidate list, summary and product.
+- [ ] Tests: authorization, eligibility reasons, rating recompute.
+
+### Part F — Copy (03F)
+- [ ] Login checkbox "Remember me"; other "30 days" copy tied to it.
+
+### Verify
+- [ ] Lint + tests both apps; `migrate:fresh --seed`; Playwright at 1440/390 (address zoom, sort, stepper cap, review edit/delete/write, cart cap, 6 MB receipt refused, login label); `grep -rn "<select" frontend/src` empty.

@@ -69,11 +69,11 @@ button:focus-visible,a:focus-visible{outline:2px solid #7B4A2A;outline-offset:2p
               <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path></svg>
             </button>
             <output aria-live="polite" style="min-width: 56px; text-align: center; font-size: 15px; font-weight: 600; border-left: 1px solid #E7DCCD; border-right: 1px solid #E7DCCD; line-height: 44px">{{ qty }}</output>
-            <button type="button" aria-label="Increase quantity" onClick="{{ inc }}" style="width: 44px; height: 44px; border: 0; background: #FFFFFF; color: #2B1A12; cursor: pointer; display: grid; place-items: center">
+            <button type="button" aria-label="Increase quantity" onClick="{{ inc }}" disabled="{{ atMax }}" style="width: 44px; height: 44px; border: 0; background: {{ incBg }}; color: {{ incFg }}; cursor: {{ incCursor }}; display: grid; place-items: center">
               <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
             </button>
           </div>
-          <span style="display: block; margin-top: 6px; font-size: 12px; color: #6B5A4E">Whole packs only</span>
+          <span aria-live="polite" style="display: block; margin-top: 6px; font-size: 12px; color: {{ qtyHintFg }}; max-width: 260px">{{ qtyHint }}</span>
         </div>
         <div style="flex: 1 1 160px">
           <span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Total</span>
@@ -82,7 +82,11 @@ button:focus-visible,a:focus-visible{outline:2px solid #7B4A2A;outline-offset:2p
         </div>
       </div>
 
-      <a href="CartDrawer.dc.html" style="margin-top: 24px; display: flex; align-items: center; justify-content: center; gap: 8px; background: #7B4A2A; color: #FFFFFF; text-decoration: none; padding: 15px 22px; border-radius: 5px; font-size: 15px; font-weight: 600">
+      <p style="margin: 20px 0 0; display: flex; align-items: center; gap: 8px; font-size: 13px; color: #4A3A30">
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#7B4A2A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path></svg>
+        <span><strong>{{ inCart }} packs</strong> already in your cart · you can add up to <strong>{{ canAdd }}</strong> more.</span>
+      </p>
+      <a href="CartDrawer.dc.html" style="margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; background: #7B4A2A; color: #FFFFFF; text-decoration: none; padding: 15px 22px; border-radius: 5px; font-size: 15px; font-weight: 600">
         <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
         Add to cart
       </a>
@@ -118,23 +122,64 @@ button:focus-visible,a:focus-visible{outline:2px solid #7B4A2A;outline-offset:2p
           </ul>
         </div>
 
-        <form style="border: 1px solid #E7DCCD; border-radius: 8px; padding: 24px; background: #FFFFFF">
-          <h3 style="margin: 0; font-size: 16px; font-weight: 600">Write a review</h3>
-          <p style="margin: 6px 0 0; font-size: 12.5px; color: #6B5A4E">You picked this up on Nov 8, so you can review it.</p>
-          <fieldset style="border: 0; margin: 16px 0 0; padding: 0">
-            <legend style="font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500; padding: 0">Your rating</legend>
-            <div style="margin-top: 8px; display: flex; gap: 4px">
-              <sc-for list="{{ picker }}" as="pk" hint-placeholder-count="5">
-                <button type="button" aria-label="{{ pk.label }}" aria-pressed="{{ pk.on }}" onClick="{{ pk.pick }}" style="width: 40px; height: 40px; border: 0; background: transparent; padding: 0; cursor: pointer; display: grid; place-items: center">
-                  <svg aria-hidden="true" viewBox="0 0 24 24" width="26" height="26" fill="{{ pk.fill }}" stroke="#C8913A" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                </button>
-              </sc-for>
+        <sc-if value="{{ modeView }}" hint-placeholder-val="{{ true }}">
+          <article aria-labelledby="mine-title" style="border: 1px solid #E7DCCD; border-radius: 8px; padding: 24px; background: #FFFFFF">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+              <h3 id="mine-title" style="margin: 0; font-size: 16px; font-weight: 600">Your review</h3>
+              <span style="font-size: 11px; font-weight: 600; color: #4A3A30; background: #F5F0EA; border: 1px solid #E7DCCD; padding: 2px 8px; border-radius: 999px">{{ mineStamp }}</span>
             </div>
-          </fieldset>
-          <label for="review" style="display: block; margin-top: 16px; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Your review</label>
-          <textarea class="kk-f" id="review" rows="4" placeholder="How did it taste? How did you brew it?" style="margin-top: 8px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 12px; font: inherit; font-size: 14px; resize: vertical"></textarea>
-          <button type="button" style="margin-top: 14px; width: 100%; border: 0; background: #7B4A2A; color: #FFFFFF; padding: 12px; border-radius: 5px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Post review</button>
-        </form>
+            <span role="img" aria-label="{{ mine.rating }} out of 5 stars" style="margin-top: 12px; display: inline-flex; gap: 2px">
+              <sc-for list="{{ mineStars }}" as="ms" hint-placeholder-count="5"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="{{ ms.fill }}" stroke="#C8913A" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></sc-for>
+            </span>
+            <p style="margin: 10px 0 0; font-size: 14px; line-height: 1.65; color: #4A3A30">{{ mine.text }}</p>
+            <sc-if value="{{ confirmDel }}" hint-placeholder-val="{{ false }}">
+              <div role="alertdialog" aria-labelledby="del-q" style="margin-top: 16px; padding: 14px; border-radius: 6px; background: #FDF0EE; border: 1px solid #F2C9C4">
+                <p id="del-q" style="margin: 0; font-size: 13.5px; font-weight: 600; color: #7A2A22">Delete your review?</p>
+                <p style="margin: 4px 0 0; font-size: 12.5px; color: #7A2A22">It comes off the product page and the rating is recounted. You can write a new one later.</p>
+                <div style="margin-top: 12px; display: flex; gap: 8px">
+                  <button type="button" onClick="{{ cancelDelete }}" style="flex: 1; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; padding: 9px; border-radius: 5px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; min-height: 40px">Keep it</button>
+                  <button type="button" onClick="{{ doDelete }}" style="flex: 1; border: 0; background: #A1362B; color: #FFFFFF; padding: 9px; border-radius: 5px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; min-height: 40px">Delete review</button>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ showActions }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-top: 16px; display: flex; gap: 8px">
+                <button type="button" onClick="{{ startEdit }}" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; padding: 9px; border-radius: 5px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; min-height: 40px">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#7B4A2A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>Edit
+                </button>
+                <button type="button" onClick="{{ askDelete }}" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #A1362B; padding: 9px; border-radius: 5px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; min-height: 40px">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>Delete
+                </button>
+              </div>
+            </sc-if>
+          </article>
+        </sc-if>
+
+        <sc-if value="{{ modeForm }}" hint-placeholder-val="{{ false }}">
+          <form style="border: 1px solid #E7DCCD; border-radius: 8px; padding: 24px; background: #FFFFFF">
+            <h3 style="margin: 0; font-size: 16px; font-weight: 600">{{ formTitle }}</h3>
+            <p style="margin: 6px 0 0; font-size: 12.5px; color: #6B5A4E">You received this on Nov 8 (order KK-20261103-0012), so you can review it.</p>
+            <fieldset style="border: 0; margin: 16px 0 0; padding: 0">
+              <legend style="font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500; padding: 0">Your rating</legend>
+              <div style="margin-top: 8px; display: flex; gap: 4px">
+                <sc-for list="{{ picker }}" as="pk" hint-placeholder-count="5">
+                  <button type="button" aria-label="{{ pk.label }}" aria-pressed="{{ pk.on }}" onClick="{{ pk.pick }}" style="width: 40px; height: 40px; border: 0; background: transparent; padding: 0; cursor: pointer; display: grid; place-items: center">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" width="26" height="26" fill="{{ pk.fill }}" stroke="#C8913A" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                  </button>
+                </sc-for>
+              </div>
+            </fieldset>
+            <label for="review" style="display: block; margin-top: 16px; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Your review</label>
+            <textarea class="kk-f" id="review" rows="4" value="{{ draft }}" onInput="{{ onDraft }}" placeholder="How did it taste? How did you brew it?" style="margin-top: 8px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 12px; font: inherit; font-size: 14px; resize: vertical"></textarea>
+            <span style="display: block; margin-top: 4px; text-align: right; font-size: 11.5px; color: #6B5A4E">{{ draftCount }} / 1000</span>
+            <div style="margin-top: 10px; display: flex; gap: 8px">
+              <sc-if value="{{ isEdit }}" hint-placeholder-val="{{ false }}">
+                <button type="button" onClick="{{ cancelEdit }}" style="flex: 1; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; padding: 12px; border-radius: 5px; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer">Cancel</button>
+              </sc-if>
+              <button type="button" onClick="{{ submit }}" style="flex: 2; border: 0; background: #7B4A2A; color: #FFFFFF; padding: 12px; border-radius: 5px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">{{ submitLabel }}</button>
+            </div>
+          </form>
+        </sc-if>
       </div>
 
       <div style="flex: 999 1 520px; min-width: 0">
@@ -144,7 +189,7 @@ button:focus-visible,a:focus-visible{outline:2px solid #7B4A2A;outline-offset:2p
               <div style="display: flex; align-items: center; gap: 12px">
                 <span style="width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: {{ rv.bg }}; color: #FFFFFF; font-size: 13px; font-weight: 600">{{ rv.initials }}</span>
                 <div style="flex: 1; min-width: 0">
-                  <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px"><span style="font-size: 14px; font-weight: 600">{{ rv.name }}</span><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: #22633A; background: #E1F2E4; padding: 2px 8px; border-radius: 999px; font-weight: 600"><svg aria-hidden="true" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>Picked up</span></div>
+                  <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px"><span style="font-size: 14px; font-weight: 600">{{ rv.name }}</span><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: #22633A; background: #E1F2E4; padding: 2px 8px; border-radius: 999px; font-weight: 600"><svg aria-hidden="true" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>Verified purchase</span></div>
                   <span style="font-size: 12px; color: #7A6A5E">{{ rv.date }}</span>
                 </div>
                 <span role="img" aria-label="{{ rv.stars }} out of 5 stars" style="display: inline-flex; gap: 2px">
@@ -168,9 +213,10 @@ button:focus-visible,a:focus-visible{outline:2px solid #7B4A2A;outline-offset:2p
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2500}}'>
 class Component extends DCLogic {
-  constructor(props) { super(props); this.state = { qty: 2, shot: 1, rating: 5 }; }
+  constructor(props) { super(props); this.state = { qty: 2, shot: 1, rating: 5, mode: 'view', confirmDel: false, mine: { rating: 5, text: 'Bought two packs for the office. Heavy body, no sourness, and it held up well in the moka pot.', created: 'Nov 9, 2026', edited: null }, draft: '' }; }
   renderVals() {
-    const { qty, shot, rating } = this.state;
+    const { qty, shot, rating, mode, confirmDel, mine, draft } = this.state;
+    const STOCK = 38, IN_CART = 2, MAX_ADD = STOCK - IN_CART;
     const peso = (c) => '₱' + (c / 100).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const stars = (n) => [1, 2, 3, 4, 5].map((i) => ({ fill: i <= n ? '#C8913A' : 'none' }));
     const shots = ['· whole roasted beans', '· beans in hand', '· 250 g pack', '· brewed cup'];
@@ -180,7 +226,34 @@ class Component extends DCLogic {
       total: peso(26000 * qty),
       atMin: qty <= 1,
       dec: () => this.setState({ qty: Math.max(1, qty - 1) }),
-      inc: () => this.setState({ qty: Math.min(38, qty + 1) }),
+      inc: () => this.setState({ qty: Math.min(MAX_ADD, qty + 1) }),
+      atMax: qty >= MAX_ADD,
+      incBg: qty >= MAX_ADD ? '#FBF8F4' : '#FFFFFF',
+      incFg: qty >= MAX_ADD ? '#B5A89C' : '#2B1A12',
+      incCursor: qty >= MAX_ADD ? 'not-allowed' : 'pointer',
+      qtyHint: qty >= MAX_ADD ? 'That is the most you can add. 38 in stock, 2 already in your cart.' : 'Whole packs only',
+      qtyHintFg: qty >= MAX_ADD ? '#7A4A10' : '#6B5A4E',
+      inCart: IN_CART,
+      canAdd: MAX_ADD,
+      modeView: mode === 'view',
+      modeForm: mode === 'edit' || mode === 'write',
+      isEdit: mode === 'edit',
+      formTitle: mode === 'edit' ? 'Edit your review' : 'Write a review',
+      submitLabel: mode === 'edit' ? 'Save changes' : 'Post review',
+      mine,
+      mineStars: stars(mine.rating),
+      mineStamp: mine.edited ? 'Edited ' + mine.edited : 'Posted ' + mine.created,
+      confirmDel,
+      showActions: !confirmDel,
+      startEdit: () => this.setState({ mode: 'edit', rating: mine.rating, draft: mine.text }),
+      cancelEdit: () => this.setState({ mode: 'view' }),
+      askDelete: () => this.setState({ confirmDel: true }),
+      cancelDelete: () => this.setState({ confirmDel: false }),
+      doDelete: () => this.setState({ confirmDel: false, mode: 'write', rating: 5, draft: '' }),
+      draft,
+      draftCount: draft.length,
+      onDraft: (e) => this.setState({ draft: e.target.value }),
+      submit: () => this.setState({ mode: 'view', mine: { rating, text: draft || mine.text, created: mine.created, edited: mode === 'edit' ? 'Nov 22, 2026' : null } }),
       shotLabel: shots[shot - 1],
       thumbs: [1, 2, 3, 4].map((n) => ({ n, on: shot === n, border: shot === n ? '#7B4A2A' : '#E7DCCD', pick: () => this.setState({ shot: n }) })),
       five: [1, 2, 3, 4, 5],

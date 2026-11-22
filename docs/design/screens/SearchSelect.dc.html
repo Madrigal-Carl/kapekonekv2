@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Search select</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.kk-ss-opt:hover{background:#FBF6F0}
+.kk-ss-trig:focus-visible{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+.kk-ss-q:focus{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+.kk-ss-list::-webkit-scrollbar{width:8px}.kk-ss-list::-webkit-scrollbar-thumb{background:#E7DCCD;border-radius:999px}
+</style>
+</helmet>
+<div ref="{{ setRoot }}" onKeyDown="{{ onRootKey }}" style="position: relative; width: 100%; padding: {{ pad }}; font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; color: #2B1A12; box-sizing: border-box">
+  <sc-if value="{{ hasLabel }}" hint-placeholder-val="{{ true }}">
+    <span id="{{ labelId }}" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">{{ label }}</span>
+  </sc-if>
+  <button type="button" class="kk-ss-trig" aria-haspopup="listbox" aria-expanded="{{ open }}" aria-labelledby="{{ labelledBy }}" aria-label="{{ trigAria }}" disabled="{{ disabled }}" onClick="{{ toggle }}" style="margin-top: {{ trigGap }}; width: 100%; min-height: {{ trigH }}; display: flex; align-items: center; gap: 10px; padding: 0 10px 0 {{ trigPadL }}; border: 1px solid {{ trigBorder }}; border-radius: 5px; background: {{ trigBg }}; box-shadow: {{ trigRing }}; font: inherit; font-size: {{ fs }}; color: {{ trigFg }}; text-align: left; cursor: {{ trigCursor }}">
+    <sc-if value="{{ showIcon }}" hint-placeholder-val="{{ true }}">
+      <span aria-hidden="true" style="width: 26px; height: 26px; flex-shrink: 0; display: grid; place-items: center; border-radius: 5px; background: #F7EFE4; color: #7B4A2A">
+        <sc-if value="{{ iconPin }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg></sc-if>
+        <sc-if value="{{ iconHome }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V21h14V9.5"></path><path d="M10 21v-6h4v6"></path></svg></sc-if>
+        <sc-if value="{{ iconSort }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 4-4 4 4"></path><path d="M7 4v16"></path><path d="m21 16-4 4-4-4"></path><path d="M17 20V4"></path></svg></sc-if>
+        <sc-if value="{{ iconTag }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4Z"></path><circle cx="7.5" cy="7.5" r="1.5"></circle></svg></sc-if>
+      </span>
+    </sc-if>
+    <span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: {{ valueFg }}">{{ display }}</span>
+    <span aria-hidden="true" style="width: 24px; height: 24px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: {{ chevBg }}; color: {{ chevFg }}; transform: rotate({{ chevDeg }}); transition: transform .18s ease, background .18s ease">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
+    </span>
+  </button>
+  <sc-if value="{{ hasError }}" hint-placeholder-val="{{ false }}">
+    <p role="alert" style="margin: 6px 0 0; font-size: 12px; color: #A1362B">{{ error }}</p>
+  </sc-if>
+
+  <sc-if value="{{ open }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; left: {{ pad }}; right: {{ pad }}; top: calc(100% + {{ popTop }}); z-index: 40; min-width: 220px; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 18px 40px -18px rgba(43,26,18,0.45); overflow: hidden">
+      <sc-if value="{{ searchable }}" hint-placeholder-val="{{ true }}">
+        <div style="padding: 10px; border-bottom: 1px solid #EFE6DA; position: relative">
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#7A6A5E" stroke-width="2" stroke-linecap="round" style="position: absolute; left: 22px; top: 50%; transform: translateY(-50%)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+          <input class="kk-ss-q" ref="{{ setInput }}" type="text" role="combobox" aria-expanded="true" aria-controls="{{ listId }}" aria-autocomplete="list" aria-activedescendant="{{ activeId }}" aria-label="{{ searchLabel }}" value="{{ query }}" onInput="{{ onQuery }}" onKeyDown="{{ onKey }}" placeholder="{{ searchPlaceholder }}" style="width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 8px 30px 8px 34px; font: inherit; font-size: 13.5px; color: #2B1A12; background: #FFFFFF; box-sizing: border-box">
+          <sc-if value="{{ hasQuery }}" hint-placeholder-val="{{ false }}">
+            <button type="button" aria-label="Clear search" onClick="{{ clearQuery }}" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; border: 0; background: transparent; color: #7A6A5E; display: grid; place-items: center; cursor: pointer; border-radius: 4px">
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </button>
+          </sc-if>
+        </div>
+      </sc-if>
+      <ul id="{{ listId }}" role="listbox" aria-label="{{ listLabel }}" class="kk-ss-list" style="list-style: none; margin: 0; padding: 6px; max-height: 236px; overflow-y: auto">
+        <sc-for list="{{ shown }}" as="o" hint-placeholder-count="6">
+          <li id="{{ o.id }}" role="option" aria-selected="{{ o.selected }}" class="kk-ss-opt" onClick="{{ o.pick }}" onMouseEnter="{{ o.hover }}" style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 5px; cursor: pointer; font-size: 13.5px; background: {{ o.bg }}; color: #2B1A12">
+            <span style="flex: 1; min-width: 0">{{ o.pre }}<mark style="background: {{ o.hitBg }}; color: #2B1A12; border-radius: 2px; padding: {{ o.hitPad }}; font-weight: 600">{{ o.hit }}</mark>{{ o.post }}</span>
+            <sc-if value="{{ o.selected }}" hint-placeholder-val="{{ false }}">
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#7B4A2A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+            </sc-if>
+          </li>
+        </sc-for>
+        <sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}">
+          <li role="presentation" style="padding: 18px 10px; text-align: center; font-size: 13px; color: #6B5A4E">No match for “{{ query }}”</li>
+        </sc-if>
+      </ul>
+      <div style="padding: 7px 12px; border-top: 1px solid #EFE6DA; background: #FBF8F4; font-size: 11.5px; color: #6B5A4E; display: flex; justify-content: space-between; gap: 8px">
+        <span aria-live="polite">{{ countLabel }}</span>
+        <span>↑ ↓ to move · Enter to pick · Esc to close</span>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"label":{"editor":"text","default":"Barangay"},"options":{"editor":null},"value":{"editor":null},"onPick":{"editor":null},"icon":{"editor":"enum","options":["pin","home","sort","tag","none"],"default":"home"},"placeholder":{"editor":"text","default":"Select an option"},"searchPlaceholder":{"editor":"text","default":"Search…"},"searchable":{"editor":"boolean","default":true},"size":{"editor":"enum","options":["md","sm"],"default":"md"},"startOpen":{"editor":"boolean","default":false},"startQuery":{"editor":null},"disabled":{"editor":"boolean","default":false},"error":{"editor":null},"ariaLabel":{"editor":null},"$preview":{"width":400,"height":440}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = !props.options;
+    this.uid = 'ss' + Math.random().toString(36).slice(2, 8);
+    this.state = { open: props.startOpen ?? demo, query: props.startQuery || '', active: 0, own: demo ? 'Pantayin' : null };
+    this.onDoc = (e) => { if (this.state.open && this.root && !this.root.contains(e.target)) this.setState({ open: false, query: '' }); };
+  }
+  componentDidMount() { document.addEventListener('mousedown', this.onDoc); }
+  componentWillUnmount() { document.removeEventListener('mousedown', this.onDoc); }
+  componentDidUpdate(_, prev) { if (this.state.open && !prev.open && this.input) this.input.focus(); }
+  renderVals() {
+    const p = this.props;
+    const demo = !p.options;
+    const options = (p.options || ['Alobo','Angas','Aturan','Bagong Silang Poblacion','Baguidbirin','Baliis','Balogo','Banahaw Poblacion','Bangcuangan','Banogbog','Biga','Botilao','Pantayin','Polo','Punong','San Antonio','San Isidro','Tagum','Tamayo','Tawiran','Taytay']).map((o) => typeof o === 'string' ? { value: o, label: o } : o);
+    const value = p.onPick ? p.value : (this.state.own ?? p.value ?? null);
+    const { open, query, active } = this.state;
+    const searchable = p.searchable ?? true;
+    const sm = p.size === 'sm';
+    const disabled = !!p.disabled;
+    const error = p.error || '';
+    const q = query.trim().toLowerCase();
+    const matches = options.filter((o) => !q || o.label.toLowerCase().includes(q));
+    const act = Math.min(active, Math.max(0, matches.length - 1));
+    const close = () => this.setState({ open: false, query: '', active: 0 });
+    const choose = (v) => { if (p.onPick) p.onPick(v); else this.setState({ own: v }); close(); };
+    const selectedLabel = (options.find((o) => o.value === value) || {}).label;
+    const icon = p.icon ?? (demo ? 'home' : 'none');
+    const label = p.label ?? (demo ? 'Barangay' : '');
+    return {
+      setRoot: (el) => { this.root = el; },
+      setInput: (el) => { this.input = el; },
+      pad: demo ? '20px' : '0px',
+      popTop: demo ? '-14px' : (error ? '-18px' : '6px'),
+      hasLabel: !!label,
+      label,
+      labelId: this.uid + '-l',
+      labelledBy: label ? this.uid + '-l' : undefined,
+      trigAria: label ? undefined : (p.ariaLabel || 'Select an option'),
+      listId: this.uid + '-list',
+      listLabel: label || 'Options',
+      searchLabel: 'Search ' + (label || 'options').toLowerCase(),
+      trigGap: label ? '6px' : '0px',
+      trigH: sm ? '40px' : '44px',
+      trigPadL: icon === 'none' ? '12px' : '8px',
+      fs: sm ? '13.5px' : '14px',
+      open,
+      disabled,
+      toggle: () => (open ? close() : this.setState({ open: true, active: Math.max(0, options.findIndex((o) => o.value === value)) })),
+      trigBorder: error ? '#C2554A' : (open ? '#7B4A2A' : '#DCCBB5'),
+      trigRing: open ? '0 0 0 3px rgba(123,74,42,.18)' : 'none',
+      trigBg: disabled ? '#FBF8F4' : '#FFFFFF',
+      trigFg: disabled ? '#7A6A5E' : '#2B1A12',
+      trigCursor: disabled ? 'not-allowed' : 'pointer',
+      showIcon: icon !== 'none',
+      iconPin: icon === 'pin', iconHome: icon === 'home', iconSort: icon === 'sort', iconTag: icon === 'tag',
+      display: selectedLabel || p.placeholder || 'Select an option',
+      valueFg: selectedLabel ? '#2B1A12' : '#7A6A5E',
+      chevDeg: open ? '180deg' : '0deg',
+      chevBg: open ? '#7B4A2A' : '#F5F0EA',
+      chevFg: open ? '#FFFFFF' : '#7B4A2A',
+      hasError: !!error,
+      error,
+      searchable,
+      query,
+      hasQuery: !!query,
+      searchPlaceholder: p.searchPlaceholder || 'Search…',
+      onQuery: (e) => this.setState({ query: e.target.value, active: 0 }),
+      clearQuery: () => { this.setState({ query: '', active: 0 }); if (this.input) this.input.focus(); },
+      onKey: (e) => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); this.setState({ active: Math.min(act + 1, matches.length - 1) }); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); this.setState({ active: Math.max(act - 1, 0) }); }
+        else if (e.key === 'Enter') { e.preventDefault(); if (matches[act]) choose(matches[act].value); }
+      },
+      onRootKey: (e) => { if (e.key === 'Escape' && open) { e.stopPropagation(); close(); } },
+      shown: matches.map((o, i) => {
+        const at = q ? o.label.toLowerCase().indexOf(q) : -1;
+        return {
+          pre: at < 0 ? o.label : o.label.slice(0, at),
+          hit: at < 0 ? '' : o.label.slice(at, at + q.length),
+          post: at < 0 ? '' : o.label.slice(at + q.length),
+          hitBg: at < 0 ? 'transparent' : '#F3E3C7',
+          hitPad: at < 0 ? '0' : '0 1px',
+          id: this.uid + '-o' + i,
+          selected: o.value === value,
+          bg: i === act ? '#F7EFE4' : 'transparent',
+          pick: () => choose(o.value),
+          hover: () => { if (i !== act) this.setState({ active: i }); }
+        };
+      }),
+      activeId: matches.length ? this.uid + '-o' + act : '',
+      empty: matches.length === 0,
+      countLabel: q ? matches.length + ' of ' + options.length : options.length + ' options'
+    };
+  }
+}
+</script>
+</body>
+</html>

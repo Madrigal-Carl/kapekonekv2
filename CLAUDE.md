@@ -80,6 +80,10 @@ route → authenticate / optionalAuth → verified → can()/role() → validate
 - Infinite-scroll and "load more" lists use **cursor pagination** (`?cursor=&limit=` → `meta.nextCursor`, `meta.hasMore`). One shared helper in `utils/pagination.js` encodes `(sortValue, _id)` so non-unique sorts stay stable.
 - Money is **integer centavos** (`priceCentavos`). Format as PHP only in the frontend: `Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' })`.
 - Quantity step by unit: `kg` → 0.5 steps (min 0.5); `pack`, `piece` → whole numbers (min 1). Same Zod rule on both sides. Line total = `Math.round(priceCentavos * quantity)`.
+- Cart quantity: adding **adds to** the existing line and the result must be ≤ stock (`409 QUANTITY_EXCEEDS_STOCK` with `maxAddable`). One helper for add, update and checkout. Steppers are capped in the UI too.
+- **Selects**: never a native `<select>`; always `components/ui/SearchSelect.jsx`.
+- **Uploads**: `UPLOAD_RULES` — images ≤ 5 MB, other files ≤ 10 MB. Checked in the browser and re-checked on the server from Cloudinary's stored `bytes`.
+- **Reviews**: only with a `sold` order containing the product; one per user per product; the author can edit or delete their own (`reviews.update_own`, `reviews.delete_own`).
 
 ## Roles and permissions (Spatie-style)
 
@@ -118,7 +122,7 @@ Zod schema (react-hook-form) → TanStack Query hook → service function → ax
 - `config/mail.js`: Brevo client, plus `MAIL_TRANSPORT=log` that writes emails to `backend/storage/mail/` for local dev and tests.
 - **Every email goes through BullMQ** (`_reference/backend/src/queues/`: job constants, worker with a handler map, templates, 3 attempts, exponential backoff). Escape user text in templates.
 - **Worker and the order-expiry scheduler run inside the API process** (Render single web service). Scheduler follows `_reference/backend/src/schedulers/requestAutoDeny.scheduler.js`. On `SIGTERM`/`SIGINT` close: HTTP → Socket.IO → scheduler → worker → queue → Valkey → Mongo.
-- **Cookies**: `accessToken` (15 min) and `refreshToken` (30 days with "remember me", else session cookie), `httpOnly`, all set through one `cookieOptions()` helper (prod: `secure: true, sameSite: 'none'`; dev: `sameSite: 'lax'`). Never repeat the sample's `sameSite: 'strict'` refresh bug.
+- **Cookies**: `accessToken` (15 min) and `refreshToken` (30 days when "Remember me" is checked, else session cookie; the checkbox label is just "Remember me"), `httpOnly`, all set through one `cookieOptions()` helper (prod: `secure: true, sameSite: 'none'`; dev: `sameSite: 'lax'`). Never repeat the sample's `sameSite: 'strict'` refresh bug.
 - Refresh tokens carry `tokenVersion`; password change/reset increments it.
 - **Maps use Mapbox GL JS** via `react-map-gl` + `mapbox-gl`, with the public token in `VITE_MAPBOX_TOKEN`. **Directions and geocoding run only on the backend** with `MAPBOX_ACCESS_TOKEN`, through `/geo/*` and `/delivery/quote`. The delivery fee is always recomputed server-side.
 

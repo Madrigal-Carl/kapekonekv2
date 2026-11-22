@@ -118,13 +118,16 @@ Put these in one `constants/orderStatus.js` map used by `StatusPill`, tabs and t
 | `Footer` | Footer | Espresso background. Shop / Help / Legal columns, © line. |
 | `Eyebrow`, `SectionHeading` | all | Uppercase label (no bar), then H2 + lead paragraph. |
 | `Button` | all | `primary` (roast), `outline` (white + sand-strong), `danger`, `light` (crema on dark), `glass` (white/10 on dark), `caramel` (on dark), `link`. |
-| `Input`, `Label`, `FieldHint`, `Select`, `Textarea` | Login, Register, Settings, Profile, Checkout | |
+| `Input`, `Label`, `FieldHint`, `Textarea` | Login, Register, Settings, Profile, Checkout | |
+| `SearchSelect` | SearchSelect (component), Components, AddressModal, Products (sort) | **Every select in the app.** No native `<select>`. Props: `label?`, `options` (strings or `{value,label}`), `value`, `onChange`, `placeholder`, `searchPlaceholder`, `icon` (`pin`/`home`/`sort`/`tag`/`none`, leading tile), `size` (`md` 44px / `sm` 40px), `searchable` (default true), `disabled`, `error`, `aria-label` when there's no label. Trigger: icon tile, value, round chevron that flips and fills roast when open. Popover: search input, highlighted match, check on the chosen option, "No match for …", footer count + key hints. Keyboard: ↑ ↓, Enter, Esc, type to filter; outside click closes. Works with react-hook-form via `Controller`. |
+| `FileDrop` | Components, Checkout (receipt), Profile (avatar button) | `kind: 'image' \| 'file'` reads `UPLOAD_RULES`; checks type and size before uploading and shows the "too large" state. |
+| `ReviewPanel` | ProductDetail, Components | States: guest (Sign in), not purchased, ordered but not completed, write, **your review** (stars, text, Posted/Edited stamp, Edit, Delete with inline confirm), edit form (Cancel / Save changes). |
 | `PasswordInput` + `PasswordRule` | Login, Register, ResetPassword, Settings | Eye toggle (aria-pressed). Rule line "At least 8 characters with a letter, a number and a special character" turns green with a check when valid. |
 | `RadioCard` | Register (role), Checkout (method, address, payment), Modals (cancel reason) | Selected: 2px roast border + highlight background. |
 | `ChipToggle` | Products (variety) | Selected: roast fill, white text, check icon. |
 | `ProductCard` | Main, Products | 4:3 image, category label, name, short detail, rating, price / unit, Add button. Out-of-stock and "Only N left" badges. |
 | `StarRating` (display, picker) | ProductDetail | Caramel fill. |
-| `QuantityStepper` | ProductDetail, CartDrawer | Unit-aware step; disabled at min/max. |
+| `QuantityStepper` | ProductDetail, CartDrawer | Unit-aware step; takes `max` (Product detail: `stock − inCart`; Cart: `stock`); `+` disabled at the cap with the hint line. |
 | `CartDrawer` | CartDrawer | Right drawer 460px. Items, warnings, subtotal, **stacked full-width buttons: Checkout (primary) then Clear cart (outline)**. Checkout disabled (still labeled "Checkout") when any item is over stock. |
 | `ConfirmDialog` | Modals | Icon tile, title, text, two buttons. Cancel-order variant with reason radio list + "Tell us more" (required for Other) + refund note. |
 | `StatusPill`, `RefundBadge` | Orders, OrderDetail | |
@@ -134,7 +137,7 @@ Put these in one `constants/orderStatus.js` map used by `StatusPill`, tabs and t
 | `AccountCard` | Profile, Settings, Addresses | Card with header band, body grid, footer band with actions. **No side menu** — account navigation lives in the avatar dropdown only. |
 | `AuthLayout` | Login, Register, ForgotPassword, ResetPassword, VerifyEmail | Split: left brand panel (photo + espresso gradient + contour lines, logo, eyebrow, tagline) hidden under 900px; right swaps forms via `<Outlet />`. |
 | `AddressCard` | Addresses, Checkout | Label, Default badge, recipient · phone, street, area, pin status; actions Edit / Set as default / Delete. In Checkout it's a radio card showing distance + fee. |
-| `AddressFormModal` + `MapPicker` | AddressModal | Two columns. **Map**: search box, "Use my location", click/drag pin → `/geo/reverse` auto-fills fields, outside-area error. **Form**: label chips, recipient, phone, province (read-only), municipality and barangay selects, postal code (read-only), street/landmark, default checkbox, fee preview. Footer: Cancel / Save address. |
+| `AddressFormModal` + `MapPicker` | AddressModal | Two columns. **Map**: search box, "Use my location", zoom controls (+, −, fit Marinduque), click/drag pin → `/geo/reverse` auto-fills fields, outside-area error, zoom label bottom-left. Municipality select → `flyTo` the municipality; barangay select → `flyTo` closer and show the dashed approximate-area ring. **Form**: label chips, recipient, phone, province (read-only), municipality and barangay `SearchSelect`s, postal code (read-only), street/landmark, default checkbox, fee preview (or "Drop a pin or pick your barangay…" before a pin exists). Footer: Cancel / Save address. |
 | `DeliveryMethodCards`, `PaymentCards` | Checkout | Delivery vs Pickup; e-wallet vs cash (label switches to "Cash on delivery" / "Cash on pickup"). |
 | `EtaLine` | Checkout, OrderDetail | Calendar icon + "Estimated delivery Nov 25 – Nov 27" + "3–5 business days after Kaluppa confirms". |
 | `MediaViewer` | PostDetail | Big viewer with prev/next + "n / total", thumbnail strip, video play button + duration. |
@@ -163,6 +166,8 @@ Put these in one `constants/orderStatus.js` map used by `StatusPill`, tabs and t
 | `VerifyEmail.dc.html` | `/verify-email` (+ `/verify-email/confirm?token=`) | logged-in unverified user |
 | `Modals.dc.html` | dialogs used across pages | — |
 | `Dashboard.dc.html` | `/dashboard/overview` | kaluppa, group_manager, farmer |
+| `SearchSelect.dc.html` | shared component (`components/ui/SearchSelect.jsx`) | — |
+| `Components.dc.html` | SearchSelect states, upload rules, review panel states | — |
 | `Addresses.dc.html` | `/addresses` | verified buyer |
 | `AddressModal.dc.html` | modal over `/addresses` and `/checkout` | verified buyer |
 | `Navbar.dc.html`, `Footer.dc.html` | shared | — |
@@ -170,12 +175,12 @@ Put these in one `constants/orderStatus.js` map used by `StatusPill`, tabs and t
 ## 6. Interactions to rebuild
 
 - Landing FAQ accordion (one open at a time). Hero carousel with arrows, dots, "01 / 03", autoplay that pauses on hover/focus.
-- Products: variety chips, coffee-type checkboxes, price range, sort, search — all synced to the URL query; infinite scroll with skeleton row and "Loading more coffee…".
-- Product detail: thumbnail switching, unit-aware quantity stepper with live total, star picker, "Load more reviews".
-- Cart: steppers, over-stock warning, Checkout disabled while any warning shows.
+- Products: variety chips, coffee-type checkboxes, price range, sort (`SearchSelect`, small), search — all synced to the URL query; infinite scroll with skeleton row and "Loading more coffee…".
+- Product detail: thumbnail switching, unit-aware quantity stepper capped at `stock − inCart` with the "already in your cart" line, star picker, review panel (your review → Edit / Delete with inline confirm → write again), "Load more reviews". List badge reads "Verified purchase".
+- Cart: steppers capped at stock ("That is all we have" hint), over-stock warning when stock dropped after adding, Checkout disabled while any warning shows.
 - Checkout: delivery/pickup cards switch section 2 (saved addresses vs Kaluppa pickup card + contact number); payment cards switch between e-wallet (GCash/Maya tabs, QR, receipt upload) and the cash note; the summary updates fee, total, destination, ETA and payment live.
 - Addresses: set default, edit, delete (confirm), add (opens modal).
-- Address modal: click/drag pin → fields fill; municipality select drives barangay options and postal code; outside-area pin shows the error.
+- Address modal: click/drag pin → fields fill; municipality select flies the map to it and drives barangay options and postal code; barangay select flies closer; zoom buttons; outside-area pin shows the error.
 - Orders: group cards filter the list; status chips narrow it inside a group; infinite scroll.
 - Order detail: full-width layout (no chat); the timeline and status banner update live on `order:updated`.
 - Register: role cards, username availability (green/red), 3 one-line suggestion chips, password rule.

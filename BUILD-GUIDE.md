@@ -25,7 +25,7 @@ kapekonek/
 └── docs/
     ├── PRODUCT-SPEC.md
     ├── DESIGN.md
-    ├── design/screens/   (22 files)
+    ├── design/screens/   (24 files)
     └── prompts/PHASE-1-PROMPT.md
 ```
 
@@ -148,6 +148,16 @@ See **SETUP.md §10**: backend on Render (health check `/api/health`), frontend 
 - the delivery fee values (seed settings).
 
 ---
+
+## Change prompts (after the build)
+
+Each one is a single Claude Code session. Copy the updated kit files in first (CLAUDE.md, BUILD-GUIDE.md, SETUP.md, docs/; keep your code, `_reference/`, `.claude/` and `docs/plans/phase-1.md`), run `/clear`, then send the line.
+
+| Change | Send |
+|---|---|
+| 01 · remove order chat | done |
+| 02 · no eyebrow bar | done |
+| 03 · search selects, map zoom, upload limits, review rules, cart quantity fix | `Read CLAUDE.md and docs/prompts/CHANGE-03-SELECTS-MAP-ZOOM-UPLOADS-REVIEWS-CART.md, then carry out Change 03.` |
 
 ## Tips while it builds
 
