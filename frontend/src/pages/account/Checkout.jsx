@@ -51,7 +51,7 @@ function Section({ n, title, action, muted, children }) {
   const id = useId()
   return (
     <section aria-labelledby={id} className="overflow-hidden rounded-card border border-sand bg-white">
-      <header className="flex items-center justify-between gap-3 border-b border-sand-soft px-[22px] py-[18px]">
+      <header className="flex flex-wrap items-center justify-between gap-x-3 border-b border-sand-soft px-[22px] py-[18px]">
         <div className="flex items-center gap-3">
           <span className={cn('grid size-7 place-items-center rounded-full text-[13px] font-semibold', muted ? 'bg-caramel-tint text-caramel-badge' : 'bg-roast text-white')}>{n}</span>
           <h2 id={id} className="text-base font-semibold">
@@ -250,7 +250,7 @@ export function Checkout() {
             title={isDelivery ? 'Delivery address' : `Pickup at ${pickup.name}`}
             action={
               isDelivery && list.length < 10 && (
-                <button type="button" onClick={() => setAddingAddress(true)} className="inline-flex min-h-10 cursor-pointer items-center gap-1.5 border-0 bg-transparent text-[13.5px] font-semibold text-roast hover:text-roast-hover">
+                <button type="button" onClick={() => setAddingAddress(true)} className="inline-flex min-h-10 cursor-pointer items-center gap-1.5 whitespace-nowrap border-0 bg-transparent text-[13.5px] font-semibold text-roast hover:text-roast-hover">
                   <Plus aria-hidden="true" className="size-[15px]" strokeWidth={2} />
                   Add new address
                 </button>

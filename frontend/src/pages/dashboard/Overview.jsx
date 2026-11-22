@@ -57,7 +57,7 @@ export function Overview() {
         <div className="min-w-0 flex-[1_1_320px]">
           <h2 className="text-[19px] font-semibold">Your tools arrive in the next phase</h2>
           <p className="mt-1.5 text-sm leading-[1.65] text-ink-2">
-            This dashboard is ready for your account. Here&apos;s what&apos;s coming for {roleLabel.toLowerCase()}s:
+            This dashboard is ready for your account. Here&apos;s what&apos;s coming for {role === 'kaluppa' ? roleLabel : `${roleLabel.toLowerCase()}s`}:
           </p>
           <ul className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-2.5">
             {(UPCOMING[role] ?? []).map((item) => (

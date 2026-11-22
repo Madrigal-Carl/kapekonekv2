@@ -253,16 +253,19 @@ export function OrderDetail() {
                 <span aria-hidden="true" className="size-14 shrink-0 overflow-hidden rounded-[6px] bg-photo">
                   {item.image && <img src={imageUrl(item.image, 64)} alt="" loading="lazy" className="size-full object-cover" />}
                 </span>
-                <div className="min-w-0 flex-1">
+                <div className="min-w-[150px] flex-1">
                   <Link to={`/products/${item.slug}`} className="text-sm font-semibold text-ink no-underline hover:text-roast">
                     {item.name}
                   </Link>
                   <span className="block text-xs text-ink-3">{productMeta(item)}</span>
                 </div>
-                <span className="text-[13px] text-ink-2">
-                  {item.unit === 'kg' ? `${item.quantity} kg` : item.quantity} × {formatPeso(item.priceCentavos)}
-                </span>
-                <span className="w-24 text-right text-sm font-semibold">{formatPeso(item.lineTotalCentavos)}</span>
+                {/* Wraps as one block under the name on phones. */}
+                <div className="ml-auto flex items-center gap-3.5">
+                  <span className="text-[13px] text-ink-2">
+                    {item.unit === 'kg' ? `${item.quantity} kg` : item.quantity} × {formatPeso(item.priceCentavos)}
+                  </span>
+                  <span className="w-24 text-right text-sm font-semibold">{formatPeso(item.lineTotalCentavos)}</span>
+                </div>
               </div>
             ))}
             <dl className="m-0 grid grid-cols-[1fr_auto] gap-y-1.5 pt-3 text-sm text-ink-2">

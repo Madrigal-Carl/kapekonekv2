@@ -30,7 +30,8 @@ export function Navbar() {
             <span className="grid size-[34px] place-items-center rounded-card bg-espresso text-caramel-light">
               <BeanMark className="size-[18px]" />
             </span>
-            <span className="text-base font-semibold leading-[1.1] tracking-[-0.01em]">KapeKonek</span>
+            {/* Below 360px the mark alone keeps the cart, Get started and menu on one line. */}
+            <span className="text-base font-semibold leading-[1.1] tracking-[-0.01em] max-[359px]:hidden">KapeKonek</span>
           </Link>
           <nav aria-label="Main" className="flex items-center gap-7 max-[720px]:hidden">
             <Link

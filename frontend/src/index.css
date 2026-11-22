@@ -96,4 +96,16 @@
     outline: 2px solid var(--color-roast);
     outline-offset: 2px;
   }
+
+  /* Polish that keeps the screens' sizes: no orphaned words, themed browser surfaces, aligned money columns. */
+  h1, h2, h3 { text-wrap: balance; }
+  p { text-wrap: pretty; }
+  ::selection { background: var(--color-caramel-tint); color: var(--color-espresso); }
+  input, textarea { caret-color: var(--color-roast); }
+  table, dl { font-variant-numeric: tabular-nums; }
+
+  /* Skeletons stay as static placeholders; spinners keep turning because they are the only progress signal. */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-pulse { animation: none; }
+  }
 }
