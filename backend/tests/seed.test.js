@@ -101,6 +101,9 @@ describe('catalog, settings, posts and demo seeders', () => {
     expect(reviewed.length).toBeGreaterThanOrEqual(2);
     for (const product of reviewed) expect(product.ratingCount).toBe(await Review.countDocuments({ product: product._id }));
     expect(await Review.countDocuments({ comment: /chat|messag/i })).toBe(0);
+    for (const review of await Review.find().lean()) {
+      expect(await Order.exists({ _id: review.order, buyer: review.buyer, status: 'sold', 'items.product': review.product })).toBeTruthy();
+    }
     const order = await Order.findOne({ status: 'sold' }).lean();
     expect(order.orderNumber).toMatch(/^KK-\d{8}-\d{4}$/);
 
