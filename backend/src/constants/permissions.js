@@ -10,6 +10,7 @@ export const PERMISSIONS = {
   'orders.manage': { name: 'Manage all orders', group: 'orders' },
   'reviews.create': { name: 'Write reviews', group: 'reviews' },
   'reviews.update_own': { name: 'Edit own reviews', group: 'reviews' },
+  'reviews.delete_own': { name: 'Delete own reviews', group: 'reviews' },
   'notifications.view': { name: 'View notifications', group: 'notifications' },
   'profile.update': { name: 'Update profile', group: 'account' },
   'dashboard.view': { name: 'View dashboard', group: 'dashboard' },
@@ -36,8 +37,9 @@ export const ROLE_PERMISSIONS = {
   buyer: [
     'catalog.coffee', 'cart.manage', 'addresses.manage',
     'orders.create', 'orders.view_own', 'orders.cancel_own',
-    'reviews.create', 'reviews.update_own', ...everyone,
+    'reviews.create', 'reviews.update_own', 'reviews.delete_own', ...everyone,
   ],
+  // Farmers get reviews.create / update_own / delete_own when the farmer shop (fertilizer, seedlings) ships.
   farmer: ['catalog.farm_supplies', ...everyone, ...community],
   group_manager: [...everyone, ...community],
   kaluppa: Object.keys(PERMISSIONS),

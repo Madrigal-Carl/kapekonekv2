@@ -37,6 +37,12 @@ export const createReview = async (data) => (await Review.create(data)).toObject
 export const updateOwnReview = (id, buyerId, changes) =>
   Review.findOneAndUpdate({ _id: id, buyer: buyerId }, { ...changes, editedAt: new Date() }, { returnDocument: 'after' }).lean();
 
+/**
+ * Delete a review only if this buyer wrote it.
+ * @returns {Promise<object|null>} the deleted review, or null when it isn't theirs or doesn't exist
+ */
+export const deleteOwnReview = (id, buyerId) => Review.findOneAndDelete({ _id: id, buyer: buyerId }).lean();
+
 /** Bulk insert (demo seeder). */
 export const insertReviews = (reviews) => Review.insertMany(reviews);
 

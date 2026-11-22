@@ -58,3 +58,12 @@ export function useSaveReview(productId) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: productKeys.all }),
   })
 }
+
+/** Delete the buyer's own review, then refresh the product's reviews, summary and rating. */
+export function useDeleteReview() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: catalog.deleteReview,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: productKeys.all }),
+  })
+}

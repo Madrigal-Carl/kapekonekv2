@@ -1,7 +1,7 @@
 import { Clock, Coffee, MapPin, ShoppingBag, Wallet } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ReviewForm } from '@/components/product/ReviewForm'
+import { ReviewPanel } from '@/components/product/ReviewPanel'
 import { ReviewList } from '@/components/product/ReviewList'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -215,7 +215,7 @@ export function ProductDetail() {
         <div className="mt-8 flex flex-wrap items-start gap-8">
           <div className="flex max-w-[380px] flex-[1_1_300px] flex-col gap-5 max-[700px]:max-w-none">
             <Summary productId={_id} />
-            <ReviewForm productId={_id} />
+            <ReviewPanel productId={_id} />
           </div>
           <div className="min-w-0 flex-[999_1_520px]">
             <ReviewList productId={_id} total={ratingCount} />

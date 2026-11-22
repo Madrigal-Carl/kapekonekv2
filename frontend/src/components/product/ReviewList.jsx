@@ -8,8 +8,6 @@ import { useReviews } from '@/hooks/useProducts'
 import { formatDate } from '@/lib/date'
 
 const AVATAR_BG = ['bg-roast', 'bg-caramel-ink', 'bg-ink-2']
-const FULFILLMENT = { pickup: 'Picked up', delivery: 'Delivered' }
-
 /** Newest-first reviews with "Load more reviews" (ProductDetail.dc.html). */
 export function ReviewList({ productId, total }) {
   const { data, isPending, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useReviews(productId)
@@ -48,12 +46,10 @@ export function ReviewList({ productId, total }) {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-semibold">{review.author.name}</span>
-                  {FULFILLMENT[review.fulfillment] && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-success-bg px-2 py-0.5 text-[11px] font-semibold text-success-ink">
-                      <Check aria-hidden="true" className="size-3" strokeWidth={2.5} />
-                      {FULFILLMENT[review.fulfillment]}
-                    </span>
-                  )}
+                  <span className="inline-flex items-center gap-1 rounded-full bg-success-bg px-2 py-0.5 text-[11px] font-semibold text-success-ink">
+                    <Check aria-hidden="true" className="size-3" strokeWidth={2.5} />
+                    Verified purchase
+                  </span>
                 </div>
                 <span className="text-xs text-ink-4">
                   {formatDate(review.createdAt)}

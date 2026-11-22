@@ -1,3 +1,4 @@
+import { FINAL_STATUSES } from '../constants/orderStatus.js';
 import { Order } from '../models/order.model.js';
 import { cursorFilter, cursorSort, pageResult } from '../utils/pagination.js';
 
@@ -8,8 +9,14 @@ const NEWEST = { sortField: 'createdAt', direction: 'desc' };
  * @returns {Promise<{ _id: unknown, fulfillment: { method: string }, statusHistory: Array<{ status: string, at: Date }> } | null>}
  */
 export const findLatestSoldOrderWithProduct = (buyerId, productId) =>
-  Order.findOne({ buyer: buyerId, status: 'sold', 'items.product': productId }, { 'fulfillment.method': 1, statusHistory: 1 })
+  Order.findOne({ buyer: buyerId, status: 'sold', 'items.product': productId }, { orderNumber: 1, 'fulfillment.method': 1, statusHistory: 1 })
     .sort({ updatedAt: -1 })
+    .lean();
+
+/** The buyer's newest order of a product that is still on its way (not sold, cancelled, rejected or expired). */
+export const findOpenOrderWithProduct = (buyerId, productId) =>
+  Order.findOne({ buyer: buyerId, status: { $nin: FINAL_STATUSES }, 'items.product': productId }, { orderNumber: 1 })
+    .sort({ createdAt: -1 })
     .lean();
 
 /** Bulk insert (demo seeder). */

@@ -18,5 +18,6 @@ router.get('/products/:id/reviews/summary', optionalAuth, validate({ params: idP
 router.get('/products/:id/reviews/me', authenticate, verified, validate({ params: idParams }), catalog.myReview);
 router.post('/products/:id/reviews', authenticate, verified, can('reviews.create'), validate({ params: idParams, body: createReviewSchema }), catalog.createReview);
 router.patch('/reviews/:id', authenticate, verified, can('reviews.update_own'), validate({ params: idParams, body: updateReviewSchema }), catalog.updateReview);
+router.delete('/reviews/:id', authenticate, verified, can('reviews.delete_own'), validate({ params: idParams }), catalog.deleteReview);
 
 export default router;

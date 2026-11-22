@@ -27,9 +27,27 @@ export async function resolvePermissions(user) {
 /** Call after a user's roles or direct permissions change. */
 export const clearPermissionCache = (userId) => getValkey().del(key(userId));
 
+/**
+ * Wait (up to 5 s) for the cache connection. It has no offline queue, so the seeder (a short-lived script) would
+ * otherwise send its first command while still connecting and fail.
+ */
+async function whenReady(client, ms = 5000) {
+  if (!client.status || client.status === 'ready') return; // ioredis-mock has no status
+  await new Promise((resolve) => {
+    const timer = setTimeout(done, ms);
+    function done() {
+      clearTimeout(timer);
+      client.off('ready', done);
+      resolve();
+    }
+    client.once('ready', done);
+  });
+}
+
 /** Call after the role/permission seeder runs. */
 export async function clearAllPermissionCaches() {
   const valkey = getValkey();
+  await whenReady(valkey);
   let cursor = '0';
   do {
     const [next, keys] = await valkey.scan(cursor, 'MATCH', 'perm:user:*', 'COUNT', 500);

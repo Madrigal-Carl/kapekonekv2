@@ -36,3 +36,8 @@ export const createReview = asyncHandler(async (req, res) => {
 export const updateReview = asyncHandler(async (req, res) => {
   sendSuccess(res, { message: 'Your review was updated.', data: await reviews.updateReview(req.user, req.params.id, req.body) });
 });
+
+export const deleteReview = asyncHandler(async (req, res) => {
+  await reviews.deleteReview(req.user, req.params.id);
+  sendSuccess(res, { message: 'Your review was deleted.' });
+});
