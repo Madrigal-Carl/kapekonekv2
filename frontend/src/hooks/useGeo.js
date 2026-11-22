@@ -1,9 +1,17 @@
-import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import * as geo from '@/services/geo.service'
 
 export const geoKeys = {
   search: (q) => ['geo', 'search', q],
   quote: (params) => ['delivery', 'quote', params],
+  barangay: (municipality, barangay) => ['geo', 'barangay', municipality, barangay],
+}
+
+/** `(municipality, barangay) => Promise<point|null>`, cached for the session (a barangay doesn't move). */
+export function useFindBarangay() {
+  const queryClient = useQueryClient()
+  return (municipality, barangay) =>
+    queryClient.fetchQuery({ queryKey: geoKeys.barangay(municipality, barangay), queryFn: () => geo.findBarangay(municipality, barangay), staleTime: Infinity })
 }
 
 export const useReverseGeocode = () => useMutation({ mutationFn: geo.reverseGeocode })

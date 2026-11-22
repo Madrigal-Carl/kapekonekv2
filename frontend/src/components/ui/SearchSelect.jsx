@@ -276,7 +276,7 @@ export function SearchSelect({
             </ul>
             <div className="flex justify-between gap-2 border-t border-sand-soft bg-cream px-3 py-[7px] text-[11.5px] text-ink-3">
               <span aria-live="polite">{q ? `${matches.length} of ${items.length}` : `${items.length} options`}</span>
-              <span className="max-[400px]:hidden">↑ ↓ to move · Enter to pick · Esc to close</span>
+              {place.width >= 300 && <span>↑ ↓ to move · Enter to pick · Esc to close</span>}
             </div>
           </div>,
           document.body,

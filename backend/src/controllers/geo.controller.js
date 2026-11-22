@@ -9,7 +9,7 @@ export const reverse = asyncHandler(async (req, res) => {
 });
 
 export const search = asyncHandler(async (req, res) => {
-  sendSuccess(res, { data: await geo.search(req.query.q) });
+  sendSuccess(res, { data: await geo.search(req.query) });
 });
 
 export const quote = asyncHandler(async (req, res) => {

@@ -1,4 +1,4 @@
-import { TOWN_CENTERS } from '../../constants/geo.js';
+import { MUNICIPALITY_CENTERS } from '../../constants/geo.js';
 import { countActiveByUser, insertAddresses } from '../../repositories/address.repository.js';
 import { findUsersByEmails } from '../../repositories/user.repository.js';
 import { getLocations } from '../../services/location.service.js';
@@ -32,7 +32,7 @@ export async function seedAddresses() {
     }
     const n = Number(user.email.slice(5, 7));
     const town = towns[n % towns.length];
-    const centre = TOWN_CENTERS[town.name];
+    const centre = MUNICIPALITY_CENTERS[town.name];
     docs.push(withPostal({
       user: user._id, label: 'Home', recipientName: `${user.firstName} ${user.lastName}`, phone: user.contactNumber ?? '09170000000',
       municipality: town.name, barangay: town.barangays[(n * 7) % town.barangays.length], street: `Purok ${1 + (n % 6)}, near the barangay hall`,

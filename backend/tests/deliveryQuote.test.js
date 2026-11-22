@@ -137,6 +137,35 @@ describe('routes', () => {
     expect(outside.body.data.insideDeliveryArea).toBe(false);
   });
 
+  it('/geo/search finds a barangay near its town, caches it 7 days, and returns [] when Mapbox only knows the town', async () => {
+    const buyer = await signedIn('buyer02@kapekonek.test');
+    mapbox.forwardGeocode.mockResolvedValueOnce([
+      { name: 'Town hall', fullAddress: 'Boac, Marinduque', lat: 13.447, lng: 121.84, context: { place: 'Boac' } },
+      { name: 'Agot', fullAddress: 'Agot, Boac, Marinduque', lat: 13.42, lng: 121.86, context: { place: 'Boac' } },
+    ]);
+    const res = await buyer.get('/api/geo/search?municipality=Boac&barangay=Agot');
+    expect(res.status).toBe(200);
+    expect(res.body.data).toEqual([{ name: 'Agot', fullAddress: 'Agot, Boac, Marinduque', lat: 13.42, lng: 121.86 }]);
+    expect(mapbox.forwardGeocode).toHaveBeenCalledWith('Agot, Boac, Marinduque, Philippines', { proximity: { lat: 13.4467, lng: 121.8406 } });
+
+    const again = await buyer.get('/api/geo/search?municipality=Boac&barangay=Agot');
+    expect(again.body.data).toEqual(res.body.data);
+    expect(mapbox.forwardGeocode).toHaveBeenCalledTimes(1);
+    const { getValkey } = await import('../src/config/valkey.js');
+    expect(await getValkey().ttl('geo:brgy:Boac:Agot')).toBeGreaterThan(6 * 24 * 3600);
+
+    mapbox.forwardGeocode.mockResolvedValueOnce([{ name: 'Gasan', fullAddress: 'Gasan, Marinduque', lat: 13.32, lng: 121.85, context: {} }]);
+    expect((await buyer.get('/api/geo/search?municipality=Gasan&barangay=Antipolo')).body.data).toEqual([]);
+
+    expect((await buyer.get('/api/geo/search?municipality=Boac&barangay=Nowhere')).status).toBe(400);
+    expect((await buyer.get('/api/geo/search')).status).toBe(400);
+  });
+
+  it('/locations gives each municipality its center', async () => {
+    const res = await request(app).get('/api/locations');
+    expect(res.body.data.find((t) => t.name === 'Santa Cruz').center).toEqual({ lat: 13.4778, lng: 122.03 });
+  });
+
   it('/geo/search returns places inside Marinduque only', async () => {
     const buyer = await signedIn('buyer02@kapekonek.test');
     mapbox.forwardGeocode.mockResolvedValueOnce([

@@ -1,5 +1,5 @@
 // Juana's (buyer@) demo orders: every status, both methods, both payments, refunds and notifications (PRODUCT-SPEC §11).
-import { TOWN_CENTERS } from '../../constants/geo.js';
+import { MUNICIPALITY_CENTERS } from '../../constants/geo.js';
 import { BUYER_CANCEL_REASONS, REJECT_REASONS } from '../../constants/orderStatus.js';
 import { quoteForPoint } from '../../services/deliveryQuote.service.js';
 import { buyerNotice } from '../../services/orderStatus.service.js';
@@ -45,7 +45,7 @@ async function quoteFor(address, origin, rules) {
     return { distanceKm, feeCentavos, distanceSource };
   }
   // Unpinned (Mama's house): straight-line distance from the town centre, like the live fallback.
-  const distanceKm = Math.round(haversineKm(origin, TOWN_CENTERS[address.municipality]) * rules.roadFactorFallback * 10) / 10;
+  const distanceKm = Math.round(haversineKm(origin, MUNICIPALITY_CENTERS[address.municipality]) * rules.roadFactorFallback * 10) / 10;
   return { distanceKm, feeCentavos: feeForDistance(distanceKm, rules), distanceSource: 'fallback' };
 }
 

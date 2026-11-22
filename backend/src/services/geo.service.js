@@ -1,12 +1,13 @@
 import { forwardGeocode, reverseGeocode } from '../clients/mapbox.client.js';
-import { insideBounds, TOWN_CENTERS } from '../constants/geo.js';
+import { getValkey } from '../config/valkey.js';
+import { insideBounds, MUNICIPALITY_CENTERS } from '../constants/geo.js';
 import { haversineKm } from '../utils/deliveryFee.js';
 import { getLocations } from './location.service.js';
 
 const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
 const nearestTown = (point) =>
-  getLocations().reduce((best, town) => (haversineKm(point, TOWN_CENTERS[town.name]) < haversineKm(point, TOWN_CENTERS[best.name]) ? town : best));
+  getLocations().reduce((best, town) => (haversineKm(point, MUNICIPALITY_CENTERS[town.name]) < haversineKm(point, MUNICIPALITY_CENTERS[best.name]) ? town : best));
 
 /**
  * Address fields for a dropped pin. The municipality is matched by name, else the nearest town;
@@ -32,12 +33,37 @@ export async function reverse(point) {
   };
 }
 
+const BARANGAY_TTL_SEC = 7 * 24 * 3600;
+const brief = ({ name, fullAddress, lat, lng }) => ({ name, fullAddress, lat, lng });
+
 /**
- * Place search for the address window, limited to Marinduque.
- * @param {string} query
+ * Where a barangay is: the nearest Mapbox result (biased to the town centre) that actually names it.
+ * Mapbox often knows only the town; that counts as not found (`[]`), so the map stays at town zoom.
+ * Cached 7 days in Valkey (misses too), keyed `geo:brgy:<municipality>:<barangay>`.
+ */
+async function findBarangay(municipality, barangay) {
+  const key = `geo:brgy:${municipality}:${barangay}`;
+  const valkey = getValkey();
+  const hit = await valkey.get(key).catch(() => null);
+  if (hit) return JSON.parse(hit);
+  const center = MUNICIPALITY_CENTERS[municipality];
+  const places = await forwardGeocode(`${barangay}, ${municipality}, Marinduque, Philippines`, { proximity: center });
+  const wanted = norm(barangay);
+  const named = places
+    .filter((p) => insideBounds(p) && [p.name, ...Object.values(p.context ?? {})].some((n) => n && norm(n) === wanted))
+    .sort((a, b) => haversineKm(a, center) - haversineKm(b, center));
+  const result = named.slice(0, 1).map(brief);
+  valkey.set(key, JSON.stringify(result), 'EX', BARANGAY_TTL_SEC).catch(() => {});
+  return result;
+}
+
+/**
+ * Place search for the address window, limited to Marinduque: free text (`q`) or one barangay of a municipality.
+ * @param {{ q?: string, municipality?: string, barangay?: string }} query
  * @returns {Promise<Array<{ name: string, fullAddress: string, lat: number, lng: number }>>}
  */
-export async function search(query) {
-  const places = await forwardGeocode(query);
-  return places.filter(insideBounds).map(({ name, fullAddress, lat, lng }) => ({ name, fullAddress, lat, lng }));
+export async function search({ q, municipality, barangay }) {
+  if (barangay) return findBarangay(municipality, barangay);
+  const places = await forwardGeocode(q);
+  return places.filter(insideBounds).map(brief);
 }

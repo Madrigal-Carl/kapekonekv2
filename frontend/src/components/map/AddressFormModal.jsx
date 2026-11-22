@@ -9,7 +9,7 @@ import { Modal } from '@/components/ui/Modal'
 import { SearchSelect } from '@/components/ui/SearchSelect'
 import { Spinner } from '@/components/ui/Spinner'
 import { useCreateAddress, useUpdateAddress } from '@/hooks/useAddresses'
-import { usePointQuote, useReverseGeocode } from '@/hooks/useGeo'
+import { useFindBarangay, usePointQuote, useReverseGeocode } from '@/hooks/useGeo'
 import { useDeliveryInfo, useLocations } from '@/hooks/useSettings'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
 import { cn } from '@/lib/cn'
@@ -21,6 +21,10 @@ const MapPicker = lazy(() => import('./MapPicker').then((m) => ({ default: m.Map
 
 const FIELDS = ['label', 'customLabel', 'recipientName', 'phone', 'municipality', 'barangay', 'street', 'location', 'isDefault']
 const OUTSIDE = 'That spot is outside our delivery area. We deliver anywhere in Marinduque.'
+const BARANGAY_NOT_FOUND = 'Couldn’t find that barangay on the map. Drag the pin to your spot.'
+// Camera zoom for the selects (PRODUCT-SPEC §8): a municipality, then closer for a barangay.
+const ZOOM = { municipality: 12.5, barangay: 15 }
+const ISLAND_FOCUS = { label: 'All of Marinduque' }
 const readOnlyClasses = 'w-full rounded-control border border-sand-soft bg-cream px-3 py-2.5 text-sm text-ink-2'
 
 const emptyAddress = (user) => ({
@@ -38,7 +42,7 @@ const emptyAddress = (user) => ({
 function FeePreview({ point }) {
   const quote = usePointQuote(point)
   let text
-  if (!point) text = <>Drop a pin for a delivery fee estimate. The exact fee is confirmed at checkout.</>
+  if (!point) text = <>Drop a pin or pick your barangay to see the delivery fee.</>
   else if (quote.isPending) text = <>Working out the delivery fee…</>
   else if (quote.isError) text = <>{errorMessage(quote.error)}</>
   else {
@@ -67,11 +71,17 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
   const locations = useLocations()
   const delivery = useDeliveryInfo()
   const reverse = useReverseGeocode()
+  const findBarangay = useFindBarangay()
   const create = useCreateAddress()
   const update = useUpdateAddress()
   const [pinError, setPinError] = useState(null)
+  const [pinNote, setPinNote] = useState(null)
+  // Where the map should look. Edit opens on the saved pin at barangay zoom; a new address shows the whole island.
+  const [focus, setFocus] = useState(() =>
+    address?.location ? { label: `${address.barangay}, ${address.municipality} · zoomed to barangay` } : ISLAND_FOCUS,
+  )
 
-  const { register, control, handleSubmit, setValue, setError, getFieldState, formState: { errors } } = useForm({
+  const { register, control, handleSubmit, setValue, getValues, setError, getFieldState, formState: { errors } } = useForm({
     resolver: zodResolver(addressSchema),
     defaultValues: address
       ? { ...emptyAddress(), ...address, customLabel: address.customLabel ?? '', phone: formatPhone(address.phone) }
@@ -80,8 +90,14 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
   const [label, municipality, location] = useWatch({ control, name: ['label', 'municipality', 'location'] })
   const town = locations.data?.find((t) => t.name === municipality)
 
-  const dropPin = (point) => {
+  /**
+   * Move the pin. Moves from the municipality/barangay selects (`source: 'select'`) only place the pin: they never
+   * reverse-geocode or overwrite the fields. Map click/drag, search and "Use my location" fill the fields from the pin.
+   */
+  const movePin = (point, source) => {
     setPinError(null)
+    setPinNote(null)
+    if (source === 'select') return setValue('location', point, { shouldDirty: true })
     reverse.mutate(point, {
       onSuccess: (place) => {
         if (!place.insideDeliveryArea) return setPinError(OUTSIDE)
@@ -92,6 +108,26 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
       },
       onError: (error) => setPinError(errorMessage(error)),
     })
+  }
+
+  const pickMunicipality = (name) => {
+    const center = locations.data.find((t) => t.name === name).center
+    if (name !== municipality) setValue('barangay', '')
+    movePin(center, 'select')
+    setFocus({ label: `${name} · zoomed to municipality`, center, zoom: ZOOM.municipality })
+  }
+
+  const pickBarangay = async (name) => {
+    const town = municipality
+    setPinNote(`Finding ${name} on the map…`)
+    const spot = await findBarangay(town, name).catch(() => null)
+    if (getValues('barangay') !== name) return // picked another one meanwhile
+    if (!spot) {
+      setPinNote(BARANGAY_NOT_FOUND)
+      return setFocus({ label: `${town} · zoomed to municipality`, center: locations.data.find((t) => t.name === town).center, zoom: ZOOM.municipality })
+    }
+    movePin({ lat: spot.lat, lng: spot.lng }, 'select')
+    setFocus({ label: `${name}, ${town} · zoomed to barangay`, center: { lat: spot.lat, lng: spot.lng }, zoom: ZOOM.barangay, area: true })
   }
 
   const save = handleSubmit((values) => {
@@ -127,7 +163,7 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
 
       <div className="flex flex-wrap gap-6 overflow-y-auto px-6 py-5">
         <Suspense fallback={<div className="aspect-[600/440] min-w-0 flex-[1_1_460px] animate-pulse rounded-card bg-water" />}>
-          <MapPicker value={location} onPick={dropPin} origin={delivery.data?.pickup.location} error={pinError} busy={reverse.isPending} />
+          <MapPicker value={location} onPick={movePin} focus={focus} origin={delivery.data?.pickup.location} error={pinError} busy={reverse.isPending} note={pinNote} />
         </Suspense>
 
         {/* The selects must mount with their options so the saved municipality and barangay stay selected. */}
@@ -191,8 +227,8 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
                   options={locations.data.map((t) => t.name)}
                   value={field.value || null}
                   onChange={(value) => {
-                    if (value !== field.value) setValue('barangay', '')
                     field.onChange(value)
+                    pickMunicipality(value)
                   }}
                   onBlur={field.onBlur}
                   ref={field.ref}
@@ -211,7 +247,10 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
                   searchPlaceholder="Search barangay"
                   options={town?.barangays ?? []}
                   value={field.value || null}
-                  onChange={field.onChange}
+                  onChange={(value) => {
+                    field.onChange(value)
+                    pickBarangay(value)
+                  }}
                   onBlur={field.onBlur}
                   ref={field.ref}
                   disabled={!town}
@@ -221,7 +260,7 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
             />
             <div>
               <Label htmlFor={`${id}-postal`}>Postal code</Label>
-              <input id={`${id}-postal`} value={town?.postalCode ?? ''} readOnly className={cn(readOnlyClasses, 'mt-1.5')} />
+              <input id={`${id}-postal`} value={town?.postalCode ?? ''} placeholder="Fills in from municipality" readOnly className={cn(readOnlyClasses, 'mt-1.5')} />
             </div>
           </div>
 

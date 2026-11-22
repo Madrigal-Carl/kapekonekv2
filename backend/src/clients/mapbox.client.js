@@ -41,8 +41,13 @@ export async function reverseGeocode(lat, lng) {
   return (data.features ?? []).map(toPlace);
 }
 
-/** Up to 5 places matching `query`, limited to the Marinduque bounding box. */
-export async function forwardGeocode(query) {
-  const data = await getJson('/search/geocode/v6/forward', { q: query, country: 'ph', bbox: BBOX, limit: 5 });
+/**
+ * Up to 5 places matching `query`, limited to the Marinduque bounding box.
+ * @param {string} query
+ * @param {{ proximity?: { lat: number, lng: number } }} [options] bias results toward this point
+ */
+export async function forwardGeocode(query, { proximity } = {}) {
+  const params = { q: query, country: 'ph', bbox: BBOX, limit: 5, ...(proximity && { proximity: `${proximity.lng},${proximity.lat}` }) };
+  const data = await getJson('/search/geocode/v6/forward', params);
   return (data.features ?? []).map(toPlace);
 }
