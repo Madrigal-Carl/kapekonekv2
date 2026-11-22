@@ -10,6 +10,12 @@ export const pageQuery = (max, fallback) =>
     limit: z.coerce.number().int().min(1).max(max, `At most ${max} per page`).default(fallback),
   });
 
+/** Numbered pages for dashboard tables: 10 rows by default, up to 50. */
+export const pageQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(50, 'At most 50 per page').default(10),
+});
+
 /** "a,b" → ['a','b'], each one of `values`. */
 export const csvOf = (values, message) =>
   z

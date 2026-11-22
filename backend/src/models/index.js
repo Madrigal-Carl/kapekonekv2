@@ -1,7 +1,10 @@
 // Registers every model, for commands that sync indexes across the whole database.
 export * from './address.model.js';
+export * from './auditLog.model.js';
 export * from './cart.model.js';
 export * from './category.model.js';
+export * from './conversation.model.js';
+export * from './conversationMember.model.js';
 export * from './counter.model.js';
 export * from './notification.model.js';
 export * from './order.model.js';

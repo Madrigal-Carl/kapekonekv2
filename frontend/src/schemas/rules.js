@@ -94,30 +94,44 @@ export const UPLOAD_RULES = {
     hint: 'JPG, PNG, WebP or HEIC · up to 5 MB',
   },
   file: {
-    formats: ['pdf', 'mp4', 'webm'],
-    mimeTypes: ['application/pdf', 'video/mp4', 'video/webm'],
+    formats: ['pdf'],
+    mimeTypes: ['application/pdf'],
     maxBytes: 10 * MB,
     noun: 'Files',
-    hint: 'PDF, MP4 or WebM · up to 10 MB',
+    hint: 'PDF · up to 10 MB',
+  },
+  video: {
+    formats: ['mp4', 'webm'],
+    mimeTypes: ['video/mp4', 'video/webm'],
+    maxBytes: 50 * MB,
+    noun: 'Videos',
+    hint: 'MP4 or WebM · up to 50 MB',
   },
 };
 
+/** The kinds each upload purpose accepts (PHASE-2-SPEC §5 Uploads). Video is for Hub posts only. */
+export const UPLOAD_PURPOSES = {
+  avatar: ['image'],
+  receipt: ['image'],
+  farmer_document: ['image', 'file'],
+  post_media: ['image', 'video'],
+};
+
 /**
- * Which rule an upload follows. Avatar and receipt are images; the seeder-only product/post media follow
- * the rule of their resource type (`image` or anything else).
- * @param {'avatar'|'receipt'|'product'|'post'} purpose
- * @param {string} [resourceType] Cloudinary resource type, for product/post media
- * @returns {'image'|'file'}
+ * Which rule a file of this format follows for this purpose, or null when the purpose doesn't take it.
+ * @param {keyof typeof UPLOAD_PURPOSES} purpose
+ * @param {string} format extension, e.g. `pdf`
+ * @returns {'image'|'file'|'video'|null}
  */
-export const kindForPurpose = (purpose, resourceType = 'image') =>
-  purpose === 'avatar' || purpose === 'receipt' || resourceType === 'image' ? 'image' : 'file';
+export const kindForFormat = (purpose, format) =>
+  UPLOAD_PURPOSES[purpose]?.find((kind) => UPLOAD_RULES[kind].formats.includes(format.toLowerCase())) ?? null;
 
 /** "7.2 MB" */
 export const formatMegabytes = (bytes) => `${(bytes / MB).toFixed(1)} MB`;
 
 /**
  * The two lines of the "too large" message: `["receipt.png is 7.2 MB.", "Images can be up to 5 MB."]`.
- * @param {'image'|'file'} kind
+ * @param {'image'|'file'|'video'} kind
  */
 export const tooLargeLines = (kind, name, bytes) => [
   // A file just over the limit never reads as the limit ("5.0 MB … up to 5 MB").
@@ -128,7 +142,7 @@ export const tooLargeLines = (kind, name, bytes) => [
 /**
  * A file to upload, described as `{ name, size, format }` (`format` = extension, e.g. `png`), so the browser
  * (File) and the server (Cloudinary `bytes` / `format`) check the same thing.
- * @param {'image'|'file'} kind
+ * @param {'image'|'file'|'video'} kind
  */
 export const uploadRule = (kind) =>
   z

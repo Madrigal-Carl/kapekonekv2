@@ -162,10 +162,10 @@ describe('upload signatures', () => {
     const res = await buyer.post('/api/uploads/signature').send({ purpose: 'receipt' });
     expect(res.status).toBe(200);
     const me = (await buyer.get('/api/auth/me')).body.data.user;
-    expect(res.body.data).toMatchObject({ folder: `kapekonek/receipts/${me.id}`, apiKey: 'test', allowedFormats: 'jpg,jpeg,png,webp,heic,heif', kind: 'image', maxBytes: 5 * 1024 * 1024 });
+    expect(res.body.data).toMatchObject({ folder: `kapekonek/receipts/${me.id}`, apiKey: 'test', allowedFormats: 'jpg,jpeg,png,webp,heic,heif', kinds: ['image'] });
     expect(res.body.data.signature).toMatch(/^[a-f0-9]{40}$/);
     const avatar = await buyer.post('/api/uploads/signature').send({ purpose: 'avatar' });
-    expect(avatar.body.data).toMatchObject({ folder: `kapekonek/avatars/${me.id}`, kind: 'image', maxBytes: 5 * 1024 * 1024 });
+    expect(avatar.body.data).toMatchObject({ folder: `kapekonek/avatars/${me.id}`, kinds: ['image'] });
     expect((await buyer.post('/api/uploads/signature').send({ purpose: 'product' })).status).toBe(400);
   });
 });

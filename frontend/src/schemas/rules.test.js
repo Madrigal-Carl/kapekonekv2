@@ -1,7 +1,7 @@
 // The same table runs in backend/tests/rules.test.js — keep them identical.
 import { describe, expect, it } from 'vitest';
 import {
-  cancelReasonRule, customLabelRule, kindForPurpose, passwordRule, phoneRule, quantityRule, ratingRule, recipientNameRule, reviewCommentRule, streetRule, uploadRule, usernameRule,
+  cancelReasonRule, customLabelRule, kindForFormat, passwordRule, phoneRule, quantityRule, ratingRule, recipientNameRule, reviewCommentRule, streetRule, uploadRule, usernameRule,
 } from './rules.js';
 
 const ok = (rule, value) => rule.safeParse(value).success;
@@ -67,13 +67,22 @@ describe('shared rules', () => {
 
 describe('UPLOAD_RULES', () => {
   const MB = 1024 * 1024;
-  it('allows images up to 5 MB and files up to 10 MB, by the byte', () => {
+  it('allows images up to 5 MB, pdf files up to 10 MB and videos up to 50 MB, by the byte', () => {
     expect(uploadRule('image').safeParse({ name: 'a.png', size: 5 * MB, format: 'png' }).success).toBe(true);
     const over = uploadRule('image').safeParse({ name: 'receipt.png', size: 5 * MB + 1, format: 'png' });
     expect(over.error.issues[0]).toMatchObject({ message: 'receipt.png is 5.1 MB. Images can be up to 5 MB.', params: { code: 'FILE_TOO_LARGE' } });
     expect(uploadRule('file').safeParse({ name: 'a.pdf', size: 10 * MB, format: 'pdf' }).success).toBe(true);
     expect(uploadRule('file').safeParse({ name: 'a.pdf', size: 10 * MB + 1, format: 'pdf' }).success).toBe(false);
     expect(uploadRule('image').safeParse({ name: 'a.pdf', size: 10, format: 'pdf' }).error.issues[0].params.code).toBe('FILE_TYPE_NOT_ALLOWED');
-    expect([kindForPurpose('avatar'), kindForPurpose('receipt'), kindForPurpose('post', 'video')]).toEqual(['image', 'image', 'file']);
+    expect(uploadRule('file').safeParse({ name: 'a.mp4', size: 10, format: 'mp4' }).success).toBe(false); // file = pdf only
+    expect(uploadRule('video').safeParse({ name: 'a.mp4', size: 50 * MB, format: 'mp4' }).success).toBe(true);
+    expect(uploadRule('video').safeParse({ name: 'a.mp4', size: 50 * MB + 1, format: 'mp4' }).success).toBe(false);
+  });
+
+  it('picks the kind from the purpose and the format; video only for post_media', () => {
+    expect([kindForFormat('avatar', 'PNG'), kindForFormat('receipt', 'pdf')]).toEqual(['image', null]);
+    expect([kindForFormat('farmer_document', 'jpg'), kindForFormat('farmer_document', 'pdf')]).toEqual(['image', 'file']);
+    for (const purpose of ['avatar', 'receipt', 'farmer_document']) expect(kindForFormat(purpose, 'mp4')).toBeNull();
+    expect(kindForFormat('post_media', 'mp4')).toBe('video');
   });
 });

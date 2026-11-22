@@ -1,10 +1,10 @@
 import { tooLargeLines, UPLOAD_RULES, uploadRule } from '@/schemas/rules'
 
-const extension = (file) => (file.name.includes('.') ? file.name.split('.').pop() : (file.type.split('/')[1] ?? '')).toLowerCase()
+export const extension = (file) => (file.name.includes('.') ? file.name.split('.').pop() : (file.type.split('/')[1] ?? '')).toLowerCase()
 
 /**
  * What is wrong with a file for this kind of upload, or null when it may upload (the server checks it again).
- * @param {'image'|'file'} kind
+ * @param {'image'|'file'|'video'} kind
  * @param {File} file
  * @param {string} [tip] added after the limit, e.g. "Try a screenshot instead."
  * @returns {{ title: string, detail: string } | null}
