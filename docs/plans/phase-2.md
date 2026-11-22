@@ -1,0 +1,266 @@
+# KapeKonek Phase 2 Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** The dashboard for farmers, Group Managers and Kaluppa on top of Phase 1: onboarding and approval, associations and Group Managers, farms/trees/harvests, bean sales with the 5 kg cap, farmers in the store, Kaluppa orders/inventory/reviews/settings, Inbox, Hub with the landing top 3, Farm Map, overviews, reports and the audit log. Every page matches its `.dc.html` for every role that can open it.
+
+**Architecture:** Extend, don't rewrite. Same backend flow (`route → authenticate → verified → can() → validate() → controller → service → repository → model`); record scope comes from four policy helpers, never `role ===`. Dashboard pages share one `DashboardLayout` (Sidebar + DashTopbar) and one management pattern: `PageHeader` + `DataTable` (URL-synced) + right `Drawer` + `ConfirmModal`. Realtime stays in the `realtime` module; new jobs (`beans:expire`, `posts:top3`) are BullMQ repeatables inside the API process.
+
+**Tech Stack:** Phase 1's stack. No new runtime dependencies are planned; add one only if a task can't be done with what is installed (ledger it).
+
+**Spec:** `CLAUDE.md` (Phase 2 rules), `docs/PHASE-2-SPEC.md` (wins over PRODUCT-SPEC), `docs/PRODUCT-SPEC.md`, `docs/DESIGN.md` §8, `docs/prompts/PHASE-2-PROMPT.md`, `docs/design/screens/*.dc.html` (DESIGN §8.4 map; every Tweaks branch). Gaps and choices: `docs/plans/phase-2-questions.md`. Patterns: `_reference/` and `_reference/original/backend/src/{models,services}/{farm,tree,harvest,coffeeBean,auditLog}*` (copy ideas, never import).
+
+## Global Constraints
+
+- Phase 1 Global Constraints (`docs/plans/phase-1.md`) all still hold. Branch `phase-2` from `phase-1`. **Stop after each milestone** for the user.
+- Permissions: exactly the PHASE-2-SPEC §2 matrix. Features check permissions; record scope uses `isOwner`, `isAssociationManager`, `isAssignedManager`, `isKaluppaFarm` (in `services/policy.service.js`). A Group Manager acting for a farmer always sends `farmerId`, and the service checks that farmer is in its association.
+- Words: "email verified" vs "approved farmer". Never "verified farmer" in code, copy or tests.
+- Farmers must verify their email before any dashboard route (`403 EMAIL_NOT_VERIFIED`); Group Manager-created farmers are pre-verified and pre-approved; `mustChangePassword` → "Set a new password" before anything else.
+- Management pages: `PageHeader` + `DataTable` (search left; plain `SearchSelect size="sm" searchable={false}` filters right, **Status first**, "Clear filters" before them; no tabs or count chips; numbered pages; row actions; URL `?status=&q=&<filters>&page=`; drawers `?open=<id>&mode=view|edit|add`) + `Drawer` (600–720 px, DESIGN §8.2 spacing) + `ConfirmModal` for archive/restore/reject/cancel/remove. Archive = `archivedAt` + Restore.
+- Dashboard lists are page-based: `?page&limit≤50` → `data: items`, `meta: { page, limit, total }` (q3, q4). Feeds and messages use cursors.
+- Every create/update/archive/restore/approve/reject/status change in a Phase 2 service calls `audit.record()` with allow-listed fields only (never passwords, tokens or documents); jobs record as `system`.
+- The **5 kg cap** is enforced in the service inside a transaction that bumps a per-farmer lock document; `403 BEAN_CAP_EXCEEDED {capKg:5, usedKg, leftKg}`. The UI meter is a hint.
+- Media frames are fixed: feed grid 16:10 cover (1 / 2 / 1+2 / 2×2 "+N"); viewer stage 16:10, max 560 px, contain; thumbnails square cover. No upload changes a card's height.
+- Inbox read state uses member cursors (`lastDeliveredAt`, `lastReadAt`), never per-message writes. Ended memberships keep history with `canPost:false`, `leftAt`.
+- Maps: one `MapPicker` for address, farm and branch. Select-driven pin moves fly and never reverse-geocode; manual click/drag does.
+- Validation (shared Zod, both sides): lot 1–40; size 0.01–500 ha; tree count 1–100 000; yield 0.5–100 000 kg in 0.5 steps; bean weight 0.5–10 000 kg in 0.5 steps; price ₱1–₱10 000/kg; bean photos 1–5; notes ≤ 500; reasons 5–300; message ≤ 2000; post ≤ 5000; comment ≤ 1000; tags ≤ 3 of `pruning, harvesting, processing, soil, advisory, announcement`; association name 2–80, description ≤ 500; dates not in the future. Uploads: image 5 MB, file (pdf) 10 MB, video (mp4/webm) 50 MB for `post_media` only (q8).
+- Colors: chart palette DESIGN §8.3 in that order; every chart has a legend or labels and "View as table"; one y-axis. Tokens only in `index.css`.
+- Seeds: `@gmail.com` handles via `seedEmail()`, `KapeKonek@123`, `isSeed` mail guard. Email jobs skip recipients with no email (q13).
+
+## Review Focus
+
+1. **A Group Manager sends another association's `farmerId`** (farm, tree, harvest, bean, farmer edit, Kaluppa-farm assignment): 404, nothing written, no audit entry. → tests in Tasks 8.4, 9.1, 9.2, 10.1.
+2. **Email-less farmer** (Group Manager-created, username only) hits every email path — approval, bean decisions, order status, forgot password by username: no crash, no queued job without a recipient, generic 200 on forgot-password. → Tasks 8.1, 8.4, 10.2.
+3. **Archived Group Manager with an open session**: the next request is 401 and the refresh fails; their association's pending requests now route to Kaluppa. → Task 8.3.
+4. **Removal or transfer while the farmer is mid-flow**: the cap applies again only to listings created after the removal (`countsTowardCap` is set at creation); the old group chat is read-only at once (a send → 403) and the open socket gets `conversation:updated`. → Tasks 8.4, 10.1, 12.1.
+5. **Two decisions on one request** (Group Manager and Kaluppa, or a double click on Approve): exactly one wins via a conditional update on `status:'pending'`; the other gets `409 CONFLICT`. Same for bean approve/reject. → Tasks 8.4, 10.2.
+
+## Milestone wrap-up (after every milestone)
+
+- [ ] `npm run lint`, `npm test` (both apps, Phase 1 suites included) → exit 0.
+- [ ] `npm --prefix backend run migrate:fresh -- --seed` → exit 0, sign-in table printed.
+- [ ] Playwright: every page the milestone touched, **for each role that can open it**, at 1440 px and 390 px, against its `.dc.html` (every Tweaks branch); plus the full Phase 1 e2e suite.
+- [ ] `/graphify . --update`; milestone summary at the end of this file; commit on `phase-2`: `feat(m<N>): <summary>`. **Stop.**
+
+## File structure (additions)
+
+```
+backend/src/
+  models/        association, farmerProfile, conversation, conversationMember, message, auditLog,
+                 farm, treeGroup, harvest, beanListing, postView (+ changes: user, post, review, product, setting, notification)
+  services/      policy, audit, chat, association, groupManager, farmer, farmerProfile, dashboard,
+                 farm, treeGroup, harvest, bean, adminOrder, inventory, reviewModeration, adminSettings,
+                 inbox, hub, postTop, farmMap, report, auditLog
+  queues/        jobs.queue.js (repeatables: beans:expire, posts:top3), workers/jobs.worker.js
+  utils/         pageList.js (page-based lists), csv.js
+frontend/src/
+  layouts/DashboardLayout.jsx   components/dashboard/{Sidebar,DashTopbar,PageHeader,KpiTile,StageBar,CapMeter,BarChart,DataTable,Drawer,ConfirmModal,StatusPill}.jsx
+  components/map/MapPicker.jsx (shared)   components/inbox/*   components/hub/*
+  pages/dashboard/<area>/*      hooks/use<Area>.js   services/<area>.service.js   schemas/<area>.schema.js
+```
+
+---
+
+## M8 — Dashboard shell, permissions, farmer onboarding, accounts
+
+### Task 8.1: Permissions, policies, verification, first password
+
+**Files:** `constants/permissions.js`, `database/seeders/roles.seeder.js`, `services/policy.service.js`, `middlewares/verified.middleware.js`, `models/user.model.js`, `services/auth.service.js`, `schemas/auth.schema.js` (+ frontend), `routes/auth.routes.js`; tests `tests/policy.test.js`, `tests/permissions.test.js`, `tests/auth.test.js`.
+
+**Interfaces:** `isOwner(user, record)`, `isAssociationManager(user, associationId)`, `isAssignedManager(user, farm)`, `isKaluppaFarm(farm)` (sync, take loaded docs/ids; the Group Manager's association comes from `Association.groupManager`, cached on `req.user.associationId` by `authenticate`). User: `email` sparse unique, optional only with `createdBy`; `mustChangePassword`, `createdBy`. `PATCH /auth/password/first {newPassword}` (only when `mustChangePassword`; clears it, bumps `tokenVersion`, re-issues cookies). `/auth/me` adds `mustChangePassword`, `associationId`, `farmerStatus`.
+
+- [ ] Tests: role matrix equals PHASE-2-SPEC §2 for every role × slug; each policy true/false table (owner, other owner, Group Manager of the record's association, another association, assigned manager of a Kaluppa farm, Kaluppa farm detection); unverified farmer → 403 `EMAIL_NOT_VERIFIED`, unverified Group Manager passes; farmer signup without `contactNumber` → 400; first-password: refused when the flag is false, succeeds once, old refresh → 401; forgot-password with a username of an email-less user → 200, no job queued.
+
+### Task 8.2: Audit, chat memberships, page lists, upload purposes
+
+**Files:** `models/{auditLog,conversation,conversationMember}.model.js`, `services/{audit,chat}.service.js`, `utils/pageList.js`, `schemas/rules.js` (both sides: `UPLOAD_RULES.video`, `file` = pdf), `services/upload.service.js` (purpose `farmer_document`: image|pdf); tests `tests/audit.test.js`, `tests/chat.test.js`, `tests/pageList.test.js`, `tests/uploads.test.js`.
+
+**Interfaces:** `audit.record({ actor|null, area, action, entity: {type, id, label}, before?, after?, fields })` → stores only `fields` that changed, drops any field named in `AUDIT_DENY` (`password`, `tokenVersion`, `documents`, `receipt`) even if listed; `pageList(query, { page, limit }) => { items, meta }`; chat: `ensureKaluppaChat(userId)` (members: user + virtual `team:kaluppa`), `ensureGroupChat(associationId)`, `joinGroup(userId, associationId)`, `endMembership(userId, conversationIds)` (`canPost:false`, `leftAt`), `endDirectChatsBetween(userId, otherUserIds)`.
+
+- [ ] Tests: audit stores changed allow-listed fields with before/after, never `password`/`documents`; `system` actor; pageList returns `{page:2, limit:10, total:23}` and 10 items; `ensureKaluppaChat` twice → one conversation; `endMembership` keeps the row with `canPost:false`; `farmer_document` signs image and pdf, a 10 MB + 1 pdf is refused by the server re-check; `video` kind refused for every purpose except `post_media`.
+
+### Task 8.3: Associations and Group Managers
+
+**Files:** `models/association.model.js`, `services/{association,groupManager}.service.js`, repositories, schemas, routes, controllers, `templates/email/accountInvite.template.js`; tests `tests/associations.test.js`, `tests/groupManagers.test.js`.
+
+**Interfaces:** endpoints of PHASE-2-SPEC §5 (Associations and Group Managers, `GET /associations/options`). Invite = reset-password token (60 min) emailed as "set your password".
+
+- [ ] Tests: create association → group chat created; name unique → 409 `errors.name`; archive refused with farmers or a Group Manager (409, message names which), allowed when empty → group chat read-only; create Group Manager requires email, sends invite, creates their Kaluppa chat, joins the association's group chat when assigned; one Group Manager per association (409); move → old group chat and their direct chats with old farmers read-only, joins new; archive → `status:'suspended'`, `tokenVersion++`, open session 401, association's `groupManager:null`; every mutation writes an audit entry; non-Kaluppa → 403.
+
+### Task 8.4: Farmer profile, requests, decisions, Group Manager-created farmers
+
+**Files:** `models/farmerProfile.model.js`, `services/{farmerProfile,farmer}.service.js`, repositories, schemas, routes, controllers, templates `farmerRequest`, `farmerDecision`, `transferDecision`; notification types from PHASE-2-SPEC §4; tests `tests/farmerProfile.test.js`, `tests/farmers.test.js`.
+
+**Interfaces:** PHASE-2-SPEC §5 Account and Farmers endpoints. Every farmer account gets a `FarmerProfile` at creation (signup, Group Manager, seeder; status `none`, or `approved` for Group Manager-created) — M10's cap lock relies on it. Decisions use a conditional update on `status:'pending'` (or `transferRequest` present). `POST /farmers` → `{ farmer, temporaryPassword? }` (12 chars, shown once, never stored in plain text or audit).
+
+- [ ] Tests: request needs association + both documents (image or pdf, own folder); a second request while pending → 409; request to an association without a Group Manager notifies Kaluppa; approve → `approved`, joins group chat, email + notification; reject needs a reason (5–300), farmer sees it and can resubmit; double approve → one 200, one 409 (Review Focus 5); Group Manager of another association → 404 (Review Focus 1); transfer: stays in old association until approved; approval moves association, keeps `approved`, ends old group membership and direct chats with old members, joins new group; withdraw clears it; remove → unaffiliated, `status:'none'`, chats with that Group Manager and the group read-only; Group Manager creates a farmer without email → username login works, `mustChangePassword`, approved + verified, `temporaryPassword` returned once; with email → invite queued, no password returned; every action audited without documents.
+
+### Task 8.5: Shell, routes, badges, overview data
+
+**Files:** `layouts/DashboardLayout.jsx`, `components/dashboard/{Sidebar,DashTopbar}.jsx`, `routes/AppRouter.jsx`, `routes/guards.jsx`, `pages/auth/SetPassword.jsx`, `pages/dashboard/overview/{OverviewFarmer,OverviewGM,OverviewKaluppa}.jsx`, `components/dashboard/{PageHeader,KpiTile,StageBar,CapMeter,BarChart}.jsx`; backend `services/dashboard.service.js` + `GET /dashboard/badges`, `GET /dashboard/overview`; tests `tests/dashboard.test.js`, `src/components/dashboard/BarChart.test.jsx`, `src/routes/guards.test.jsx`.
+
+- [ ] Sidebar per role exactly as `Sidebar.dc.html` (sections, labels, icons, "Store" external icon, roast active fill, badges with `alert` roast fill, association card for farmer/Group Manager states approved/pending/none), hidden under 960 px with the top-bar menu button opening it as a focus-trapped drawer. DashTopbar: breadcrumb, cart (farmers), bell (Phase 1 dropdown), avatar menu per role. `/dashboard/*` routes from DESIGN §8.4 guarded by permission; delete `pages/dashboard/Overview.jsx` placeholder. `mustChangePassword` → `/set-password` before any route. Overviews per `OverviewFarmer` (status banners pending/rejected/none), `OverviewGM`, `OverviewKaluppa` with real tiles; charts without data yet show their empty state (q11).
+- [ ] Tests: badges contain only permitted keys whose data exists so far (M8: Group Manager `farmers`; Kaluppa `orders` from Phase 1 pending orders; later milestones add `beans` M10, `reviews` M11, `inbox` M12), counts scoped by policy; overview tiles for each role from fixtures; `BarChart` legend only for 2+ series, "View as table" toggles a real `<table>`, tooltip on keyboard focus; guard sends a `mustChangePassword` user to `/set-password` and an unverified farmer to `/verify-email`.
+
+### Task 8.6: DataTable, Drawer, ConfirmModal
+
+**Files:** `components/dashboard/{DataTable,Drawer,ConfirmModal,StatusPill}.jsx`, `hooks/useTableParams.js`; tests alongside.
+
+**Interfaces:** `<DataTable columns rows filters status actions onAction total page pageSize loading error emptyState searchPlaceholder minWidth />` where `status = { label:'Status', options }` renders first; `useTableParams(defaults) => { params, set, clear }` (URL-synced, `q` debounced 300 ms, `page` reset on filter change); `<Drawer open title eyebrow onClose footer width>`; `<ConfirmModal tone variant reasonRequired onConfirm>` (variants from `DashModals.dc.html`: archive, restore, reject, cancel sale, remove post, temporary password with Copy).
+
+- [ ] Tests: filters and page round-trip through the URL; Clear filters resets all but `q`; cell kinds person / pill / two-line / mono; rows become cards under 640 px; empty, skeleton and error states; Drawer traps focus and closes on Esc; reason-required modal disables confirm below 5 characters; Copy writes the password to the clipboard.
+
+### Task 8.7: Account pages
+
+**Files:** `pages/dashboard/account/{Association,Profile,Security,Addresses}.jsx`, `components/dashboard/AssociationModal.jsx`, `pages/dashboard/{farmers/Farmers,groupManagers/GroupManagers,associations/Associations}.jsx` + drawers, hooks/services/schemas.
+
+- [ ] Copy `AssociationModal` (variants new, rejected), `FarmerAssociation`, `Farmers` (+ `FarmerReview`, `FarmerForm` boards), `GroupManagers` (+ form), `Associations` (+ form). Status dropdown options = the screens' tab labels (q1). The window shows on sign-in per PHASE-2-SPEC §3.1; "Skip for now" closes it for the session.
+- [ ] Component tests: the window's Send stays disabled until association + both documents; the temporary-password modal shows once and never again after close.
+
+### Task 8.8: Seeds and Playwright
+
+- [ ] Seeders: 3 associations, `manager.santacruz` (assigned), `manager.unassigned`, farmers `farmer.approved`, `farmer.pending`, `farmer.new`, `farmer.nomail`, a rejected one, one with a pending transfer, plus enough farmers for the Farmers page; Kaluppa chats and group chats; audit entries for seeded decisions.
+- [ ] Playwright: farmer signs up → verify → window → send → pending banner; Group Manager approves in the review drawer → farmer's sidebar card says "Approved farmer"; Group Manager adds an email-less farmer → temporary password → that farmer signs in by username → set new password → overview; Kaluppa creates and archives a Group Manager; guard: Group Manager on `/dashboard/group-managers` → 403. Each page at 1440/390 per role.
+
+---
+
+## M9 — Records: farms, trees, harvests
+
+### Task 9.1: Farms
+
+**Files:** `models/farm.model.js` (partial unique `{owner, lotNumber}` where `archivedAt:null`, 2dsphere), `services/farm.service.js`, repository, schema (both sides), routes, controller; tests `tests/farms.test.js`.
+
+**Interfaces:** PHASE-2-SPEC §5 Records (farms). `propertyNumber` = `TCT-<year>-<NNNN>` from Counter `farm:<year>`. Scope: farmer → own; Group Manager → its association's farms + Kaluppa farms it manages; Kaluppa → all (edits only `ownerType:'kaluppa'`). `PUT /farms/:id/assigned-farmers` only for `isAssignedManager`.
+
+- [ ] Tests (one per scope rule): farmer lists only own; Group Manager lists association + managed Kaluppa farm, never another association's; Kaluppa lists all; Kaluppa PATCH on a farmer farm → 403; Group Manager create without `farmerId` → 400, with another association's farmer → 404 (Review Focus 1); lot number unique per owner (409), reusable after archive; pin required and inside Marinduque bounds; property numbers sequential per year; archive cascades to tree groups, keeps harvests; restore restores both; assigned farmers editable only by the managing Group Manager, only with its own approved farmers; audit on every mutation.
+
+### Task 9.2: Tree groups and harvests
+
+**Files:** `models/{treeGroup,harvest}.model.js`, services, repositories, schemas, routes, controllers; tests `tests/treeGroups.test.js`, `tests/harvests.test.js`.
+
+- [ ] Tests: stages exactly the 5 keys; count 1–100 000; planted date not in the future; scope inherits the farm's (Group Manager may add on its managed Kaluppa farm, Kaluppa only on Kaluppa farms); harvest variety must be one the farm has an active tree group of → 400 `errors.variety`; yield 0.5 steps; `recordedBy` set from the actor; list filters farm / variety / stage / period; archive/restore; audit.
+
+### Task 9.3: Shared MapPicker and record pages
+
+**Files:** `components/map/MapPicker.jsx` (extracted from Phase 1 `AddressFormModal`, which then uses it), `pages/dashboard/records/{Farms,Trees,Harvests}.jsx` + drawers (`FarmForm`, `FarmView` with Details / Trees / Harvests tabs, `TreeForm`, `HarvestForm`).
+
+- [ ] Copy `Farms` (role × start × tab), `Trees` (stage tiles), `Harvests` per role: columns, filters, titles and descriptions from each role branch; Group Manager forms show **Farmer** first; Kaluppa farm form shows "Managed by"; harvest variety disabled until a farm is picked. Phase 1 address map tests stay green after the extraction.
+- [ ] Seeds: farms in all 6 towns incl. 2 Kaluppa farms (one managed by `manager.santacruz`), tree groups in all 5 stages, 12 months of harvests. Playwright per role at 1440/390; guard: farmer opening another farmer's farm URL → 404 page.
+
+---
+
+## M10 — Beans
+
+### Task 10.1: Listings and the 5 kg cap
+
+**Files:** `models/beanListing.model.js`, `services/bean.service.js`, repository, schema (both sides), routes, controller, `setting` key `branch` (q7) + order service reading it; tests `tests/beans.test.js`, `tests/beanCap.test.js`.
+
+**Interfaces:** `listingNumber` `BN-YYMM-NNNN` (Manila); `GET /beans/cap → { capKg:5, usedKg, leftKg, approved }`; create runs in a Mongo transaction that bumps a per-farmer lock doc (`FarmerProfile.updateOne({user},{ $inc:{ capLock:1 } })`) before summing.
+
+- [ ] Tests: unapproved farmer at 3 kg lists 2 kg ok, 2.5 → 403 `BEAN_CAP_EXCEEDED {capKg:5, usedKg:5, leftKg:0}`; two simultaneous 3 kg listings from 0 → one 201, one 403; cancelled/rejected/expired don't count; approved farmer has no limit and new listings get `countsTowardCap:false`; removal → new listings count again, old ones keep their flag (Review Focus 4); Group Manager lists for its farmer (cap is the farmer's), other association → 404; edit only while pending, re-checks the cap; photos 1–5 own `bean_photo` uploads; branch setting replaces `pickup.location` (pickup orders snapshot it; existing orders keep their copy).
+
+### Task 10.2: Review flow, expiry job, notifications
+
+**Files:** `services/bean.service.js` (review), `queues/jobs.queue.js`, `queues/workers/jobs.worker.js`, templates `beanStatus`, socket `bean:updated`; tests `tests/beanReview.test.js`, `tests/beanExpire.test.js`.
+
+- [ ] Tests: approve sets `expiresAt` = approval + 7 days and emails branch address + hours + deadline; reject/cancel need reasons; approve vs reject at once → one 409 (Review Focus 5); complete keeps listed and final values; farmer cancels pending/approved, Kaluppa cancels approved only; `beans:expire` expires only approved past `expiresAt`, twice → no second change, audited as `system`; farmer + Group Manager in-app notifications, farmer email (skipped when email-less); `bean:updated` to farmer and Group Manager rooms.
+
+### Task 10.3: Bean pages
+
+- [ ] Copy `BeansFarmer` (role farmer/Group Manager × status unapproved/approved × start sell/view: steps strip, `CapMeter`, sell drawer with live total and over-cap state, view drawer banners per status with branch + hours) and `BeansKaluppa` (+ `BeansReview`: gallery in fixed frames, approve / reject → "Beans arrived" → final weight + amount → completed, cancel sale). Sidebar badge `beans`. Seeds: every status, one approved expiring in 1 day, `farmer.pending` at 3 of 5 kg. Playwright: over-cap Send disabled; full Kaluppa flow; per role 1440/390.
+
+---
+
+## M11 — Store for farmers, Kaluppa orders, inventory, reviews, settings
+
+### Task 11.1: Farmers in the store and farmer orders
+
+- [ ] Storefront guards let farmers into `/products`, `/products/:slug`, cart, `/checkout` (categories by permission: Fertilizer + Seedlings); order placed by a farmer redirects to `/dashboard/orders?open=<id>`; farmer addresses at `/dashboard/account/addresses`. Copy `OrdersFarmer` (table, view drawer with timeline, cancel modal with reason `SearchSelect`). Tests: farmer sees no Coffee and can't add it (403); buyer still sees only Coffee; farmer orders list via Phase 1 endpoints.
+
+### Task 11.2: Kaluppa orders
+
+**Interfaces:** `GET /admin/orders?status=<group>&type=buyer|farmer&method&payment&q&page` (groups as Phase 1: to_confirm, preparing, on_the_way, completed, closed, all); manage actions call Phase 1 `orderStatus.transition` / `markRefunded` (no duplicate logic).
+
+- [ ] Copy `OrdersKaluppa` + `OrderManage`: Confirm disabled until "The receipt matches the total" for e-wallet; next-step button follows status; rider fields; COD "Cash collected"; refund reference. Tests: filters by customer type; non-Kaluppa → 403; transitions still pass the Phase 1 suite.
+
+### Task 11.3: Inventory
+
+**Interfaces:** `/admin/products` CRUD + archive/restore; `photos[] {url, publicId, isThumbnail}` ≤ 5 with exactly one thumbnail (first by default; deleting it promotes the first remaining); unit adds `sack`; `featured` coffee only; low stock < 10 (< 50 seedlings).
+
+- [ ] Tests: thumbnail invariant on create, pick, delete; featured on fertilizer → 400; cards/cart/order snapshot use the thumbnail; archive hides from the store; audit. Copy `Inventory` + `InventoryForm` (category-dependent fields, thumbnail pick with "★ Thumbnail").
+
+### Task 11.4: Review moderation
+
+- [ ] Endpoints of PHASE-2-SPEC §5 Reviews; rating recount from visible reviews only; public list excludes hidden and includes `reply`; reviewer notified on reply and hide. Copy `Reviews` + `ReviewView`; "Reply from Kaluppa" box on `ProductDetail`. Tests: hide → rating recomputed without it; one reply per review (PUT upserts); reviewer can't see the moderation endpoints; badge `reviews` counts "needs reply".
+
+### Task 11.5: Settings
+
+- [ ] `GET/PATCH /admin/settings/branch|delivery|ewallet`; branch drives quote origin, pickup card and bean instructions; `wallet_qr` upload. Copy `SettingsKaluppa` (tabs, weekday hour switches, "Try it" fee calculator, sticky save bar on change, branch `MapPicker`). Tests: new branch pin changes the next quote, not saved orders; hours validation (from < to); audit.
+- [ ] Playwright: farmer buys fertilizer → lands on its order drawer; Kaluppa confirms (receipt gate) → out for delivery → sold; inventory thumbnail pick; review reply visible on the product page; per role 1440/390.
+
+---
+
+## M12 — Inbox
+
+### Task 12.1: Messages and rules
+
+**Files:** `models/message.model.js`, `services/inbox.service.js`, repositories, schemas, routes, controllers; tests `tests/inbox.test.js`.
+
+**Interfaces:** PHASE-2-SPEC §5 Inbox endpoints; `canMessage(user, other) => boolean` (matrix §3.9); direct `pairKey` = sorted ids; messages `?before&limit=30`; delivered/read move the member cursors; unread = messages after `lastReadAt` not sent by the member.
+
+- [ ] Tests: the full who-can-message matrix (farmer, unaffiliated farmer, Group Manager, Kaluppa) and `/inbox/people` returns only allowed people; second `POST /conversations/direct` → same conversation; send to a read-only membership → 403; edit at 14:59 ok, 15:01 → 403; delete for everyone keeps a tombstone; delete for me hides for that user only; cursor paging of 75 messages; delivered/seen derived from cursors ("Seen by N" in groups); `team:kaluppa` replies show the Kaluppa sender's name; attachments follow the upload rules.
+
+### Task 12.2: Realtime
+
+- [ ] Rooms `conversation:<id>` and `team:kaluppa` joined at handshake from memberships; events `message:new|updated|deleted`, `conversation:read|delivered|updated`, `typing` (client throttle 3 s, server expiry 5 s); membership end emits `conversation:updated` (Review Focus 4). Tests: a non-member never receives a conversation's events; typing relays only to other members.
+
+### Task 12.3: Inbox UI
+
+- [ ] Copy `Inbox` (each `conv`: group, Kaluppa team, direct, read-only) and `InboxMobile` (list → chat with back): filters All / Unread / Groups, search, reply quote, edit mode, delete menu, typing dots, "Loading earlier messages", status line, read-only note, sidebar badge `inbox`. Seeds: every kind with sent/delivered/seen, one edited, one deleted for everyone, one read-only. Playwright with two contexts: message, typing and seen update live; 1440 and 390.
+
+---
+
+## M13 — Hub and the landing top 3
+
+### Task 13.1: Hub API
+
+- [ ] `/hub/posts` per PHASE-2-SPEC §5: tags ≤ 3 from the list, media ≤ 10 (`post_media`: image 5 MB, video 50 MB), author edit/delete, Kaluppa remove with reason (`posts.moderate`), comments/replies/reactions on Phase 1 endpoints now open to `posts.comment`/`posts.react`. Notifications per §6. Tests: Group Manager can't remove others' posts; buyers still can't react or comment; a removed post disappears from the feed and its author is notified.
+
+### Task 13.2: Views and top 3
+
+- [ ] `POST /hub/posts/:id/view` (signed-in, unique `{post,user,day}`), `posts:top3` hourly job (last 30 days) cached in Valkey `posts:top3`, `GET /posts/top`; landing section "Most viewed this month" (`Main.dc.html`) replaces latest posts; the public post page serves only the top 3 to guests/buyers, others ask to sign in. Tests: guest views not counted; same user twice a day = 1; job ranks correctly and is idempotent.
+
+### Task 13.3: Hub UI
+
+- [ ] Copy `Hub` per role: composer expands on focus, tag chips (max 3, others disabled), tag filter chips, cursor feed, fixed 16:10 grid (1 / 2 / 1+2 / 2×2 "+N"), viewer (contain), reaction picker, comments with replies, post menu (author Edit/Delete; Kaluppa Remove with reason). Playwright: portrait photo never changes a card's height (grid and viewer) at 1440/390.
+
+---
+
+## M14 — Farm Map, overviews, reports, audit log
+
+### Task 14.1: Farm Map
+
+- [ ] `GET /map/farms` scoped by role with popover fields (§3.11); copy `FarmMap` per role (filters, side list fly-to, Kaluppa farms darker, "Open farm" → farm view drawer). Tests: scope per role; variety filter.
+
+### Task 14.2: Overviews and reports
+
+- [ ] Finish every overview tile and chart; `/reports/*` with `$facet` aggregates, period and association filters (Group Manager forced to its own), `/reports/export.csv?section=` + Export all (`utils/csv.js`, escapes `"`, `,`, newlines, leading `=+-@`). Copy `Reports` per role. Tests: totals match fixtures; Group Manager can't read another association; CSV escaping and formula-injection guard.
+
+### Task 14.3: Audit log
+
+- [ ] `/audit-logs` list/detail/CSV with filters (area, role, period, search); copy `AuditLog` (diff drawer). Coverage test: run each Phase 2 mutation once and assert one audit entry per call with no denied fields.
+
+---
+
+## M15 — Seeds, polish, verification
+
+- [ ] Complete PHASE-2-SPEC §8 coverage and the sign-in table (every handle in §8 plus Phase 1's).
+- [ ] Playwright per role (farmer, Group Manager, Kaluppa) through every sidebar item at 1440/390, compared with each screen's Tweaks branches; fix differences.
+- [ ] Accessibility (drawer/modal focus traps, keyboard tables and filters, chart table views, axe), performance (lazy dashboard routes, image sizes), README (roles, handles, jobs).
+- [ ] PHASE-2-PROMPT §4 checklist all green.
+
+---
+
+## Milestone summaries
+
+(Added after each milestone.)
