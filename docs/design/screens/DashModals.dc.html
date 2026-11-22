@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Dashboard dialogs</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+.kk-f:focus{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
+.kk-menu{display:none !important}
+@media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+</style>
+</helmet>
+<div style="width: 1440px; min-height: 1000px; background: #F5F0EA; padding: 56px 64px; display: flex; flex-direction: column; gap: 28px">
+  <header><span style="display: block; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Dashboard dialogs</span><h1 style="margin: 8px 0 0; font-weight: 500; font-size: 32px; letter-spacing: -0.02em">Confirmations stay in modals</h1><p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30">Add, edit and view open in a drawer. Archive, restore, reject, cancel and remove confirm in a modal like these.</p></header>
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: start"><div role="dialog" aria-label="Archive this farm?" style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 24px 48px -24px rgba(43,26,18,0.4); padding: 22px">
+      <span aria-hidden="true" style="width: 42px; height: 42px; display: grid; place-items: center; border-radius: 999px; background: #FDF0EE; color: #A1362B"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v5H3zM5 8v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8M10 12h4"></path></svg></span>
+      <h2 style="margin: 12px 0 0; font-size: 17px; font-weight: 600">Archive this farm?</h2>
+      <p style="margin: 6px 0 0; font-size: 13.5px; color: #4A3A30; line-height: 1.6"><strong>TCT-2026-0014 · Lot 12-B</strong> and its 3 tree groups move to Archived. Harvest records stay. You can restore it any time.</p>
+      <div style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px"><button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Keep it</button><button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #A1362B; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Archive farm</button></div>
+    </div>
+<div role="dialog" aria-label="Restore this farm?" style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 24px 48px -24px rgba(43,26,18,0.4); padding: 22px">
+      <span aria-hidden="true" style="width: 42px; height: 42px; display: grid; place-items: center; border-radius: 999px; background: #E1F2E4; color: #1E5A34"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8M3 3v5h5"></path></svg></span>
+      <h2 style="margin: 12px 0 0; font-size: 17px; font-weight: 600">Restore this farm?</h2>
+      <p style="margin: 6px 0 0; font-size: 13.5px; color: #4A3A30; line-height: 1.6">TCT-2026-0009 comes back to your active farms with its tree groups.</p>
+      <div style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px"><button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Cancel</button><button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Restore</button></div>
+    </div>
+<div role="dialog" aria-label="Reject Joy’s request?" style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 24px 48px -24px rgba(43,26,18,0.4); padding: 22px">
+      <span aria-hidden="true" style="width: 42px; height: 42px; display: grid; place-items: center; border-radius: 999px; background: #FDF0EE; color: #A1362B"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></span>
+      <h2 style="margin: 12px 0 0; font-size: 17px; font-weight: 600">Reject Joy’s request?</h2>
+      <p style="margin: 6px 0 0; font-size: 13.5px; color: #4A3A30; line-height: 1.6">Joy gets an email with your reason and can send new documents.</p><span style="display: block; margin-top: 12px; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Reason · required</span><textarea class="kk-f" rows="3" aria-label="Reason" placeholder="e.g. The proof of land ownership is blurry" style="margin-top: 6px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 9px 12px; font: inherit; font-size: 13.5px; resize: vertical"></textarea>
+      <div style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px"><button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Cancel</button><button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #A1362B; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Reject request</button></div>
+    </div>
+<div role="dialog" aria-label="Account created" style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 24px 48px -24px rgba(43,26,18,0.4); padding: 22px">
+      <span aria-hidden="true" style="width: 42px; height: 42px; display: grid; place-items: center; border-radius: 999px; background: #E1F2E4; color: #1E5A34"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span>
+      <h2 style="margin: 12px 0 0; font-size: 17px; font-weight: 600">Account created</h2>
+      <p style="margin: 6px 0 0; font-size: 13.5px; color: #4A3A30; line-height: 1.6">Give Ernesto this temporary password. It’s shown only once; he must change it when he first signs in.</p><div style="margin-top: 12px; display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 6px; background: #F7EFE4; border: 1px dashed #DCCBB5"><span style="flex: 1; font-family: ui-monospace, Menlo, monospace; font-size: 17px; font-weight: 600; letter-spacing: 0.04em">kape-7Q4m-ub9X</span><button type="button" style="min-height: 36px; padding: 0 12px; border: 1px solid #DCCBB5; background: #FFFFFF; border-radius: 5px; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer">Copy</button></div><p style="margin: 8px 0 0; font-size: 12px; color: #6B5A4E">Username: <strong>ernesto.javier</strong> · approved in Santa Cruz Coffee Growers</p>
+      <div style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px"><button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Done</button></div>
+    </div>
+<div role="dialog" aria-label="Cancel this sale?" style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 24px 48px -24px rgba(43,26,18,0.4); padding: 22px">
+      <span aria-hidden="true" style="width: 42px; height: 42px; display: grid; place-items: center; border-radius: 999px; background: #FDF0EE; color: #A1362B"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM15 9l-6 6M9 9l6 6"></path></svg></span>
+      <h2 style="margin: 12px 0 0; font-size: 17px; font-weight: 600">Cancel this sale?</h2>
+      <p style="margin: 6px 0 0; font-size: 13.5px; color: #4A3A30; line-height: 1.6">BN-2611-0040 (30 kg Liberica) was approved but the beans haven’t arrived. Rodel gets an email.</p><span style="display: block; margin-top: 12px; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Reason · required</span><textarea class="kk-f" rows="3" aria-label="Reason" placeholder="e.g. Not delivered within the agreed date" style="margin-top: 6px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 9px 12px; font: inherit; font-size: 13.5px; resize: vertical"></textarea>
+      <div style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px"><button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Keep sale</button><button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #A1362B; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Cancel sale</button></div>
+    </div>
+<div role="dialog" aria-label="Remove this post?" style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 24px 48px -24px rgba(43,26,18,0.4); padding: 22px">
+      <span aria-hidden="true" style="width: 42px; height: 42px; display: grid; place-items: center; border-radius: 999px; background: #FDF0EE; color: #A1362B"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></span>
+      <h2 style="margin: 12px 0 0; font-size: 17px; font-weight: 600">Remove this post?</h2>
+      <p style="margin: 6px 0 0; font-size: 13.5px; color: #4A3A30; line-height: 1.6">Rodel’s post leaves the Hub. He gets a notification with your reason.</p><span style="display: block; margin-top: 12px; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Reason · required</span><textarea class="kk-f" rows="3" aria-label="Reason" placeholder="e.g. Selling outside KapeKonek isn’t allowed in the Hub" style="margin-top: 6px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 9px 12px; font: inherit; font-size: 13.5px; resize: vertical"></textarea>
+      <div style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px"><button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Cancel</button><button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #A1362B; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Remove post</button></div>
+    </div></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 1440, "height": 1000}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -46,9 +46,11 @@ button:focus-visible,a:focus-visible{outline:2px solid #7B4A2A;outline-offset:2p
 
       <!-- MEDIA VIEWER -->
       <section aria-label="Photos and videos" style="border-top: 1px solid #EFE6DA; border-bottom: 1px solid #EFE6DA; background: #1E130D">
-        <div style="position: relative; aspect-ratio: 16 / 10; display: flex; align-items: center; justify-content: center; background: {{ current.bg }}">
+        <div style="position: relative; aspect-ratio: 16 / 10; max-height: 560px; width: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #1E130D">
           <sc-if value="{{ current.isImage }}" hint-placeholder-val="{{ true }}">
-            <svg aria-hidden="true" viewBox="0 0 120 80" fill="none" stroke="#A07E62" stroke-width="1.2" style="width: 32%; opacity: 0.6"><ellipse cx="38" cy="40" rx="14" ry="20" transform="rotate(30 38 40)"></ellipse><path d="M31 25c6 6 1 13 7 18s4 7 7 8"></path><ellipse cx="80" cy="36" rx="14" ry="20" transform="rotate(-25 80 36)"></ellipse><path d="M85 20c-5 6 0 12-5 17s-3 8-6 9"></path></svg>
+            <div role="img" aria-label="{{ current.label }}" style="height: 100%; max-width: 100%; aspect-ratio: {{ current.ratio }}; background: {{ current.bg }}; display: grid; place-items: center">
+              <svg aria-hidden="true" viewBox="0 0 120 80" fill="none" stroke="#A07E62" stroke-width="1.2" style="width: 46%; opacity: 0.6"><ellipse cx="38" cy="40" rx="14" ry="20" transform="rotate(30 38 40)"></ellipse><path d="M31 25c6 6 1 13 7 18s4 7 7 8"></path><ellipse cx="80" cy="36" rx="14" ry="20" transform="rotate(-25 80 36)"></ellipse><path d="M85 20c-5 6 0 12-5 17s-3 8-6 9"></path></svg>
+            </div>
           </sc-if>
           <sc-if value="{{ current.isVideo }}" hint-placeholder-val="{{ false }}">
             <button type="button" aria-label="Play video: {{ current.label }}" style="width: 72px; height: 72px; border-radius: 999px; border: 0; background: rgba(255,255,255,0.92); color: #2B1A12; display: grid; place-items: center; cursor: pointer; box-shadow: 0 12px 30px -12px rgba(0,0,0,0.6)">
@@ -171,12 +173,12 @@ class Component extends DCLogic {
   constructor(props) { super(props); this.state = { i: 0, open: { 0: true }, showReacts: false }; }
   renderVals() {
     const list = [
-      { type: 'image', label: 'Roasting batch' },
-      { type: 'image', label: 'Beans on the cooling tray' },
+      { type: 'image', label: 'Roasting batch', ratio: '4 / 3' },
+      { type: 'image', label: 'Beans on the cooling tray', ratio: '16 / 10' },
       { type: 'video', label: 'Roaster in action', duration: '0:42' },
-      { type: 'image', label: 'Packing 250 g bags' },
-      { type: 'image', label: 'Finished packs' },
-      { type: 'image', label: 'Cupping table' }
+      { type: 'image', label: 'Packing 250 g bags', ratio: '1 / 1' },
+      { type: 'image', label: 'Finished packs (portrait photo)', ratio: '3 / 4' },
+      { type: 'image', label: 'Cupping table', ratio: '4 / 3' }
     ];
     const { i, open, showReacts } = this.state;
     const bgFor = (t) => (t === 'video' ? '#3A2419' : '#EADCCB');

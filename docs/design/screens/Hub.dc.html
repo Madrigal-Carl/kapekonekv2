@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Hub</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+.kk-f:focus{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
+.kk-menu{display:none !important}
+@media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+</style>
+</helmet>
+<div style="position: relative; width: 100%; min-height: 2300px; background: #F5F0EA; display: flex; align-items: stretch">
+  <div class="kk-side" style="width: 256px; flex-shrink: 0; background: #FFFFFF">
+    <dc-import name="Sidebar" role="{{ role }}" active="Hub" hint-size="256px,900px"></dc-import>
+  </div>
+  <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="DashTopbar" role="{{ role }}" crumb-a="Community" crumb-b="Hub" hint-size="100%,64px"></dc-import>
+    <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+        <div style="flex: 999 1 560px; min-width: 0; max-width: 680px; display: flex; flex-direction: column; gap: 14px">
+          <div><span style="display: block; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Community</span><h1 style="margin: 6px 0 0; font-weight: 500; font-size: 28px; letter-spacing: -0.02em">Hub</h1><p style="margin: 4px 0 0; font-size: 14px; color: #4A3A30">Tips, questions and news from farmers, Group Managers and Kaluppa.</p></div>
+          <section aria-label="Create a post" style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 10px; padding: 16px 18px">
+          <div style="display: flex; gap: 12px"><span aria-hidden="true" style="width: 42px; height: 42px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: {{ meBg }}; color: #FFFFFF; font-size: 13px; font-weight: 600">{{ meI }}</span><label for="newpost" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Share an update</label><textarea class="kk-f" id="newpost" rows="{{ cRows }}" value="{{ draft }}" onInput="{{ onDraft }}" onFocus="{{ expand }}" placeholder="Share an update, tip or question with the community…" style="flex: 1; border: 1px solid #DCCBB5; border-radius: 10px; padding: 11px 14px; font: inherit; font-size: 14px; resize: vertical; background: #FBF8F4"></textarea></div>
+          <sc-if value="{{ composing }}" hint-placeholder-val="{{ true }}">
+            <div style="margin: 12px 0 0 54px; display: flex; flex-direction: column; gap: 10px">
+              <div><span style="display: block; font-size: 12px; color: #4A3A30; font-weight: 600">Tags <span style="font-weight: 400; color: #6B5A4E">· up to 3 · {{ tagCount }}/3</span></span><div style="margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{ ctags }}" as="ct" hint-placeholder-count="6"><button type="button" aria-pressed="{{ ct.on }}" disabled="{{ ct.off }}" onClick="{{ ct.pick }}" style="min-height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid {{ ct.border }}; background: {{ ct.bg }}; color: {{ ct.fg }}; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; opacity: {{ ct.op }}">#{{ ct.name }}</button></sc-for></div></div>
+              <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px">
+                <div style="display: flex; gap: 6px"><button type="button" style="display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 0 12px; border: 1px solid #DCCBB5; border-radius: 5px; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 13px; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2E7D4F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"></path></svg>Photo</button><button type="button" style="display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 0 12px; border: 1px solid #DCCBB5; border-radius: 5px; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 13px; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#C62828" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"></path><rect x="2" y="6" width="14" height="12" rx="2"></rect></svg>Video</button><span style="align-self: center; font-size: 11.5px; color: #6B5A4E">Up to 10 · photos 5 MB, videos 50 MB</span></div>
+                <button type="button" onClick="{{ post }}" disabled="{{ cantPost }}" style="min-height: 40px; padding: 0 18px; border: 0; border-radius: 5px; background: {{ postBg }}; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Post</button>
+              </div>
+            </div>
+          </sc-if>
+        </section>
+          <div role="group" aria-label="Filter by tag" style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{ fchips }}" as="fc" hint-placeholder-count="7"><button type="button" aria-pressed="{{ fc.on }}" onClick="{{ fc.pick }}" style="min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid {{ fc.border }}; background: {{ fc.bg }}; color: {{ fc.fg }}; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{ fc.label }}</button></sc-for></div>
+      <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 8px; background: #E1F2E4; border: 1px solid #BFDFC6; color: #1E5A34; font-size: 13.5px; font-weight: 500"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg><span style="flex: 1">{{ toast }}</span><button type="button" aria-label="Dismiss" onClick="{{ clearToast }}" style="width: 32px; height: 32px; border: 0; background: transparent; color: #1E5A34; cursor: pointer; display: grid; place-items: center"><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>
+      </sc-if>
+          <sc-for list="{{ posts }}" as="p" hint-placeholder-count="3">
+          <article aria-labelledby="{{ p.hid }}" style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 10px">
+            <header style="display: flex; align-items: flex-start; gap: 12px; padding: 16px 18px 0">
+              <span aria-hidden="true" style="width: 42px; height: 42px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: {{ p.bg }}; color: #FFFFFF; font-size: 13px; font-weight: 600">{{ p.initials }}</span>
+              <div style="flex: 1; min-width: 0">
+                <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px"><span id="{{ p.hid }}" style="font-size: 14.5px; font-weight: 600">{{ p.author }}</span><span style="padding: 1px 8px; border-radius: 999px; background: {{ p.roleBg }}; color: {{ p.roleFg }}; font-size: 11px; font-weight: 600">{{ p.role }}</span><sc-if value="{{ p.top }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 999px; background: #FBF3E3; color: #6B4209; font-size: 11px; font-weight: 600"><svg aria-hidden="true" viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>On the landing page</span></sc-if></span>
+                <span style="display: block; font-size: 12px; color: #6B5A4E">{{ p.meta }}</span>
+              </div>
+              <div style="position: relative">
+                <button type="button" aria-label="Post options" aria-expanded="{{ p.menuOpen }}" onClick="{{ p.toggleMenu }}" style="width: 36px; height: 36px; border: 0; background: transparent; color: #6B5A4E; border-radius: 999px; cursor: pointer; display: grid; place-items: center"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg></button>
+                <sc-if value="{{ p.menuOpen }}" hint-placeholder-val="{{ false }}">
+                  <div role="menu" style="position: absolute; right: 0; top: 100%; z-index: 5; width: 200px; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 14px 30px -14px rgba(43,26,18,0.45); padding: 4px">
+                    <sc-for list="{{ p.menu }}" as="mi" hint-placeholder-count="2"><button type="button" role="menuitem" onClick="{{ mi.run }}" style="width: 100%; text-align: left; min-height: 38px; padding: 0 12px; border: 0; background: transparent; border-radius: 5px; font: inherit; font-size: 13px; color: {{ mi.fg }}; cursor: pointer">{{ mi.label }}</button></sc-for>
+                  </div>
+                </sc-if>
+              </div>
+            </header>
+            <p style="margin: 12px 18px 0; font-size: 14.5px; line-height: 1.65; white-space: pre-line">{{ p.body }}</p>
+            <p style="margin: 6px 18px 0; display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{ p.tags }}" as="tg" hint-placeholder-count="2"><button type="button" onClick="{{ tg.pick }}" style="border: 0; background: transparent; padding: 0; color: #7B4A2A; font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer">#{{ tg.name }}</button></sc-for></p>
+            <sc-if value="{{ p.hasMedia }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-top: 12px; display: grid; grid-template-columns: {{ p.cols }}; grid-template-rows: {{ p.rows }}; gap: 3px; aspect-ratio: 16 / 10; background: #1E130D">
+                <sc-for list="{{ p.media }}" as="md" hint-placeholder-count="3">
+                  <button type="button" aria-label="Open {{ md.kind }} {{ md.n }} of {{ p.mediaCount }}" style="position: relative; grid-column: {{ md.gc }}; grid-row: {{ md.gr }}; min-height: 0; border: 0; padding: 0; background: {{ md.bg }}; overflow: hidden; cursor: pointer; display: grid; place-items: center; color: #8B6A4F; font: inherit; font-size: 12px; font-weight: 600">
+                    {{ md.label }}
+                    <sc-if value="{{ md.isVideo }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position: absolute; width: 52px; height: 52px; border-radius: 999px; background: rgba(255,255,255,0.92); color: #2B1A12; display: grid; place-items: center"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z"></path></svg></span></sc-if>
+                    <sc-if value="{{ md.more }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position: absolute; inset: 0; background: rgba(30,19,13,0.55); color: #FFFFFF; font-size: 26px; font-weight: 600; display: grid; place-items: center">+{{ md.moreN }}</span></sc-if>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-if>
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 18px; font-size: 12.5px; color: #6B5A4E">
+              <span style="display: inline-flex; align-items: center; gap: 6px"><span aria-hidden="true" style="display: inline-flex"><span style="width: 20px; height: 20px; display: grid; place-items: center; border-radius: 999px; background: #7B4A2A; color: #FFFFFF; border: 2px solid #FFFFFF"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M7 10v11H3V10h4Zm2 11V10l4.5-8a2.3 2.3 0 0 1 3.1 2.6L15.6 9H20a2 2 0 0 1 2 2.3l-1.4 8A2 2 0 0 1 18.6 21H9Z"></path></svg></span><span style="width: 20px; height: 20px; margin-left: -5px; display: grid; place-items: center; border-radius: 999px; background: #C62828; color: #FFFFFF; border: 2px solid #FFFFFF"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.1 3.3 4 7.2 4c2 0 3.6 1.1 4.8 2.8C13.2 5.1 14.8 4 16.8 4c3.9 0 6.3 4.1 4.8 7.7C19.5 16.4 12 21 12 21Z"></path></svg></span><span style="width: 20px; height: 20px; margin-left: -5px; display: grid; place-items: center; border-radius: 999px; background: #C8913A; color: #2B1A12; border: 2px solid #FFFFFF"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></span></span>{{ p.reactLabel }}</span>
+              <span>{{ p.counts }}</span>
+            </div>
+            <div style="position: relative; display: flex; gap: 4px; padding: 4px 10px; border-top: 1px solid #EFE6DA">
+              <button type="button" aria-pressed="{{ p.reacted }}" onClick="{{ p.togglePicker }}" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; border: 0; background: transparent; color: {{ p.reactFg }}; border-radius: 5px; font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="{{ p.reactFill }}" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M7 10v11H3V10h4Zm2 11V10l4.5-8a2.3 2.3 0 0 1 3.1 2.6L15.6 9H20a2 2 0 0 1 2 2.3l-1.4 8A2 2 0 0 1 18.6 21H9Z"></path></svg>{{ p.reactText }}</button>
+              <button type="button" aria-expanded="{{ p.open }}" onClick="{{ p.toggleComments }}" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; border: 0; background: transparent; color: #4A3A30; border-radius: 5px; font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>Comment</button>
+              <sc-if value="{{ p.pickerOpen }}" hint-placeholder-val="{{ false }}">
+                <div role="group" aria-label="Pick a reaction" style="position: absolute; left: 14px; bottom: calc(100% - 4px); display: flex; gap: 4px; padding: 6px; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 999px; box-shadow: 0 14px 30px -14px rgba(43,26,18,0.45)">
+                  <sc-for list="{{ p.picks }}" as="rk" hint-placeholder-count="3"><button type="button" aria-label="{{ rk.label }}" aria-pressed="{{ rk.on }}" onClick="{{ rk.pick }}" style="width: 40px; height: 40px; border: 0; border-radius: 999px; background: {{ rk.bg }}; color: #FFFFFF; cursor: pointer; display: grid; place-items: center; outline: {{ rk.ring }}"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="{{ rk.d }}"></path></svg></button></sc-for>
+                </div>
+              </sc-if>
+            </div>
+            <sc-if value="{{ p.open }}" hint-placeholder-val="{{ false }}">
+              <div style="border-top: 1px solid #EFE6DA; padding: 12px 18px 16px; display: flex; flex-direction: column; gap: 12px">
+                <sc-for list="{{ p.comments }}" as="cm" hint-placeholder-count="2">
+                  <div style="display: flex; flex-direction: column; gap: 8px">
+                    <div style="display: flex; gap: 10px"><span aria-hidden="true" style="width: 32px; height: 32px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: {{ cm.bg }}; color: #FFFFFF; font-size: 11px; font-weight: 600">{{ cm.i }}</span><div style="min-width: 0"><div style="padding: 8px 12px; border-radius: 12px; background: #F5F0EA"><span style="display: block; font-size: 13px; font-weight: 600">{{ cm.a }} <span style="font-weight: 500; color: #6B5A4E; font-size: 11.5px">{{ cm.r }}</span></span><span style="display: block; font-size: 13.5px; line-height: 1.5">{{ cm.t }}</span></div><span style="display: flex; gap: 12px; padding: 3px 12px 0; font-size: 12px; color: #6B5A4E"><span>{{ cm.when }}</span><button type="button" style="border: 0; background: transparent; padding: 0; font: inherit; font-size: 12px; font-weight: 600; color: #4A3A30; cursor: pointer">Like</button><button type="button" onClick="{{ cm.reply }}" style="border: 0; background: transparent; padding: 0; font: inherit; font-size: 12px; font-weight: 600; color: #4A3A30; cursor: pointer">Reply</button><sc-if value="{{ cm.mine }}" hint-placeholder-val="{{ false }}"><button type="button" style="border: 0; background: transparent; padding: 0; font: inherit; font-size: 12px; font-weight: 600; color: #4A3A30; cursor: pointer">Edit</button><button type="button" style="border: 0; background: transparent; padding: 0; font: inherit; font-size: 12px; font-weight: 600; color: #A1362B; cursor: pointer">Delete</button></sc-if></span></div></div>
+                    <sc-for list="{{ cm.replies }}" as="rp" hint-placeholder-count="1">
+                      <div style="display: flex; gap: 10px; margin-left: 42px"><span aria-hidden="true" style="width: 28px; height: 28px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: {{ rp.bg }}; color: #FFFFFF; font-size: 10px; font-weight: 600">{{ rp.i }}</span><div><div style="padding: 8px 12px; border-radius: 12px; background: #F5F0EA"><span style="display: block; font-size: 13px; font-weight: 600">{{ rp.a }} <span style="font-weight: 500; color: #6B5A4E; font-size: 11.5px">{{ rp.r }}</span></span><span style="display: block; font-size: 13.5px; line-height: 1.5">{{ rp.t }}</span></div><span style="display: block; padding: 3px 12px 0; font-size: 12px; color: #6B5A4E">{{ rp.when }}</span></div></div>
+                    </sc-for>
+                    <sc-if value="{{ cm.replying }}" hint-placeholder-val="{{ false }}"><div style="display: flex; gap: 8px; margin-left: 42px"><input class="kk-f" aria-label="Write a reply" placeholder="Reply to {{ cm.a }}…" style="flex: 1; min-height: 38px; border: 1px solid #DCCBB5; border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 13px"><button type="button" style="min-height: 38px; padding: 0 14px; border: 0; border-radius: 999px; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">Reply</button></div></sc-if>
+                  </div>
+                </sc-for>
+                <div style="display: flex; gap: 8px; align-items: center"><span aria-hidden="true" style="width: 32px; height: 32px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: {{ meBg }}; color: #FFFFFF; font-size: 11px; font-weight: 600">{{ meI }}</span><input class="kk-f" aria-label="Write a comment" placeholder="Write a comment…" style="flex: 1; min-height: 40px; border: 1px solid #DCCBB5; border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 13.5px"></div>
+              </div>
+            </sc-if>
+          </article>
+        </sc-for>
+          <sc-if value="{{ noPosts }}" hint-placeholder-val="{{ false }}"><p style="margin: 0; padding: 32px; text-align: center; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 10px; color: #6B5A4E">No posts with #{{ tagName }} yet.</p></sc-if>
+          <div style="display: flex; justify-content: center; align-items: center; gap: 8px; padding: 8px; font-size: 12.5px; color: #6B5A4E"><span aria-hidden="true" style="width: 14px; height: 14px; border-radius: 999px; border: 2px solid #DCCBB5; border-top-color: #7B4A2A"></span>Loading more posts</div>
+        </div>
+        <aside style="flex: 1 1 280px; max-width: 340px; display: flex; flex-direction: column; gap: 14px">
+          <section style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 10px; padding: 16px 18px">
+            <h2 style="margin: 0; font-size: 15px; font-weight: 600">Most viewed this month</h2>
+            <p style="margin: 2px 0 0; font-size: 12px; color: #6B5A4E; line-height: 1.5">These 3 appear on the landing page for everyone. Views count signed-in people once a day.</p>
+            <ol style="list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px"><sc-for list="{{ topList }}" as="tp" hint-placeholder-count="3"><li style="display: flex; gap: 10px"><span aria-hidden="true" style="width: 24px; height: 24px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: #F7EFE4; color: #7B4A2A; font-size: 12px; font-weight: 700">{{ tp.n }}</span><span style="font-size: 13px; line-height: 1.45"><strong>{{ tp.t }}</strong><span style="display: block; color: #6B5A4E; font-size: 12px">{{ tp.d }}</span></span></li></sc-for></ol>
+          </section>
+          <section style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 10px; padding: 16px 18px">
+            <h2 style="margin: 0; font-size: 15px; font-weight: 600">Tags</h2>
+            <ul style="list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px"><sc-for list="{{ tagStats }}" as="ts" hint-placeholder-count="6"><li style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #7B4A2A; font-weight: 600">#{{ ts.n }}</span><span style="color: #6B5A4E">{{ ts.c }} posts</span></li></sc-for></ul>
+          </section>
+        </aside>
+      </div>
+    </main>
+  </div>
+  <sc-if value="{{ isRemove }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close dialog" onClick="{{ closeModal }}" style="position: absolute; inset: 0; z-index: 70; border: 0; padding: 0; background: rgba(43,26,18,0.5); cursor: default"></button>
+    <div role="alertdialog" aria-modal="true" aria-labelledby="rm-title" style="position: absolute; left: 50%; top: 260px; transform: translateX(-50%); z-index: 71; width: 460px; max-width: calc(100% - 32px); background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 24px 48px -24px rgba(43,26,18,0.5); padding: 24px">
+      <span aria-hidden="true" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 999px; background: #FDF0EE; color: #A1362B"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></span>
+      <h2 id="rm-title" style="margin: 14px 0 0; font-size: 18px; font-weight: 600">Remove this post?</h2>
+<p style="margin: 6px 0 0; font-size: 13.5px; color: #4A3A30; line-height: 1.6">It leaves the Hub. The author gets a notification with your reason.</p><label for="rmr" style="display: block; margin-top: 12px; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Reason · required</label><textarea class="kk-f" id="rmr" rows="3" placeholder="e.g. Selling outside KapeKonek isn’t allowed in the Hub" style="margin-top: 6px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 9px 12px; font: inherit; font-size: 13.5px"></textarea>
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" onClick="{{ closeModal }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Cancel</button><button type="button" onClick="{{ doRemove }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #A1362B; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Remove post</button>
+      </div>
+    </div>
+  </sc-if>  <sc-if value="{{ isDelete }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close dialog" onClick="{{ closeModal }}" style="position: absolute; inset: 0; z-index: 70; border: 0; padding: 0; background: rgba(43,26,18,0.5); cursor: default"></button>
+    <div role="alertdialog" aria-modal="true" aria-labelledby="del-title" style="position: absolute; left: 50%; top: 260px; transform: translateX(-50%); z-index: 71; width: 460px; max-width: calc(100% - 32px); background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 24px 48px -24px rgba(43,26,18,0.5); padding: 24px">
+      <span aria-hidden="true" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 999px; background: #FDF0EE; color: #A1362B"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></span>
+      <h2 id="del-title" style="margin: 14px 0 0; font-size: 18px; font-weight: 600">Delete your post?</h2>
+<p style="margin: 6px 0 0; font-size: 13.5px; color: #4A3A30; line-height: 1.6">It’s removed with its comments and reactions. This can’t be undone.</p>
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" onClick="{{ closeModal }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Cancel</button><button type="button" onClick="{{ doDelete }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #A1362B; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Delete post</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"role": {"editor": "enum", "options": ["farmer", "group_manager", "kaluppa"], "default": "farmer"}, "$preview": {"width": 1440, "height": 2300}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { tag: 'all', menu: null, picker: null, react: { p2: 'like' }, open: { p2: true }, replyTo: 'c1', composing: false, draft: '', ctags: [], extra: [], modal: null, toast: '', gone: [] }; }
+  renderVals() {
+    const s = this.state;
+    const role = this.props.role || 'farmer';
+    const ME = { farmer: ['Rodel Mendoza', 'RM', '#3F6B4E'], group_manager: ['Liza Ramos', 'LR', '#8A5A12'], kaluppa: ['Kaluppa · Ana', 'KP', '#2B1A12'] }[role];
+    const TAGS = ['pruning', 'harvesting', 'processing', 'soil', 'advisory', 'announcement'];
+    const RL = { Farmer: ['#E1F2E4', '#1E5A34'], 'Group Manager': ['#E8F0FA', '#1F4E86'], Kaluppa: ['#2B1A12', '#F7EFE4'] };
+    const RX = { like: ['Like', '#7B4A2A', 'M7 10v11H3V10h4Zm2 11V10l4.5-8a2.3 2.3 0 0 1 3.1 2.6L15.6 9H20a2 2 0 0 1 2 2.3l-1.4 8A2 2 0 0 1 18.6 21H9Z'], love: ['Love', '#C62828', 'M12 21s-7.5-4.6-9.6-9.3C.9 8.1 3.3 4 7.2 4c2 0 3.6 1.1 4.8 2.8C13.2 5.1 14.8 4 16.8 4c3.9 0 6.3 4.1 4.8 7.7C19.5 16.4 12 21 12 21Z'], celebrate: ['Celebrate', '#C8913A', 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'] };
+    const P = [
+      { id: 'p1', author: 'Kaluppa', role: 'Kaluppa', initials: 'KP', bg: '#2B1A12', time: '2 days ago', tags: ['announcement'], top: true, views: 1240, react: 78, comments: 12, body: 'Fresh Liberica roasts are in! This batch came from three farmer groups in Mogpog and Santa Cruz, roasted medium for that classic barako body.\nOrders for this batch are open until stock runs out, with delivery anywhere in Marinduque. Thank you to everyone who sorted and dried these cherries.', media: [['Roasting batch', 'i'], ['Cooling tray', 'i'], ['Roaster in action', 'v'], ['Packing 250 g bags', 'i'], ['Finished packs (portrait)', 'i']] },
+      { id: 'p2', author: 'Liza Ramos', role: 'Group Manager', initials: 'LR', bg: '#8A5A12', time: '5 hours ago · Santa Cruz Coffee Growers', tags: ['advisory', 'soil'], top: true, views: 860, react: 31, comments: 6, body: 'Leaf rust is showing up after the October rains. Check the underside of older leaves for orange powder. Remove infected leaves, burn them away from the farm, and open the canopy so air moves through. Lime the soil if the pH is below 5.5.', media: [['Rust on leaf underside', 'i'], ['Opened canopy', 'i'], ['Soil pH test', 'i']] },
+      { id: 'p3', author: 'Rodel Mendoza', role: 'Farmer', initials: 'RM', bg: '#3F6B4E', time: 'Yesterday · Edited', tags: ['pruning'], mine: role === 'farmer', views: 210, react: 14, comments: 2, body: 'First pruning of the Lot 7 trees is done. Took out the suckers and the branches touching the ground. Before and after below.', media: [['Before pruning', 'i'], ['After pruning', 'i']] },
+      { id: 'p4', author: 'Nestor Perez', role: 'Farmer', initials: 'NP', bg: '#4A3A30', time: 'Nov 19', tags: ['harvesting', 'processing'], top: true, views: 640, react: 22, comments: 4, body: 'How we sort and dry Excelsa cherries on raised beds. 12 days in the sun, turned four times a day.', media: [['Drying beds', 'v']] }
+    ];
+    const mine = s.extra.map((x, i) => ({ id: 'n' + i, author: ME[0], role: { farmer: 'Farmer', group_manager: 'Group Manager', kaluppa: 'Kaluppa' }[role], initials: ME[1], bg: ME[2], time: 'Just now', tags: x.tags, mine: true, views: 0, react: 0, comments: 0, body: x.body, media: [] }));
+    const all = mine.concat(P).filter((p) => !s.gone.includes(p.id));
+    const shown = all.filter((p) => s.tag === 'all' || p.tags.includes(s.tag));
+    const layout = (n) => n === 1 ? ['1fr', '1fr', [['1', '1']]] : (n === 2 ? ['1fr 1fr', '1fr', [['1', '1'], ['2', '1']]] : (n === 3 ? ['2fr 1fr', '1fr 1fr', [['1', '1 / span 2'], ['2', '1'], ['2', '2']]] : ['1fr 1fr', '1fr 1fr', [['1', '1'], ['2', '1'], ['1', '2'], ['2', '2']]]));
+    const C2 = [{ id: 'c1', a: 'Rodel Mendoza', r: 'Farmer', i: 'RM', bg: '#3F6B4E', t: 'Does a copper fungicide help, or is pruning enough?', when: '4h', mine: role === 'farmer', replies: [{ a: 'Liza Ramos', r: 'Group Manager', i: 'LR', bg: '#8A5A12', t: 'Start with pruning and spacing. Use copper only on heavily infected rows, after asking me first.', when: '3h' }] }, { id: 'c2', a: 'Lorna Ilagan', r: 'Farmer', i: 'LI', bg: '#8A5A12', t: 'Same problem in Matalaba. Thanks for this!', when: '2h', replies: [] }];
+    return {
+      role, meI: ME[1], meBg: ME[2],
+      composing: s.composing || !!s.draft, cRows: s.composing ? 3 : 1, expand: () => this.setState({ composing: true }),
+      draft: s.draft, onDraft: (e) => this.setState({ draft: e.target.value }),
+      tagCount: s.ctags.length,
+      ctags: TAGS.map((t) => { const on = s.ctags.includes(t); const off = !on && s.ctags.length >= 3; return { name: t, on, off, op: off ? 0.45 : 1, bg: on ? '#7B4A2A' : '#FFFFFF', fg: on ? '#FFFFFF' : '#2B1A12', border: on ? '#7B4A2A' : '#DCCBB5', pick: () => this.setState({ ctags: on ? s.ctags.filter((x) => x !== t) : s.ctags.concat([t]) }) }; }),
+      cantPost: !s.draft.trim(), postBg: s.draft.trim() ? '#7B4A2A' : '#C4B0A0',
+      post: () => this.setState({ extra: [{ body: s.draft, tags: s.ctags }].concat(s.extra), draft: '', ctags: [], composing: false, toast: 'Posted to the Hub.' }),
+      fchips: [['all', 'All posts']].concat(TAGS.map((t) => [t, '#' + t])).map(([k, l]) => ({ label: l, on: s.tag === k, pick: () => this.setState({ tag: k }), bg: s.tag === k ? '#2B1A12' : '#FFFFFF', fg: s.tag === k ? '#FFFFFF' : '#2B1A12', border: s.tag === k ? '#2B1A12' : '#DCCBB5' })),
+      hasToast: !!s.toast, toast: s.toast, clearToast: () => this.setState({ toast: '' }),
+      noPosts: shown.length === 0, tagName: s.tag,
+      posts: shown.map((p) => {
+        const r = s.react[p.id];
+        const L = layout(Math.min(4, p.media.length));
+        const extra = p.media.length - 4;
+        const menu = p.mine ? [{ label: 'Edit post', fg: '#2B1A12', run: () => this.setState({ menu: null }) }, { label: 'Delete post', fg: '#A1362B', run: () => this.setState({ menu: null, modal: 'delete', target: p.id }) }] : (role === 'kaluppa' ? [{ label: 'Remove post', fg: '#A1362B', run: () => this.setState({ menu: null, modal: 'remove', target: p.id }) }] : [{ label: 'Copy link', fg: '#2B1A12', run: () => this.setState({ menu: null }) }]);
+        return { ...p, hid: 'h-' + p.id, roleBg: RL[p.role][0], roleFg: RL[p.role][1], top: !!p.top,
+          meta: p.time + ' · ' + (p.views ? p.views.toLocaleString() + ' views' : 'new'),
+          tags: p.tags.map((t) => ({ name: t, pick: () => this.setState({ tag: t }) })),
+          hasMedia: p.media.length > 0, mediaCount: p.media.length, cols: L[0], rows: L[1],
+          media: p.media.slice(0, 4).map((m, i) => ({ n: i + 1, label: m[0], kind: m[1] === 'v' ? 'video' : 'photo', isVideo: m[1] === 'v', bg: m[1] === 'v' ? '#3A2419' : '#EADCCB', gc: L[2][i][0], gr: L[2][i][1], more: i === 3 && extra > 0, moreN: extra })),
+          reactLabel: (p.react + (r ? 1 : 0)).toLocaleString(), counts: p.comments + ' comments',
+          reacted: !!r, reactText: r ? RX[r][0] : 'React', reactFg: r ? RX[r][1] : '#4A3A30', reactFill: r === 'like' ? 'currentColor' : 'none',
+          pickerOpen: s.picker === p.id, togglePicker: () => this.setState({ picker: s.picker === p.id ? null : p.id }),
+          picks: Object.keys(RX).map((k) => ({ label: RX[k][0], on: r === k, bg: RX[k][1], d: RX[k][2], ring: r === k ? '2px solid #2B1A12' : 'none', pick: () => this.setState({ react: { ...s.react, [p.id]: r === k ? null : k }, picker: null }) })),
+          open: !!s.open[p.id], toggleComments: () => this.setState({ open: { ...s.open, [p.id]: !s.open[p.id] } }),
+          comments: p.id === 'p2' ? C2.map((c) => ({ ...c, mine: !!c.mine, replying: s.replyTo === c.id, reply: () => this.setState({ replyTo: s.replyTo === c.id ? null : c.id }) })) : [],
+          menuOpen: s.menu === p.id, toggleMenu: () => this.setState({ menu: s.menu === p.id ? null : p.id }), menu };
+      }),
+      topList: [{ n: 1, t: 'Fresh Liberica roasts are in!', d: 'Kaluppa · 1,240 views' }, { n: 2, t: 'Leaf rust after the October rains', d: 'Liza Ramos · 860 views' }, { n: 3, t: 'Sorting and drying Excelsa', d: 'Nestor Perez · 640 views' }],
+      tagStats: TAGS.map((t, i) => ({ n: t, c: [18, 11, 7, 9, 14, 6][i] })),
+      isRemove: s.modal === 'remove', isDelete: s.modal === 'delete', closeModal: () => this.setState({ modal: null }),
+      doRemove: () => this.setState({ modal: null, gone: s.gone.concat([s.target]), toast: 'Post removed. The author was notified.' }),
+      doDelete: () => this.setState({ modal: null, gone: s.gone.concat([s.target]), toast: 'Your post was deleted.' })
+    };
+  }
+}
+</script>
+</body>
+</html>

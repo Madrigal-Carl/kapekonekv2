@@ -158,6 +158,45 @@ Each one is a single Claude Code session. Copy the updated kit files in first (C
 | 01 · remove order chat | done |
 | 02 · no eyebrow bar | done |
 | 03 · search selects, map zoom, upload limits, review rules, cart quantity fix | `Read CLAUDE.md and docs/prompts/CHANGE-03-SELECTS-MAP-ZOOM-UPLOADS-REVIEWS-CART.md, then carry out Change 03.` |
+| 04 · fixed post media frames, Gmail seed accounts (`KapeKonek@123`) | `Read CLAUDE.md and docs/prompts/CHANGE-04-POST-MEDIA-AND-SEED-ACCOUNTS.md, then carry out Change 04.` |
+
+## Phase 2 — the dashboard (farmer, Group Manager, Kaluppa)
+
+### P2-1. Bring in the kit
+1. Let any running session finish and commit.
+2. Copy `CLAUDE.md`, `BUILD-GUIDE.md`, `SETUP.md` and `docs/` from the zip into your project, replacing the old ones. Keep your code, `_reference/`, `.claude/` and `docs/plans/phase-1.md`.
+3. Optional but useful: copy your **original KapeKonek project** into `_reference/original/`. Claude reads it for farm, tree, harvest, bean and audit logic. It stays read-only and is never imported.
+4. In `backend/.env`, add `SEED_EMAIL_BASE=yourname@gmail.com` (your own Gmail) so seed emails reach you. Leave it empty to only log them.
+
+### P2-2. Run Change 04 first
+`/clear`, then:
+```
+Read CLAUDE.md and docs/prompts/CHANGE-04-POST-MEDIA-AND-SEED-ACCOUNTS.md, then carry out Change 04.
+```
+Check: open Kaluppa's "Fresh Liberica roasts" post, then step to the 5th item. The frame doesn't grow. Log in as `buyer` / `KapeKonek@123`.
+
+### P2-3. Plan Phase 2
+`/clear`, then:
+```
+Read CLAUDE.md, docs/PHASE-2-SPEC.md, docs/DESIGN.md §8 and docs/prompts/PHASE-2-PROMPT.md. Look at every dashboard screen in docs/design/screens/ (read each Tweaks branch). Use superpowers to write the plan to docs/plans/phase-2.md and show me a short summary. Don't write code yet.
+```
+Read the summary. If something's off, say so before continuing.
+
+### P2-4. Build milestone by milestone
+One milestone per session: `/clear` → send the message → let it finish → check → next. `Continue …` means `Continue KapeKonek Phase 2 from docs/plans/phase-2.md.`
+
+| # | Send | What gets built | How to check it |
+|---|---|---|---|
+| M8 | `Continue … Start M8. Re-read the Sidebar, DashTopbar, DataTable, DashModals, Overview*, AssociationModal, FarmerAssociation, Farmers, FarmerReview, GroupManagers and Associations screens first.` | Dashboard shell, permissions, farmer email verification, association window and approvals, Group Managers, Associations, Farmers, overviews | Sign up as a farmer → verify → the window shows. As `manager.santacruz`, approve `farmer.pending`. As `kaluppa`, create a Group Manager with "Assign later" |
+| M9 | `Continue … Start M9. Re-read MiniMap, Farms, FarmForm, FarmView, Trees and Harvests first.` | Map picker, farms (property number, map), trees, harvests, scopes | Add a farm: pick the municipality, then the barangay, and watch the map zoom. Add a tree group in the farm drawer. Record a harvest (variety limited) |
+| M10 | `Continue … Start M10. Re-read BeansFarmer, BeansSell, BeansKaluppa and BeansReview first.` | Bean listings, 5 kg cap, Kaluppa review, completion, 7-day expiry | As `farmer.pending`, try listing 3 kg (blocked; 2 kg left). As `kaluppa`, approve → Beans arrived → complete |
+| M11 | `Continue … Start M11. Re-read OrdersFarmer, OrdersKaluppa, OrderManage, Inventory, InventoryForm, Reviews, ReviewView, ProductDetail and SettingsKaluppa first.` | Farmer store and orders, Kaluppa orders, inventory, review replies and hiding, settings | As a farmer, Store → buy fertilizer → see it in Orders. As `kaluppa`, confirm it with the receipt tick. Move the branch pin and re-quote |
+| M12 | `Continue … Start M12. Re-read Inbox and InboxMobile first.` | Inbox with realtime | Two browsers (farmer + Group Manager): send, typing, seen, edit, delete for everyone. Phone width: list → chat |
+| M13 | `Continue … Start M13. Re-read Hub, PostDetail and the Main posts section first.` | Hub, tags, reactions, comments, moderation, views, landing top 3 | Post with 2 tags and a portrait photo; filter by tag; as `kaluppa`, remove a post. The landing page shows 3 posts |
+| M14 | `Continue … Start M14. Re-read FarmMap, Reports, AuditLog and BarChart first.` | Farm Map, finished overviews, reports + CSV, audit log | As `kaluppa`, filter the map by association; export the Reports CSV; open an audit entry's diff |
+| M15 | `Continue … Start M15.` | All Phase 2 seeds, a Playwright pass for each role, polish, README | `cd backend`, then `npm run migrate:fresh -- --seed`, then sign in as every handle in the printed table |
+
+Seed sign-ins (password `KapeKonek@123`, username or Gmail): `kaluppa`, `manager.santacruz`, `manager.unassigned`, `farmer.approved`, `farmer.pending`, `farmer.new`, `farmer.nomail`, `buyer`.
 
 ## Tips while it builds
 

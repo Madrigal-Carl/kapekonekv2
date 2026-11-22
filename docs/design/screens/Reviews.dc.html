@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Reviews (Kaluppa)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+.kk-f:focus{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
+.kk-menu{display:none !important}
+@media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+</style>
+</helmet>
+<div style="position: relative; width: 100%; min-height: 1050px; background: #F5F0EA; display: flex; align-items: stretch">
+  <div class="kk-side" style="width: 256px; flex-shrink: 0; background: #FFFFFF">
+    <dc-import name="Sidebar" role="kaluppa" active="Reviews" hint-size="256px,900px"></dc-import>
+  </div>
+  <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="DashTopbar" role="kaluppa" crumb-a="Marketplace" crumb-b="Reviews" hint-size="100%,64px"></dc-import>
+    <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+        <div style="min-width: 0; max-width: 720px">
+          <span style="display: block; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Marketplace</span>
+          <h1 style="margin: 8px 0 0; font-weight: 500; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15">Reviews</h1>
+          <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">Buyer and farmer reviews of Kaluppa’s products. Reply publicly, or hide a review that breaks the rules. Kaluppa can’t edit what a reviewer wrote.</p>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px"></div>
+      </div>
+      <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 8px; background: #E1F2E4; border: 1px solid #BFDFC6; color: #1E5A34; font-size: 13.5px; font-weight: 500"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg><span style="flex: 1">{{ toast }}</span><button type="button" aria-label="Dismiss" onClick="{{ clearToast }}" style="width: 32px; height: 32px; border: 0; background: transparent; color: #1E5A34; cursor: pointer; display: grid; place-items: center"><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>
+      </sc-if>
+      <dc-import name="DataTable" aria-label="Product reviews" columns="{{ cols }}" rows="{{ rows }}" tabs="{{ tabs }}" filters="{{ filters }}" on-action="{{ onAction }}" selected-id="{{ selId }}" search-placeholder="Search product, reviewer or text" page-size="{{ 6 }}" min-width="{{ minW }}" hint-size="100%,560px"></dc-import>
+    </main>
+  </div>
+  <sc-if value="{{ isView }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close panel" onClick="{{ closeDrawer }}" style="position: absolute; inset: 0; z-index: 60; border: 0; padding: 0; background: rgba(43,26,18,0.42); cursor: default"></button>
+    <aside role="dialog" aria-modal="true" aria-labelledby="dr-title" style="position: absolute; top: 0; right: 0; bottom: 0; z-index: 61; width: 640px; max-width: 100%; background: #FFFFFF; border-left: 1px solid #E7DCCD; box-shadow: -24px 0 48px -24px rgba(43,26,18,0.45); display: flex; flex-direction: column">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 32px 20px; border-bottom: 1px solid #EFE6DA">
+        <div style="min-width: 0"><span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Review</span><h2 id="dr-title" style="margin: 4px 0 0; font-size: 20px; font-weight: 600; line-height: 1.3">{{ cur.title }}</h2></div>
+        <button type="button" aria-label="Close" onClick="{{ closeDrawer }}" style="width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border: 0; background: transparent; border-radius: 5px; color: #6B5A4E; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+      </div>
+      <div style="flex: 1; overflow-y: auto; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px">
+        <div style="display: flex; align-items: center; gap: 14px; padding: 14px; border: 1px solid #E7DCCD; border-radius: 8px">
+          <span aria-hidden="true" style="width: 56px; height: 56px; flex-shrink: 0; border-radius: 6px; background: #EADCCB"></span>
+          <div style="flex: 1; min-width: 0"><span style="display: block; font-size: 14.5px; font-weight: 600">{{ cur.product }}</span><span style="display: block; font-size: 12.5px; color: #6B5A4E">{{ cur.productSub }}</span></div>
+          <a href="ProductDetail.dc.html" style="font-size: 13px; font-weight: 600; text-decoration: none">View product</a>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span aria-hidden="true" style="width: 44px; height: 44px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: {{ cur.bg }}; color: #FFFFFF; font-size: 14px; font-weight: 600">{{ cur.initials }}</span>
+          <div style="flex: 1"><span style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px"><span style="font-size: 15px; font-weight: 600">{{ cur.name }}</span><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: #22633A; background: #E1F2E4; padding: 2px 8px; border-radius: 999px; font-weight: 600">Verified purchase</span><span style="font-size: 11px; color: #4A3A30; background: #F5F0EA; border: 1px solid #E7DCCD; padding: 1px 8px; border-radius: 999px; font-weight: 600">{{ cur.type }}</span></span><span style="display: block; font-size: 12.5px; color: #6B5A4E">{{ cur.when }} · order <a href="OrderManage.dc.html" style="font-weight: 600">{{ cur.order }}</a></span></div>
+        </div>
+        <div>
+          <span role="img" aria-label="{{ cur.rating }} out of 5 stars" style="display: inline-flex; gap: 2px"><sc-for list="{{ curStars }}" as="s" hint-placeholder-count="5"><svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="{{ s.fill }}" stroke="#C8913A" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></sc-for></span>
+          <p style="margin: 10px 0 0; font-size: 14.5px; line-height: 1.7; color: #2B1A12">{{ cur.text }}</p>
+        </div>
+        <sc-if value="{{ isHidden }}" hint-placeholder-val="{{ false }}">
+          <div role="status" style="padding: 12px 14px; border-radius: 8px; background: #F1ECE6; border: 1px solid #E7DCCD; font-size: 13px; color: #4A3A30; line-height: 1.6"><strong>Hidden from the product page</strong> since Nov 20 by Ana Villanueva. Reason: “Mentions a competitor’s phone number.” It doesn’t count toward the rating.</div>
+        </sc-if>
+        <h3 style="margin: 8px 0 -8px; padding-top: 18px; border-top: 1px solid #F1E9DE; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B5A4E; font-weight: 600">Reply from Kaluppa</h3>
+        <sc-if value="{{ showReply }}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 14px 16px; border-radius: 8px; background: #F7EFE4; border-left: 3px solid #7B4A2A">
+            <span style="display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; color: #6B5A4E"><strong style="color: #2B1A12">Kaluppa · Ana</strong><span>{{ replyWhen }}</span></span>
+            <p style="margin: 6px 0 0; font-size: 14px; line-height: 1.65">{{ replyText }}</p>
+            <div style="margin-top: 10px; display: flex; gap: 14px"><button type="button" onClick="{{ editReply }}" style="border: 0; background: transparent; padding: 0; color: #7B4A2A; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">Edit reply</button><button type="button" onClick="{{ deleteReply }}" style="border: 0; background: transparent; padding: 0; color: #A1362B; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">Delete reply</button></div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ showReplyForm }}" hint-placeholder-val="{{ true }}">
+          <div>
+            <label for="rpl" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Public reply <span style="text-transform: none; letter-spacing: 0; color: #7A6A5E">(shown under the review)</span></label>
+            <textarea class="kk-f" id="rpl" rows="4" value="{{ draft }}" onInput="{{ onDraft }}" placeholder="Thank the buyer, or explain what you’re doing about their feedback." style="margin-top: 8px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; line-height: 1.55; resize: vertical"></textarea>
+            <div style="margin-top: 8px; display: flex; justify-content: space-between; align-items: center"><span style="font-size: 12px; color: #6B5A4E">{{ draftCount }} / 1000 · the reviewer gets a notification</span><button type="button" onClick="{{ saveReply }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; min-height: 38px; font-size: 13.5px;">Save reply</button></div>
+          </div>
+        </sc-if>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; padding: 18px 32px; border-top: 1px solid #EFE6DA; background: #FBF8F4">
+<sc-if value="{{ notHidden }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ askHide }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; color: #A1362B;">Hide review</button></sc-if><sc-if value="{{ isHidden }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ unhide }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Show again</button></sc-if><button type="button" onClick="{{ closeDrawer }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Close</button>
+      </div>
+    </aside>
+  </sc-if>  <sc-if value="{{ isHide }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close dialog" onClick="{{ closeModal }}" style="position: absolute; inset: 0; z-index: 70; border: 0; padding: 0; background: rgba(43,26,18,0.5); cursor: default"></button>
+    <div role="alertdialog" aria-modal="true" aria-labelledby="h-title" style="position: absolute; left: 50%; top: 160px; transform: translateX(-50%); z-index: 71; width: 460px; max-width: calc(100% - 32px); background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 24px 48px -24px rgba(43,26,18,0.5); padding: 24px">
+      <span aria-hidden="true" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 999px; background: #FDF0EE; color: #A1362B"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15V5a2 2 0 0 0-2-2H9M2 2l20 20M3.6 3.6A2 2 0 0 0 3 5v16l4-4h10"></path></svg></span>
+      <h2 id="h-title" style="margin: 14px 0 0; font-size: 18px; font-weight: 600">Hide this review?</h2>
+<p style="margin: 6px 0 0; font-size: 13.5px; color: #4A3A30; line-height: 1.6">It disappears from the product page and stops counting toward the rating. {{ cur.first }} gets a notification with your reason. You can show it again later.</p><label for="hr" style="display: block; margin-top: 12px; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Reason · required</label><textarea class="kk-f" id="hr" rows="3" placeholder="e.g. Contains a phone number or offensive words" style="margin-top: 6px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 9px 12px; font: inherit; font-size: 13.5px"></textarea>
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" onClick="{{ closeModal }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Cancel</button><button type="button" onClick="{{ doHide }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #A1362B; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Hide review</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"start": {"editor": "enum", "options": ["", "view"], "default": ""}, "$preview": {"width": 1440, "height": 1050}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { mode: props.start || null, row: null, modal: null, toast: '', rejecting: false, tab: props.tab || 'details', pin: null, muni: null, brgy: null, view: null, adding: false, replies: {}, editing: false, draft: '', hidden: {} }; }
+  renderVals() {
+    const s = this.state;
+    const close = () => this.setState({ mode: null, row: null, rejecting: false, adding: false });
+    const base = {
+      selId: s.row ? s.row.id : null,
+      closeDrawer: close, closeModal: () => this.setState({ modal: null }),
+      hasToast: !!s.toast, toast: s.toast, clearToast: () => this.setState({ toast: '' }),
+      minW: '820px'
+    };
+    const pill = (label, tone) => ({ label, tone });
+    const R = [
+      ['r1', 'Barako Medium Roast', 'Liberica · Roasted beans', 'Marites Abad', 'MA', '#7B4A2A', 'Buyer', 5, 'Strong and smooth, exactly how barako should taste. Arrived in four days and smelled amazing.', 'Nov 14, 2026', 'KK-20261110-0012', 'Salamat po, Marites! The next roast batch is out on Friday.', false],
+      ['r2', 'Excelsa Green Beans', 'Excelsa · Green beans', 'Jun Lopez', 'JL', '#8A5A12', 'Buyer', 3, 'Good beans but a few were broken. Hoping the sorting is better next time.', 'Nov 13, 2026', 'KK-20261108-0021', '', false],
+      ['r3', 'Complete fertilizer 14-14-14', 'Fertilizer · 50 kg sack', 'Rodel Mendoza', 'RM', '#3F6B4E', 'Farmer', 4, 'Delivered right to the farm. One sack was a little torn but nothing spilled.', 'Nov 12, 2026', 'KK-20261102-0007', '', false],
+      ['r4', 'Barako Medium Roast', 'Liberica · Roasted beans', 'Carla Reyes', 'CR', '#4A3A30', 'Buyer', 4, 'Bold flavor. I wish there was a 500 g pack.', 'Nov 2, 2026', 'KK-20261028-0004', 'Noted, Carla! A 500 g pack is coming in December.', false],
+      ['r5', 'Liberica seedlings', 'Seedlings · bagged', 'Nestor Perez', 'NP', '#4A3A30', 'Farmer', 5, 'Healthy seedlings, almost all survived the first month.', 'Oct 30, 2026', 'KK-20261018-0014', '', false],
+      ['r6', 'Robusta Ground', 'Robusta · Ground', 'Paolo Gomez', 'PG', '#8A5A12', 'Buyer', 2, 'Too fine for my French press. Call 0917… for better beans!', 'Oct 28, 2026', 'KK-20261020-0009', '', true],
+      ['r7', 'Arabica Light Roast', 'Arabica · Roasted beans', 'Ana Nolasco', 'AN', '#7B4A2A', 'Buyer', 5, 'Fruity and light. Great as a pour-over.', 'Oct 21, 2026', 'KK-20261015-0003', 'Thank you, Ana!', false],
+      ['r8', 'Liberica Green Beans', 'Liberica · Green beans', 'Lorna Ilagan', 'LI', '#8A5A12', 'Farmer', 1, 'Ordered 2 kg, received 1.5 kg.', 'Oct 19, 2026', 'KK-20261012-0010', '', false]
+    ];
+    const stars = (n) => '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n);
+    const hid = (r) => (s.hidden[r[0]] !== undefined ? s.hidden[r[0]] : r[12]);
+    const reply = (r) => (s.replies[r[0]] !== undefined ? s.replies[r[0]] : r[11]);
+    const rows = R.map((r) => ({ id: r[0], label: r[1], r, tab: hid(r) ? 'hidden' : 'visible',
+      prod: { main: r[1], sub: r[2] }, who: { name: r[3], sub: r[6], initials: r[4], bg: r[5] },
+      rating: { main: stars(r[7]), sub: r[7] + ' of 5' }, text: r[8].length > 70 ? r[8].slice(0, 70) + '…' : r[8],
+      reply: reply(r) ? pill('Replied', 'green') : pill('Needs reply', 'amber'), status: hid(r) ? pill('Hidden', 'gray') : pill('Visible', 'blue'), date: r[9],
+      f: { product: r[1], rating: r[7] + (r[7] === 1 ? ' star' : ' stars'), reply: reply(r) ? 'Replied' : 'Needs reply' },
+      actions: hid(r) ? ['view', 'unhide'] : ['view', 'hide'] }));
+    const r = s.row ? s.row.r : R[1];
+    const rep = reply(r);
+    const isHidden = hid(r);
+    return {
+      ...base, minW: '1080px',
+      cols: [{ key: 'prod', label: 'Product', kind: 'strong' }, { key: 'who', label: 'Reviewer', kind: 'person' }, { key: 'rating', label: 'Rating' }, { key: 'text', label: 'Review', kind: 'muted', wrap: true }, { key: 'reply', label: 'Reply', kind: 'pill' }, { key: 'status', label: 'Status', kind: 'pill' }, { key: 'date', label: 'Date', kind: 'muted' }],
+      rows, tabs: [{ key: 'all', label: 'All' }, { key: 'visible', label: 'Visible' }, { key: 'hidden', label: 'Hidden' }],
+      filters: [{ key: 'product', label: 'Product', options: ['All products'].concat([...new Set(R.map((x) => x[1]))]) }, { key: 'rating', label: 'Rating', options: ['All ratings', '5 stars', '4 stars', '3 stars', '2 stars', '1 star'] }, { key: 'reply', label: 'Reply', options: ['Any reply status', 'Needs reply', 'Replied'] }],
+      onAction: (k, row) => { if (k === 'view') this.setState({ mode: 'view', row, editing: false, draft: '' }); else if (k === 'hide') this.setState({ modal: 'hide', row }); else this.setState({ hidden: { ...s.hidden, [row.id]: false }, toast: 'Review is visible again.' }); },
+      isView: s.mode === 'view', isHide: s.modal === 'hide',
+      cur: { title: r[7] + '-star review of ' + r[1], product: r[1], productSub: r[2], name: r[3], first: r[3].split(' ')[0], initials: r[4], bg: r[5], type: r[6], rating: r[7], text: r[8], when: r[9], order: r[10] },
+      curStars: [1, 2, 3, 4, 5].map((i) => ({ fill: i <= r[7] ? '#C8913A' : 'none' })),
+      isHidden, notHidden: !isHidden,
+      showReply: !!rep && !s.editing, showReplyForm: !rep || s.editing, replyText: rep, replyWhen: 'Nov 14, 2026',
+      draft: s.draft, draftCount: s.draft.length, onDraft: (e) => this.setState({ draft: e.target.value }),
+      saveReply: () => this.setState({ replies: { ...s.replies, [r[0]]: s.draft || 'Thank you for the feedback! We’ve asked our sorting team to check every bag.' }, editing: false, draft: '', toast: 'Reply posted under the review.' }),
+      editReply: () => this.setState({ editing: true, draft: rep }),
+      deleteReply: () => this.setState({ replies: { ...s.replies, [r[0]]: '' }, toast: 'Reply deleted.' }),
+      askHide: () => this.setState({ modal: 'hide' }),
+      doHide: () => this.setState({ modal: null, hidden: { ...s.hidden, [r[0]]: true }, toast: 'Review hidden. The reviewer was notified.' }),
+      unhide: () => this.setState({ hidden: { ...s.hidden, [r[0]]: false }, toast: 'Review is visible again.' })
+    };
+  }
+}
+</script>
+</body>
+</html>

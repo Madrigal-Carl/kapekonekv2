@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Reports</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+.kk-f:focus{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
+.kk-menu{display:none !important}
+@media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+</style>
+</helmet>
+<div style="position: relative; width: 100%; min-height: 1700px; background: #F5F0EA; display: flex; align-items: stretch">
+  <div class="kk-side" style="width: 256px; flex-shrink: 0; background: #FFFFFF">
+    <dc-import name="Sidebar" role="{{ role }}" active="Reports" hint-size="256px,900px"></dc-import>
+  </div>
+  <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="DashTopbar" role="{{ role }}" crumb-a="Insights" crumb-b="Reports" hint-size="100%,64px"></dc-import>
+    <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+        <div style="min-width: 0; max-width: 720px">
+          <span style="display: block; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Insights</span>
+          <h1 style="margin: 8px 0 0; font-weight: 500; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15">Reports</h1>
+          <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">{{ desc }}</p>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px"><button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; "><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>Export all (CSV)</button></div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px">
+        <sc-for list="{{ fl }}" as="f" hint-placeholder-count="2"><div style="position: relative; z-index: {{ f.z }}; width: 240px"><dc-import name="SearchSelect" aria-label="{{ f.label }}" icon="{{ f.icon }}" size="sm" options="{{ f.options }}" value="{{ f.value }}" on-pick="{{ f.pick }}" hint-size="100%,40px"></dc-import></div></sc-for>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px">
+        <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+          <a href="{{ k.href }}" style="display: flex; flex-direction: column; gap: 4px; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; padding: 16px 18px; text-decoration: none; color: #2B1A12">
+            <span style="display: flex; align-items: center; justify-content: space-between; gap: 8px"><span style="font-size: 12.5px; color: #4A3A30; font-weight: 500">{{ k.label }}</span><span aria-hidden="true" style="width: 30px; height: 30px; display: grid; place-items: center; border-radius: 6px; background: #F7EFE4; color: #7B4A2A"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ k.icon }}"></path></svg></span></span>
+            <span style="font-size: 26px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.1">{{ k.value }}</span>
+            <span style="font-size: 12px; color: {{ k.noteFg }}">{{ k.note }}</span>
+          </a>
+        </sc-for>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 16px; align-items: start">
+        <section style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; padding: 18px 20px">
+          <h2 style="margin: 0; font-size: 15.5px; font-weight: 600">Harvest by variety</h2>
+          <p style="margin: 2px 0 10px; font-size: 12.5px; color: #6B5A4E">Kilograms per month, stacked</p>
+          <dc-import name="BarChart" labels="{{ months }}" series="{{ harvest }}" suffix=" kg" height="{{ 240 }}" aria="Harvest per month by variety" hint-size="100%,280px"></dc-import>
+        </section>
+        <section style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; padding: 18px 20px">
+          <h2 style="margin: 0; font-size: 15.5px; font-weight: 600">Beans bought by Kaluppa</h2>
+          <p style="margin: 2px 0 10px; font-size: 12.5px; color: #6B5A4E">Completed listings, kilograms per month</p>
+          <dc-import name="BarChart" labels="{{ months }}" series="{{ beans }}" suffix=" kg" height="{{ 240 }}" aria="Beans bought per month" hint-size="100%,280px"></dc-import>
+        </section>
+        <sc-if value="{{ isKal }}" hint-placeholder-val="{{ true }}"><section style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; padding: 18px 20px">
+          <h2 style="margin: 0; font-size: 15.5px; font-weight: 600">Store sales</h2>
+          <p style="margin: 2px 0 10px; font-size: 12.5px; color: #6B5A4E">Sold orders in pesos, buyers and farmers</p>
+          <dc-import name="BarChart" labels="{{ months }}" series="{{ sales }}" prefix="₱" height="{{ 240 }}" aria="Store sales per month" hint-size="100%,280px"></dc-import>
+        </section></sc-if>
+        <section style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; padding: 18px 20px">
+          <h2 style="margin: 0; font-size: 15.5px; font-weight: 600">Trees by stage</h2>
+          <p style="margin: 2px 0 10px; font-size: 12.5px; color: #6B5A4E">{{ treeSub }}</p>
+          <div>
+          <div role="img" aria-label="{{ stageAria }}" style="display: flex; gap: 2px; height: 14px; border-radius: 4px; overflow: hidden">
+            <sc-for list="{{ stages }}" as="sg" hint-placeholder-count="5"><span style="flex: {{ sg.count }} 1 0; background: {{ sg.color }}"></span></sc-for>
+          </div>
+          <ul style="list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px">
+            <sc-for list="{{ stages }}" as="sg" hint-placeholder-count="5">
+              <li style="display: flex; align-items: center; gap: 10px; font-size: 13px"><span aria-hidden="true" style="width: 10px; height: 10px; border-radius: 3px; background: {{ sg.color }}"></span><span style="flex: 1; color: #4A3A30">{{ sg.label }}</span><span style="font-weight: 600">{{ sg.count }}</span><span style="width: 44px; text-align: right; color: #6B5A4E; font-size: 12px">{{ sg.pct }}</span></li>
+            </sc-for>
+          </ul>
+        </div>
+        </section>
+      </div>
+      <section style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; border-bottom: 1px solid #EFE6DA"><h2 style="margin: 0; font-size: 15.5px; font-weight: 600">{{ tableTitle }}</h2><button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; min-height: 36px; font-size: 13px;"><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>Export CSV</button></div>
+        <div style="overflow-x: auto"><table style="width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 760px"><thead><tr style="background: #FBF8F4"><sc-for list="{{ th }}" as="h" hint-placeholder-count="6"><th scope="col" style="text-align: {{ h.al }}; padding: 10px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6B5A4E; font-weight: 600">{{ h.l }}</th></sc-for></tr></thead><tbody><sc-for list="{{ tr }}" as="r" hint-placeholder-count="4"><tr style="border-top: 1px solid #F1E9DE"><sc-for list="{{ r.c }}" as="cl" hint-placeholder-count="6"><td style="padding: 11px 14px; text-align: {{ cl.al }}; font-weight: {{ cl.fw }}">{{ cl.v }}</td></sc-for></tr></sc-for></tbody></table></div>
+      </section>
+    </main>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"role": {"editor": "enum", "options": ["kaluppa", "group_manager"], "default": "kaluppa"}, "$preview": {"width": 1440, "height": 1700}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { period: 'Last 12 months', assoc: 'All associations' }; }
+  renderVals() {
+    const s = this.state;
+    const role = this.props.role || 'kaluppa';
+    const isKal = role === 'kaluppa';
+    const IC = {
+      farm: 'M7 20h10M10 20c5.5-2.5.8-6.4 3-10M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8zM14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z',
+      tree: 'M12 22v-6M12 2 5 11h4l-5 5h16l-5-5h4z',
+      harvest: 'M2 22 16 8M3.5 12.5 5 11l1.5 1.5a3.5 3.5 0 0 1 0 5L5 19l-1.5-1.5a3.5 3.5 0 0 1 0-5zM7.5 8.5 9 7l1.5 1.5a3.5 3.5 0 0 1 0 5L9 15l-1.5-1.5a3.5 3.5 0 0 1 0-5zM20 2h2v2a4 4 0 0 1-4 4h-2V6a4 4 0 0 1 4-4z',
+      beans: 'M12 3c-4.5 1.5-7 5.5-6 10s5 8 9 8M12 3c4.5 1 7.5 4.5 7 9.5S14.5 21 15 21M12 3c-1.5 3 1.5 5.5 0 9s1.5 6.5 3 9',
+      farmers: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
+      orders: 'M9 2h6v4H9zM16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M12 11h4M12 16h4M8 11h.01M8 16h.01',
+      peso: 'M7 21V3h6a5 5 0 0 1 0 10H7M4 7h16M4 10h16',
+      box: 'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.3 7 12 12l8.7-5M12 22V12',
+      assoc: 'M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6',
+      clock: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 6v6l4 2'
+    };
+    const STAGES = [
+      { key: 'newly_planted', label: 'Newly planted', color: '#2a78d6', tone: 'blue' },
+      { key: 'growing', label: 'Growing', color: '#eb6834', tone: 'amber' },
+      { key: 'flowering', label: 'Flowering', color: '#1baf7a', tone: 'green' },
+      { key: 'fruiting', label: 'Fruiting', color: '#eda100', tone: 'roast' },
+      { key: 'damaged', label: 'Damaged', color: '#e87ba4', tone: 'red' }
+    ];
+    const VARIETIES = [{ name: 'Liberica', color: '#2a78d6' }, { name: 'Excelsa', color: '#eb6834' }, { name: 'Robusta', color: '#1baf7a' }, { name: 'Arabica', color: '#eda100' }];
+    const k = isKal ? 1 : 0.52;
+    const sc = (a) => a.map((v) => Math.round(v * k));
+    const lib = [900, 1200, 700, 300, 0, 0, 200, 150, 500, 900, 1300, 800], exc = [300, 420, 250, 100, 0, 0, 60, 50, 180, 300, 400, 260], rob = [150, 200, 120, 40, 0, 0, 30, 20, 80, 140, 210, 130], ara = [40, 60, 30, 0, 0, 0, 0, 0, 20, 40, 60, 30];
+    const stc = isKal ? [2100, 4300, 3100, 3300, 600] : [820, 1900, 1400, 1450, 250];
+    const tot = stc.reduce((a, b) => a + b, 0);
+    const fl = [{ label: 'Period', icon: 'tag', options: ['Last 12 months', 'This year', 'Last year', 'Last 30 days'], value: s.period, pick: (v) => this.setState({ period: v }) }];
+    if (isKal) fl.push({ label: 'Association', icon: 'tag', options: ['All associations', 'Santa Cruz Coffee Growers', 'Boac Highland Farmers', 'Gasan Coffee Circle'], value: s.assoc, pick: (v) => this.setState({ assoc: v }) });
+    const rowsK = [['Santa Cruz Coffee Growers', '18', '26', '5,820', '14,820 kg', '412 kg', '₱97,240'], ['Boac Highland Farmers', '14', '19', '4,110', '9,310 kg', '268 kg', '₱66,010'], ['Gasan Coffee Circle', '9', '12', '2,540', '4,050 kg', '96 kg', '₱22,180'], ['Kaluppa farms', '—', '2', '2,050', '3,960 kg', '—', '—']];
+    const rowsG = [['Nestor Perez', '1', '610', '1,920 kg', '62 kg', '₱13,020'], ['Marlon Sevilla', '2', '540', '780 kg', '25 kg', '₱4,250'], ['Lorna Ilagan', '2', '410', '640 kg', '15 kg', '₱3,900'], ['Rodel Mendoza', '3', '640', '410 kg', '33 kg', '₱9,850']];
+    return {
+      role, isKal,
+      desc: isKal ? 'Harvests, beans, sales and trees across all associations.' : 'Harvests, beans and trees in Santa Cruz Coffee Growers.',
+      fl: fl.map((f, i) => ({ ...f, z: 20 - i })),
+      kpis: (isKal ? [
+        { label: 'Harvest', value: '32,140 kg', note: '▲ 11% vs previous period', icon: IC.harvest, href: '#', noteFg: '#1E5A34' },
+        { label: 'Beans bought', value: '776 kg', note: '₱185,430 paid to farmers', icon: IC.beans, href: '#', noteFg: '#6B5A4E' },
+        { label: 'Store sales', value: '₱209,650', note: '412 sold orders', icon: IC.peso, href: '#', noteFg: '#6B5A4E' },
+        { label: 'Farmers', value: '41', note: '+9 this period', icon: IC.farmers, href: '#', noteFg: '#1E5A34' }
+      ] : [
+        { label: 'Harvest', value: '14,820 kg', note: '▲ 9% vs previous period', icon: IC.harvest, href: '#', noteFg: '#1E5A34' },
+        { label: 'Beans sold to Kaluppa', value: '412 kg', note: '₱97,240 earned by farmers', icon: IC.beans, href: '#', noteFg: '#6B5A4E' },
+        { label: 'Farms', value: '26', note: '33.4 ha', icon: IC.farm, href: '#', noteFg: '#6B5A4E' },
+        { label: 'Farmers', value: '18', note: '+4 waiting', icon: IC.farmers, href: '#', noteFg: '#6B4209' }
+      ]),
+      months: ['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'],
+      harvest: [{ name: 'Liberica', color: VARIETIES[0].color, values: sc(lib) }, { name: 'Excelsa', color: VARIETIES[1].color, values: sc(exc) }, { name: 'Robusta', color: VARIETIES[2].color, values: sc(rob) }, { name: 'Arabica', color: VARIETIES[3].color, values: sc(ara) }],
+      beans: [{ name: 'Beans bought', color: '#7B4A2A', values: sc([20, 30, 10, 0, 0, 0, 40, 35, 120, 260, 410, 230]) }],
+      sales: [{ name: 'Sales', color: '#7B4A2A', values: [9800, 12100, 10400, 11800, 13200, 15400, 21400, 26900, 31250, 38800, 43050, 48250] }],
+      treeSub: tot.toLocaleString() + ' trees',
+      stages: STAGES.map((x, i) => ({ ...x, count: stc[i].toLocaleString(), pct: Math.round(stc[i] / tot * 100) + '%' })),
+      stageAria: STAGES.map((x, i) => x.label + ' ' + stc[i]).join(', '),
+      tableTitle: isKal ? 'By association' : 'By farmer',
+      th: (isKal ? ['Association', 'Farmers', 'Farms', 'Trees', 'Harvest', 'Beans sold', 'Paid'] : ['Farmer', 'Farms', 'Trees', 'Harvest', 'Beans sold', 'Earned']).map((l, i) => ({ l, al: i ? 'right' : 'left' })),
+      tr: (isKal ? rowsK : rowsG).map((r) => ({ c: r.map((v, i) => ({ v, al: i ? 'right' : 'left', fw: i ? 400 : 600 })) }))
+    };
+  }
+}
+</script>
+</body>
+</html>

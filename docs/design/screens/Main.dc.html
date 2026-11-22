@@ -176,12 +176,13 @@ a{color:#7B4A2A}a:hover{color:#653B20}
     </div>
   </section>
 
-  <!-- LATEST POSTS -->
+  <!-- MOST VIEWED POSTS (top 3, last 30 days) -->
   <section style="padding: 96px 0; background: #FFFFFF">
     <div style="max-width: 1280px; margin: 0 auto; padding: 0 32px">
       <div style="max-width: 680px">
-        <div style="display: inline-flex; align-items: center; gap: 10px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">From the community</div>
-        <h2 style="margin: 14px 0 0; font-weight: 500; font-size: 38px; line-height: 1.12; letter-spacing: -0.02em; color: #2B1A12">Latest posts from farmers and Kaluppa</h2>
+        <div style="display: inline-flex; align-items: center; gap: 10px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Most viewed this month</div>
+        <h2 style="margin: 14px 0 0; font-weight: 500; font-size: 38px; line-height: 1.12; letter-spacing: -0.02em; color: #2B1A12">What the coffee community is reading</h2>
+        <p style="margin: 12px 0 0; color: #4A3A30; font-size: 16px; line-height: 1.65">The three most-viewed posts from the KapeKonek Hub this month. The rest of the Hub is for farmers, Group Managers and Kaluppa.</p>
       </div>
       <div style="margin-top: 48px; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px">
         <sc-for list="{{ posts }}" as="post" hint-placeholder-count="3">
@@ -190,7 +191,7 @@ a{color:#7B4A2A}a:hover{color:#653B20}
               <span style="width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: {{ post.avatarBg }}; color: #FFFFFF; font-size: 13px; font-weight: 600">{{ post.initials }}</span>
               <div style="min-width: 0; flex: 1">
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span style="font-size: 14px; font-weight: 600; color: #2B1A12">{{ post.author }}</span><span style="font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; background: #F3E3C7; color: #7A4A10; padding: 2px 7px; border-radius: 999px; font-weight: 600">{{ post.role }}</span></div>
-                <span style="font-size: 12px; color: #7A6A5E">{{ post.time }}</span>
+                <span style="font-size: 12px; color: #7A6A5E">{{ post.time }} · {{ post.views }} views</span>
               </div>
             </div>
             <p style="margin: 0; padding: 0 16px 14px; font-size: 14px; line-height: 1.6; color: #4A3A30">{{ post.text }}</p>
@@ -325,14 +326,14 @@ class Component extends DCLogic {
         { n: '4', title: 'Get it in 3\u20135 business days', text: 'Kaluppa confirms, prepares and ships it. We notify you at every step.' }
       ],
       posts: [
-        { initials: 'KP', avatarBg: '#7B4A2A', author: 'Kaluppa', role: 'Kaluppa', time: '2 hours ago', text: 'Fresh Liberica roasts are in. Orders for this batch are open until stock runs out.', photo: 'roasting batch' },
-        { initials: 'RM', avatarBg: '#8A5A12', author: 'Rodel M.', role: 'Farmer', time: 'Yesterday', text: 'First picking of the season done in our group’s farm. Cherries are drying now.', photo: 'coffee cherries drying' },
-        { initials: 'KP', avatarBg: '#7B4A2A', author: 'Kaluppa', role: 'Kaluppa', time: '3 days ago', text: 'Delivery now reaches every town in Marinduque. Add your address at checkout.', photo: 'packed orders ready to ship' }
+        { initials: 'KP', avatarBg: '#2B1A12', author: 'Kaluppa', role: 'Kaluppa', time: '2 days ago', views: '1,240', text: 'Fresh Liberica roasts are in. Orders for this batch are open until stock runs out.', photo: 'roasting batch' },
+        { initials: 'LR', avatarBg: '#8A5A12', author: 'Liza Ramos', role: 'Group Manager', time: '5 hours ago', views: '860', text: 'Leaf rust is showing up after the October rains. Here’s how to spot it and what to do.', photo: 'rust on a leaf underside' },
+        { initials: 'NP', avatarBg: '#4A3A30', author: 'Nestor Perez', role: 'Farmer', time: 'Nov 19', views: '640', text: 'How we sort and dry Excelsa cherries on raised beds: 12 days in the sun.', photo: 'drying beds' }
       ],
       sell: [
-        { n: '1', title: 'Create a farmer account', text: 'Sign up and choose “Farmer”. You can use your dashboard right away.' },
-        { n: '2', title: 'Join your group', text: 'Your Group Manager connects your farm to Kaluppa.' },
-        { n: '3', title: 'Sell your beans to Kaluppa', text: 'Deliver your harvest and track it from your dashboard.' }
+        { n: '1', title: 'Create a farmer account', text: 'Sign up as a Farmer and verify your email.' },
+        { n: '2', title: 'Join your association', text: 'Upload a valid ID and proof of land ownership. Your Group Manager approves you.' },
+        { n: '3', title: 'Sell your beans to Kaluppa', text: 'List your beans. Once Kaluppa approves, bring them to the branch.' }
       ],
       features: [
         { tag: 'Marketplace', title: 'Coffee straight from Kaluppa', text: 'Every product is sourced and sold by Kaluppa, labeled by variety and type.', icon: 'M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z M3 6h18 M16 10a4 4 0 0 1-8 0' },

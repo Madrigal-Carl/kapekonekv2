@@ -193,3 +193,83 @@ Put these in one `constants/orderStatus.js` map used by `StatusPill`, tabs and t
 Seeded stock photos (see PRODUCT-SPEC §11) replace every photo box:
 - Product card 4:3, product detail 1:1 gallery, post media 16:10, hero full-bleed with the espresso gradient overlay from `Main.dc.html`, auth panel full-height with the same overlay.
 - Always set `alt` text from the product/post data. Lazy-load below the fold. Use Cloudinary transformations (`f_auto,q_auto,w_…`).
+
+---
+
+## 8. Dashboard (Phase 2)
+
+The dashboard screens are the canvas rows titled "Dashboard". Each page has a **Tweaks** prop (`role`, `status`, `start`, `tab` or `conv`) that switches the variant the screen shows; read the `renderVals()` branches for each role.
+
+### 8.1 Shell
+- **`Sidebar.dc.html`**:
+  - white, 256px wide, with sections Dashboard / Records / Community / Marketplace / Map / Insights / System per role;
+  - roast fill on the active item; badges (roast fill means an action is waiting);
+  - "Store" shows an external-link icon;
+  - an association card at the bottom for farmers and Group Managers.
+  - Below 960px the sidebar hides and the top bar shows a menu button that opens it as a drawer.
+- **`DashTopbar.dc.html`**: breadcrumb, a cart button (farmers only), the bell with unread count, and the avatar menu (Profile, Account settings, Addresses and Storefront for farmers, Log out).
+- **Page**: `main` max-width 1240px, padding 28/32px, gap 20px. The page header has an eyebrow, an H1 at 30px/500, a description and actions on the right.
+
+### 8.2 Shared components
+| Component | Screen | Notes |
+|---|---|---|
+| `DataTable` | `DataTable.dc.html` (used on every list page) | **No tabs or count chips above the table.** Toolbar uses `justify-content: space-between`: search on the left; on the right a filter group of **plain dropdowns** (the same `SearchSelect` look, size `sm`, `searchable={false}`: no search box), with "Clear filters" before them. The old view tabs (Active/Archived, Waiting/Approved…) are the first dropdown, labeled **Status**. Then the table (11px uppercase headers on `#FBF8F4`, 12/14px cells, person / pill / two-line / mono cells, icon row actions: view, edit, archive, restore, review, manage, cancel) → footer ("Showing 1–6 of 24", numbered pages). Empty state with an icon. Wide tables scroll inside the card; **below 640px rows become cards**. |
+| `Drawer` | every Add / Edit / View | Right side, **600–720px**, backdrop `rgba(43,26,18,.42)`. **Roomy, not compact**: header padding 22/32px with a 20px title; body padding 28/32/32px with **24px between blocks**; 20px gaps in 2- and 3-column field grids; 44px inputs with 8px between label and input; section headings get a hairline divider and 18px space above. Footer padding 18/32px on `#FBF8F4`, actions on the right. Esc closes it; focus is trapped. |
+| `ConfirmModal` | `DashModals.dc.html` | Archive, restore, reject (reason required), cancel sale, remove post, temporary password (Copy, shown once). Icon circle tinted by tone. |
+| `MapPicker` / `FarmMap` | `MiniMap.dc.html` | Mapbox in the app. Pins: farmer farm roast `#7B4A2A`, Kaluppa farm espresso `#2B1A12`, new or edited pin caramel `#C8913A`. The pin scales with selection; the popover card shows key/value rows and "Open farm". Zoom +/−/fit controls. The dashed caramel ring marks a barangay's area. |
+| `BarChart` | `BarChart.dc.html` | Thin bars with 4px rounded tops anchored at the baseline, 2px gaps between stacked segments, light grid lines, a hover column with a dark tooltip, a legend for 2+ series, and a **"View as table"** toggle. One y-axis only. |
+| `StageBar` | overviews, Reports | Segmented horizontal bar (2px gaps) plus a legend list with counts and percentages. |
+| `CapMeter` | farmer overview, Beans | Amber card with a progress bar: "3 kg of 5 kg used". |
+| `ChatList`, `ChatThread`, `MessageBubble`, `Composer` | `Inbox.dc.html`, `InboxMobile.dc.html` | Mine: roast bubble, white text, radius 14/14/4/14. Theirs: white with a sand border. Deleted: dashed outline, italic. Replies quote with a caramel left bar. Status line under my last message: ✓ Sent / ✓✓ Delivered (gray) / ✓✓ Seen (roast) or "Seen by N" with avatars. Hover actions: Reply, ⋯ (Edit within 15 min, Delete for everyone, Delete for me). Typing shows three dots. Read-only chats replace the composer with a note. |
+| `PostCard`, `PostComposer`, `ReactionPicker`, `CommentThread` | `Hub.dc.html` | **Fixed 16:10 media grid** (1 / 2 / 1+2 / 2×2 with "+N"), cover crop; the viewer uses contain on a dark stage. Tag chips under the text. Role badge: Farmer green, Group Manager blue, Kaluppa espresso. The "On the landing page" badge marks the top-3 posts. |
+
+### 8.3 Chart colors (validated with the dataviz checker; don't change the order)
+- **Varieties** (categorical): Liberica `#2a78d6`, Excelsa `#eb6834`, Robusta `#1baf7a`, Arabica `#eda100`.
+- **Tree stages**: Newly planted `#2a78d6`, Growing `#eb6834`, Flowering `#1baf7a`, Fruiting `#eda100`, Damaged `#e87ba4`.
+- **Single-series** charts use Roast `#7B4A2A`.
+- Several of these are under 3:1 contrast on white, so charts always show a legend or direct labels **and** the table view.
+- Status pills keep their tones: green = done / approved, amber = waiting, blue = in progress, roast = on the way, red = rejected, gray = closed.
+
+### 8.4 Screen → route map (dashboard)
+| Screen file(s) | Route | Roles |
+|---|---|---|
+| `OverviewFarmer` / `OverviewGM` / `OverviewKaluppa` | `/dashboard/overview` | farmer / group_manager / kaluppa |
+| `AssociationModal` | window on `/dashboard/*` | farmer (no association, no pending request) |
+| `FarmerAssociation` | `/dashboard/account/association` (with `/dashboard/account/profile`, `/security`, `/addresses`) | farmer |
+| `Farmers`, `FarmerReview`, `FarmerForm` | `/dashboard/farmers` | group_manager |
+| `GroupManagers`, `GroupManagerForm` | `/dashboard/group-managers` | kaluppa |
+| `Associations`, `AssociationForm` | `/dashboard/associations` | kaluppa |
+| `Farms`, `FarmForm`, `FarmView` | `/dashboard/farms` | all three |
+| `Trees`, `TreeForm` | `/dashboard/trees` | all three |
+| `Harvests`, `HarvestForm` | `/dashboard/harvests` | all three |
+| `Inbox`, `InboxMobile` | `/dashboard/inbox`, `/dashboard/inbox/:conversationId` | all three |
+| `Hub` | `/dashboard/hub` (post page `/dashboard/hub/posts/:id`) | all three |
+| `BeansFarmer`, `BeansSell` | `/dashboard/beans` | farmer, group_manager |
+| `BeansKaluppa`, `BeansReview` | `/dashboard/beans` | kaluppa |
+| `OrdersFarmer` | `/dashboard/orders` | farmer |
+| `OrdersKaluppa`, `OrderManage` | `/dashboard/orders` | kaluppa |
+| `Inventory`, `InventoryForm` | `/dashboard/inventory` | kaluppa |
+| `Reviews`, `ReviewView` | `/dashboard/reviews` | kaluppa |
+| `FarmMap` | `/dashboard/farm-map` | all three |
+| `Reports` | `/dashboard/reports` | group_manager, kaluppa |
+| `AuditLog` | `/dashboard/audit-log` | kaluppa |
+| `SettingsKaluppa` | `/dashboard/settings` | kaluppa |
+| `Main` (top-3 section), `Register` (farmer card copy), `PostDetail` (fixed media stage) | Phase 1 routes | updated |
+
+`Dashboard.dc.html` (Phase 1 placeholder) is replaced; delete the placeholder page.
+
+### 8.5 Interactions to rebuild (dashboard)
+- **Tables**: search (debounced 300 ms), the Status dropdown, the filters and the page are synced to the URL query (`?status=&q=&variety=&page=`). Filter dropdowns have no search box. ↑ ↓ / Enter / Esc work on them. Row actions open drawers; drawers update the URL (`?open=<id>&mode=view|edit`) so links can be shared.
+- **Farm form**: municipality → fly to it and move the pin; barangay → fly closer, move the pin and show the ring; a click or drag reverse-geocodes. Kaluppa sees "Managed by"; Group Managers see "Farmer".
+- **Farm view drawer**: tabs Details / Trees / Harvests. Trees has an inline "Add tree group" form. Kaluppa farms show the assigned-farmer chips (only the assigned Group Manager can edit them).
+- **Harvest form**: the variety dropdown is disabled until a farm is picked, then lists only that farm's varieties.
+- **Beans**:
+  - The form computes the total live. Above the cap, the weight field turns red, the hint explains why, and Send is disabled.
+  - The Kaluppa drawer goes Approve / Reject (with reason) → "Beans arrived" → final weight and amount → Mark completed, and can Cancel sale (with reason).
+- **Orders (Kaluppa)**: Confirm is disabled until "The receipt matches the total" is ticked for e-wallet orders. The next-step button follows the status. Rider fields show for out for delivery, the cash tick for COD, and the refund reference for cancelled e-wallet orders.
+- **Inbox**: chat filters and search; switching chats; Enter sends and Shift+Enter adds a new line; reply preview; edit mode; delete menu; typing indicator; "Loading earlier messages" at the top.
+- **Hub**: composer expands on focus; tag chips (max 3; the rest disable); tag filter chips; the reaction picker; comments expand; reply inputs; the post menu (author: Edit / Delete; Kaluppa: Remove with reason).
+- **Farm Map**: the filters narrow both the pins and the list; clicking a list item flies to the farm and opens its popover.
+- **Reviews**: the drawer shows the reply card (Edit / Delete) or the reply form with a counter; Hide opens the reason modal; hidden reviews show a gray banner and a "Show again" button. On the product page (`ProductDetail.dc.html`), a review with a reply shows a crema "Reply from Kaluppa" box with a roast left border.
+- **Inventory form**: clicking a photo tile makes it the thumbnail (2px roast border, ring and a "★ Thumbnail" badge); × removes a photo; + adds one (up to 5).
+- **Settings**: the tabs; the weekday hour switches; the fee calculator updates live; the sticky save bar shows when something has changed.

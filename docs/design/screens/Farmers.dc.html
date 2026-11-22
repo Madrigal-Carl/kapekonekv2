@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Farmers</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+.kk-f:focus{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
+.kk-menu{display:none !important}
+@media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+</style>
+</helmet>
+<div style="position: relative; width: 100%; min-height: 1000px; background: #F5F0EA; display: flex; align-items: stretch">
+  <div class="kk-side" style="width: 256px; flex-shrink: 0; background: #FFFFFF">
+    <dc-import name="Sidebar" role="group_manager" active="Farmers" hint-size="256px,900px"></dc-import>
+  </div>
+  <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="DashTopbar" role="group_manager" crumb-a="Records" crumb-b="Farmers" hint-size="100%,64px"></dc-import>
+    <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+        <div style="min-width: 0; max-width: 720px">
+          <span style="display: block; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Records</span>
+          <h1 style="margin: 8px 0 0; font-weight: 500; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15">Farmers</h1>
+          <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">Everyone in Santa Cruz Coffee Growers, plus requests waiting for you.</p>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px"><button type="button" onClick="{{ openAdd }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; "><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Add farmer</button></div>
+      </div>
+      <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 8px; background: #E1F2E4; border: 1px solid #BFDFC6; color: #1E5A34; font-size: 13.5px; font-weight: 500"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg><span style="flex: 1">{{ toast }}</span><button type="button" aria-label="Dismiss" onClick="{{ clearToast }}" style="width: 32px; height: 32px; border: 0; background: transparent; color: #1E5A34; cursor: pointer; display: grid; place-items: center"><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>
+      </sc-if>
+      <dc-import name="DataTable" aria-label="Farmers" columns="{{ cols }}" rows="{{ rows }}" tabs="{{ tabs }}" filters="{{ filters }}" on-action="{{ onAction }}" selected-id="{{ selId }}" search-placeholder="Search name, username or phone" page-size="{{ 6 }}" min-width="{{ minW }}" hint-size="100%,560px"></dc-import>
+    </main>
+  </div>
+  <sc-if value="{{ isReview }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close panel" onClick="{{ closeDrawer }}" style="position: absolute; inset: 0; z-index: 60; border: 0; padding: 0; background: rgba(43,26,18,0.42); cursor: default"></button>
+    <aside role="dialog" aria-modal="true" aria-labelledby="dr-title" style="position: absolute; top: 0; right: 0; bottom: 0; z-index: 61; width: 600px; max-width: 100%; background: #FFFFFF; border-left: 1px solid #E7DCCD; box-shadow: -24px 0 48px -24px rgba(43,26,18,0.45); display: flex; flex-direction: column">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 32px 20px; border-bottom: 1px solid #EFE6DA">
+        <div style="min-width: 0"><span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Approval request</span><h2 id="dr-title" style="margin: 4px 0 0; font-size: 20px; font-weight: 600; line-height: 1.3">Review {{ cur.first }}’s request</h2></div>
+        <button type="button" aria-label="Close" onClick="{{ closeDrawer }}" style="width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border: 0; background: transparent; border-radius: 5px; color: #6B5A4E; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+      </div>
+      <div style="flex: 1; overflow-y: auto; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px">
+        <div style="display: flex; align-items: center; gap: 14px"><span aria-hidden="true" style="width: 52px; height: 52px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: {{ cur.bg }}; color: #FFFFFF; font-size: 17px; font-weight: 600">{{ cur.initials }}</span><div><span style="display: block; font-size: 17px; font-weight: 600">{{ cur.name }}</span><span style="display: block; font-size: 13px; color: #6B5A4E">{{ cur.sub }}</span></div></div>
+        <sc-if value="{{ isTransfer }}" hint-placeholder-val="{{ false }}"><div role="note" style="padding: 10px 12px; border-radius: 6px; background: #E8F0FA; color: #1F4E86; font-size: 13px">Transfer request from <strong>Boac Highland Farmers</strong>. Already approved there on Mar 2, 2026.</div></sc-if>
+        <h3 style="margin: 8px 0 -8px; padding-top: 18px; border-top: 1px solid #F1E9DE; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B5A4E; font-weight: 600">Request</h3>
+        <dl style="margin: 0; display: grid; grid-template-columns: 160px 1fr; gap: 12px 18px; font-size: 14px; line-height: 1.5"><sc-for list="{{ reqRows }}" as="d" hint-placeholder-count="5"><dt style="color: #6B5A4E">{{ d.k }}</dt><dd style="margin: 0; font-weight: 500">{{ d.v }}</dd></sc-for></dl>
+        <h3 style="margin: 8px 0 -8px; padding-top: 18px; border-top: 1px solid #F1E9DE; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B5A4E; font-weight: 600">Documents</h3>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+          <sc-for list="{{ docs }}" as="d" hint-placeholder-count="2">
+            <figure style="margin: 0; border: 1px solid #E7DCCD; border-radius: 8px; overflow: hidden">
+              <div role="img" aria-label="{{ d.label }} preview" style="aspect-ratio: 4 / 3; background: #EADCCB; display: grid; place-items: center; color: #8B6A4F; font-size: 12px; font-weight: 600">{{ d.ext }} preview</div>
+              <figcaption style="padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px"><span style="min-width: 0"><span style="display: block; font-size: 13px; font-weight: 600">{{ d.label }}</span><span style="display: block; font-size: 11.5px; color: #6B5A4E">{{ d.file }}</span></span><a href="#" style="font-size: 12.5px; font-weight: 600; text-decoration: none">Open</a></figcaption>
+            </figure>
+          </sc-for>
+        </div>
+        <sc-if value="{{ rejecting }}" hint-placeholder-val="{{ false }}">
+          <div><label for="rj" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #8F2D22; font-weight: 600">Reason for rejecting · required</label><textarea class="kk-f" id="rj" rows="3" placeholder="e.g. The proof of land ownership is blurry. Please upload a clearer photo." style="margin-top: 6px; width: 100%; border: 1px solid #E3B3AC; border-radius: 5px; padding: 9px 12px; font: inherit; font-size: 14px; resize: vertical"></textarea><span style="display: block; margin-top: 4px; font-size: 12px; color: #6B5A4E">The farmer sees this in an email and in their dashboard.</span></div>
+        </sc-if>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; padding: 18px 32px; border-top: 1px solid #EFE6DA; background: #FBF8F4">
+        <sc-if value="{{ notRejecting }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ startReject }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; color: #A1362B;">Reject</button><button type="button" onClick="{{ approve }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #2E7D4F; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; "><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>Approve farmer</button></sc-if>
+        <sc-if value="{{ rejecting }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ stopReject }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Back</button><button type="button" onClick="{{ reject }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #A1362B; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Reject request</button></sc-if>
+      </div>
+    </aside>
+  </sc-if>  <sc-if value="{{ isAdd }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close panel" onClick="{{ closeDrawer }}" style="position: absolute; inset: 0; z-index: 60; border: 0; padding: 0; background: rgba(43,26,18,0.42); cursor: default"></button>
+    <aside role="dialog" aria-modal="true" aria-labelledby="add-title" style="position: absolute; top: 0; right: 0; bottom: 0; z-index: 61; width: 600px; max-width: 100%; background: #FFFFFF; border-left: 1px solid #E7DCCD; box-shadow: -24px 0 48px -24px rgba(43,26,18,0.45); display: flex; flex-direction: column">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 32px 20px; border-bottom: 1px solid #EFE6DA">
+        <div style="min-width: 0"><span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">New farmer</span><h2 id="add-title" style="margin: 4px 0 0; font-size: 20px; font-weight: 600; line-height: 1.3">{{ addTitle }}</h2></div>
+        <button type="button" aria-label="Close" onClick="{{ closeDrawer }}" style="width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border: 0; background: transparent; border-radius: 5px; color: #6B5A4E; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+      </div>
+      <div style="flex: 1; overflow-y: auto; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px">
+        <p style="margin: 0; padding: 10px 12px; border-radius: 6px; background: #E1F2E4; color: #1E5A34; font-size: 13px">Farmers you add join <strong>Santa Cruz Coffee Growers</strong> and are approved right away.</p>
+        <h3 style="margin: 8px 0 -8px; padding-top: 18px; border-top: 1px solid #F1E9DE; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B5A4E; font-weight: 600">Name</h3>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px"><div><label for="fn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">First name</label><input class="kk-f" id="fn" type="text" defaultValue="{{ f.first }}" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div><div><label for="mn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Middle <span style="text-transform: none; letter-spacing: 0; color: #7A6A5E">(optional)</span></label><input class="kk-f" id="mn" type="text" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div><div><label for="ln" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Last name</label><input class="kk-f" id="ln" type="text" defaultValue="{{ f.last }}" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div></div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px"><div><label for="un" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Username</label><input class="kk-f" id="un" type="text" defaultValue="{{ f.username }}" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"><span style="display: block; margin-top: 6px; font-size: 12px; line-height: 1.5; color: #6B5A4E">Suggested from the name. They sign in with this.</span></div><div><label for="cn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Contact number</label><input class="kk-f" id="cn" type="tel" defaultValue="{{ f.phone }}" placeholder="09XX XXX XXXX" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div></div>
+        <div><label for="em" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Email <span style="text-transform: none; letter-spacing: 0; color: #7A6A5E">(optional)</span></label><input class="kk-f" id="em" type="email" defaultValue="{{ f.email }}" placeholder="name@gmail.com" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"><span style="display: block; margin-top: 6px; font-size: 12px; line-height: 1.5; color: #6B5A4E">With an email we send an invite link. Without one you get a temporary password to hand over.</span></div>
+        <h3 style="margin: 8px 0 -8px; padding-top: 18px; border-top: 1px solid #F1E9DE; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B5A4E; font-weight: 600">Documents</h3>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+          <button type="button" style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px; border: 1.5px dashed #DCCBB5; border-radius: 8px; background: #FFFFFF; color: #6B5A4E; font: inherit; font-size: 12.5px; cursor: pointer"><strong style="color: #7B4A2A">Upload valid ID</strong>Photo 5 MB · PDF 10 MB</button>
+          <button type="button" style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px; border: 1.5px dashed #DCCBB5; border-radius: 8px; background: #FFFFFF; color: #6B5A4E; font: inherit; font-size: 12.5px; cursor: pointer"><strong style="color: #7B4A2A">Upload land proof</strong>Photo 5 MB · PDF 10 MB</button>
+        </div>
+        <p style="margin: 0; font-size: 12px; color: #6B5A4E">Documents are optional here because you vouch for this farmer. You can add them later.</p>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; padding: 18px 32px; border-top: 1px solid #EFE6DA; background: #FBF8F4">
+<button type="button" onClick="{{ closeDrawer }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Cancel</button><button type="button" onClick="{{ create }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">{{ addCta }}</button>
+      </div>
+    </aside>
+  </sc-if>  <sc-if value="{{ isView }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close panel" onClick="{{ closeDrawer }}" style="position: absolute; inset: 0; z-index: 60; border: 0; padding: 0; background: rgba(43,26,18,0.42); cursor: default"></button>
+    <aside role="dialog" aria-modal="true" aria-labelledby="view-title" style="position: absolute; top: 0; right: 0; bottom: 0; z-index: 61; width: 600px; max-width: 100%; background: #FFFFFF; border-left: 1px solid #E7DCCD; box-shadow: -24px 0 48px -24px rgba(43,26,18,0.45); display: flex; flex-direction: column">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 32px 20px; border-bottom: 1px solid #EFE6DA">
+        <div style="min-width: 0"><span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Farmer</span><h2 id="view-title" style="margin: 4px 0 0; font-size: 20px; font-weight: 600; line-height: 1.3">{{ cur.name }}</h2></div>
+        <button type="button" aria-label="Close" onClick="{{ closeDrawer }}" style="width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border: 0; background: transparent; border-radius: 5px; color: #6B5A4E; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+      </div>
+      <div style="flex: 1; overflow-y: auto; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px">
+        <div style="display: flex; align-items: center; gap: 14px"><span aria-hidden="true" style="width: 52px; height: 52px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: {{ cur.bg }}; color: #FFFFFF; font-size: 17px; font-weight: 600">{{ cur.initials }}</span><div><span style="display: block; font-size: 17px; font-weight: 600">{{ cur.name }}</span><span style="display: block; font-size: 13px; color: #6B5A4E">{{ cur.sub }}</span></div></div>
+        <dl style="margin: 0; display: grid; grid-template-columns: 160px 1fr; gap: 12px 18px; font-size: 14px; line-height: 1.5"><sc-for list="{{ viewRows }}" as="d" hint-placeholder-count="5"><dt style="color: #6B5A4E">{{ d.k }}</dt><dd style="margin: 0; font-weight: 500">{{ d.v }}</dd></sc-for></dl>
+        <h3 style="margin: 8px 0 -8px; padding-top: 18px; border-top: 1px solid #F1E9DE; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B5A4E; font-weight: 600">Farms</h3>
+        <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px">
+          <sc-for list="{{ curFarms }}" as="cf" hint-placeholder-count="2"><li style="display: flex; justify-content: space-between; gap: 10px; padding: 10px 12px; border: 1px solid #E7DCCD; border-radius: 6px; font-size: 13px"><span><strong style="font-family: ui-monospace, Menlo, monospace; font-size: 12.5px">{{ cf.code }}</strong> · {{ cf.lot }}</span><span style="color: #6B5A4E">{{ cf.where }}</span></li></sc-for>
+        </ul>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; padding: 18px 32px; border-top: 1px solid #EFE6DA; background: #FBF8F4">
+<a href="Inbox.dc.html" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Message</a><button type="button" onClick="{{ editCur }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Edit</button>
+      </div>
+    </aside>
+  </sc-if>  <sc-if value="{{ isPw }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close dialog" onClick="{{ closeModal }}" style="position: absolute; inset: 0; z-index: 70; border: 0; padding: 0; background: rgba(43,26,18,0.5); cursor: default"></button>
+    <div role="alertdialog" aria-modal="true" aria-labelledby="pw-title" style="position: absolute; left: 50%; top: 160px; transform: translateX(-50%); z-index: 71; width: 460px; max-width: calc(100% - 32px); background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 24px 48px -24px rgba(43,26,18,0.5); padding: 24px">
+      <span aria-hidden="true" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 999px; background: #E1F2E4; color: #1E5A34"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span>
+      <h2 id="pw-title" style="margin: 14px 0 0; font-size: 18px; font-weight: 600">Account created</h2>
+<p style="margin: 6px 0 0; font-size: 13.5px; color: #4A3A30; line-height: 1.6">Give Ernesto this temporary password. It’s shown only once; he must change it when he first signs in.</p><div style="margin-top: 12px; display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 6px; background: #F7EFE4; border: 1px dashed #DCCBB5"><span style="flex: 1; font-family: ui-monospace, Menlo, monospace; font-size: 17px; font-weight: 600">kape-7Q4m-ub9X</span><button type="button" style="min-height: 36px; padding: 0 12px; border: 1px solid #DCCBB5; background: #FFFFFF; border-radius: 5px; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer">Copy</button></div>
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" onClick="{{ closeModal }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Done</button>
+      </div>
+    </div>
+  </sc-if>  <sc-if value="{{ isRemove }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close dialog" onClick="{{ closeModal }}" style="position: absolute; inset: 0; z-index: 70; border: 0; padding: 0; background: rgba(43,26,18,0.5); cursor: default"></button>
+    <div role="alertdialog" aria-modal="true" aria-labelledby="rm-title" style="position: absolute; left: 50%; top: 160px; transform: translateX(-50%); z-index: 71; width: 460px; max-width: calc(100% - 32px); background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 24px 48px -24px rgba(43,26,18,0.5); padding: 24px">
+      <span aria-hidden="true" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 999px; background: #FDF0EE; color: #A1362B"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v5H3zM5 8v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8M10 12h4"></path></svg></span>
+      <h2 id="rm-title" style="margin: 14px 0 0; font-size: 18px; font-weight: 600">Remove {{ cur.first }} from the association?</h2>
+<p style="margin: 6px 0 0; font-size: 13.5px; color: #4A3A30; line-height: 1.6">They become unaffiliated and unapproved again, so the 5 kg selling limit applies. Their farms and records stay theirs. Your chats with them become read-only.</p>
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" onClick="{{ closeModal }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Keep</button><button type="button" onClick="{{ doRemove }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #A1362B; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Remove farmer</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"start": {"editor": "enum", "options": ["", "review", "add", "view"], "default": ""}, "$preview": {"width": 1440, "height": 1000}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { mode: props.start || null, row: null, modal: null, toast: '', rejecting: false, tab: props.tab || 'details', pin: null, muni: null, brgy: null, view: null, adding: false }; }
+  renderVals() {
+    const s = this.state;
+    const close = () => this.setState({ mode: null, row: null, rejecting: false, adding: false });
+    const base = {
+      selId: s.row ? s.row.id : null,
+      closeDrawer: close, closeModal: () => this.setState({ modal: null }),
+      hasToast: !!s.toast, toast: s.toast, clearToast: () => this.setState({ toast: '' }),
+      minW: '820px'
+    };
+    const pill = (label, tone) => ({ label, tone });
+    const F = [
+      ['f1', 'Rodel Mendoza', 'rodel.mendoza', 'RM', '#3F6B4E', '0917 222 1043', 3, '410 kg', 'approved', 'Oct 14, 2026'],
+      ['f2', 'Joy Lacsamana', 'joy.lacsamana', 'JL', '#8A5A12', '0918 404 7720', 1, '25 kg', 'pending', 'Requested Nov 21'],
+      ['f3', 'Arnel Dimaano', 'arnel.d', 'AD', '#3F6B4E', '0927 118 9031', 0, '—', 'pending', 'Requested Nov 20'],
+      ['f4', 'Rosa Manalo', 'rosa.manalo', 'RM', '#7B4A2A', '0905 330 1188', 2, '96 kg', 'pending', 'Transfer · Nov 19', true],
+      ['f5', 'Ernesto Javier', 'ernesto.javier', 'EJ', '#4A3A30', '—', 0, '—', 'pending', 'Requested Nov 18'],
+      ['f6', 'Nestor Perez', 'nestor.perez', 'NP', '#4A3A30', '0919 777 2041', 1, '1,920 kg', 'approved', 'Jun 2, 2026'],
+      ['f7', 'Lorna Ilagan', 'lorna.i', 'LI', '#8A5A12', '0916 220 7811', 2, '640 kg', 'approved', 'Jul 19, 2026'],
+      ['f8', 'Ben Ilagan', 'ben.ilagan', 'BI', '#7B4A2A', '0920 545 1200', 1, '—', 'rejected', 'Rejected Nov 3'],
+      ['f9', 'Marlon Sevilla', 'marlon.s', 'MS', '#3F6B4E', '0939 818 4402', 2, '780 kg', 'approved', 'Aug 1, 2026'],
+      ['f10', 'Gina Tolentino', 'gina.t', 'GT', '#8A5A12', '0917 640 3391', 1, '300 kg', 'approved', 'Sep 9, 2026']
+    ];
+    const ST = { approved: ['Approved', 'green'], pending: ['Waiting', 'amber'], rejected: ['Rejected', 'red'] };
+    const rows = F.map((r) => ({ id: r[0], label: r[1], first: r[1].split(' ')[0], tab: r[8], transfer: !!r[10],
+      farmer: { name: r[1], sub: '@' + r[2], initials: r[3], bg: r[4] }, phone: r[5], farms: String(r[6]), harvest: r[7], status: pill(ST[r[8]][0], ST[r[8]][1]), since: r[9],
+      actions: r[8] === 'pending' ? ['review'] : (r[8] === 'rejected' ? ['view'] : ['view', 'edit', 'archive']) }));
+    const cur = s.row || rows[1];
+    const curP = { ...cur.farmer, name: cur.label, first: cur.first, sub: cur.farmer.sub + ' · ' + cur.phone };
+    return {
+      ...base,
+      cols: [{ key: 'farmer', label: 'Farmer', kind: 'person' }, { key: 'phone', label: 'Contact' }, { key: 'farms', label: 'Farms', align: 'right' }, { key: 'harvest', label: 'Harvest this year', align: 'right' }, { key: 'status', label: 'Status', kind: 'pill' }, { key: 'since', label: 'Since', kind: 'muted' }],
+      rows,
+      tabs: [{ key: 'all', label: 'All' }, { key: 'pending', label: 'Waiting for approval' }, { key: 'approved', label: 'Approved' }, { key: 'rejected', label: 'Rejected' }],
+      filters: [],
+      onAction: (k, r) => { if (k === 'review') this.setState({ mode: 'review', row: r, rejecting: false }); else if (k === 'view') this.setState({ mode: 'view', row: r }); else if (k === 'edit') this.setState({ mode: 'edit', row: r }); else if (k === 'archive') this.setState({ modal: 'remove', row: r }); },
+      isReview: s.mode === 'review', isAdd: s.mode === 'add' || s.mode === 'edit', isView: s.mode === 'view',
+      isPw: s.modal === 'pw', isRemove: s.modal === 'remove',
+      cur: curP, isTransfer: cur.transfer,
+      reqRows: [{ k: 'Requested', v: cur.since.replace('Requested ', '') }, { k: 'Contact', v: cur.phone }, { k: 'Email', v: cur.first.toLowerCase() + '.kapekonek@gmail.com · verified' }, { k: 'Farms recorded', v: cur.farms }],
+      docs: [{ label: 'Valid ID', file: 'philsys-id.jpg · 1.8 MB', ext: 'JPG' }, { label: 'Proof of land ownership', file: 'land-title.pdf · 3.2 MB', ext: 'PDF' }],
+      viewRows: [{ k: 'Status', v: cur.status.label }, { k: 'Approved', v: cur.since }, { k: 'Harvest this year', v: cur.harvest }, { k: 'Beans sold', v: '120 kg · ₱31,200' }],
+      curFarms: [{ code: 'TCT-2026-0011', lot: 'Lot 12-B', where: 'Pantayin, Santa Cruz' }, { code: 'TCT-2026-0012', lot: 'Lot 7', where: 'Matalaba, Santa Cruz' }],
+      rejecting: s.rejecting, notRejecting: !s.rejecting,
+      startReject: () => this.setState({ rejecting: true }), stopReject: () => this.setState({ rejecting: false }),
+      approve: () => this.setState({ mode: null, row: null, toast: cur.label + ' is approved and can now sell without a limit.' }),
+      reject: () => this.setState({ mode: null, row: null, rejecting: false, toast: 'Request rejected. ' + cur.first + ' was emailed your reason.' }),
+      openAdd: () => this.setState({ mode: 'add', row: null }),
+      editCur: () => this.setState({ mode: 'edit' }),
+      addTitle: s.mode === 'edit' ? 'Edit ' + cur.label : 'Add a farmer',
+      addCta: s.mode === 'edit' ? 'Save changes' : 'Create farmer',
+      f: s.mode === 'edit' ? { first: cur.first, last: cur.label.split(' ').slice(-1)[0], username: cur.farmer.sub.slice(1), phone: cur.phone, email: '' } : { first: 'Ernesto', last: 'Javier', username: 'ernesto.javier', phone: '', email: '' },
+      create: () => this.setState({ mode: null, modal: s.mode === 'edit' ? null : 'pw', toast: s.mode === 'edit' ? 'Changes saved.' : '' }),
+      doRemove: () => this.setState({ modal: null, toast: cur.label + ' was removed from the association.' })
+    };
+  }
+}
+</script>
+</body>
+</html>

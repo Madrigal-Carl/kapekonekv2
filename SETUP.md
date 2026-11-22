@@ -13,6 +13,7 @@ kapekonek/
 ├── BUILD-GUIDE.md                step-by-step build, milestone by milestone
 └── docs/
     ├── PRODUCT-SPEC.md           what to build (roles, data, API, pages, seeds)
+    ├── PHASE-2-SPEC.md           the dashboard: farmer, Group Manager, Kaluppa
     ├── DESIGN.md                 how it looks (tokens, components, screen → route map)
     ├── design/
     │   ├── README.md
@@ -201,13 +202,15 @@ npm run dev                            # backend + frontend
 
 Open the frontend URL Vite prints (usually http://localhost:5173).
 
-| Login (password `Password123!`) | Lands on |
+Seed logins use password **`KapeKonek@123`** and Gmail addresses. Set `SEED_EMAIL_BASE=yourname@gmail.com` in `backend/.env` to make them `yourname+<handle>@gmail.com` (all mail reaches you). Otherwise they're `kapekonek.<handle>@gmail.com`, and emails to them are only logged. You can also sign in with the username.
+
+| Handle (username) | Lands on |
 |---|---|
-| `buyer@kapekonek.test` | storefront `/` |
-| `buyer.unverified@kapekonek.test` | verify-email page |
-| `kaluppa@kapekonek.test` | dashboard placeholder |
-| `manager@kapekonek.test` | dashboard placeholder |
-| `farmer1@kapekonek.test` | dashboard placeholder |
+| `buyer` | storefront `/` |
+| `buyer.unverified` | verify-email page |
+| `kaluppa` | Kaluppa dashboard |
+| `manager.santacruz` | Group Manager dashboard |
+| `farmer.approved` / `farmer.pending` / `farmer.new` / `farmer.nomail` | farmer dashboard (see PHASE-2-SPEC §8) |
 
 To move test orders through their statuses before the Kaluppa screens exist, ask Claude Code: `Show me curl commands to log in as Kaluppa and move order KK-… to reserved, processing, out_for_delivery (with a rider) and sold.`
 

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Account settings — Association</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+.kk-f:focus{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
+.kk-menu{display:none !important}
+@media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+</style>
+</helmet>
+<div style="position: relative; width: 100%; min-height: 1100px; background: #F5F0EA; display: flex; align-items: stretch">
+  <div class="kk-side" style="width: 256px; flex-shrink: 0; background: #FFFFFF">
+    <dc-import name="Sidebar" role="farmer" active="" hint-size="256px,900px"></dc-import>
+  </div>
+  <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="DashTopbar" role="farmer" crumb-a="Account settings" crumb-b="Association" hint-size="100%,64px"></dc-import>
+    <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+        <div style="min-width: 0; max-width: 720px">
+          <span style="display: block; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Account settings</span>
+          <h1 style="margin: 8px 0 0; font-weight: 500; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15">Association</h1>
+          <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">Your association, your documents and transfers.</p>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px"></div>
+      </div>
+      <div role="tablist" aria-label="Settings sections" style="display: flex; gap: 4px; border-bottom: 1px solid #E7DCCD">
+        <a role="tab" href="Profile.dc.html" style="padding: 10px 14px; font-size: 13.5px; color: #6B5A4E; text-decoration: none">Profile</a>
+        <a role="tab" href="Settings.dc.html" style="padding: 10px 14px; font-size: 13.5px; color: #6B5A4E; text-decoration: none">Security</a>
+        <a role="tab" aria-selected="true" href="FarmerAssociation.dc.html" style="padding: 10px 14px; font-size: 13.5px; font-weight: 600; color: #2B1A12; border-bottom: 2px solid #7B4A2A; margin-bottom: -1px; text-decoration: none">Association</a>
+        <a role="tab" href="Addresses.dc.html" style="padding: 10px 14px; font-size: 13.5px; color: #6B5A4E; text-decoration: none">Addresses</a>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; align-items: start">
+        <section style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; padding: 22px">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px">
+            <div><span style="font-size: 12px; color: #6B5A4E">Your association</span><h2 style="margin: 2px 0 0; font-size: 19px; font-weight: 600">Santa Cruz Coffee Growers</h2><p style="margin: 2px 0 0; font-size: 13px; color: #4A3A30">Santa Cruz, Marinduque · 18 farmers</p></div>
+            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #E1F2E4; color: #1E5A34; font-size: 12px; font-weight: 600"><svg aria-hidden="true" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>Approved farmer</span>
+          </div>
+          <dl style="margin: 18px 0 0; display: grid; grid-template-columns: 150px 1fr; gap: 10px 16px; font-size: 13.5px">
+            <dt style="color: #6B5A4E">Group Manager</dt><dd style="margin: 0; font-weight: 500">Liza Ramos · 0917 555 0142</dd>
+            <dt style="color: #6B5A4E">Approved</dt><dd style="margin: 0">Oct 14, 2026 by Liza Ramos</dd>
+            <dt style="color: #6B5A4E">Selling limit</dt><dd style="margin: 0">None. You can list any amount of beans.</dd>
+          </dl>
+          <div style="margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap">
+            <a href="Inbox.dc.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border: 1px solid #DCCBB5; border-radius: 5px; color: #2B1A12; font-size: 13.5px; font-weight: 500; text-decoration: none">Message Liza</a>
+            <a href="Inbox.dc.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border: 1px solid #DCCBB5; border-radius: 5px; color: #2B1A12; font-size: 13.5px; font-weight: 500; text-decoration: none">Open group chat</a>
+          </div>
+        </section>
+        <section style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; padding: 22px">
+          <h2 style="margin: 0; font-size: 16px; font-weight: 600">Documents</h2>
+          <p style="margin: 2px 0 0; font-size: 12.5px; color: #6B5A4E">Only you, your Group Manager and Kaluppa can see these.</p>
+          <ul style="list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px">
+            <sc-for list="{{ docs }}" as="d" hint-placeholder-count="2">
+              <li style="display: flex; align-items: center; gap: 12px; padding: 10px; border: 1px solid #E7DCCD; border-radius: 8px">
+                <span aria-hidden="true" style="width: 42px; height: 42px; flex-shrink: 0; border-radius: 6px; background: #EADCCB; display: grid; place-items: center; color: #8B6A4F; font-size: 10px; font-weight: 700">{{ d.ext }}</span>
+                <span style="flex: 1; min-width: 0"><span style="display: block; font-size: 13.5px; font-weight: 600">{{ d.label }}</span><span style="display: block; font-size: 12px; color: #6B5A4E">{{ d.file }} · {{ d.size }}</span></span>
+                <a href="#" style="font-size: 13px; font-weight: 600; text-decoration: none">View</a>
+              </li>
+            </sc-for>
+          </ul>
+        </section>
+        <section style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; padding: 22px; grid-column: 1 / -1">
+          <div style="display: flex; flex-wrap: wrap; gap: 24px">
+            <div style="flex: 1 1 300px"><h2 style="margin: 0; font-size: 16px; font-weight: 600">Move to another association</h2><p style="margin: 4px 0 0; font-size: 13px; color: #4A3A30; line-height: 1.6">The new Group Manager approves the move. You stay in Santa Cruz Coffee Growers until then. After the move, your old group chat and chats with old members become read-only.</p></div>
+            <sc-if value="{{ noTransfer }}" hint-placeholder-val="{{ true }}">
+              <form style="flex: 1 1 360px; display: flex; flex-direction: column; gap: 12px">
+                <div style="position: relative; z-index: 5"><dc-import name="SearchSelect" label="New association" icon="tag" placeholder="Choose an association" options="{{ others }}" value="{{ target }}" on-pick="{{ pickTarget }}" hint-size="100%,70px"></dc-import></div>
+                <div><label for="why" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Reason <span style="text-transform: none; letter-spacing: 0; color: #7A6A5E">(optional)</span></label><input class="kk-f" id="why" placeholder="e.g. My farm is closer to Boac" style="margin-top: 6px; width: 100%; min-height: 42px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 9px 12px; font: inherit; font-size: 14px"></div>
+                <button type="button" onClick="{{ request }}" disabled="{{ noTarget }}" style="align-self: flex-start; min-height: 42px; padding: 0 16px; border: 0; border-radius: 5px; background: {{ reqBg }}; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Request transfer</button>
+              </form>
+            </sc-if>
+            <sc-if value="{{ hasTransfer }}" hint-placeholder-val="{{ false }}">
+              <div role="status" style="flex: 1 1 360px; padding: 14px 16px; border-radius: 8px; background: #FBF3E3; border: 1px solid #EBD3A6; color: #5C3D0E; font-size: 13.5px; line-height: 1.6">
+                <strong>Transfer requested to {{ targetName }}.</strong> Waiting for its Group Manager. You stay in Santa Cruz Coffee Growers until it’s approved.
+                <div style="margin-top: 10px"><button type="button" onClick="{{ withdraw }}" style="min-height: 38px; padding: 0 12px; border: 1px solid #DDBE86; background: #FFFFFF; border-radius: 5px; color: #5C3D0E; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">Withdraw request</button></div>
+              </div>
+            </sc-if>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 1440, "height": 1100}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { target: null, sent: false }; }
+  renderVals() {
+    const { target, sent } = this.state;
+    return {
+      docs: [{ label: 'Valid ID', file: 'philsys-id-front.jpg', size: '1.8 MB', ext: 'JPG' }, { label: 'Proof of land ownership', file: 'tax-declaration-2025.pdf', size: '3.2 MB', ext: 'PDF' }],
+      others: ['Boac Highland Farmers · Boac', 'Gasan Coffee Circle · Gasan'], target,
+      pickTarget: (v) => this.setState({ target: v }),
+      noTarget: !target, reqBg: target ? '#7B4A2A' : '#C4B0A0',
+      request: () => this.setState({ sent: true }),
+      withdraw: () => this.setState({ sent: false, target: null }),
+      noTransfer: !sent, hasTransfer: sent, targetName: target ? target.split(' · ')[0] : ''
+    };
+  }
+}
+</script>
+</body>
+</html>

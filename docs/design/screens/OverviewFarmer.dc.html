@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Farmer overview</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+.kk-f:focus{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
+.kk-menu{display:none !important}
+@media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+</style>
+</helmet>
+<div style="position: relative; width: 100%; min-height: 1420px; background: #F5F0EA; display: flex; align-items: stretch">
+  <div class="kk-side" style="width: 256px; flex-shrink: 0; background: #FFFFFF">
+    <dc-import name="Sidebar" role="farmer" active="Overview" farmer-status="{{ sideStatus }}" hint-size="256px,900px"></dc-import>
+  </div>
+  <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="DashTopbar" role="farmer" crumb-a="Dashboard" crumb-b="Overview" hint-size="100%,64px"></dc-import>
+    <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+        <div style="min-width: 0; max-width: 720px">
+          <span style="display: block; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">{{ greetingEyebrow }}</span>
+          <h1 style="margin: 8px 0 0; font-weight: 500; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15">Good morning, Rodel</h1>
+          <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">Here’s how your farms and sales are doing.</p>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px"><a href="Harvests.dc.html" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Add harvest</a><a href="BeansFarmer.dc.html" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; "><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Sell beans</a></div>
+      </div>
+      <sc-if value="{{ hasBanner }}" hint-placeholder-val="{{ true }}">
+        <div role="status" style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 8px; background: {{ banner.bg }}; border: 1px solid {{ banner.border }}">
+          <span aria-hidden="true" style="width: 36px; height: 36px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: #FFFFFF; color: {{ banner.fg }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ banner.icon }}"></path></svg></span>
+          <div style="flex: 1 1 360px; min-width: 0; color: {{ banner.fg }}"><span style="display: block; font-size: 14px; font-weight: 600">{{ banner.title }}</span><span style="display: block; margin-top: 2px; font-size: 13px; line-height: 1.55">{{ banner.text }}</span></div>
+          <a href="{{ banner.href }}" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 5px; background: #FFFFFF; border: 1px solid {{ banner.border }}; color: {{ banner.fg }}; font-size: 13px; font-weight: 600; text-decoration: none">{{ banner.cta }}</a>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showCap }}" hint-placeholder-val="{{ true }}">
+        <section aria-labelledby="cap-h" style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; padding: 16px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+          <div style="flex: 1 1 280px"><h2 id="cap-h" style="margin: 0; font-size: 14.5px; font-weight: 600">Bean selling limit</h2><p style="margin: 2px 0 0; font-size: 12.5px; color: #6B5A4E">Until your Group Manager approves you, you can sell up to 5 kg of beans to Kaluppa.</p></div>
+          <div style="flex: 1 1 320px">
+            <div style="display: flex; justify-content: space-between; font-size: 12.5px"><span><strong>3 kg</strong> of 5 kg used</span><span style="color: #6B5A4E">2 kg left</span></div>
+            <div role="progressbar" aria-label="Bean selling limit used" aria-valuemin="0" aria-valuemax="5" aria-valuenow="3" style="margin-top: 6px; height: 10px; border-radius: 999px; background: #F1E9DE; overflow: hidden"><span style="display: block; width: 60%; height: 100%; border-radius: 999px; background: #7B4A2A"></span></div>
+          </div>
+        </section>
+      </sc-if>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px">
+        <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+          <a href="{{ k.href }}" style="display: flex; flex-direction: column; gap: 4px; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; padding: 16px 18px; text-decoration: none; color: #2B1A12">
+            <span style="display: flex; align-items: center; justify-content: space-between; gap: 8px"><span style="font-size: 12.5px; color: #4A3A30; font-weight: 500">{{ k.label }}</span><span aria-hidden="true" style="width: 30px; height: 30px; display: grid; place-items: center; border-radius: 6px; background: #F7EFE4; color: #7B4A2A"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ k.icon }}"></path></svg></span></span>
+            <span style="font-size: 26px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.1">{{ k.value }}</span>
+            <span style="font-size: 12px; color: {{ k.noteFg }}">{{ k.note }}</span>
+          </a>
+        </sc-for>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: start">
+        <section style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; padding: 18px 20px">
+          <h2 style="margin: 0; font-size: 15.5px; font-weight: 600">Harvest per month</h2>
+          <p style="margin: 2px 0 10px; font-size: 12.5px; color: #6B5A4E">Kilograms recorded across your 3 farms, last 12 months</p>
+          <dc-import name="BarChart" labels="{{ months }}" series="{{ harvestSeries }}" suffix=" kg" height="{{ 220 }}" aria="Harvest per month in kilograms" hint-size="100%,260px"></dc-import>
+        </section>
+        <section style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; padding: 18px 20px">
+          <h2 style="margin: 0; font-size: 15.5px; font-weight: 600">Trees by stage</h2>
+          <p style="margin: 2px 0 10px; font-size: 12.5px; color: #6B5A4E">640 trees in 9 groups</p>
+          <div>
+          <div role="img" aria-label="{{ stageAria }}" style="display: flex; gap: 2px; height: 14px; border-radius: 4px; overflow: hidden">
+            <sc-for list="{{ stages }}" as="sg" hint-placeholder-count="5"><span style="flex: {{ sg.count }} 1 0; background: {{ sg.color }}"></span></sc-for>
+          </div>
+          <ul style="list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px">
+            <sc-for list="{{ stages }}" as="sg" hint-placeholder-count="5">
+              <li style="display: flex; align-items: center; gap: 10px; font-size: 13px"><span aria-hidden="true" style="width: 10px; height: 10px; border-radius: 3px; background: {{ sg.color }}"></span><span style="flex: 1; color: #4A3A30">{{ sg.label }}</span><span style="font-weight: 600">{{ sg.count }}</span><span style="width: 44px; text-align: right; color: #6B5A4E; font-size: 12px">{{ sg.pct }}</span></li>
+            </sc-for>
+          </ul>
+        </div>
+        </section>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: start">
+        <section style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; border-bottom: 1px solid #EFE6DA"><h2 style="margin: 0; font-size: 15.5px; font-weight: 600">Bean listings</h2><a href="BeansFarmer.dc.html" style="font-size: 13px; font-weight: 600; text-decoration: none">All beans</a></div>
+          <ul style="list-style: none; margin: 0; padding: 0">
+            <sc-for list="{{ beansList }}" as="li" hint-placeholder-count="3">
+              <li style="display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-bottom: 1px solid #F1E9DE">
+                <div style="flex: 1; min-width: 0"><span style="display: block; font-size: 13.5px; font-weight: 600">{{ li.title }}</span><span style="display: block; font-size: 12px; color: #6B5A4E">{{ li.sub }}</span></div>
+                <span style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: {{ li.pillBg }}; color: {{ li.pillFg }}; font-size: 12px; font-weight: 600; white-space: nowrap"><span aria-hidden="true" style="width: 6px; height: 6px; border-radius: 999px; background: {{ li.dot }}"></span>{{ li.status }}</span>
+              </li>
+            </sc-for>
+          </ul>
+        </section>
+        <section style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; border-bottom: 1px solid #EFE6DA"><h2 style="margin: 0; font-size: 15.5px; font-weight: 600">Store orders</h2><a href="OrdersFarmer.dc.html" style="font-size: 13px; font-weight: 600; text-decoration: none">All orders</a></div>
+          <ul style="list-style: none; margin: 0; padding: 0">
+            <sc-for list="{{ ordersList }}" as="li" hint-placeholder-count="3">
+              <li style="display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-bottom: 1px solid #F1E9DE">
+                <div style="flex: 1; min-width: 0"><span style="display: block; font-size: 13.5px; font-weight: 600">{{ li.title }}</span><span style="display: block; font-size: 12px; color: #6B5A4E">{{ li.sub }}</span></div>
+                <span style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: {{ li.pillBg }}; color: {{ li.pillFg }}; font-size: 12px; font-weight: 600; white-space: nowrap"><span aria-hidden="true" style="width: 6px; height: 6px; border-radius: 999px; background: {{ li.dot }}"></span>{{ li.status }}</span>
+              </li>
+            </sc-for>
+          </ul>
+        </section>
+      </div>
+    </main>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"status": {"editor": "enum", "options": ["pending", "rejected", "none", "approved"], "default": "pending"}, "$preview": {"width": 1440, "height": 1420}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const IC = {
+      farm: 'M7 20h10M10 20c5.5-2.5.8-6.4 3-10M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8zM14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z',
+      tree: 'M12 22v-6M12 2 5 11h4l-5 5h16l-5-5h4z',
+      harvest: 'M2 22 16 8M3.5 12.5 5 11l1.5 1.5a3.5 3.5 0 0 1 0 5L5 19l-1.5-1.5a3.5 3.5 0 0 1 0-5zM7.5 8.5 9 7l1.5 1.5a3.5 3.5 0 0 1 0 5L9 15l-1.5-1.5a3.5 3.5 0 0 1 0-5zM20 2h2v2a4 4 0 0 1-4 4h-2V6a4 4 0 0 1 4-4z',
+      beans: 'M12 3c-4.5 1.5-7 5.5-6 10s5 8 9 8M12 3c4.5 1 7.5 4.5 7 9.5S14.5 21 15 21M12 3c-1.5 3 1.5 5.5 0 9s1.5 6.5 3 9',
+      farmers: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
+      orders: 'M9 2h6v4H9zM16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M12 11h4M12 16h4M8 11h.01M8 16h.01',
+      peso: 'M7 21V3h6a5 5 0 0 1 0 10H7M4 7h16M4 10h16',
+      box: 'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.3 7 12 12l8.7-5M12 22V12',
+      assoc: 'M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6',
+      clock: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 6v6l4 2'
+    };
+    const STAGES = [
+      { key: 'newly_planted', label: 'Newly planted', color: '#2a78d6', tone: 'blue' },
+      { key: 'growing', label: 'Growing', color: '#eb6834', tone: 'amber' },
+      { key: 'flowering', label: 'Flowering', color: '#1baf7a', tone: 'green' },
+      { key: 'fruiting', label: 'Fruiting', color: '#eda100', tone: 'roast' },
+      { key: 'damaged', label: 'Damaged', color: '#e87ba4', tone: 'red' }
+    ];
+    const TONE = { green: ['#E1F2E4', '#1E5A34', '#2E7D4F'], amber: ['#FBF3E3', '#6B4209', '#C8913A'], red: ['#FDF0EE', '#8F2D22', '#C2554A'], blue: ['#E8F0FA', '#1F4E86', '#2A78D6'], gray: ['#F1ECE6', '#4A3A30', '#8C7A66'], roast: ['#F3E6DA', '#5A3218', '#7B4A2A'] };
+    const tone = (t) => ({ pillBg: TONE[t][0], pillFg: TONE[t][1], dot: TONE[t][2] });
+    const st = this.props.status ?? 'pending';
+    const B = {
+      pending: { bg: '#FBF3E3', border: '#EBD3A6', fg: '#5C3D0E', icon: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 6v6l4 2', title: 'Your request is with Santa Cruz Coffee Growers', text: 'Liza Ramos, the Group Manager, is checking your valid ID and proof of land ownership. Meanwhile you can record your farms and sell up to 5 kg of beans.', cta: 'View request', href: 'FarmerAssociation.dc.html' },
+      rejected: { bg: '#FDF0EE', border: '#F2C9C4', fg: '#7A2A22', icon: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM15 9l-6 6M9 9l6 6', title: 'Your request wasn’t approved', text: 'Reason from Liza Ramos: “The proof of land ownership is blurry. Please upload a clearer photo of the tax declaration.”', cta: 'Update and resend', href: 'AssociationModal.dc.html' },
+      none: { bg: '#F7EFE4', border: '#E7DCCD', fg: '#4A3A30', icon: 'M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6', title: 'Join your association to sell without limits', text: 'Pick your association and upload a valid ID and proof of land ownership. Your Group Manager approves you.', cta: 'Join an association', href: 'AssociationModal.dc.html' }
+    }[st];
+    const stageCounts = [120, 210, 140, 130, 40];
+    const total = stageCounts.reduce((a, b) => a + b, 0);
+    return {
+      sideStatus: st === 'approved' ? 'approved' : (st === 'pending' ? 'pending' : 'none'),
+      greetingEyebrow: 'Farmer · Monday, Nov 23',
+      hasBanner: !!B, banner: B || {},
+      showCap: st !== 'approved',
+      kpis: [
+        { label: 'Farms', value: '3', note: '2 in Santa Cruz · 1 in Mogpog', icon: IC.farm, href: 'Farms.dc.html', noteFg: '#6B5A4E' },
+        { label: 'Trees', value: '640', note: 'in 9 tree groups', icon: IC.tree, href: 'Trees.dc.html', noteFg: '#6B5A4E' },
+        { label: 'Harvest this year', value: '1,240 kg', note: '▲ 18% vs last year', icon: IC.harvest, href: 'Harvests.dc.html', noteFg: '#1E5A34' },
+        { label: 'Beans sold to Kaluppa', value: '3 kg', note: '1 listing waiting for review', icon: IC.beans, href: 'BeansFarmer.dc.html', noteFg: '#6B4209' }
+      ],
+      months: ['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'],
+      harvestSeries: [{ name: 'Harvest', color: '#7B4A2A', values: [180, 240, 120, 60, 0, 0, 40, 30, 90, 160, 210, 110] }],
+      stages: STAGES.map((s, i) => ({ ...s, count: stageCounts[i], pct: Math.round(stageCounts[i] / total * 100) + '%' })),
+      stageAria: STAGES.map((s, i) => s.label + ' ' + stageCounts[i]).join(', '),
+      beansList: [
+        { title: 'BN-2611-0042 · Liberica, dried cherry', sub: '2 kg · ₱180/kg · listed Nov 21', status: 'Waiting for review', ...tone('amber') },
+        { title: 'BN-2611-0031 · Liberica, green beans', sub: '3 kg · ₱320/kg · completed Nov 12', status: 'Completed', ...tone('green') },
+        { title: 'BN-2610-0019 · Excelsa, parchment', sub: '4 kg · cancelled by you Oct 30', status: 'Cancelled', ...tone('gray') }
+      ],
+      ordersList: [
+        { title: 'KK-20261120-0031 · Complete fertilizer 14-14-14', sub: '2 sacks · ₱2,690 · cash on delivery', status: 'Out for delivery', ...tone('blue') },
+        { title: 'KK-20261102-0007 · Liberica seedlings', sub: '50 pcs · ₱1,750 · picked up Nov 6', status: 'Completed', ...tone('green') }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

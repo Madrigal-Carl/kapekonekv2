@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — My orders (farmer)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+.kk-f:focus{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
+.kk-menu{display:none !important}
+@media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+</style>
+</helmet>
+<div style="position: relative; width: 100%; min-height: 1000px; background: #F5F0EA; display: flex; align-items: stretch">
+  <div class="kk-side" style="width: 256px; flex-shrink: 0; background: #FFFFFF">
+    <dc-import name="Sidebar" role="farmer" active="Orders" hint-size="256px,900px"></dc-import>
+  </div>
+  <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="DashTopbar" role="farmer" crumb-a="Marketplace" crumb-b="Orders" hint-size="100%,64px"></dc-import>
+    <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+        <div style="min-width: 0; max-width: 720px">
+          <span style="display: block; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Marketplace</span>
+          <h1 style="margin: 8px 0 0; font-weight: 500; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15">My orders</h1>
+          <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">Fertilizer and seedlings you ordered from the Kaluppa store.</p>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px"><a href="Products.dc.html" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; "><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"></path></svg>Go to store</a></div>
+      </div>
+      <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 8px; background: #E1F2E4; border: 1px solid #BFDFC6; color: #1E5A34; font-size: 13.5px; font-weight: 500"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg><span style="flex: 1">{{ toast }}</span><button type="button" aria-label="Dismiss" onClick="{{ clearToast }}" style="width: 32px; height: 32px; border: 0; background: transparent; color: #1E5A34; cursor: pointer; display: grid; place-items: center"><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>
+      </sc-if>
+      <dc-import name="DataTable" aria-label="Orders" columns="{{ cols }}" rows="{{ rows }}" tabs="{{ tabs }}" filters="{{ filters }}" on-action="{{ onAction }}" selected-id="{{ selId }}" search-placeholder="Search order number or item" page-size="{{ 6 }}" min-width="{{ minW }}" hint-size="100%,560px"></dc-import>
+    </main>
+  </div>
+  <sc-if value="{{ isView }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close panel" onClick="{{ closeDrawer }}" style="position: absolute; inset: 0; z-index: 60; border: 0; padding: 0; background: rgba(43,26,18,0.42); cursor: default"></button>
+    <aside role="dialog" aria-modal="true" aria-labelledby="dr-title" style="position: absolute; top: 0; right: 0; bottom: 0; z-index: 61; width: 640px; max-width: 100%; background: #FFFFFF; border-left: 1px solid #E7DCCD; box-shadow: -24px 0 48px -24px rgba(43,26,18,0.45); display: flex; flex-direction: column">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 32px 20px; border-bottom: 1px solid #EFE6DA">
+        <div style="min-width: 0"><span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">{{ cur.code }}</span><h2 id="dr-title" style="margin: 4px 0 0; font-size: 20px; font-weight: 600; line-height: 1.3">{{ cur.title }}</h2></div>
+        <button type="button" aria-label="Close" onClick="{{ closeDrawer }}" style="width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border: 0; background: transparent; border-radius: 5px; color: #6B5A4E; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+      </div>
+      <div style="flex: 1; overflow-y: auto; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px">
+        <div role="status" style="padding: 14px 16px; border-radius: 8px; background: {{ banner.bg }}; border: 1px solid {{ banner.border }}; color: {{ banner.fg }}"><span style="display: block; font-size: 14.5px; font-weight: 600">{{ banner.t }}</span><span style="display: block; margin-top: 3px; font-size: 13px">{{ banner.d }}</span></div>
+        <h3 style="margin: 8px 0 -8px; padding-top: 18px; border-top: 1px solid #F1E9DE; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B5A4E; font-weight: 600">Items</h3>
+        <ul style="list-style: none; margin: 0; padding: 0; border: 1px solid #E7DCCD; border-radius: 8px"><sc-for list="{{ lines }}" as="l" hint-placeholder-count="2"><li style="display: flex; gap: 12px; align-items: center; padding: 10px 12px; border-bottom: 1px solid #F1E9DE"><span aria-hidden="true" style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 6px; background: #EADCCB"></span><span style="flex: 1; font-size: 13.5px"><strong>{{ l.n }}</strong><span style="display: block; font-size: 12px; color: #6B5A4E">{{ l.q }}</span></span><span style="font-size: 13.5px; font-weight: 600">{{ l.t }}</span></li></sc-for><li style="display: flex; justify-content: space-between; padding: 10px 12px; font-size: 13px; color: #4A3A30"><span>Delivery fee · {{ ov.km }}</span><span>{{ ov.fee }}</span></li><li style="display: flex; justify-content: space-between; padding: 10px 12px; border-top: 1px solid #E7DCCD; font-size: 15px; font-weight: 600"><span>Total</span><span>{{ ov.total }}</span></li></ul>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px"><div style="padding: 12px 14px; border: 1px solid #E7DCCD; border-radius: 8px; font-size: 13px; line-height: 1.6"><strong>{{ dest.t }}</strong><span style="display: block; color: #4A3A30">{{ dest.d }}</span></div><div style="padding: 12px 14px; border: 1px solid #E7DCCD; border-radius: 8px; font-size: 13px; line-height: 1.6"><strong>{{ payBox.t }}</strong><span style="display: block; color: #4A3A30">{{ payBox.d }}</span></div></div>
+        <h3 style="margin: 8px 0 -8px; padding-top: 18px; border-top: 1px solid #F1E9DE; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B5A4E; font-weight: 600">Timeline</h3>
+        <ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column"><sc-for list="{{ tl }}" as="t" hint-placeholder-count="4"><li style="display: flex; gap: 12px"><span style="display: flex; flex-direction: column; align-items: center"><span aria-hidden="true" style="width: 12px; height: 12px; border-radius: 999px; background: {{ t.dot }}; border: 2px solid {{ t.ring }}"></span><span aria-hidden="true" style="flex: 1; width: 2px; min-height: 18px; background: #EFE6DA"></span></span><span style="padding-bottom: 12px; font-size: 13px"><strong style="color: {{ t.fg }}">{{ t.t }}</strong><span style="display: block; color: #6B5A4E">{{ t.d }}</span></span></li></sc-for></ol>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; padding: 18px 32px; border-top: 1px solid #EFE6DA; background: #FBF8F4">
+<sc-if value="{{ canCancel }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ askCancel }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; color: #A1362B;">Cancel order</button></sc-if><a href="OrderDetail.dc.html" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Open full page</a>
+      </div>
+    </aside>
+  </sc-if>  <sc-if value="{{ isCancel }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close dialog" onClick="{{ closeModal }}" style="position: absolute; inset: 0; z-index: 70; border: 0; padding: 0; background: rgba(43,26,18,0.5); cursor: default"></button>
+    <div role="alertdialog" aria-modal="true" aria-labelledby="c-title" style="position: absolute; left: 50%; top: 200px; transform: translateX(-50%); z-index: 71; width: 460px; max-width: calc(100% - 32px); background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 24px 48px -24px rgba(43,26,18,0.5); padding: 24px">
+      <span aria-hidden="true" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 999px; background: #FDF0EE; color: #A1362B"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM15 9l-6 6M9 9l6 6"></path></svg></span>
+      <h2 id="c-title" style="margin: 14px 0 0; font-size: 18px; font-weight: 600">Cancel this order?</h2>
+<p style="margin: 6px 0 0; font-size: 13.5px; color: #4A3A30; line-height: 1.6">You can cancel while Kaluppa hasn’t confirmed it yet.</p><div style="margin-top: 12px; position: relative; z-index: 3"><dc-import name="SearchSelect" label="Reason" icon="tag" placeholder="Choose a reason" options="{{ reasons }}" value="{{ reason }}" on-pick="{{ pickReason }}" hint-size="100%,70px"></dc-import></div>
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" onClick="{{ closeModal }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Keep order</button><button type="button" onClick="{{ doCancel }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #A1362B; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Cancel order</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"start": {"editor": "enum", "options": ["", "view"], "default": ""}, "$preview": {"width": 1440, "height": 1000}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { mode: props.start || null, row: null, modal: null, toast: '', rejecting: false, tab: props.tab || 'details', pin: null, muni: null, brgy: null, view: null, adding: false, reason: null }; }
+  renderVals() {
+    const s = this.state;
+    const close = () => this.setState({ mode: null, row: null, rejecting: false, adding: false });
+    const base = {
+      selId: s.row ? s.row.id : null,
+      closeDrawer: close, closeModal: () => this.setState({ modal: null }),
+      hasToast: !!s.toast, toast: s.toast, clearToast: () => this.setState({ toast: '' }),
+      minW: '820px'
+    };
+    const pill = (label, tone) => ({ label, tone });
+    const peso = (n) => '₱' + n.toLocaleString('en-PH');
+    const SL = { pending: ['To confirm', 'amber', 'confirm'], reserved: ['Confirmed', 'blue', 'preparing'], processing: ['Processing', 'blue', 'preparing'], out_for_delivery: ['Out for delivery', 'roast', 'way'], ready_for_pickup: ['Ready for pickup', 'roast', 'way'], sold: ['Completed', 'green', 'done'], cancelled: ['Cancelled', 'gray', 'closed'], rejected: ['Rejected', 'red', 'closed'], expired: ['Expired', 'gray', 'closed'] };
+    const O = [
+      ['o1', 'KK-20261123-0004', 'Marites Abad', 'MA', '#7B4A2A', 'Buyer', 'Barako Medium Roast × 2, Liberica Green Beans 1 kg', 3, 1130, 'Delivery · Home, Mogpog', 'e_wallet', 'pending', 'Nov 23, 8:02 AM', 'GCash'],
+      ['o2', 'KK-20261122-0019', 'Rodel Mendoza', 'RM', '#3F6B4E', 'Farmer', 'Complete fertilizer 14-14-14 × 2 sacks', 2, 2690, 'Delivery · Farm, Santa Cruz', 'cash', 'pending', 'Nov 22, 4:40 PM'],
+      ['o3', 'KK-20261121-0011', 'Jun Lopez', 'JL', '#8A5A12', 'Buyer', 'Excelsa Green Beans 2 kg', 1, 680, 'Pickup at Kaluppa', 'cash', 'ready_for_pickup', 'Nov 21, 1:15 PM'],
+      ['o4', 'KK-20261120-0031', 'Rodel Mendoza', 'RM', '#3F6B4E', 'Farmer', 'Organic fertilizer 25 kg × 1 sack', 1, 740, 'Delivery · Farm, Santa Cruz', 'cash', 'out_for_delivery', 'Nov 20, 9:30 AM'],
+      ['o5', 'KK-20261119-0022', 'Carla Reyes', 'CR', '#4A3A30', 'Buyer', 'Barako Medium Roast × 4', 4, 1330, 'Delivery · Work, Boac', 'e_wallet', 'processing', 'Nov 19, 7:45 PM', 'Maya'],
+      ['o6', 'KK-20261118-0014', 'Nestor Perez', 'NP', '#4A3A30', 'Farmer', 'Liberica seedlings × 100', 100, 3500, 'Pickup at Kaluppa', 'e_wallet', 'reserved', 'Nov 18, 10:10 AM', 'GCash'],
+      ['o7', 'KK-20261102-0007', 'Rodel Mendoza', 'RM', '#3F6B4E', 'Farmer', 'Liberica seedlings × 50', 50, 1750, 'Pickup at Kaluppa', 'cash', 'sold', 'Nov 2, 3:00 PM'],
+      ['o8', 'KK-20261030-0003', 'Paolo Gomez', 'PG', '#8A5A12', 'Buyer', 'Robusta Ground × 1', 1, 500, 'Delivery · Home, Gasan', 'e_wallet', 'cancelled', 'Oct 30, 6:20 PM', 'GCash'],
+      ['o9', 'KK-20261028-0018', 'Ana Nolasco', 'AN', '#7B4A2A', 'Buyer', 'Arabica Light Roast × 2', 2, 1050, 'Delivery · Home, Torrijos', 'e_wallet', 'expired', 'Oct 28, 11:00 AM', 'Maya']
+    ];
+    const payPill = (o) => o[10] === 'cash' ? pill(o[9].startsWith('Pickup') ? 'Cash on pickup' : 'Cash on delivery', 'gray') : (o[11] === 'pending' ? pill(o[13] + ' · check receipt', 'amber') : (o[11] === 'cancelled' ? pill('Refund pending', 'red') : pill(o[13] + ' · verified', 'green')));
+    const orow = (o, actions) => ({ id: o[0], label: o[1], o, tab: SL[o[11]][2], code: { main: o[1], sub: o[12] }, cust: { name: o[2], sub: o[5], initials: o[3], bg: o[4] }, items: { main: o[6], sub: o[7] + (o[7] > 1 ? ' items' : ' item') }, total: peso(o[8]), method: o[9], pay: payPill(o), status: pill(SL[o[11]][0], SL[o[11]][1]), f: { type: o[5] + 's', method: o[9].startsWith('Pickup') ? 'Pickup' : 'Delivery', pay: o[10] === 'cash' ? 'Cash' : 'E-wallet' }, actions });
+    const TABS = [{ key: 'all', label: 'All orders' }, { key: 'confirm', label: 'To confirm' }, { key: 'preparing', label: 'Preparing' }, { key: 'way', label: 'On the way' }, { key: 'done', label: 'Completed' }, { key: 'closed', label: 'Closed' }];
+    const mine = O.filter((o) => o[2] === 'Rodel Mendoza');
+    const rows = mine.map((o) => orow(o, ['view']));
+    const o = s.row ? s.row.o : mine[1];
+    const ov = { km: o[9].startsWith('Pickup') ? 'pickup, free' : (o[9].includes('Santa Cruz') ? '2.6 km' : '26.8 km'), fee: o[9].startsWith('Pickup') ? '₱0' : (o[9].includes('Santa Cruz') ? '₱50' : '₱290'), total: peso(o[8]) };
+    const lines = o[6].split(', ').map((n, i) => ({ n: n.replace(/ ×.*| \d+ kg/, ''), q: (n.match(/×.*|\d+ kg/) || ['× 1'])[0].replace('×', 'Qty'), t: i === 0 ? peso(o[8] - (o[9].startsWith('Pickup') ? 0 : (o[9].includes('Santa Cruz') ? 50 : 290)) - (o[6].includes(',') ? 320 : 0)) : '₱320' }));
+    const st = o[11];
+    const BN = { pending: ['#FBF3E3', '#EBD3A6', '#5C3D0E', 'Waiting for Kaluppa to confirm', 'Kaluppa confirms within 3 days or the order expires.'], out_for_delivery: ['#F3E6DA', '#E2CDB8', '#5A3218', 'Out for delivery · arriving today', 'Rider: Jomar Villareal · 0918 111 2233. Prepare ₱740 in cash.'], sold: ['#E1F2E4', '#BFDFC6', '#1E5A34', 'Completed on Nov 6', 'Picked up at Kaluppa. You can review the product from the store.'] }[st] || ['#E8F0FA', '#C6D8EE', '#1F4E86', 'Being prepared', 'Estimated delivery Nov 25 – Nov 27.'];
+    return {
+      ...base, minW: '980px',
+      cols: [{ key: 'code', label: 'Order', kind: 'strong' }, { key: 'items', label: 'Items', wrap: true }, { key: 'total', label: 'Total', align: 'right' }, { key: 'method', label: 'Delivery' }, { key: 'pay', label: 'Payment', kind: 'pill' }, { key: 'status', label: 'Status', kind: 'pill' }],
+      rows, tabs: TABS, filters: [],
+      onAction: (k, r) => this.setState({ mode: 'view', row: r }),
+      isView: s.mode === 'view', isCancel: s.modal === 'cancel',
+      cur: { code: o[1], title: o[7] + (o[7] > 1 ? ' items' : ' item') + ' · ' + peso(o[8]) },
+      banner: { bg: BN[0], border: BN[1], fg: BN[2], t: BN[3], d: BN[4] },
+      lines, ov,
+      dest: o[9].startsWith('Pickup') ? { t: 'Pickup at Kaluppa', d: 'Pantayin, Santa Cruz · Mon–Sat 8 AM – 5 PM' } : { t: 'Deliver to Farm', d: 'Rodel Mendoza · 0917 222 1043 · Sitio Ilaya, Pantayin, Santa Cruz 4902' },
+      payBox: o[10] === 'cash' ? { t: o[9].startsWith('Pickup') ? 'Cash on pickup' : 'Cash on delivery', d: 'Pay ' + peso(o[8]) + ' when you receive it.' } : { t: 'GCash', d: 'Receipt verified Nov 18' },
+      tl: [{ t: 'Placed', d: o[12], dot: '#7B4A2A', ring: '#F3E6DA', fg: '#2B1A12' }].concat(st === 'pending' ? [{ t: 'Waiting for confirmation', d: 'Expires Nov 25 if not confirmed', dot: '#FFFFFF', ring: '#C8913A', fg: '#6B5A4E' }] : [{ t: 'Confirmed by Kaluppa', d: 'Stock reserved', dot: '#7B4A2A', ring: '#F3E6DA', fg: '#2B1A12' }, { t: st === 'sold' ? 'Picked up' : 'Out for delivery', d: st === 'sold' ? 'Nov 6, 2:10 PM' : 'Today, 9:05 AM', dot: '#7B4A2A', ring: '#F3E6DA', fg: '#2B1A12' }]),
+      canCancel: st === 'pending',
+      askCancel: () => this.setState({ modal: 'cancel' }), doCancel: () => this.setState({ modal: null, mode: null, toast: o[1] + ' was cancelled.' }),
+      reasons: ['Change delivery address', 'Change items', 'Ordered by mistake', 'Other'], reason: s.reason, pickReason: (v) => this.setState({ reason: v })
+    };
+  }
+}
+</script>
+</body>
+</html>

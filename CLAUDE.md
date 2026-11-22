@@ -3,11 +3,12 @@
 These rules apply to every task in this repository, in every phase. If a request conflicts with them, say so before writing code.
 
 Read these too, in this order, before your first task in a session:
-1. `docs/PRODUCT-SPEC.md` — what the app does (roles, data, endpoints, pages, statuses, seeds).
-2. `docs/DESIGN.md` — how it looks (tokens, components, the screen files to copy).
-3. `docs/design/screens/*.dc.html` — the approved screens. **The UI must match them.**
+1. `docs/PRODUCT-SPEC.md`: what Phase 1 does (roles, data, endpoints, pages, statuses, seeds).
+2. `docs/PHASE-2-SPEC.md`: the dashboard for farmers, Group Managers and Kaluppa. Where it differs from PRODUCT-SPEC, it wins.
+3. `docs/DESIGN.md`: how it looks (tokens, components, the screen files to copy; §8 is the dashboard).
+4. `docs/design/screens/*.dc.html`: the approved screens. **The UI must match them.**
 
-Precedence when they disagree: the user's latest message → this file → PRODUCT-SPEC → DESIGN → phase prompt.
+Precedence when they disagree: the user's latest message → this file → PHASE-2-SPEC → PRODUCT-SPEC → DESIGN → phase prompt.
 
 ## What KapeKonek is
 
@@ -20,17 +21,23 @@ A coffee marketplace with a CRM side, built for Kaluppa in Marinduque.
   - There are no pickup stations and no Station Partners.
 - **Payment**: e-wallet (GCash/Maya QR + receipt upload), or cash (cash on delivery / cash on pickup).
 - **Addresses**: buyers keep an address book (up to 10, one default) with a Mapbox map pin that auto-fills the fields; typing it all by hand also works.
-- **No order chat.** Buyers follow their order through statuses, email and in-app notifications.
-- Planned features (later phases): in-app messaging, a post feed, role dashboards, and Kaluppa settings screens (delivery fee, pickup location, QR).
+- **No order chat.** Buyers follow their order through statuses, email and in-app notifications. The dashboard **Inbox** (Phase 2) is separate: it's for farmers, Group Managers and Kaluppa, and it's never tied to an order.
+- **Phase 2** (dashboard):
+  - farmer approval by Group Managers;
+  - farms, trees and harvests;
+  - bean sales to Kaluppa (5 kg cap until approved);
+  - the farmer store;
+  - Inbox, Hub, Farm Map;
+  - Kaluppa orders, inventory, settings, reports and the audit log.
 
 | Role | Slug | Home after login | Created by | Must verify email to act? |
 |---|---|---|---|---|
 | Kaluppa (acts as admin) | `kaluppa` | `/dashboard/overview` | seeder | no |
-| Group Manager | `group_manager` | `/dashboard/overview` | seeder | no |
-| Farmer | `farmer` | `/dashboard/overview` | signup | no |
+| Group Manager | `group_manager` | `/dashboard/overview` | Kaluppa (seeder in dev) | no |
+| Farmer | `farmer` | `/dashboard/overview` | signup, or a Group Manager | **yes** (Group Manager-created accounts are pre-verified) |
 | Buyer | `buyer` | `/` | signup | **yes** |
 
-The storefront (`/`, `/products`, `/products/:slug`, `/posts/:id`) is for **guests and buyers only**. Any other authenticated role that visits it is redirected to `/dashboard/overview`. Buyer account pages: `/checkout`, `/orders`, `/orders/:id`, `/addresses`, `/profile`, `/settings`.
+The storefront (`/`, `/products`, `/products/:slug`, `/posts/:id`) is for **guests and buyers**, and in Phase 2 also for **farmers** (Store → `/products`, `/products/:slug`, cart, `/checkout`). Each user only sees the categories their permissions let them buy. Group Managers and Kaluppa are redirected to `/dashboard/overview`. Farmers' orders, addresses and account pages live under `/dashboard`. Buyer account pages: `/checkout`, `/orders`, `/orders/:id`, `/addresses`, `/profile`, `/settings`.
 
 ## Repository layout
 
@@ -98,8 +105,9 @@ route → authenticate / optionalAuth → verified → can()/role() → validate
 ## Email verification rule
 
 - **Buyers** must verify before any authenticated action (cart, checkout, orders, addresses, reviews, profile, settings, notifications). Unverified buyers can still view public storefront pages.
-- **Other roles** may use their dashboards while unverified.
-- Backend: `verified` middleware → `403 { code: "EMAIL_NOT_VERIFIED" }` for unverified users holding the `buyer` role. Apply to every buyer-facing route.
+- **Farmers** must verify too (Phase 2) before using the dashboard. Farmers created by a Group Manager are pre-verified, but they must set a new password at first sign-in if `mustChangePassword` is set.
+- Group Managers and Kaluppa may use their dashboards while unverified.
+- Backend: `verified` middleware → `403 { code: "EMAIL_NOT_VERIFIED" }` for unverified users holding the `buyer` or `farmer` role. Apply it to every route those roles use.
 - Frontend: the axios interceptor sends the user to `/verify-email` on that code.
 
 ## Frontend data flow (mandatory)
@@ -135,6 +143,18 @@ Zod schema (react-hook-form) → TanStack Query hook → service function → ax
 - Account-gated actions go through `useRequireAuthAction()`: guest → `/login?redirect=<path>`; unverified buyer → `/verify-email`; else run.
 - Role display names in the UI ("Group Manager", not `group_manager`). English only.
 - Accessible: labelled inputs, focus rings, keyboard-operable menus/drawers/modals (focus trap, Esc closes).
+
+## Phase 2 rules (dashboard)
+
+- **Scope by policy, not by role.** Records use the policy helpers in PHASE-2-SPEC §2 (`isOwner`, `isAssociationManager`, `isAssignedManager`, `isKaluppaFarm`). A Group Manager acting for a farmer always sends `farmerId`, and the service checks that the farmer is in the Group Manager's association.
+- **Two farmer states, two words:** "email verified" and "approved farmer". Never call an approved farmer "verified" in code, copy or tests.
+- **The 5 kg bean cap** is enforced in the service inside a transaction (PHASE-2-SPEC §3.5). The UI meter is only a hint.
+- **Every management page** = page header + `DataTable` (search left; plain filter dropdowns right, Status first; no tabs; row actions, numbered pages, URL-synced) + right **drawer** for add/edit/view + **modal** for archive/restore/reject/cancel/remove. Archive is a soft delete with Restore.
+- **Maps**: the address/farm/branch pickers share one `MapPicker`. Picking from the dropdowns flies the map and moves the pin without reverse-geocoding. Only a manual click or drag reverse-geocodes.
+- **Media frames are fixed** (16:10 stages and grids; cover in grids, contain in viewers). A tall or wide upload must never change a card's height.
+- **Inbox** read state uses member cursors (`lastDeliveredAt`, `lastReadAt`), not per-message writes. Read-only membership keeps history.
+- **Audit**: every create/update/archive/approve/reject/status change in Phase 2 services calls `audit.record(...)` with allow-listed fields only, never passwords or documents.
+- **Seeds**: `@gmail.com` addresses, password `KapeKonek@123`. Never email a seed account unless `SEED_EMAIL_BASE` is set (PHASE-2-SPEC §8).
 
 ## Skills to use
 

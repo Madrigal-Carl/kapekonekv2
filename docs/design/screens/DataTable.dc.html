@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Data table</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<section aria-label="{{ ariaLabel }}" style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; color: #2B1A12; box-sizing: border-box">
+
+  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 16px">
+    <div style="position: relative; flex: 1 1 260px; max-width: 360px">
+      <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#7A6A5E" stroke-width="2" stroke-linecap="round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+      <input type="search" aria-label="{{ searchPlaceholder }}" value="{{ q }}" onInput="{{ onQ }}" placeholder="{{ searchPlaceholder }}" style="width: 100%; min-height: 40px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 8px 12px 8px 36px; font: inherit; font-size: 13.5px; color: #2B1A12; background: #FFFFFF; box-sizing: border-box">
+    </div>
+    <div role="group" aria-label="Filters" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px">
+      <sc-if value="{{ hasActive }}" hint-placeholder-val="{{ false }}">
+        <button type="button" onClick="{{ clearAll }}" style="min-height: 40px; padding: 0 10px; border: 0; background: transparent; color: #7B4A2A; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">Clear filters</button>
+      </sc-if>
+      <sc-for list="{{ filterList }}" as="f" hint-placeholder-count="2">
+        <div style="position: relative; z-index: {{ f.z }}; width: {{ f.w }}">
+          <dc-import name="SearchSelect" aria-label="{{ f.label }}" icon="{{ f.icon }}" size="sm" searchable="{{ false }}" options="{{ f.options }}" value="{{ f.value }}" on-pick="{{ f.pick }}" hint-size="100%,40px"></dc-import>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="overflow-x: auto; border-top: 1px solid #EFE6DA">
+    <table style="width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: {{ minW }}">
+      <thead>
+        <tr style="background: #FBF8F4">
+          <sc-for list="{{ cols }}" as="c" hint-placeholder-count="5">
+            <th scope="col" style="text-align: {{ c.align }}; padding: 11px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6B5A4E; font-weight: 600; white-space: nowrap; border-bottom: 1px solid #EFE6DA">{{ c.label }}<sc-if value="{{ c.sorted }}" hint-placeholder-val="{{ false }}"><svg aria-hidden="true" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#7B4A2A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px; vertical-align: -1px"><path d="m6 9 6 6 6-6"></path></svg></sc-if></th>
+          </sc-for>
+          <th scope="col" style="text-align: right; padding: 11px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6B5A4E; font-weight: 600; border-bottom: 1px solid #EFE6DA">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <sc-for list="{{ pageRows }}" as="r" hint-placeholder-count="6">
+          <tr style="background: {{ r.bg }}; border-bottom: 1px solid #F1E9DE">
+            <sc-for list="{{ r.cells }}" as="cell" hint-placeholder-count="5">
+              <td style="padding: 12px 14px; text-align: {{ cell.align }}; vertical-align: middle; white-space: {{ cell.ws }}">
+                <sc-if value="{{ cell.isPerson }}" hint-placeholder-val="{{ false }}">
+                  <span style="display: flex; align-items: center; gap: 10px"><span aria-hidden="true" style="width: 32px; height: 32px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: {{ cell.avatarBg }}; color: #FFFFFF; font-size: 11.5px; font-weight: 600">{{ cell.initials }}</span><span style="display: flex; flex-direction: column; min-width: 0"><span style="font-weight: 600">{{ cell.main }}</span><span style="font-size: 12px; color: #6B5A4E">{{ cell.sub }}</span></span></span>
+                </sc-if>
+                <sc-if value="{{ cell.isPill }}" hint-placeholder-val="{{ false }}">
+                  <span style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: {{ cell.pillBg }}; color: {{ cell.pillFg }}; font-size: 12px; font-weight: 600; white-space: nowrap"><span aria-hidden="true" style="width: 6px; height: 6px; border-radius: 999px; background: {{ cell.dot }}"></span>{{ cell.main }}</span>
+                </sc-if>
+                <sc-if value="{{ cell.isText }}" hint-placeholder-val="{{ true }}">
+                  <span style="display: flex; flex-direction: column"><span style="font-weight: {{ cell.fw }}; font-family: {{ cell.ff }}; color: {{ cell.fg }}">{{ cell.main }}</span><sc-if value="{{ cell.hasSub }}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; color: #6B5A4E">{{ cell.sub }}</span></sc-if></span>
+                </sc-if>
+              </td>
+            </sc-for>
+            <td style="padding: 8px 10px; text-align: right; white-space: nowrap">
+              <sc-for list="{{ r.actions }}" as="a" hint-placeholder-count="3">
+                <button type="button" aria-label="{{ a.aria }}" title="{{ a.label }}" onClick="{{ a.run }}" style="width: 36px; height: 36px; display: inline-grid; place-items: center; border: 0; background: transparent; color: {{ a.fg }}; border-radius: 5px; cursor: pointer">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ a.icon }}"></path></svg>
+                </button>
+              </sc-for>
+            </td>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+    <sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}">
+      <div style="padding: 48px 16px; text-align: center">
+        <span aria-hidden="true" style="width: 44px; height: 44px; margin: 0 auto; display: grid; place-items: center; border-radius: 8px; background: #F7EFE4; color: #7B4A2A"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg></span>
+        <p style="margin: 12px 0 0; font-size: 14px; font-weight: 600">{{ emptyTitle }}</p>
+        <p style="margin: 4px 0 0; font-size: 13px; color: #6B5A4E">Try another search or clear the filters.</p>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-top: 1px solid #EFE6DA">
+    <span aria-live="polite" style="font-size: 12.5px; color: #4A3A30">{{ rangeLabel }}</span>
+    <nav aria-label="Pages" style="display: flex; align-items: center; gap: 4px">
+      <button type="button" aria-label="Previous page" disabled="{{ atFirst }}" onClick="{{ prev }}" style="width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid #E7DCCD; background: #FFFFFF; border-radius: 5px; color: {{ prevFg }}; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></button>
+      <sc-for list="{{ pageButtons }}" as="pb" hint-placeholder-count="3">
+        <button type="button" aria-current="{{ pb.current }}" onClick="{{ pb.go }}" style="min-width: 36px; height: 36px; padding: 0 8px; border: 1px solid {{ pb.border }}; background: {{ pb.bg }}; color: {{ pb.fg }}; border-radius: 5px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{ pb.n }}</button>
+      </sc-for>
+      <button type="button" aria-label="Next page" disabled="{{ atLast }}" onClick="{{ next }}" style="width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid #E7DCCD; background: #FFFFFF; border-radius: 5px; color: {{ nextFg }}; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg></button>
+    </nav>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"columns":{"editor":null},"rows":{"editor":null},"tabs":{"editor":null},"tabLabel":{"editor":null},"filters":{"editor":null},"actions":{"editor":null},"onAction":{"editor":null},"selectedId":{"editor":null},"searchPlaceholder":{"editor":"text","default":"Search"},"pageSize":{"editor":"int","default":6},"minWidth":{"editor":"text","default":"760px"},"$preview":{"width":1100,"height":560}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { q: '', tab: props.tabs && props.tabs.length ? props.tabs[0].key : null, f: {}, page: 1 }; }
+  renderVals() {
+    const ICON = {
+      view: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',
+      edit: 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z',
+      archive: 'M3 3h18v5H3zM5 8v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8M10 12h4',
+      restore: 'M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8M3 3v5h5',
+      approve: 'M20 6 9 17l-5-5',
+      reject: 'M18 6 6 18M6 6l12 12',
+      review: 'M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11',
+      trees: 'M12 22v-6M12 2 5 11h4l-5 5h16l-5-5h4z',
+      cancel: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM15 9l-6 6M9 9l6 6',
+      manage: 'M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11',
+      hide: 'M21 15V5a2 2 0 0 0-2-2H9M2 2l20 20M3.6 3.6A2 2 0 0 0 3 5v16l4-4h10',
+      unhide: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zM9 10l2 2 4-4',
+      reply: 'M9 17 4 12l5-5M20 18v-2a4 4 0 0 0-4-4H4'
+    };
+    const LABEL = { view: 'View', edit: 'Edit', archive: 'Archive', restore: 'Restore', approve: 'Approve', reject: 'Reject', review: 'Review', trees: 'Trees', cancel: 'Cancel', manage: 'Manage', hide: 'Hide', unhide: 'Show again', reply: 'Reply' };
+    const TONE = {
+      green: ['#E1F2E4', '#1E5A34', '#2E7D4F'], amber: ['#FBF3E3', '#6B4209', '#C8913A'], red: ['#FDF0EE', '#8F2D22', '#C2554A'],
+      blue: ['#E8F0FA', '#1F4E86', '#2A78D6'], gray: ['#F1ECE6', '#4A3A30', '#8C7A66'], roast: ['#F3E6DA', '#5A3218', '#7B4A2A']
+    };
+    const p = this.props;
+    const cols = p.columns || [{ key: 'name', label: 'Name', kind: 'person' }, { key: 'status', label: 'Status', kind: 'pill' }];
+    const DEMO = [
+      { id: 'd1', label: 'Rodel Mendoza', name: { name: 'Rodel Mendoza', sub: '@rodel.mendoza', initials: 'RM', bg: '#3F6B4E' }, status: { label: 'Approved', tone: 'green' }, tab: 'approved' },
+      { id: 'd2', label: 'Joy Lacsamana', name: { name: 'Joy Lacsamana', sub: '@joy.l', initials: 'JL', bg: '#8A5A12' }, status: { label: 'Waiting', tone: 'amber' }, tab: 'pending' },
+      { id: 'd3', label: 'Ben Ilagan', name: { name: 'Ben Ilagan', sub: '@ben.ilagan', initials: 'BI', bg: '#7B4A2A' }, status: { label: 'Rejected', tone: 'red' }, tab: 'rejected' }
+    ];
+    const rowsAll = p.rows || (p.columns ? [] : DEMO);
+    const { q, tab, f, page } = this.state;
+    const size = p.pageSize || 6;
+    const ql = q.trim().toLowerCase();
+    const filters = p.filters || [];
+    let rows = rowsAll.filter((r) => (!tab || tab === 'all' || r.tab === tab || (Array.isArray(r.tab) && r.tab.includes(tab))));
+    filters.forEach((fl) => { const v = f[fl.key]; if (v && v !== fl.options[0]) rows = rows.filter((r) => (r.f || {})[fl.key] === v); });
+    if (ql) rows = rows.filter((r) => JSON.stringify(r.search || r).toLowerCase().includes(ql));
+    const pages = Math.max(1, Math.ceil(rows.length / size));
+    const pg = Math.min(page, pages);
+    const slice = rows.slice((pg - 1) * size, pg * size);
+    const fmt = (c, r) => {
+      const v = r[c.key];
+      const base = { align: c.align || 'left', ws: c.wrap ? 'normal' : 'nowrap', isPerson: false, isPill: false, isText: false, fw: 400, ff: 'inherit', fg: '#2B1A12', hasSub: false, sub: '' };
+      if (c.kind === 'person') return { ...base, isPerson: true, main: v.name, sub: v.sub, initials: v.initials, avatarBg: v.bg || '#7B4A2A' };
+      if (c.kind === 'pill') { const t = TONE[v.tone] || TONE.gray; return { ...base, isPill: true, main: v.label, pillBg: t[0], pillFg: t[1], dot: t[2] }; }
+      const isObj = v && typeof v === 'object';
+      return { ...base, isText: true, main: isObj ? v.main : v, sub: isObj ? v.sub : '', hasSub: isObj && !!v.sub, fw: c.kind === 'strong' ? 600 : 400, ff: c.kind === 'mono' ? "ui-monospace, 'SF Mono', Menlo, monospace" : 'inherit', fg: c.kind === 'muted' ? '#6B5A4E' : '#2B1A12' };
+    };
+    const tabs = p.tabs || [];
+    return {
+      ariaLabel: p.ariaLabel || 'Records',
+      searchPlaceholder: p.searchPlaceholder || 'Search',
+      q, onQ: (e) => this.setState({ q: e.target.value, page: 1 }),
+      filterList: (tabs.length ? [{ label: p.tabLabel || 'Status', icon: 'tag', options: tabs.map((t) => (t.label === 'All' ? 'All statuses' : t.label)), value: ((tabs.find((t) => t.key === tab) || tabs[0]).label === 'All' ? 'All statuses' : (tabs.find((t) => t.key === tab) || tabs[0]).label), w: '200px', pick: (v) => { const t = tabs.find((x) => x.label === v || (x.label === 'All' && v === 'All statuses')); this.setState({ tab: t ? t.key : null, page: 1 }); } }] : []).concat(filters.map((fl) => ({ label: fl.label, icon: 'tag', options: fl.options, value: f[fl.key] || fl.options[0], w: '190px', pick: (v) => this.setState({ f: { ...f, [fl.key]: v }, page: 1 }) }))).map((x, i) => ({ ...x, z: 20 - i })),
+      hasActive: !!ql || filters.some((fl) => f[fl.key] && f[fl.key] !== fl.options[0]) || (tabs.length > 0 && tab !== tabs[0].key),
+      clearAll: () => this.setState({ q: '', f: {}, page: 1, tab: tabs.length ? tabs[0].key : null }),
+      minW: p.minWidth || '760px',
+      cols: cols.map((c, i) => ({ label: c.label, align: c.align || 'left', sorted: i === (p.sortIndex ?? -1) })),
+      pageRows: slice.map((r) => ({
+        bg: r.id && r.id === p.selectedId ? '#FBF6F0' : '#FFFFFF',
+        cells: cols.map((c) => fmt(c, r)),
+        actions: (r.actions || p.actions || ['view', 'edit', 'archive']).map((k) => ({ label: LABEL[k], aria: LABEL[k] + ' ' + (r.label || ''), icon: ICON[k], fg: k === 'archive' || k === 'reject' || k === 'cancel' || k === 'hide' ? '#A1362B' : (k === 'approve' ? '#22633A' : '#4A3A30'), run: () => p.onAction && p.onAction(k, r) }))
+      })),
+      empty: rows.length === 0,
+      emptyTitle: 'Nothing matches “' + (q || 'these filters') + '”',
+      rangeLabel: rows.length ? 'Showing ' + ((pg - 1) * size + 1) + '–' + Math.min(pg * size, rows.length) + ' of ' + rows.length : 'No results',
+      atFirst: pg <= 1, atLast: pg >= pages,
+      prevFg: pg <= 1 ? '#C4B6A8' : '#2B1A12', nextFg: pg >= pages ? '#C4B6A8' : '#2B1A12',
+      prev: () => this.setState({ page: Math.max(1, pg - 1) }), next: () => this.setState({ page: Math.min(pages, pg + 1) }),
+      pageButtons: Array.from({ length: pages }, (_, i) => i + 1).map((n) => ({ n, current: n === pg ? 'page' : undefined, go: () => this.setState({ page: n }), bg: n === pg ? '#7B4A2A' : '#FFFFFF', fg: n === pg ? '#FFFFFF' : '#2B1A12', border: n === pg ? '#7B4A2A' : '#E7DCCD' }))
+    };
+  }
+}
+</script>
+</body>
+</html>

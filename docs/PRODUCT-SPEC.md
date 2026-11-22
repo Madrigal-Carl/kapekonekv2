@@ -313,17 +313,20 @@ Seeders follow `_reference/backend/src/seeder.js`:
 
 ## 11. Seed data
 
-**Accounts** (all `@kapekonek.test`, password `Password123!`):
+**Accounts**: Gmail addresses, password **`KapeKonek@123`** (Change 04).
+- With `SEED_EMAIL_BASE=yourname@gmail.com`, each handle becomes `yourname+<handle>@gmail.com`, so every email lands in your own inbox.
+- Without it, they are `kapekonek.<handle>@gmail.com`, and the mail worker skips accounts flagged `isSeed` (it logs those emails instead).
+- Phase 2 adds more handles; see PHASE-2-SPEC §8.
 
-| Role | Accounts |
+| Role | Handles |
 |---|---|
-| Kaluppa | `kaluppa@` |
-| Group Manager | `manager@` |
-| Farmer | `farmer1@`, `farmer2@` (one unverified) |
-| Buyer | `buyer@` (verified), `buyer.unverified@` |
+| Kaluppa | `kaluppa` |
+| Group Manager | `manager.santacruz` |
+| Farmer | `farmer.approved`, `farmer.unverified` |
+| Buyer | `buyer` (verified), `buyer.unverified` |
 | Extra buyers | ~20 (faker) |
 
-- **Addresses** for `buyer@`:
+- **Addresses** for `buyer`:
   - Home (default): Lot 12, Purok 3, near the chapel, Balanacan, Mogpog, pinned.
   - Work: Municipal Hall, Banahaw Poblacion, Santa Cruz, pinned.
   - Mama's house (Other): Caganhao, Boac, no pin.
@@ -351,7 +354,7 @@ Seeders follow `_reference/backend/src/seeder.js`:
 - `VALKEY_HOST`, `VALKEY_PORT`, `VALKEY_USERNAME=default`, `VALKEY_PASSWORD`, `VALKEY_TLS=true`
 - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `CLOUDINARY_ROOT_FOLDER=kapekonek`
 - `MAPBOX_ACCESS_TOKEN` (server-side: directions + geocoding)
-- `ORDER_EXPIRY_DAYS=3`, `ORDER_EXPIRY_INTERVAL_MINUTES=5`, `CRON_SECRET`, `SEED_DEFAULT_PASSWORD=Password123!`
+- `ORDER_EXPIRY_DAYS=3`, `ORDER_EXPIRY_INTERVAL_MINUTES=5`, `CRON_SECRET`, `SEED_DEFAULT_PASSWORD=KapeKonek@123`, `SEED_EMAIL_BASE` (optional, your own Gmail address)
 
 **Frontend**: `VITE_API_URL`, `VITE_SOCKET_URL`, `VITE_MAPBOX_TOKEN` (public `pk.` token, URL-restricted).
 

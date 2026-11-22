@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Beans — Kaluppa review</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+.kk-f:focus{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
+.kk-menu{display:none !important}
+@media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+</style>
+</helmet>
+<div style="position: relative; width: 100%; min-height: 1100px; background: #F5F0EA; display: flex; align-items: stretch">
+  <div class="kk-side" style="width: 256px; flex-shrink: 0; background: #FFFFFF">
+    <dc-import name="Sidebar" role="kaluppa" active="Beans" hint-size="256px,900px"></dc-import>
+  </div>
+  <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="DashTopbar" role="kaluppa" crumb-a="Marketplace" crumb-b="Beans" hint-size="100%,64px"></dc-import>
+    <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+        <div style="min-width: 0; max-width: 720px">
+          <span style="display: block; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Marketplace</span>
+          <h1 style="margin: 8px 0 0; font-weight: 500; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15">Beans from farmers</h1>
+          <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">Review listings, then complete them when the beans arrive at the branch. Approved listings expire after 7 days.</p>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px"></div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px">
+        <sc-for list="{{ tiles }}" as="t" hint-placeholder-count="4"><div style="padding: 14px 16px; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px"><span style="display: block; font-size: 12.5px; color: #4A3A30">{{ t.k }}</span><span style="display: block; font-size: 22px; font-weight: 600">{{ t.v }}</span><span style="display: block; font-size: 12px; color: #6B5A4E">{{ t.n }}</span></div></sc-for>
+      </div>
+      <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 8px; background: #E1F2E4; border: 1px solid #BFDFC6; color: #1E5A34; font-size: 13.5px; font-weight: 500"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg><span style="flex: 1">{{ toast }}</span><button type="button" aria-label="Dismiss" onClick="{{ clearToast }}" style="width: 32px; height: 32px; border: 0; background: transparent; color: #1E5A34; cursor: pointer; display: grid; place-items: center"><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>
+      </sc-if>
+      <dc-import name="DataTable" aria-label="Bean listings" columns="{{ cols }}" rows="{{ rows }}" tabs="{{ tabs }}" filters="{{ filters }}" on-action="{{ onAction }}" selected-id="{{ selId }}" search-placeholder="Search listing no., farmer or variety" page-size="{{ 6 }}" min-width="{{ minW }}" hint-size="100%,560px"></dc-import>
+    </main>
+  </div>
+  <sc-if value="{{ isView }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close panel" onClick="{{ closeDrawer }}" style="position: absolute; inset: 0; z-index: 60; border: 0; padding: 0; background: rgba(43,26,18,0.42); cursor: default"></button>
+    <aside role="dialog" aria-modal="true" aria-labelledby="dr-title" style="position: absolute; top: 0; right: 0; bottom: 0; z-index: 61; width: 640px; max-width: 100%; background: #FFFFFF; border-left: 1px solid #E7DCCD; box-shadow: -24px 0 48px -24px rgba(43,26,18,0.45); display: flex; flex-direction: column">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 32px 20px; border-bottom: 1px solid #EFE6DA">
+        <div style="min-width: 0"><span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">{{ cur.code }} · {{ cur.statusLabel }}</span><h2 id="dr-title" style="margin: 4px 0 0; font-size: 20px; font-weight: 600; line-height: 1.3">{{ cur.title }}</h2></div>
+        <button type="button" aria-label="Close" onClick="{{ closeDrawer }}" style="width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border: 0; background: transparent; border-radius: 5px; color: #6B5A4E; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+      </div>
+      <div style="flex: 1; overflow-y: auto; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px">
+        <div>
+          <div role="img" aria-label="{{ gal.label }}" style="aspect-ratio: 16 / 10; border-radius: 8px; background: #1E130D; display: flex; align-items: center; justify-content: center; overflow: hidden"><div style="height: 100%; max-width: 100%; aspect-ratio: {{ gal.ratio }}; background: #EADCCB; display: grid; place-items: center; color: #8B6A4F; font-size: 12px; font-weight: 600">{{ gal.label }}</div></div>
+          <div style="margin-top: 8px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px"><sc-for list="{{ thumbs }}" as="t" hint-placeholder-count="3"><button type="button" aria-label="Show photo {{ t.n }}" aria-pressed="{{ t.on }}" onClick="{{ t.pick }}" style="aspect-ratio: 1 / 1; border-radius: 6px; border: 2px solid {{ t.border }}; background: #EADCCB; color: #8B6A4F; font: inherit; font-size: 11px; font-weight: 600; cursor: pointer">{{ t.n }}</button></sc-for></div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #E7DCCD; border-radius: 8px"><span aria-hidden="true" style="width: 40px; height: 40px; display: grid; place-items: center; border-radius: 999px; background: {{ cur.bg }}; color: #FFFFFF; font-size: 13px; font-weight: 600">{{ cur.initials }}</span><div style="flex: 1"><span style="display: block; font-size: 14px; font-weight: 600">{{ cur.farmer }}</span><span style="display: block; font-size: 12px; color: #6B5A4E">{{ cur.assoc }}</span></div><span style="padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: {{ cur.tagBg }}; color: {{ cur.tagFg }}">{{ cur.tag }}</span></div>
+        <dl style="margin: 0; display: grid; grid-template-columns: 160px 1fr; gap: 12px 18px; font-size: 14px; line-height: 1.5"><sc-for list="{{ vRows }}" as="d" hint-placeholder-count="5"><dt style="color: #6B5A4E">{{ d.k }}</dt><dd style="margin: 0; font-weight: 500">{{ d.v }}</dd></sc-for></dl>
+        <sc-if value="{{ rejecting }}" hint-placeholder-val="{{ false }}"><div><label for="rr" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #8F2D22; font-weight: 600">Reason · required</label><textarea class="kk-f" id="rr" rows="3" placeholder="e.g. Moisture too high for storage. Dry for 3 more days and list again." style="margin-top: 6px; width: 100%; border: 1px solid #E3B3AC; border-radius: 5px; padding: 9px 12px; font: inherit; font-size: 14px"></textarea></div></sc-if>
+        <sc-if value="{{ completing }}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 16px; border-radius: 8px; background: #FBF8F4; border: 1px solid #EFE6DA; display: flex; flex-direction: column; gap: 12px">
+            <strong style="font-size: 14px">Weighed at the branch</strong>
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px"><div><label for="fw" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Final weight (kg)</label><input class="kk-f" id="fw" type="number" defaultValue="{{ cur.kg }}" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div><div><label for="fa" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Final amount (₱)</label><input class="kk-f" id="fa" type="number" defaultValue="{{ cur.amountN }}" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div></div>
+            <span style="font-size: 12px; color: #6B5A4E">Listed: {{ cur.kg }} kg for {{ cur.amount }}. Both values are kept.</span>
+          </div>
+        </sc-if>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; padding: 18px 32px; border-top: 1px solid #EFE6DA; background: #FBF8F4">
+<sc-if value="{{ footPending }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ startReject }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; color: #A1362B;">Reject</button><button type="button" onClick="{{ approve }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #2E7D4F; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Approve</button></sc-if>
+        <sc-if value="{{ footRejecting }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ stopReject }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Back</button><button type="button" onClick="{{ doReject }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #A1362B; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Reject listing</button></sc-if>
+        <sc-if value="{{ footApproved }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ askCancel }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; color: #A1362B;">Cancel sale</button><button type="button" onClick="{{ startComplete }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Beans arrived</button></sc-if>
+        <sc-if value="{{ footCompleting }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ stopComplete }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Back</button><button type="button" onClick="{{ doComplete }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #2E7D4F; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Mark completed</button></sc-if>
+        <sc-if value="{{ footDone }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ closeDrawer }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Close</button></sc-if>
+      </div>
+    </aside>
+  </sc-if>  <sc-if value="{{ isCancel }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close dialog" onClick="{{ closeModal }}" style="position: absolute; inset: 0; z-index: 70; border: 0; padding: 0; background: rgba(43,26,18,0.5); cursor: default"></button>
+    <div role="alertdialog" aria-modal="true" aria-labelledby="c-title" style="position: absolute; left: 50%; top: 160px; transform: translateX(-50%); z-index: 71; width: 460px; max-width: calc(100% - 32px); background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 24px 48px -24px rgba(43,26,18,0.5); padding: 24px">
+      <span aria-hidden="true" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 999px; background: #FDF0EE; color: #A1362B"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM15 9l-6 6M9 9l6 6"></path></svg></span>
+      <h2 id="c-title" style="margin: 14px 0 0; font-size: 18px; font-weight: 600">Cancel this sale?</h2>
+<p style="margin: 6px 0 0; font-size: 13.5px; color: #4A3A30; line-height: 1.6">{{ cur.code }} was approved but the beans haven’t arrived. {{ cur.farmerFirst }} gets an email.</p><label for="cr" style="display: block; margin-top: 12px; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Reason · required</label><textarea class="kk-f" id="cr" rows="3" placeholder="e.g. Not brought within the agreed date" style="margin-top: 6px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 9px 12px; font: inherit; font-size: 13.5px"></textarea>
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" onClick="{{ closeModal }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Keep sale</button><button type="button" onClick="{{ doCancel }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #A1362B; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Cancel sale</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"start": {"editor": "enum", "options": ["", "view"], "default": ""}, "$preview": {"width": 1440, "height": 1100}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { mode: props.start || null, row: null, modal: null, toast: '', rejecting: false, tab: props.tab || 'details', pin: null, muni: null, brgy: null, view: null, adding: false, gi: 0, completing: false }; }
+  renderVals() {
+    const s = this.state;
+    const close = () => this.setState({ mode: null, row: null, rejecting: false, adding: false });
+    const base = {
+      selId: s.row ? s.row.id : null,
+      closeDrawer: close, closeModal: () => this.setState({ modal: null }),
+      hasToast: !!s.toast, toast: s.toast, clearToast: () => this.setState({ toast: '' }),
+      minW: '820px'
+    };
+    const pill = (label, tone) => ({ label, tone });
+    const B = [
+      ['b1', 'BN-2611-0042', 'Rodel Mendoza', 'RM', '#3F6B4E', 'Liberica', 'Dried cherry', 2, 180, 'pending', 'Listed Nov 21', true],
+      ['b2', 'BN-2611-0040', 'Rodel Mendoza', 'RM', '#3F6B4E', 'Liberica', 'Green beans', 30, 320, 'approved', 'Bring by Nov 27', true],
+      ['b3', 'BN-2611-0031', 'Rodel Mendoza', 'RM', '#3F6B4E', 'Liberica', 'Green beans', 3, 320, 'completed', 'Completed Nov 12', true],
+      ['b4', 'BN-2610-0019', 'Rodel Mendoza', 'RM', '#3F6B4E', 'Excelsa', 'Parchment', 4, 210, 'cancelled', 'Cancelled Oct 30', true],
+      ['b5', 'BN-2611-0044', 'Joy Lacsamana', 'JL', '#8A5A12', 'Liberica', 'Dried cherry', 4, 175, 'pending', 'Listed Nov 22', false, 'unapproved'],
+      ['b6', 'BN-2611-0045', 'Nestor Perez', 'NP', '#4A3A30', 'Excelsa', 'Parchment', 40, 210, 'pending', 'Listed Nov 22', false],
+      ['b7', 'BN-2611-0039', 'Nestor Perez', 'NP', '#4A3A30', 'Excelsa', 'Parchment', 22, 205, 'completed', 'Completed Nov 19', false],
+      ['b8', 'BN-2611-0036', 'Lorna Ilagan', 'LI', '#8A5A12', 'Robusta', 'Green beans', 15, 260, 'expired', 'Expired Nov 15', false],
+      ['b9', 'BN-2611-0047', 'Celia Dizon', 'CD', '#7B4A2A', 'Arabica', 'Green beans', 12, 380, 'pending', 'Listed Nov 23', false, 'boac'],
+      ['b10', 'BN-2611-0033', 'Marlon Sevilla', 'MS', '#3F6B4E', 'Liberica', 'Dried cherry', 25, 170, 'rejected', 'Rejected Nov 10', false]
+    ];
+    const ST = { pending: ['Waiting for review', 'amber', 'pending'], approved: ['Approved · bring to Kaluppa', 'blue', 'approved'], completed: ['Completed', 'green', 'completed'], cancelled: ['Cancelled', 'gray', 'closed'], expired: ['Expired', 'gray', 'closed'], rejected: ['Rejected', 'red', 'closed'] };
+    const peso = (n) => '₱' + n.toLocaleString('en-PH');
+    const shots = [{ label: 'Beans on drying bed', ratio: '4 / 3' }, { label: 'Close-up (portrait)', ratio: '3 / 4' }, { label: 'Sacks, weighed', ratio: '1 / 1' }];
+    const gi = s.gi || 0;
+    const rows = B.map((b) => ({ id: b[0], label: b[1], b, tab: ST[b[9]][2],
+      code: { main: b[1], sub: b[10] }, farmer: { name: b[2], sub: b[12] === 'unapproved' ? 'Unapproved · 5 kg limit' : (b[12] === 'boac' ? 'Boac Highland Farmers' : 'Santa Cruz Coffee Growers'), initials: b[3], bg: b[4] },
+      beans: { main: b[5], sub: b[6] }, kg: b[7] + ' kg', price: peso(b[8]) + '/kg', amount: peso(b[7] * b[8]), status: pill(ST[b[9]][0], ST[b[9]][1]),
+      f: { variety: b[5], form: b[6] }, actions: b[9] === 'pending' ? ['review'] : (b[9] === 'approved' ? ['manage'] : ['view']) }));
+    rows.forEach((r) => { if (r.b[9] === 'approved') r.code = { main: r.b[1], sub: 'Expires Nov 27' }; });
+    const cur = s.row ? s.row.b : B[5];
+    const st = cur[9];
+    const unap = cur[12] === 'unapproved';
+    return {
+      ...base, minW: '1060px',
+      tiles: [{ k: 'To review', v: '4', n: '58 kg offered' }, { k: 'Waiting for drop-off', v: '1', n: '30 kg · expires Nov 27' }, { k: 'Bought this month', v: '230 kg', n: '₱54,180 paid' }, { k: 'Average price', v: '₱236/kg', n: 'completed, last 30 days' }],
+      cols: [{ key: 'code', label: 'Listing', kind: 'strong' }, { key: 'farmer', label: 'Farmer', kind: 'person' }, { key: 'beans', label: 'Beans' }, { key: 'kg', label: 'Weight', align: 'right' }, { key: 'price', label: 'Asking', align: 'right' }, { key: 'amount', label: 'Amount', align: 'right' }, { key: 'status', label: 'Status', kind: 'pill' }],
+      rows, filters: [{ key: 'variety', label: 'Variety', options: ['All varieties', 'Liberica', 'Excelsa', 'Robusta', 'Arabica'] }, { key: 'form', label: 'Form', options: ['All forms', 'Fresh cherry', 'Dried cherry', 'Parchment', 'Green beans'] }],
+      tabs: [{ key: 'pending', label: 'To review' }, { key: 'approved', label: 'Waiting for drop-off' }, { key: 'completed', label: 'Completed' }, { key: 'closed', label: 'Closed' }],
+      onAction: (k, r) => this.setState({ mode: 'view', row: r, gi: 0, rejecting: false, completing: false }),
+      isView: s.mode === 'view', isCancel: s.modal === 'cancel',
+      cur: { code: cur[1], title: cur[7] + ' kg ' + cur[5] + ', ' + cur[6].toLowerCase(), statusLabel: ST[st][0], farmer: cur[2], farmerFirst: cur[2].split(' ')[0], initials: cur[3], bg: cur[4], assoc: unap ? 'Unapproved farmer · Santa Cruz request pending' : (cur[12] === 'boac' ? 'Boac Highland Farmers' : 'Santa Cruz Coffee Growers'), tag: unap ? 'Within 5 kg limit' : 'Approved farmer', tagBg: unap ? '#FBF3E3' : '#E1F2E4', tagFg: unap ? '#6B4209' : '#1E5A34', kg: String(cur[7]), amount: peso(cur[7] * cur[8]), amountN: String(cur[7] * cur[8]) },
+      gal: shots[gi], thumbs: shots.map((x, i) => ({ n: i + 1, on: i === gi, border: i === gi ? '#7B4A2A' : '#E7DCCD', pick: () => this.setState({ gi: i }) })),
+      vRows: [{ k: 'Weight', v: cur[7] + ' kg' }, { k: 'Asking price', v: peso(cur[8]) + ' per kg' }, { k: 'Amount', v: peso(cur[7] * cur[8]) }, { k: 'Listed', v: cur[10].replace('Listed ', '') }, { k: 'Farmer’s note', v: 'Sun-dried 12 days, moisture around 12%' }].concat(st === 'approved' ? [{ k: 'Expires', v: 'Nov 27 if not brought in' }] : []),
+      rejecting: s.rejecting, completing: s.completing,
+      footPending: st === 'pending' && !s.rejecting, footRejecting: s.rejecting, footApproved: st === 'approved' && !s.completing, footCompleting: s.completing, footDone: st !== 'pending' && st !== 'approved',
+      startReject: () => this.setState({ rejecting: true }), stopReject: () => this.setState({ rejecting: false }),
+      approve: () => this.setState({ mode: null, toast: cur[1] + ' approved. ' + cur[2].split(' ')[0] + ' has 7 days to bring the beans.' }),
+      doReject: () => this.setState({ mode: null, rejecting: false, toast: cur[1] + ' rejected. The farmer was emailed your reason.' }),
+      startComplete: () => this.setState({ completing: true }), stopComplete: () => this.setState({ completing: false }),
+      doComplete: () => this.setState({ mode: null, completing: false, toast: cur[1] + ' completed.' }),
+      askCancel: () => this.setState({ modal: 'cancel' }), doCancel: () => this.setState({ modal: null, mode: null, toast: 'Sale cancelled.' })
+    };
+  }
+}
+</script>
+</body>
+</html>

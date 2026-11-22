@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Trees</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+.kk-f:focus{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
+.kk-menu{display:none !important}
+@media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+</style>
+</helmet>
+<div style="position: relative; width: 100%; min-height: 1100px; background: #F5F0EA; display: flex; align-items: stretch">
+  <div class="kk-side" style="width: 256px; flex-shrink: 0; background: #FFFFFF">
+    <dc-import name="Sidebar" role="{{ role }}" active="Tree" hint-size="256px,900px"></dc-import>
+  </div>
+  <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="DashTopbar" role="{{ role }}" crumb-a="Records" crumb-b="Tree" hint-size="100%,64px"></dc-import>
+    <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+        <div style="min-width: 0; max-width: 720px">
+          <span style="display: block; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Records</span>
+          <h1 style="margin: 8px 0 0; font-weight: 500; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15">Trees</h1>
+          <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">{{ desc }}</p>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px"><button type="button" onClick="{{ openAdd }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; "><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Add tree group</button></div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px">
+        <sc-for list="{{ stageTiles }}" as="t" hint-placeholder-count="5"><div style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px"><span aria-hidden="true" style="width: 8px; height: 30px; border-radius: 4px; background: {{ t.color }}"></span><span><span style="display: block; font-size: 12px; color: #4A3A30">{{ t.label }}</span><span style="display: block; font-size: 18px; font-weight: 600">{{ t.count }}</span></span></div></sc-for>
+      </div>
+      <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 8px; background: #E1F2E4; border: 1px solid #BFDFC6; color: #1E5A34; font-size: 13.5px; font-weight: 500"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg><span style="flex: 1">{{ toast }}</span><button type="button" aria-label="Dismiss" onClick="{{ clearToast }}" style="width: 32px; height: 32px; border: 0; background: transparent; color: #1E5A34; cursor: pointer; display: grid; place-items: center"><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>
+      </sc-if>
+      <dc-import name="DataTable" aria-label="Tree groups" columns="{{ cols }}" rows="{{ rows }}" tabs="{{ tabs }}" filters="{{ filters }}" on-action="{{ onAction }}" selected-id="{{ selId }}" search-placeholder="Search farm, variety or note" page-size="{{ 6 }}" min-width="{{ minW }}" hint-size="100%,560px"></dc-import>
+    </main>
+  </div>
+  <sc-if value="{{ isForm }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close panel" onClick="{{ closeDrawer }}" style="position: absolute; inset: 0; z-index: 60; border: 0; padding: 0; background: rgba(43,26,18,0.42); cursor: default"></button>
+    <aside role="dialog" aria-modal="true" aria-labelledby="dr-title" style="position: absolute; top: 0; right: 0; bottom: 0; z-index: 61; width: 600px; max-width: 100%; background: #FFFFFF; border-left: 1px solid #E7DCCD; box-shadow: -24px 0 48px -24px rgba(43,26,18,0.45); display: flex; flex-direction: column">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 32px 20px; border-bottom: 1px solid #EFE6DA">
+        <div style="min-width: 0"><span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Tree group</span><h2 id="dr-title" style="margin: 4px 0 0; font-size: 20px; font-weight: 600; line-height: 1.3">{{ formTitle }}</h2></div>
+        <button type="button" aria-label="Close" onClick="{{ closeDrawer }}" style="width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border: 0; background: transparent; border-radius: 5px; color: #6B5A4E; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+      </div>
+      <div style="flex: 1; overflow-y: auto; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px">
+        <sc-if value="{{ isGm }}" hint-placeholder-val="{{ false }}"><div style="position: relative; z-index: 14"><dc-import name="SearchSelect" label="Farmer" icon="home" placeholder="Select farmer" search-placeholder="Search farmer" options="{{ farmerOpts }}" value="{{ tFarmer }}" on-pick="{{ pickFarmer }}" hint-size="100%,70px"></dc-import></div></sc-if>
+        <div style="position: relative; z-index: 13"><dc-import name="SearchSelect" label="Farm" icon="pin" placeholder="Select farm" search-placeholder="Search farm" options="{{ farmOpts }}" value="{{ tFarm }}" on-pick="{{ pickFarm }}" hint-size="100%,70px"></dc-import></div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+          <div style="position: relative; z-index: 12"><dc-import name="SearchSelect" label="Variety" icon="tag" placeholder="Select variety" search-placeholder="Search variety" options="{{ varOpts }}" value="{{ tVar }}" on-pick="{{ pickVar }}" hint-size="100%,70px"></dc-import></div>
+          <div style="position: relative; z-index: 11"><dc-import name="SearchSelect" label="Stage" icon="tag" placeholder="Select stage" search-placeholder="Search stage" options="{{ stageOpts }}" value="{{ tStage }}" on-pick="{{ pickStage }}" hint-size="100%,70px"></dc-import></div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px"><div><label for="cnt" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Number of trees</label><input class="kk-f" id="cnt" type="number" defaultValue="{{ tv.count }}" placeholder="e.g. 40" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div><div><label for="pl" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Date planted</label><input class="kk-f" id="pl" type="date" defaultValue="{{ tv.planted }}" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div></div>
+        <div><label for="nt" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Note <span style="text-transform: none; letter-spacing: 0; color: #7A6A5E">(optional)</span></label><textarea class="kk-f" id="nt" rows="3" placeholder="e.g. Leaf rust on the lower rows" style="margin-top: 8px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; line-height: 1.55; resize: vertical">{{ tv.note }}</textarea></div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; padding: 18px 32px; border-top: 1px solid #EFE6DA; background: #FBF8F4">
+<button type="button" onClick="{{ closeDrawer }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Cancel</button><button type="button" onClick="{{ save }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">{{ formCta }}</button>
+      </div>
+    </aside>
+  </sc-if>  <sc-if value="{{ isArchive }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close dialog" onClick="{{ closeModal }}" style="position: absolute; inset: 0; z-index: 70; border: 0; padding: 0; background: rgba(43,26,18,0.5); cursor: default"></button>
+    <div role="alertdialog" aria-modal="true" aria-labelledby="a-title" style="position: absolute; left: 50%; top: 160px; transform: translateX(-50%); z-index: 71; width: 460px; max-width: calc(100% - 32px); background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 24px 48px -24px rgba(43,26,18,0.5); padding: 24px">
+      <span aria-hidden="true" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 999px; background: #FDF0EE; color: #A1362B"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v5H3zM5 8v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8M10 12h4"></path></svg></span>
+      <h2 id="a-title" style="margin: 14px 0 0; font-size: 18px; font-weight: 600">Remove this tree group?</h2>
+<p style="margin: 6px 0 0; font-size: 13.5px; color: #4A3A30; line-height: 1.6"><strong>{{ cur.count }} {{ cur.variety }} trees</strong> on {{ cur.farmCode }} move to Archived. You can restore them.</p>
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" onClick="{{ closeModal }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Keep</button><button type="button" onClick="{{ doArchive }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #A1362B; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Remove</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"role": {"editor": "enum", "options": ["farmer", "group_manager", "kaluppa"], "default": "farmer"}, "start": {"editor": "enum", "options": ["", "add"], "default": ""}, "$preview": {"width": 1440, "height": 1100}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { mode: props.start || null, row: null, modal: null, toast: '', rejecting: false, tab: props.tab || 'details', pin: null, muni: null, brgy: null, view: null, adding: false, farm: null, tvar: null, tstage: null, farmer: null }; }
+  renderVals() {
+    const s = this.state;
+    const close = () => this.setState({ mode: null, row: null, rejecting: false, adding: false });
+    const base = {
+      selId: s.row ? s.row.id : null,
+      closeDrawer: close, closeModal: () => this.setState({ modal: null }),
+      hasToast: !!s.toast, toast: s.toast, clearToast: () => this.setState({ toast: '' }),
+      minW: '820px'
+    };
+    const pill = (label, tone) => ({ label, tone });
+    const STAGES = [
+      { key: 'newly_planted', label: 'Newly planted', color: '#2a78d6', tone: 'blue' },
+      { key: 'growing', label: 'Growing', color: '#eb6834', tone: 'amber' },
+      { key: 'flowering', label: 'Flowering', color: '#1baf7a', tone: 'green' },
+      { key: 'fruiting', label: 'Fruiting', color: '#eda100', tone: 'roast' },
+      { key: 'damaged', label: 'Damaged', color: '#e87ba4', tone: 'red' }
+    ];
+    const FARMS = [{"id": "f1", "code": "TCT-2026-0011", "lot": "Lot 12-B", "owner": "Rodel Mendoza", "oi": "RM", "ob": "#3F6B4E", "assoc": "Santa Cruz Coffee Growers", "muni": "Santa Cruz", "brgy": "Pantayin", "street": "Sitio Ilaya", "size": 1.2, "trees": 240, "groups": 4, "last": "Nov 18 · 110 kg", "varieties": ["Liberica", "Excelsa"], "x": 322, "y": 175, "mine": true, "kal": false, "managed": ""}, {"id": "f2", "code": "TCT-2026-0012", "lot": "Lot 7", "owner": "Rodel Mendoza", "oi": "RM", "ob": "#3F6B4E", "assoc": "Santa Cruz Coffee Growers", "muni": "Santa Cruz", "brgy": "Matalaba", "street": "", "size": 0.8, "trees": 180, "groups": 3, "last": "Nov 2 · 60 kg", "varieties": ["Liberica", "Robusta"], "x": 300, "y": 160, "mine": true, "kal": false, "managed": ""}, {"id": "f3", "code": "TCT-2026-0019", "lot": "Lot 3-A", "owner": "Rodel Mendoza", "oi": "RM", "ob": "#3F6B4E", "assoc": "Santa Cruz Coffee Growers", "muni": "Mogpog", "brgy": "Bocboc", "street": "Purok 2", "size": 0.6, "trees": 220, "groups": 2, "last": "Oct 21 · 40 kg", "varieties": ["Excelsa"], "x": 205, "y": 140, "mine": true, "kal": false, "managed": ""}, {"id": "f4", "code": "TCT-2026-0021", "lot": "Lot 4", "owner": "Joy Lacsamana", "oi": "JL", "ob": "#8A5A12", "assoc": "Santa Cruz Coffee Growers", "muni": "Santa Cruz", "brgy": "Napo", "street": "", "size": 0.5, "trees": 90, "groups": 2, "last": "Nov 10 · 25 kg", "varieties": ["Liberica"], "x": 335, "y": 165, "mine": false, "kal": false, "managed": ""}, {"id": "f5", "code": "TCT-2026-0007", "lot": "Lot 21", "owner": "Nestor Perez", "oi": "NP", "ob": "#4A3A30", "assoc": "Santa Cruz Coffee Growers", "muni": "Santa Cruz", "brgy": "Lipa", "street": "Sitio Bato", "size": 2.1, "trees": 610, "groups": 5, "last": "Nov 19 · 380 kg", "varieties": ["Excelsa", "Liberica", "Robusta"], "x": 288, "y": 140, "mine": false, "kal": false, "managed": ""}, {"id": "f6", "code": "TCT-2026-0002", "lot": "Kaluppa Demo Farm", "owner": "Kaluppa", "oi": "KP", "ob": "#2B1A12", "assoc": "Santa Cruz Coffee Growers", "muni": "Santa Cruz", "brgy": "Pantayin", "street": "Kaluppa compound", "size": 3.5, "trees": 1250, "groups": 6, "last": "Nov 20 · 640 kg", "varieties": ["Liberica", "Excelsa", "Arabica"], "x": 330, "y": 150, "mine": false, "kal": true, "managed": "Liza Ramos"}, {"id": "f7", "code": "TCT-2026-0004", "lot": "Torrijos Nursery", "owner": "Kaluppa", "oi": "KP", "ob": "#2B1A12", "assoc": "Gasan Coffee Circle", "muni": "Torrijos", "brgy": "Bonliw", "street": "", "size": 1.4, "trees": 800, "groups": 3, "last": "Oct 30 · 120 kg", "varieties": ["Robusta", "Liberica"], "x": 345, "y": 225, "mine": false, "kal": true, "managed": "Not assigned"}, {"id": "f8", "code": "TCT-2026-0015", "lot": "Lot 9", "owner": "Celia Dizon", "oi": "CD", "ob": "#7B4A2A", "assoc": "Boac Highland Farmers", "muni": "Boac", "brgy": "Tumagabok", "street": "", "size": 1.0, "trees": 300, "groups": 3, "last": "Nov 15 · 150 kg", "varieties": ["Arabica", "Robusta"], "x": 178, "y": 165, "mine": false, "kal": false, "managed": ""}, {"id": "f9", "code": "TCT-2026-0016", "lot": "Lot 2", "owner": "Danilo Reyes", "oi": "DR", "ob": "#3F6B4E", "assoc": "Boac Highland Farmers", "muni": "Boac", "brgy": "Mainit", "street": "", "size": 0.9, "trees": 260, "groups": 2, "last": "Nov 1 · 90 kg", "varieties": ["Robusta"], "x": 190, "y": 185, "mine": false, "kal": false, "managed": ""}, {"id": "f10", "code": "TCT-2026-0023", "lot": "Lot 5", "owner": "Teresa Lim", "oi": "TL", "ob": "#8A5A12", "assoc": "Gasan Coffee Circle", "muni": "Gasan", "brgy": "Bahi", "street": "", "size": 0.7, "trees": 200, "groups": 2, "last": "Oct 28 · 70 kg", "varieties": ["Liberica"], "x": 195, "y": 240, "mine": false, "kal": false, "managed": ""}, {"id": "f11", "code": "TCT-2026-0024", "lot": "Lot 1", "owner": "Pedro Santos", "oi": "PS", "ob": "#4A3A30", "assoc": "Gasan Coffee Circle", "muni": "Buenavista", "brgy": "Sihi", "street": "", "size": 1.6, "trees": 420, "groups": 3, "last": "Nov 12 · 210 kg", "varieties": ["Excelsa", "Liberica"], "x": 240, "y": 300, "mine": false, "kal": false, "managed": ""}, {"id": "f12", "code": "TCT-2026-0009", "lot": "Lot 2-C (old)", "owner": "Rodel Mendoza", "oi": "RM", "ob": "#3F6B4E", "assoc": "Santa Cruz Coffee Growers", "muni": "Santa Cruz", "brgy": "Botilao", "street": "", "size": 0.3, "trees": 0, "groups": 0, "last": "—", "varieties": ["Liberica"], "x": 310, "y": 190, "mine": true, "kal": false, "managed": "", "archived": true}];
+    const role = this.props.role || 'farmer';
+    const inScope = (f) => role === 'kaluppa' ? true : (role === 'farmer' ? f.mine : f.assoc === 'Santa Cruz Coffee Growers');
+    const canEdit = (f) => role === 'kaluppa' ? f.kal : (role === 'farmer' ? f.mine : !f.kal);
+    const farms = FARMS.filter(inScope);
+    const ROLE_LABEL = { farmer: 'farmer', group_manager: 'group_manager', kaluppa: 'kaluppa' }[role];
+    const hash = (str) => { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
+    const treeGroups = (f) => Array.from({ length: f.groups }, (_, i) => { const h = hash(f.id + i); const st = STAGES[(h >>> 3) % 5]; const yr = 2019 + (h % 6); const mo = ['Jan', 'Mar', 'Jun', 'Aug', 'Oct'][(h >>> 5) % 5]; return { id: f.id + 't' + i, farm: f, variety: f.varieties[i % f.varieties.length], stage: st, count: 20 + (h % 9) * 15, planted: mo + ' ' + yr, note: i === 0 ? 'Shade-grown under coconut' : (st.key === 'damaged' ? 'Leaf rust after the October rains' : '') }; });
+    const harvestsOf = (f) => Array.from({ length: Math.min(4, Math.max(1, f.groups)) }, (_, i) => { const h = hash(f.id + 'h' + i); return { id: f.id + 'h' + i, farm: f, variety: f.varieties[i % f.varieties.length], kg: 20 + (h % 30) * 5, date: ['Nov 18', 'Nov 2', 'Oct 21', 'Sep 30'][i] + ', 2026', by: f.kal ? (i % 2 ? 'Liza Ramos' : 'Ana Villanueva') : (i === 1 && !f.mine ? 'Liza Ramos' : f.owner), note: i === 0 ? 'Red cherries only, dried on raised beds' : '' }; });
+    const groups = [].concat(...farms.filter((f) => !f.archived).map(treeGroups));
+    const TT = { newly_planted: 'blue', growing: 'amber', flowering: 'green', fruiting: 'roast', damaged: 'red' };
+    const rows = groups.map((t) => ({ id: t.id, label: t.count + ' ' + t.variety, tab: 'active', t,
+      farm: { main: t.farm.code, sub: t.farm.lot }, owner: t.farm.kal ? { name: 'Kaluppa farm', sub: 'Managed by ' + t.farm.managed, initials: 'KP', bg: '#2B1A12' } : { name: t.farm.owner, sub: t.farm.brgy, initials: t.farm.oi, bg: t.farm.ob },
+      variety: t.variety, stage: pill(t.stage.label, TT[t.stage.key]), count: String(t.count), planted: t.planted, note: t.note || '—',
+      f: { farm: t.farm.code, variety: t.variety, stage: t.stage.label }, actions: canEdit(t.farm) || role === 'group_manager' ? ['edit', 'archive'] : ['view'] }));
+    const cols = [{ key: 'farm', label: 'Farm', kind: 'strong' }];
+    if (role !== 'farmer') cols.push({ key: 'owner', label: 'Owner', kind: 'person' });
+    cols.push({ key: 'variety', label: 'Variety' }, { key: 'stage', label: 'Stage', kind: 'pill' }, { key: 'count', label: 'Trees', align: 'right' }, { key: 'planted', label: 'Planted', kind: 'muted' }, { key: 'note', label: 'Note', kind: 'muted', wrap: true });
+    const totals = STAGES.map((st) => groups.filter((g) => g.stage.key === st.key).reduce((a, g) => a + g.count, 0));
+    const cur = s.row ? s.row.t : groups[0];
+    const editing = s.mode === 'edit';
+    return {
+      ...base, role: ROLE_LABEL, minW: role === 'farmer' ? '820px' : '1000px',
+      desc: role === 'farmer' ? 'Groups of trees on your farms, by variety and stage.' : (role === 'kaluppa' ? 'Every tree group. You can edit the ones on Kaluppa farms.' : 'Tree groups on your farmers’ farms and the Kaluppa farm you manage.'),
+      stageTiles: STAGES.map((st, i) => ({ label: st.label, color: st.color, count: totals[i].toLocaleString() })),
+      cols, rows, tabs: [{ key: 'active', label: 'Active' }, { key: 'archived', label: 'Archived', count: 2 }],
+      filters: [{ key: 'farm', label: 'Farm', options: ['All farms'].concat(farms.filter((f) => !f.archived).map((f) => f.code)) }, { key: 'variety', label: 'Variety', options: ['All varieties', 'Liberica', 'Excelsa', 'Robusta', 'Arabica'] }, { key: 'stage', label: 'Stage', options: ['All stages'].concat(STAGES.map((x) => x.label)) }],
+      onAction: (k, r) => { if (k === 'edit') this.setState({ mode: 'edit', row: r, farm: r.t.farm.code + ' · ' + r.t.farm.lot, tvar: r.t.variety, tstage: r.t.stage.label }); else if (k === 'archive') this.setState({ modal: 'archive', row: r }); },
+      isForm: s.mode === 'add' || editing, isArchive: s.modal === 'archive', isGm: role === 'group_manager',
+      formTitle: editing ? 'Edit tree group' : 'Add a tree group', formCta: editing ? 'Save changes' : 'Add trees',
+      tv: editing ? { count: String(cur.count), planted: '2022-03-15', note: cur.note } : { count: '', planted: '', note: '' },
+      farmerOpts: ['Rodel Mendoza', 'Joy Lacsamana', 'Nestor Perez', 'Kaluppa farm (you manage)'], tFarmer: s.farmer, pickFarmer: (v) => this.setState({ farmer: v }),
+      farmOpts: farms.filter((f) => !f.archived && (canEdit(f) || role === 'group_manager')).map((f) => f.code + ' · ' + f.lot), tFarm: s.farm, pickFarm: (v) => this.setState({ farm: v }),
+      varOpts: ['Liberica', 'Excelsa', 'Robusta', 'Arabica'], tVar: s.tvar, pickVar: (v) => this.setState({ tvar: v }),
+      stageOpts: STAGES.map((x) => x.label), tStage: s.tstage, pickStage: (v) => this.setState({ tstage: v }),
+      cur: { count: cur.count, variety: cur.variety, farmCode: cur.farm.code },
+      openAdd: () => this.setState({ mode: 'add', row: null, farm: null, tvar: null, tstage: null }),
+      save: () => this.setState({ mode: null, toast: editing ? 'Tree group updated.' : 'Tree group added.' }),
+      doArchive: () => this.setState({ modal: null, toast: 'Tree group removed. Find it under Archived.' })
+    };
+  }
+}
+</script>
+</body>
+</html>

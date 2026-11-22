@@ -136,7 +136,7 @@ class Component extends DCLogic {
     const ok = pw.length >= 8 && /[A-Za-z]/.test(pw) && /\d/.test(pw) && /[^A-Za-z0-9]/.test(pw);
     const roleList = [
       { key: 'buyer', title: 'Buy coffee', text: 'Order coffee for delivery or pickup.' },
-      { key: 'farmer', title: 'Sell as a farmer', text: 'Sell beans to Kaluppa. Dashboard access right away.' }
+      { key: 'farmer', title: 'Sell as a farmer', text: 'Record your farms and sell beans to Kaluppa. Verify your email to start.' }
     ];
     return {
       roles: roleList.map((r) => ({ ...r, on: role === r.key, pick: () => this.setState({ role: r.key }), border: role === r.key ? '2px solid #7B4A2A' : '1px solid #E7DCCD', bg: role === r.key ? '#FBF6F0' : '#FFFFFF' })),

@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Beans — sell to Kaluppa</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+.kk-f:focus{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
+.kk-menu{display:none !important}
+@media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+</style>
+</helmet>
+<div style="position: relative; width: 100%; min-height: 1250px; background: #F5F0EA; display: flex; align-items: stretch">
+  <div class="kk-side" style="width: 256px; flex-shrink: 0; background: #FFFFFF">
+    <dc-import name="Sidebar" role="{{ role }}" active="Beans" farmer-status="{{ sideStatus }}" hint-size="256px,900px"></dc-import>
+  </div>
+  <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="DashTopbar" role="{{ role }}" crumb-a="Marketplace" crumb-b="Beans" hint-size="100%,64px"></dc-import>
+    <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+        <div style="min-width: 0; max-width: 720px">
+          <span style="display: block; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Marketplace</span>
+          <h1 style="margin: 8px 0 0; font-weight: 500; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15">{{ pageTitle }}</h1>
+          <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">{{ pageDesc }}</p>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px"><button type="button" onClick="{{ openSell }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; "><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Sell beans</button></div>
+      </div>
+      <sc-if value="{{ showCap }}" hint-placeholder-val="{{ true }}">
+        <section aria-label="Selling limit" style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 14px 16px; background: #FBF3E3; border: 1px solid #EBD3A6; border-radius: 8px; color: #5C3D0E">
+          <div style="flex: 1 1 280px; font-size: 13.5px; line-height: 1.55"><strong>You can sell up to 5 kg until you’re approved.</strong> Pending, approved and completed listings count. <a href="FarmerAssociation.dc.html" style="color: #5C3D0E; font-weight: 600">Check your request</a></div>
+          <div style="flex: 1 1 260px"><div style="display: flex; justify-content: space-between; font-size: 12.5px"><span><strong>{{ usedKg }} kg</strong> of 5 kg used</span><span>{{ leftKg }} kg left</span></div><div role="progressbar" aria-label="Selling limit used" aria-valuemin="0" aria-valuemax="5" aria-valuenow="{{ usedKg }}" style="margin-top: 6px; height: 10px; border-radius: 999px; background: #F1E2C4; overflow: hidden"><span style="display: block; width: {{ usedPct }}; height: 100%; border-radius: 999px; background: #7B4A2A"></span></div></div>
+        </section>
+      </sc-if>
+      <ol aria-label="How selling works" style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px">
+        <sc-for list="{{ steps }}" as="st" hint-placeholder-count="4"><li style="display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px"><span aria-hidden="true" style="width: 26px; height: 26px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: #F7EFE4; color: #7B4A2A; font-size: 12px; font-weight: 700">{{ st.n }}</span><span style="font-size: 13px; line-height: 1.5"><strong>{{ st.t }}</strong><span style="display: block; color: #6B5A4E">{{ st.d }}</span></span></li></sc-for>
+      </ol>
+      <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 8px; background: #E1F2E4; border: 1px solid #BFDFC6; color: #1E5A34; font-size: 13.5px; font-weight: 500"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg><span style="flex: 1">{{ toast }}</span><button type="button" aria-label="Dismiss" onClick="{{ clearToast }}" style="width: 32px; height: 32px; border: 0; background: transparent; color: #1E5A34; cursor: pointer; display: grid; place-items: center"><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>
+      </sc-if>
+      <dc-import name="DataTable" aria-label="Bean listings" columns="{{ cols }}" rows="{{ rows }}" tabs="{{ tabs }}" filters="{{ filters }}" on-action="{{ onAction }}" selected-id="{{ selId }}" search-placeholder="Search listing no. or variety" page-size="{{ 6 }}" min-width="{{ minW }}" hint-size="100%,560px"></dc-import>
+    </main>
+  </div>
+  <sc-if value="{{ isSell }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close panel" onClick="{{ closeDrawer }}" style="position: absolute; inset: 0; z-index: 60; border: 0; padding: 0; background: rgba(43,26,18,0.42); cursor: default"></button>
+    <aside role="dialog" aria-modal="true" aria-labelledby="dr-title" style="position: absolute; top: 0; right: 0; bottom: 0; z-index: 61; width: 640px; max-width: 100%; background: #FFFFFF; border-left: 1px solid #E7DCCD; box-shadow: -24px 0 48px -24px rgba(43,26,18,0.45); display: flex; flex-direction: column">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 32px 20px; border-bottom: 1px solid #EFE6DA">
+        <div style="min-width: 0"><span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Sell to Kaluppa</span><h2 id="dr-title" style="margin: 4px 0 0; font-size: 20px; font-weight: 600; line-height: 1.3">List beans for Kaluppa</h2></div>
+        <button type="button" aria-label="Close" onClick="{{ closeDrawer }}" style="width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border: 0; background: transparent; border-radius: 5px; color: #6B5A4E; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+      </div>
+      <div style="flex: 1; overflow-y: auto; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px">
+        <sc-if value="{{ isGm }}" hint-placeholder-val="{{ false }}"><div style="position: relative; z-index: 14"><dc-import name="SearchSelect" label="Farmer" icon="home" placeholder="Select farmer" search-placeholder="Search farmer" options="{{ farmerOpts }}" value="{{ sFarmer }}" on-pick="{{ pickFarmer }}" hint-size="100%,70px"></dc-import></div></sc-if>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+          <div style="position: relative; z-index: 13"><dc-import name="SearchSelect" label="Variety" icon="tag" placeholder="Select variety" search-placeholder="Search variety" options="{{ varOpts }}" value="{{ sVar }}" on-pick="{{ pickVar }}" hint-size="100%,70px"></dc-import></div>
+          <div style="position: relative; z-index: 12"><dc-import name="SearchSelect" label="Form" icon="tag" placeholder="Select form" search-placeholder="Search form" options="{{ formOpts }}" value="{{ sForm }}" on-pick="{{ pickForm }}" hint-size="100%,70px"></dc-import></div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+          <div><label for="wkg" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Weight (kg)</label><input class="kk-f" id="wkg" type="number" inputMode="decimal" step="0.5" min="0.5" value="{{ kg }}" onInput="{{ onKg }}" style="margin-top: 6px; width: 100%; min-height: 42px; border: 1px solid {{ kgBorder }}; border-radius: 5px; padding: 9px 12px; font: inherit; font-size: 14px"><span style="display: block; margin-top: 5px; font-size: 12px; color: {{ kgHintFg }}">{{ kgHint }}</span></div>
+          <div><label for="ppk" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Your price per kg (₱)</label><input class="kk-f" id="ppk" type="number" inputMode="decimal" min="1" value="{{ price }}" onInput="{{ onPrice }}" style="margin-top: 6px; width: 100%; min-height: 42px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 9px 12px; font: inherit; font-size: 14px"><span style="display: block; margin-top: 5px; font-size: 12px; color: #6B5A4E">You set the price. Kaluppa accepts or rejects it.</span></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-radius: 6px; background: #F7EFE4; font-size: 14px"><span>Total if approved</span><strong style="font-size: 18px">{{ total }}</strong></div>
+        <div>
+          <span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Photos <span style="text-transform: none; letter-spacing: 0; color: #7A6A5E">(up to 5, images up to 5 MB each)</span></span>
+          <div style="margin-top: 8px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px">
+            <sc-for list="{{ photos }}" as="ph" hint-placeholder-count="2">
+              <div style="position: relative; aspect-ratio: 1 / 1; border-radius: 6px; background: #EADCCB; display: grid; place-items: center; color: #8B6A4F; font-size: 11px; font-weight: 600; overflow: hidden">{{ ph.n }}<button type="button" aria-label="Remove photo {{ ph.n }}" onClick="{{ ph.remove }}" style="position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border: 0; border-radius: 999px; background: rgba(43,26,18,0.7); color: #FFFFFF; cursor: pointer; font-size: 13px; line-height: 1">×</button></div>
+            </sc-for>
+            <sc-if value="{{ canAddPhoto }}" hint-placeholder-val="{{ true }}">
+              <button type="button" onClick="{{ addPhoto }}" aria-label="Add photo" style="aspect-ratio: 1 / 1; border: 1.5px dashed #DCCBB5; border-radius: 6px; background: #FFFFFF; color: #7B4A2A; display: grid; place-items: center; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+            </sc-if>
+          </div>
+        </div>
+        <div><label for="bn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Note for Kaluppa <span style="text-transform: none; letter-spacing: 0; color: #7A6A5E">(optional)</span></label><textarea class="kk-f" id="bn" rows="3" placeholder="e.g. Sun-dried 12 days, moisture around 12%" style="margin-top: 8px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; line-height: 1.55; resize: vertical"></textarea></div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; padding: 18px 32px; border-top: 1px solid #EFE6DA; background: #FBF8F4">
+<button type="button" onClick="{{ closeDrawer }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Cancel</button><button type="button" onClick="{{ submit }}" disabled="{{ overCap }}" style="display: inline-flex; align-items: center; min-height: 42px; padding: 0 16px; border: 0; border-radius: 5px; background: {{ submitBg }}; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Send to Kaluppa</button>
+      </div>
+    </aside>
+  </sc-if>  <sc-if value="{{ isView }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close panel" onClick="{{ closeDrawer }}" style="position: absolute; inset: 0; z-index: 60; border: 0; padding: 0; background: rgba(43,26,18,0.42); cursor: default"></button>
+    <aside role="dialog" aria-modal="true" aria-labelledby="v-title" style="position: absolute; top: 0; right: 0; bottom: 0; z-index: 61; width: 640px; max-width: 100%; background: #FFFFFF; border-left: 1px solid #E7DCCD; box-shadow: -24px 0 48px -24px rgba(43,26,18,0.45); display: flex; flex-direction: column">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 32px 20px; border-bottom: 1px solid #EFE6DA">
+        <div style="min-width: 0"><span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">{{ cur.code }}</span><h2 id="v-title" style="margin: 4px 0 0; font-size: 20px; font-weight: 600; line-height: 1.3">{{ cur.title }}</h2></div>
+        <button type="button" aria-label="Close" onClick="{{ closeDrawer }}" style="width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border: 0; background: transparent; border-radius: 5px; color: #6B5A4E; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+      </div>
+      <div style="flex: 1; overflow-y: auto; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px">
+        <div role="status" style="padding: 14px 16px; border-radius: 8px; background: {{ vb.bg }}; border: 1px solid {{ vb.border }}; color: {{ vb.fg }}"><span style="display: block; font-size: 14.5px; font-weight: 600">{{ vb.title }}</span><span style="display: block; margin-top: 3px; font-size: 13px; line-height: 1.6">{{ vb.text }}</span></div>
+        <sc-if value="{{ isApproved }}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; gap: 12px; padding: 14px; border: 1px solid #E7DCCD; border-radius: 8px"><span aria-hidden="true" style="width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border-radius: 8px; background: #2B1A12; color: #EBC98F"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg></span><div style="font-size: 13.5px; line-height: 1.6"><strong>Kaluppa branch</strong><br>Pantayin, Santa Cruz, Marinduque<br><span style="color: #6B5A4E">Mon–Sat, 8:00 AM – 5:00 PM · 0917 800 1122</span></div></div>
+        </sc-if>
+        <div>
+          <div role="img" aria-label="{{ gal.label }}" style="aspect-ratio: 16 / 10; border-radius: 8px; background: #1E130D; display: flex; align-items: center; justify-content: center; overflow: hidden"><div style="height: 100%; max-width: 100%; aspect-ratio: {{ gal.ratio }}; background: #EADCCB; display: grid; place-items: center; color: #8B6A4F; font-size: 12px; font-weight: 600">{{ gal.label }}</div></div>
+          <div style="margin-top: 8px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px"><sc-for list="{{ thumbs }}" as="t" hint-placeholder-count="3"><button type="button" aria-label="Show photo {{ t.n }}" aria-pressed="{{ t.on }}" onClick="{{ t.pick }}" style="aspect-ratio: 1 / 1; border-radius: 6px; border: 2px solid {{ t.border }}; background: #EADCCB; color: #8B6A4F; font: inherit; font-size: 11px; font-weight: 600; cursor: pointer">{{ t.n }}</button></sc-for></div>
+        </div>
+        <dl style="margin: 0; display: grid; grid-template-columns: 160px 1fr; gap: 12px 18px; font-size: 14px; line-height: 1.5"><sc-for list="{{ vRows }}" as="d" hint-placeholder-count="5"><dt style="color: #6B5A4E">{{ d.k }}</dt><dd style="margin: 0; font-weight: 500">{{ d.v }}</dd></sc-for></dl>
+        <h3 style="margin: 8px 0 -8px; padding-top: 18px; border-top: 1px solid #F1E9DE; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B5A4E; font-weight: 600">History</h3>
+        <ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px"><sc-for list="{{ hist }}" as="h" hint-placeholder-count="3"><li style="display: flex; gap: 10px; font-size: 13px"><span aria-hidden="true" style="width: 10px; height: 10px; margin-top: 5px; border-radius: 999px; background: {{ h.dot }}"></span><span><strong>{{ h.t }}</strong><span style="display: block; color: #6B5A4E">{{ h.d }}</span></span></li></sc-for></ol>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; padding: 18px 32px; border-top: 1px solid #EFE6DA; background: #FBF8F4">
+<sc-if value="{{ canCancel }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ askCancel }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; color: #A1362B;">Cancel listing</button></sc-if><button type="button" onClick="{{ closeDrawer }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Close</button>
+      </div>
+    </aside>
+  </sc-if>  <sc-if value="{{ isCancel }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close dialog" onClick="{{ closeModal }}" style="position: absolute; inset: 0; z-index: 70; border: 0; padding: 0; background: rgba(43,26,18,0.5); cursor: default"></button>
+    <div role="alertdialog" aria-modal="true" aria-labelledby="c-title" style="position: absolute; left: 50%; top: 160px; transform: translateX(-50%); z-index: 71; width: 460px; max-width: calc(100% - 32px); background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 24px 48px -24px rgba(43,26,18,0.5); padding: 24px">
+      <span aria-hidden="true" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 999px; background: #FDF0EE; color: #A1362B"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM15 9l-6 6M9 9l6 6"></path></svg></span>
+      <h2 id="c-title" style="margin: 14px 0 0; font-size: 18px; font-weight: 600">Cancel this listing?</h2>
+<p style="margin: 6px 0 0; font-size: 13.5px; color: #4A3A30; line-height: 1.6"><strong>{{ cur.code }}</strong> ({{ cur.kg }} kg {{ cur.variety }}) is withdrawn. Kaluppa is told. Cancelled kilograms don’t count toward your limit.</p>
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" onClick="{{ closeModal }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Keep</button><button type="button" onClick="{{ doCancel }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #A1362B; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Cancel listing</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"role": {"editor": "enum", "options": ["farmer", "group_manager"], "default": "farmer"}, "status": {"editor": "enum", "options": ["unapproved", "approved"], "default": "unapproved"}, "start": {"editor": "enum", "options": ["", "sell", "view"], "default": ""}, "$preview": {"width": 1440, "height": 1250}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { mode: props.start || null, row: null, modal: null, toast: '', rejecting: false, tab: props.tab || 'details', pin: null, muni: null, brgy: null, view: null, adding: false, svar: null, sform: null, kg: '', price: '', nph: 2, farmer: null, gi: 0 }; }
+  renderVals() {
+    const s = this.state;
+    const close = () => this.setState({ mode: null, row: null, rejecting: false, adding: false });
+    const base = {
+      selId: s.row ? s.row.id : null,
+      closeDrawer: close, closeModal: () => this.setState({ modal: null }),
+      hasToast: !!s.toast, toast: s.toast, clearToast: () => this.setState({ toast: '' }),
+      minW: '820px'
+    };
+    const pill = (label, tone) => ({ label, tone });
+    const B = [
+      ['b1', 'BN-2611-0042', 'Rodel Mendoza', 'RM', '#3F6B4E', 'Liberica', 'Dried cherry', 2, 180, 'pending', 'Listed Nov 21', true],
+      ['b2', 'BN-2611-0040', 'Rodel Mendoza', 'RM', '#3F6B4E', 'Liberica', 'Green beans', 30, 320, 'approved', 'Bring by Nov 27', true],
+      ['b3', 'BN-2611-0031', 'Rodel Mendoza', 'RM', '#3F6B4E', 'Liberica', 'Green beans', 3, 320, 'completed', 'Completed Nov 12', true],
+      ['b4', 'BN-2610-0019', 'Rodel Mendoza', 'RM', '#3F6B4E', 'Excelsa', 'Parchment', 4, 210, 'cancelled', 'Cancelled Oct 30', true],
+      ['b5', 'BN-2611-0044', 'Joy Lacsamana', 'JL', '#8A5A12', 'Liberica', 'Dried cherry', 4, 175, 'pending', 'Listed Nov 22', false, 'unapproved'],
+      ['b6', 'BN-2611-0045', 'Nestor Perez', 'NP', '#4A3A30', 'Excelsa', 'Parchment', 40, 210, 'pending', 'Listed Nov 22', false],
+      ['b7', 'BN-2611-0039', 'Nestor Perez', 'NP', '#4A3A30', 'Excelsa', 'Parchment', 22, 205, 'completed', 'Completed Nov 19', false],
+      ['b8', 'BN-2611-0036', 'Lorna Ilagan', 'LI', '#8A5A12', 'Robusta', 'Green beans', 15, 260, 'expired', 'Expired Nov 15', false],
+      ['b9', 'BN-2611-0047', 'Celia Dizon', 'CD', '#7B4A2A', 'Arabica', 'Green beans', 12, 380, 'pending', 'Listed Nov 23', false, 'boac'],
+      ['b10', 'BN-2611-0033', 'Marlon Sevilla', 'MS', '#3F6B4E', 'Liberica', 'Dried cherry', 25, 170, 'rejected', 'Rejected Nov 10', false]
+    ];
+    const ST = { pending: ['Waiting for review', 'amber', 'pending'], approved: ['Approved · bring to Kaluppa', 'blue', 'approved'], completed: ['Completed', 'green', 'completed'], cancelled: ['Cancelled', 'gray', 'closed'], expired: ['Expired', 'gray', 'closed'], rejected: ['Rejected', 'red', 'closed'] };
+    const peso = (n) => '₱' + n.toLocaleString('en-PH');
+    const shots = [{ label: 'Beans on drying bed', ratio: '4 / 3' }, { label: 'Close-up (portrait)', ratio: '3 / 4' }, { label: 'Sacks, weighed', ratio: '1 / 1' }];
+    const gi = s.gi || 0;
+    const role = this.props.role || 'farmer';
+    const unapproved = (this.props.status || 'unapproved') === 'unapproved' && role === 'farmer';
+    const mine = B.filter((b) => role === 'farmer' ? b[11] : b[12] !== 'boac');
+    const rows = mine.map((b) => ({ id: b[0], label: b[1], b, tab: ST[b[9]][2],
+      code: { main: b[1], sub: b[10] }, farmer: { name: b[2], sub: b[12] === 'unapproved' ? 'Unapproved · 5 kg limit' : (b[12] === 'boac' ? 'Boac Highland Farmers' : 'Santa Cruz Coffee Growers'), initials: b[3], bg: b[4] },
+      beans: { main: b[5], sub: b[6] }, kg: b[7] + ' kg', price: peso(b[8]) + '/kg', amount: peso(b[7] * b[8]), status: pill(ST[b[9]][0], ST[b[9]][1]),
+      f: { variety: b[5], form: b[6] }, actions: b[9] === 'pending' ? ['view', 'edit', 'cancel'] : (b[9] === 'approved' ? ['view', 'cancel'] : ['view']) }));
+    const cols = [{ key: 'code', label: 'Listing', kind: 'strong' }];
+    if (role !== 'farmer') cols.push({ key: 'farmer', label: 'Farmer', kind: 'person' });
+    cols.push({ key: 'beans', label: 'Beans' }, { key: 'kg', label: 'Weight', align: 'right' }, { key: 'price', label: 'Price', align: 'right' }, { key: 'amount', label: 'Amount', align: 'right' }, { key: 'status', label: 'Status', kind: 'pill' });
+    const used = 3, left = 2;
+    const kgN = parseFloat(s.kg) || 0, prN = parseFloat(s.price) || 0;
+    const over = unapproved && kgN > left;
+    const cur = s.row ? s.row.b : B[1];
+    const st = cur[9];
+    const VB = {
+      pending: { bg: '#FBF3E3', border: '#EBD3A6', fg: '#5C3D0E', title: 'Waiting for Kaluppa to review', text: 'You can still edit or cancel this listing. You’ll get an email when Kaluppa decides.' },
+      approved: { bg: '#E8F0FA', border: '#C6D8EE', fg: '#1F4E86', title: 'Approved · bring your beans by Nov 27', text: 'Bring the beans to the Kaluppa branch within 7 days. Kaluppa weighs them and pays you there, then marks this listing completed. If not brought by Nov 27, it expires.' },
+      completed: { bg: '#E1F2E4', border: '#BFDFC6', fg: '#1E5A34', title: 'Completed on Nov 12', text: 'Final: 2.8 kg for ₱896 (listed 3 kg for ₱960). Kaluppa adjusted the weight at the branch.' },
+      cancelled: { bg: '#F1ECE6', border: '#E7DCCD', fg: '#4A3A30', title: 'Cancelled by you on Oct 30', text: 'Cancelled kilograms don’t count toward your limit.' },
+      expired: { bg: '#F1ECE6', border: '#E7DCCD', fg: '#4A3A30', title: 'Expired', text: 'The beans weren’t brought within 7 days of approval.' },
+      rejected: { bg: '#FDF0EE', border: '#F2C9C4', fg: '#7A2A22', title: 'Rejected', text: 'Reason from Kaluppa: “Moisture too high for storage. Dry for 3 more days and list again.”' }
+    }[st];
+    return {
+      ...base, role, sideStatus: unapproved ? 'pending' : 'approved', minW: role === 'farmer' ? '840px' : '1000px',
+      isGm: role === 'group_manager',
+      pageTitle: role === 'farmer' ? 'Sell beans to Kaluppa' : 'Beans from your farmers',
+      pageDesc: role === 'farmer' ? 'List what you want to sell. Kaluppa reviews it, you bring the beans to the branch, and Kaluppa completes the sale.' : 'List beans for a farmer who needs help, and follow every listing in your association.',
+      showCap: unapproved, usedKg: used, leftKg: left, usedPct: (used / 5 * 100) + '%',
+      steps: [{ n: 1, t: 'List your beans', d: 'Variety, form, weight, your price, photos' }, { n: 2, t: 'Kaluppa reviews', d: 'Approves or rejects with a reason' }, { n: 3, t: 'Bring them within 7 days', d: 'To the Kaluppa branch in Pantayin' }, { n: 4, t: 'Completed', d: 'Weighed and paid at the branch' }],
+      cols, rows, filters: [{ key: 'variety', label: 'Variety', options: ['All varieties', 'Liberica', 'Excelsa', 'Robusta', 'Arabica'] }, { key: 'form', label: 'Form', options: ['All forms', 'Fresh cherry', 'Dried cherry', 'Parchment', 'Green beans'] }],
+      tabs: [{ key: 'all', label: 'All' }, { key: 'pending', label: 'Waiting' }, { key: 'approved', label: 'Approved' }, { key: 'completed', label: 'Completed' }, { key: 'closed', label: 'Closed' }],
+      onAction: (k, r) => { if (k === 'view') this.setState({ mode: 'view', row: r, gi: 0 }); else if (k === 'edit') this.setState({ mode: 'sell', row: r, svar: r.b[5], sform: r.b[6], kg: String(r.b[7]), price: String(r.b[8]) }); else if (k === 'cancel') this.setState({ modal: 'cancel', row: r }); },
+      isSell: s.mode === 'sell', isView: s.mode === 'view', isCancel: s.modal === 'cancel',
+      farmerOpts: ['Joy Lacsamana · unapproved, 1 kg left', 'Rodel Mendoza', 'Nestor Perez', 'Lorna Ilagan'], sFarmer: s.farmer, pickFarmer: (v) => this.setState({ farmer: v }),
+      varOpts: ['Liberica', 'Excelsa', 'Robusta', 'Arabica'], sVar: s.svar, pickVar: (v) => this.setState({ svar: v }),
+      formOpts: ['Fresh cherry', 'Dried cherry', 'Parchment', 'Green beans'], sForm: s.sform, pickForm: (v) => this.setState({ sform: v }),
+      kg: s.kg, onKg: (e) => this.setState({ kg: e.target.value }), price: s.price, onPrice: (e) => this.setState({ price: e.target.value }),
+      kgHint: over ? 'Over your limit. You can list up to ' + left + ' kg more until you’re approved.' : (unapproved ? 'You can list up to ' + left + ' kg more until you’re approved.' : 'In steps of 0.5 kg.'),
+      kgHintFg: over ? '#A1362B' : '#6B5A4E', kgBorder: over ? '#C2554A' : '#DCCBB5',
+      total: kgN && prN ? peso(Math.round(kgN * prN)) : '₱0',
+      photos: Array.from({ length: s.nph }, (_, i) => ({ n: i + 1, remove: () => this.setState({ nph: s.nph - 1 }) })), canAddPhoto: s.nph < 5, addPhoto: () => this.setState({ nph: s.nph + 1 }),
+      overCap: over, submitBg: over ? '#C4B0A0' : '#7B4A2A',
+      submit: () => this.setState({ mode: null, toast: 'Listing sent. Kaluppa will review it soon.', kg: '', price: '' }),
+      openSell: () => this.setState({ mode: 'sell', row: null, svar: null, sform: null, kg: '', price: '' }),
+      cur: { code: cur[1], title: cur[7] + ' kg ' + cur[5] + ', ' + cur[6].toLowerCase(), kg: cur[7], variety: cur[5] },
+      vb: VB, isApproved: st === 'approved', canCancel: st === 'pending' || st === 'approved',
+      gal: shots[gi], thumbs: shots.map((x, i) => ({ n: i + 1, on: i === gi, border: i === gi ? '#7B4A2A' : '#E7DCCD', pick: () => this.setState({ gi: i }) })),
+      vRows: [{ k: 'Farmer', v: cur[2] }, { k: 'Weight', v: cur[7] + ' kg' }, { k: 'Your price', v: peso(cur[8]) + ' per kg' }, { k: 'Amount', v: peso(cur[7] * cur[8]) }, { k: 'Note', v: 'Sun-dried 12 days, moisture around 12%' }],
+      hist: [{ t: 'Listed', d: 'Nov 20, 9:14 AM by ' + cur[2], dot: '#C8913A' }].concat(st === 'pending' ? [] : [{ t: st === 'rejected' ? 'Rejected' : 'Approved', d: 'Nov 20, 2:40 PM by Ana Villanueva (Kaluppa)', dot: st === 'rejected' ? '#C2554A' : '#2A78D6' }]).concat(st === 'completed' ? [{ t: 'Completed', d: 'Nov 12 · final 2.8 kg, ₱896', dot: '#2E7D4F' }] : []),
+      askCancel: () => this.setState({ modal: 'cancel' }), doCancel: () => this.setState({ modal: null, mode: null, toast: cur[1] + ' was cancelled.' })
+    };
+  }
+}
+</script>
+</body>
+</html>

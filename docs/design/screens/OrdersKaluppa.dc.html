@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Orders (Kaluppa)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+.kk-f:focus{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
+.kk-menu{display:none !important}
+@media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+</style>
+</helmet>
+<div style="position: relative; width: 100%; min-height: 1100px; background: #F5F0EA; display: flex; align-items: stretch">
+  <div class="kk-side" style="width: 256px; flex-shrink: 0; background: #FFFFFF">
+    <dc-import name="Sidebar" role="kaluppa" active="Orders" hint-size="256px,900px"></dc-import>
+  </div>
+  <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="DashTopbar" role="kaluppa" crumb-a="Marketplace" crumb-b="Orders" hint-size="100%,64px"></dc-import>
+    <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+        <div style="min-width: 0; max-width: 720px">
+          <span style="display: block; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Marketplace</span>
+          <h1 style="margin: 8px 0 0; font-weight: 500; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15">Orders</h1>
+          <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">Buyer and farmer orders. Confirm within 3 days or they expire.</p>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px"><button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; "><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>Export CSV</button></div>
+      </div>
+      <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 8px; background: #E1F2E4; border: 1px solid #BFDFC6; color: #1E5A34; font-size: 13.5px; font-weight: 500"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg><span style="flex: 1">{{ toast }}</span><button type="button" aria-label="Dismiss" onClick="{{ clearToast }}" style="width: 32px; height: 32px; border: 0; background: transparent; color: #1E5A34; cursor: pointer; display: grid; place-items: center"><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>
+      </sc-if>
+      <dc-import name="DataTable" aria-label="Orders" columns="{{ cols }}" rows="{{ rows }}" tabs="{{ tabs }}" filters="{{ filters }}" on-action="{{ onAction }}" selected-id="{{ selId }}" search-placeholder="Search order number or customer" page-size="{{ 6 }}" min-width="{{ minW }}" hint-size="100%,560px"></dc-import>
+    </main>
+  </div>
+  <sc-if value="{{ isView }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close panel" onClick="{{ closeDrawer }}" style="position: absolute; inset: 0; z-index: 60; border: 0; padding: 0; background: rgba(43,26,18,0.42); cursor: default"></button>
+    <aside role="dialog" aria-modal="true" aria-labelledby="dr-title" style="position: absolute; top: 0; right: 0; bottom: 0; z-index: 61; width: 660px; max-width: 100%; background: #FFFFFF; border-left: 1px solid #E7DCCD; box-shadow: -24px 0 48px -24px rgba(43,26,18,0.45); display: flex; flex-direction: column">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 32px 20px; border-bottom: 1px solid #EFE6DA">
+        <div style="min-width: 0"><span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">{{ cur.code }} · {{ cur.statusLabel }}</span><h2 id="dr-title" style="margin: 4px 0 0; font-size: 20px; font-weight: 600; line-height: 1.3">{{ cur.title }}</h2></div>
+        <button type="button" aria-label="Close" onClick="{{ closeDrawer }}" style="width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border: 0; background: transparent; border-radius: 5px; color: #6B5A4E; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+      </div>
+      <div style="flex: 1; overflow-y: auto; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #E7DCCD; border-radius: 8px"><span aria-hidden="true" style="width: 40px; height: 40px; display: grid; place-items: center; border-radius: 999px; background: {{ cust.bg }}; color: #FFFFFF; font-size: 13px; font-weight: 600">{{ cust.initials }}</span><div style="flex: 1"><span style="display: block; font-size: 14px; font-weight: 600">{{ cust.name }}</span><span style="display: block; font-size: 12px; color: #6B5A4E">{{ cust.sub }}</span></div><a href="Inbox.dc.html" style="font-size: 13px; font-weight: 600; text-decoration: none">Message</a></div>
+        <sc-if value="{{ isWallet }}" hint-placeholder-val="{{ true }}">
+          <h3 style="margin: 8px 0 -8px; padding-top: 18px; border-top: 1px solid #F1E9DE; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B5A4E; font-weight: 600">Payment receipt</h3>
+          <div style="display: flex; gap: 14px; align-items: flex-start">
+            <div role="img" aria-label="GCash receipt" style="width: 150px; flex-shrink: 0; aspect-ratio: 3 / 4; border-radius: 8px; background: #1E130D; display: flex; align-items: center; justify-content: center; overflow: hidden"><div style="height: 100%; max-width: 100%; aspect-ratio: 9 / 16; background: #EADCCB; display: grid; place-items: center; color: #8B6A4F; font-size: 11px; font-weight: 600">Receipt</div></div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 8px; font-size: 13px">
+              <span><strong>{{ wallet }}</strong> · ref 1029 3384 112</span><span>Amount on receipt: <strong>{{ ov.total }}</strong></span><span style="color: #6B5A4E">Uploaded {{ cur.placed }}</span>
+              <label style="display: flex; gap: 8px; align-items: center; padding: 10px; border-radius: 6px; background: #FBF8F4; border: 1px solid #EFE6DA; cursor: pointer"><input type="checkbox" checked="{{ receiptOk }}" onChange="{{ toggleReceipt }}" style="width: 18px; height: 18px; accent-color: #7B4A2A">The receipt matches the total</label>
+            </div>
+          </div>
+        </sc-if>
+        <h3 style="margin: 8px 0 -8px; padding-top: 18px; border-top: 1px solid #F1E9DE; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B5A4E; font-weight: 600">Items</h3>
+        <ul style="list-style: none; margin: 0; padding: 0; border: 1px solid #E7DCCD; border-radius: 8px"><sc-for list="{{ lines }}" as="l" hint-placeholder-count="2"><li style="display: flex; gap: 12px; align-items: center; padding: 10px 12px; border-bottom: 1px solid #F1E9DE"><span aria-hidden="true" style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 6px; background: #EADCCB"></span><span style="flex: 1; font-size: 13.5px"><strong>{{ l.n }}</strong><span style="display: block; font-size: 12px; color: #6B5A4E">{{ l.q }}</span></span><span style="font-size: 13.5px; font-weight: 600">{{ l.t }}</span></li></sc-for><li style="display: flex; justify-content: space-between; padding: 10px 12px; font-size: 13px; color: #4A3A30"><span>Delivery fee · {{ ov.km }}</span><span>{{ ov.fee }}</span></li><li style="display: flex; justify-content: space-between; padding: 10px 12px; border-top: 1px solid #E7DCCD; font-size: 15px; font-weight: 600"><span>Total</span><span>{{ ov.total }}</span></li></ul>
+        <div style="padding: 12px 14px; border: 1px solid #E7DCCD; border-radius: 8px; font-size: 13px; line-height: 1.6"><strong>{{ dest.t }}</strong><span style="display: block; color: #4A3A30">{{ dest.d }}</span></div>
+        <sc-if value="{{ needRider }}" hint-placeholder-val="{{ false }}"><div style="padding: 14px; border-radius: 8px; background: #FBF8F4; border: 1px solid #EFE6DA; display: flex; flex-direction: column; gap: 10px"><strong style="font-size: 13.5px">Rider</strong><div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px"><div><label for="rn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Rider name</label><input class="kk-f" id="rn" type="text" defaultValue="Jomar Villareal" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div><div><label for="rp" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Rider phone</label><input class="kk-f" id="rp" type="tel" defaultValue="0918 111 2233" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div></div></div></sc-if>
+        <sc-if value="{{ needCash }}" hint-placeholder-val="{{ false }}"><label style="display: flex; gap: 8px; align-items: center; padding: 12px; border-radius: 6px; background: #FBF8F4; border: 1px solid #EFE6DA; font-size: 13.5px; cursor: pointer"><input type="checkbox" style="width: 18px; height: 18px; accent-color: #7B4A2A">Cash of {{ ov.total }} collected</label></sc-if>
+        <sc-if value="{{ rejecting }}" hint-placeholder-val="{{ false }}"><div style="position: relative; z-index: 4"><dc-import name="SearchSelect" label="Reason for rejecting" icon="tag" placeholder="Choose a reason" options="{{ rejectReasons }}" hint-size="100%,70px"></dc-import></div></sc-if>
+        <sc-if value="{{ isRefund }}" hint-placeholder-val="{{ false }}"><div style="padding: 14px; border-radius: 8px; background: #FDF0EE; border: 1px solid #F2C9C4; display: flex; flex-direction: column; gap: 10px"><strong style="font-size: 13.5px; color: #7A2A22">Refund {{ ov.total }} to the buyer’s {{ wallet }}</strong><div><label for="rf" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Refund reference number</label><input class="kk-f" id="rf" type="text" placeholder="e.g. 5011 2290 774" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div></div></sc-if>
+        <h3 style="margin: 8px 0 -8px; padding-top: 18px; border-top: 1px solid #F1E9DE; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B5A4E; font-weight: 600">Timeline</h3>
+        <ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column"><sc-for list="{{ tl }}" as="t" hint-placeholder-count="4"><li style="display: flex; gap: 12px"><span style="display: flex; flex-direction: column; align-items: center"><span aria-hidden="true" style="width: 12px; height: 12px; border-radius: 999px; background: {{ t.dot }}; border: 2px solid {{ t.ring }}"></span><span aria-hidden="true" style="flex: 1; width: 2px; min-height: 18px; background: #EFE6DA"></span></span><span style="padding-bottom: 12px; font-size: 13px"><strong style="color: {{ t.fg }}">{{ t.t }}</strong><span style="display: block; color: #6B5A4E">{{ t.d }}</span></span></li></sc-for></ol>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; padding: 18px 32px; border-top: 1px solid #EFE6DA; background: #FBF8F4">
+<sc-if value="{{ fPending }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ startReject }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; color: #A1362B;">Reject</button><button type="button" onClick="{{ confirm }}" disabled="{{ cantConfirm }}" style="min-height: 42px; padding: 0 16px; border: 0; border-radius: 5px; background: {{ confirmBg }}; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Confirm order</button></sc-if><sc-if value="{{ rejecting }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ stopReject }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Back</button><button type="button" onClick="{{ doReject }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #A1362B; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Reject order</button></sc-if><sc-if value="{{ hasNext }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ next }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">{{ nextLabel }}</button></sc-if><sc-if value="{{ isRefund }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ refund }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Mark refunded</button></sc-if>
+      </div>
+    </aside>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"start": {"editor": "enum", "options": ["", "view"], "default": ""}, "$preview": {"width": 1440, "height": 1100}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { mode: props.start || null, row: null, modal: null, toast: '', rejecting: false, tab: props.tab || 'details', pin: null, muni: null, brgy: null, view: null, adding: false, ost: null, receiptOk: false }; }
+  renderVals() {
+    const s = this.state;
+    const close = () => this.setState({ mode: null, row: null, rejecting: false, adding: false });
+    const base = {
+      selId: s.row ? s.row.id : null,
+      closeDrawer: close, closeModal: () => this.setState({ modal: null }),
+      hasToast: !!s.toast, toast: s.toast, clearToast: () => this.setState({ toast: '' }),
+      minW: '820px'
+    };
+    const pill = (label, tone) => ({ label, tone });
+    const peso = (n) => '₱' + n.toLocaleString('en-PH');
+    const SL = { pending: ['To confirm', 'amber', 'confirm'], reserved: ['Confirmed', 'blue', 'preparing'], processing: ['Processing', 'blue', 'preparing'], out_for_delivery: ['Out for delivery', 'roast', 'way'], ready_for_pickup: ['Ready for pickup', 'roast', 'way'], sold: ['Completed', 'green', 'done'], cancelled: ['Cancelled', 'gray', 'closed'], rejected: ['Rejected', 'red', 'closed'], expired: ['Expired', 'gray', 'closed'] };
+    const O = [
+      ['o1', 'KK-20261123-0004', 'Marites Abad', 'MA', '#7B4A2A', 'Buyer', 'Barako Medium Roast × 2, Liberica Green Beans 1 kg', 3, 1130, 'Delivery · Home, Mogpog', 'e_wallet', 'pending', 'Nov 23, 8:02 AM', 'GCash'],
+      ['o2', 'KK-20261122-0019', 'Rodel Mendoza', 'RM', '#3F6B4E', 'Farmer', 'Complete fertilizer 14-14-14 × 2 sacks', 2, 2690, 'Delivery · Farm, Santa Cruz', 'cash', 'pending', 'Nov 22, 4:40 PM'],
+      ['o3', 'KK-20261121-0011', 'Jun Lopez', 'JL', '#8A5A12', 'Buyer', 'Excelsa Green Beans 2 kg', 1, 680, 'Pickup at Kaluppa', 'cash', 'ready_for_pickup', 'Nov 21, 1:15 PM'],
+      ['o4', 'KK-20261120-0031', 'Rodel Mendoza', 'RM', '#3F6B4E', 'Farmer', 'Organic fertilizer 25 kg × 1 sack', 1, 740, 'Delivery · Farm, Santa Cruz', 'cash', 'out_for_delivery', 'Nov 20, 9:30 AM'],
+      ['o5', 'KK-20261119-0022', 'Carla Reyes', 'CR', '#4A3A30', 'Buyer', 'Barako Medium Roast × 4', 4, 1330, 'Delivery · Work, Boac', 'e_wallet', 'processing', 'Nov 19, 7:45 PM', 'Maya'],
+      ['o6', 'KK-20261118-0014', 'Nestor Perez', 'NP', '#4A3A30', 'Farmer', 'Liberica seedlings × 100', 100, 3500, 'Pickup at Kaluppa', 'e_wallet', 'reserved', 'Nov 18, 10:10 AM', 'GCash'],
+      ['o7', 'KK-20261102-0007', 'Rodel Mendoza', 'RM', '#3F6B4E', 'Farmer', 'Liberica seedlings × 50', 50, 1750, 'Pickup at Kaluppa', 'cash', 'sold', 'Nov 2, 3:00 PM'],
+      ['o8', 'KK-20261030-0003', 'Paolo Gomez', 'PG', '#8A5A12', 'Buyer', 'Robusta Ground × 1', 1, 500, 'Delivery · Home, Gasan', 'e_wallet', 'cancelled', 'Oct 30, 6:20 PM', 'GCash'],
+      ['o9', 'KK-20261028-0018', 'Ana Nolasco', 'AN', '#7B4A2A', 'Buyer', 'Arabica Light Roast × 2', 2, 1050, 'Delivery · Home, Torrijos', 'e_wallet', 'expired', 'Oct 28, 11:00 AM', 'Maya']
+    ];
+    const payPill = (o) => o[10] === 'cash' ? pill(o[9].startsWith('Pickup') ? 'Cash on pickup' : 'Cash on delivery', 'gray') : (o[11] === 'pending' ? pill(o[13] + ' · check receipt', 'amber') : (o[11] === 'cancelled' ? pill('Refund pending', 'red') : pill(o[13] + ' · verified', 'green')));
+    const orow = (o, actions) => ({ id: o[0], label: o[1], o, tab: SL[o[11]][2], code: { main: o[1], sub: o[12] }, cust: { name: o[2], sub: o[5], initials: o[3], bg: o[4] }, items: { main: o[6], sub: o[7] + (o[7] > 1 ? ' items' : ' item') }, total: peso(o[8]), method: o[9], pay: payPill(o), status: pill(SL[o[11]][0], SL[o[11]][1]), f: { type: o[5] + 's', method: o[9].startsWith('Pickup') ? 'Pickup' : 'Delivery', pay: o[10] === 'cash' ? 'Cash' : 'E-wallet' }, actions });
+    const TABS = [{ key: 'all', label: 'All orders' }, { key: 'confirm', label: 'To confirm' }, { key: 'preparing', label: 'Preparing' }, { key: 'way', label: 'On the way' }, { key: 'done', label: 'Completed' }, { key: 'closed', label: 'Closed' }];
+    const rows = O.map((o) => orow(o, o[11] === 'pending' ? ['manage'] : ['view']));
+    const o = s.row ? s.row.o : O[0];
+    const ov = { km: o[9].startsWith('Pickup') ? 'pickup, free' : (o[9].includes('Santa Cruz') ? '2.6 km' : '26.8 km'), fee: o[9].startsWith('Pickup') ? '₱0' : (o[9].includes('Santa Cruz') ? '₱50' : '₱290'), total: peso(o[8]) };
+    const lines = o[6].split(', ').map((n, i) => ({ n: n.replace(/ ×.*| \d+ kg/, ''), q: (n.match(/×.*|\d+ kg/) || ['× 1'])[0].replace('×', 'Qty'), t: i === 0 ? peso(o[8] - (o[9].startsWith('Pickup') ? 0 : (o[9].includes('Santa Cruz') ? 50 : 290)) - (o[6].includes(',') ? 320 : 0)) : '₱320' }));
+    const st = s.ost || o[11];
+    const pickup = o[9].startsWith('Pickup');
+    const NEXT = { reserved: ['Start processing', 'processing'], processing: pickup ? ['Ready for pickup', 'ready_for_pickup'] : ['Out for delivery', 'out_for_delivery'], out_for_delivery: ['Mark sold', 'sold'], ready_for_pickup: ['Mark sold', 'sold'] };
+    const order = ['pending', 'reserved', 'processing', pickup ? 'ready_for_pickup' : 'out_for_delivery', 'sold'];
+    const idx = order.indexOf(st);
+    const wallet = o[10] === 'e_wallet';
+    return {
+      ...base, minW: '940px',
+      cols: [{ key: 'code', label: 'Order', kind: 'strong' }, { key: 'cust', label: 'Customer', kind: 'person' }, { key: 'total', label: 'Total', align: 'right' }, { key: 'method', label: 'Delivery' }, { key: 'pay', label: 'Payment', kind: 'pill' }, { key: 'status', label: 'Status', kind: 'pill' }],
+      rows, tabs: TABS.slice(1).concat([TABS[0]]),
+      filters: [{ key: 'type', label: 'Customer', options: ['All customers', 'Buyers', 'Farmers'] }, { key: 'method', label: 'Delivery', options: ['Delivery and pickup', 'Delivery', 'Pickup'] }, { key: 'pay', label: 'Payment', options: ['All payments', 'E-wallet', 'Cash'] }],
+      onAction: (k, r) => this.setState({ mode: 'view', row: r, ost: null, rejecting: false, receiptOk: false }),
+      isView: s.mode === 'view',
+      cur: { code: o[1], statusLabel: SL[st][0], title: o[2] + ' · ' + peso(o[8]), placed: o[12] },
+      cust: { name: o[2], sub: o[5] + ' · 0917 ' + (300 + o[8] % 600) + ' 4410', initials: o[3], bg: o[4] },
+      isWallet: wallet, wallet: o[13] || 'GCash', receiptOk: s.receiptOk, toggleReceipt: () => this.setState({ receiptOk: !s.receiptOk }),
+      lines, ov,
+      dest: pickup ? { t: 'Pickup at Kaluppa', d: 'Customer picks up in Pantayin, Santa Cruz' } : { t: o[9].replace('Delivery · ', 'Deliver to '), d: o[2] + ' · ' + ov.km + ' by road · ETA Nov 25 – Nov 27' },
+      needRider: st === 'processing' && !pickup, needCash: (st === 'out_for_delivery' || st === 'ready_for_pickup') && !wallet,
+      rejecting: s.rejecting, rejectReasons: ['Invalid receipt', 'Amount doesn’t match', 'Out of stock', 'Outside delivery area', 'Other'],
+      fPending: st === 'pending' && !s.rejecting, cantConfirm: wallet && !s.receiptOk, confirmBg: wallet && !s.receiptOk ? '#C4B0A0' : '#7B4A2A',
+      confirm: () => this.setState({ ost: 'reserved', toast: o[1] + ' confirmed. Stock reserved.' }),
+      startReject: () => this.setState({ rejecting: true }), stopReject: () => this.setState({ rejecting: false }),
+      doReject: () => this.setState({ mode: null, rejecting: false, toast: o[1] + ' rejected. ' + (wallet ? 'A refund is now pending.' : '') }),
+      hasNext: !!NEXT[st] && !s.rejecting, nextLabel: NEXT[st] ? NEXT[st][0] : '', next: () => this.setState({ ost: NEXT[st][1], toast: o[1] + ': ' + SL[NEXT[st][1]][0] + '.' }),
+      isRefund: st === 'cancelled' && wallet, refund: () => this.setState({ mode: null, toast: 'Refund recorded.' }),
+      tl: ['closed'].includes(SL[st][2]) ? [{ t: 'Placed', d: o[12], dot: '#7B4A2A', ring: '#F3E6DA', fg: '#2B1A12' }, { t: SL[st][0], d: st === 'cancelled' ? 'By the buyer · Ordered by mistake' : 'Not confirmed within 3 days', dot: '#8C7A66', ring: '#F1ECE6', fg: '#2B1A12' }] :
+        order.map((k, i) => ({ t: k === 'pending' ? 'Placed' : SL[k][0], d: i <= idx ? (i === 0 ? o[12] : 'Nov 23 by Ana Villanueva') : 'Next', dot: i <= idx ? '#7B4A2A' : '#FFFFFF', ring: i <= idx ? '#F3E6DA' : '#DCCBB5', fg: i <= idx ? '#2B1A12' : '#6B5A4E' }))
+    };
+  }
+}
+</script>
+</body>
+</html>

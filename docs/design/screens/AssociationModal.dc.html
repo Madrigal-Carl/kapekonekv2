@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Join your association</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+.kk-f:focus{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
+.kk-menu{display:none !important}
+@media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+</style>
+</helmet>
+<div style="position: relative; width: 100%; min-height: 1000px; overflow: hidden">
+  <div aria-hidden="true" style="pointer-events: none"><dc-import name="OverviewFarmer" status="none" hint-size="100%,1000px"></dc-import></div>
+  <div style="position: absolute; inset: 0; background: rgba(43,26,18,0.5)"></div>
+  <div role="dialog" aria-modal="true" aria-labelledby="join-title" style="position: absolute; left: 50%; top: 70px; transform: translateX(-50%); width: 600px; max-width: calc(100% - 32px); background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 10px; box-shadow: 0 30px 60px -30px rgba(43,26,18,0.6)">
+    <sc-if value="{{ notSent }}" hint-placeholder-val="{{ true }}">
+      <div style="padding: 24px 26px 0">
+        <span aria-hidden="true" style="width: 46px; height: 46px; display: grid; place-items: center; border-radius: 10px; background: #F7EFE4; color: #7B4A2A"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 10h.01M15 10h.01"></path></svg></span>
+        <h2 id="join-title" style="margin: 14px 0 0; font-size: 21px; font-weight: 600">Join your association</h2>
+        <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">Your Group Manager checks your documents and approves you. Until then you can still record your farms and sell up to 5 kg of beans to Kaluppa.</p>
+        <sc-if value="{{ rejected }}" hint-placeholder-val="{{ false }}">
+          <div role="alert" style="margin-top: 14px; padding: 12px 14px; border-radius: 6px; background: #FDF0EE; border: 1px solid #F2C9C4; font-size: 13px; color: #7A2A22"><strong>Not approved:</strong> “The proof of land ownership is blurry. Please upload a clearer photo of the tax declaration.” — Liza Ramos</div>
+        </sc-if>
+      </div>
+      <form style="padding: 18px 26px 4px; display: flex; flex-direction: column; gap: 16px">
+        <div style="position: relative; z-index: 5"><dc-import name="SearchSelect" label="Association" icon="tag" placeholder="Choose your association" search-placeholder="Search by name or town" options="{{ assocs }}" value="{{ assoc }}" on-pick="{{ pickAssoc }}" hint-size="100%,70px"></dc-import></div>
+        <sc-if value="{{ hasAssoc }}" hint-placeholder-val="{{ true }}">
+          <p style="margin: -6px 0 0; display: flex; gap: 8px; align-items: center; font-size: 12.5px; color: #4A3A30"><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#7B4A2A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"></path></svg>{{ assocNote }}</p>
+        </sc-if>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+          <sc-for list="{{ docs }}" as="d" hint-placeholder-count="2">
+            <div>
+              <span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">{{ d.label }}</span>
+              <sc-if value="{{ d.empty }}" hint-placeholder-val="{{ true }}">
+                <button type="button" onClick="{{ d.add }}" style="margin-top: 8px; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 18px 12px; border: 1.5px dashed #DCCBB5; border-radius: 8px; background: #FFFFFF; color: #6B5A4E; font: inherit; font-size: 12.5px; cursor: pointer; text-align: center">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#7B4A2A" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"></path></svg>
+                  <span><strong style="color: #7B4A2A">Upload {{ d.short }}</strong><br>Photo up to 5 MB or PDF up to 10 MB</span>
+                </button>
+              </sc-if>
+              <sc-if value="{{ d.done }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top: 8px; display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid #E7DCCD; border-radius: 8px">
+                  <span aria-hidden="true" style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 6px; background: #EADCCB; display: grid; place-items: center; color: #8B6A4F; font-size: 10px; font-weight: 700">{{ d.ext }}</span>
+                  <span style="flex: 1; min-width: 0"><span style="display: block; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ d.file }}</span><span style="display: block; font-size: 11.5px; color: #6B5A4E">{{ d.size }}</span></span>
+                  <button type="button" onClick="{{ d.remove }}" style="border: 0; background: transparent; color: #7B4A2A; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; min-height: 36px">Replace</button>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <p style="margin: 0; font-size: 12px; color: #6B5A4E">Valid ID: any government ID with your name and photo. Proof of land ownership: title, tax declaration or a signed letter from the barangay.</p>
+      </form>
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 26px; margin-top: 12px; border-top: 1px solid #EFE6DA; background: #FBF8F4; border-radius: 0 0 10px 10px">
+        <span style="font-size: 12px; color: #6B5A4E">You can also do this later in Account settings → Association.</span>
+        <div style="display: flex; gap: 10px">
+          <a href="OverviewFarmer.dc.html" style="display: inline-flex; align-items: center; min-height: 42px; padding: 0 16px; border: 1px solid #DCCBB5; border-radius: 5px; background: #FFFFFF; color: #2B1A12; font-size: 14px; font-weight: 500; text-decoration: none">Skip for now</a>
+          <button type="button" disabled="{{ cantSend }}" onClick="{{ send }}" style="min-height: 42px; padding: 0 18px; border: 0; border-radius: 5px; background: {{ sendBg }}; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: {{ sendCursor }}">Send request</button>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ sent }}" hint-placeholder-val="{{ false }}">
+      <div style="padding: 32px 28px; text-align: center">
+        <span aria-hidden="true" style="width: 56px; height: 56px; margin: 0 auto; display: grid; place-items: center; border-radius: 999px; background: #E1F2E4; color: #1E5A34"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span>
+        <h2 style="margin: 16px 0 0; font-size: 20px; font-weight: 600">Request sent</h2>
+        <p style="margin: 6px auto 0; max-width: 420px; font-size: 14px; color: #4A3A30; line-height: 1.6">{{ sentText }}</p>
+        <a href="OverviewFarmer.dc.html" style="margin-top: 20px; display: inline-flex; align-items: center; min-height: 42px; padding: 0 20px; border-radius: 5px; background: #7B4A2A; color: #FFFFFF; font-size: 14px; font-weight: 600; text-decoration: none">Go to my dashboard</a>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"variant": {"editor": "enum", "options": ["new", "rejected"], "default": "new"}, "$preview": {"width": 1440, "height": 1000}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { assoc: props.variant === 'rejected' ? 'Santa Cruz Coffee Growers · Santa Cruz' : null, id: props.variant === 'rejected', land: false, sent: false }; }
+  renderVals() {
+    const { assoc, id, land, sent } = this.state;
+    const GM = { 'Santa Cruz Coffee Growers · Santa Cruz': 'Liza Ramos', 'Boac Highland Farmers · Boac': 'Mario Santos', 'Gasan Coffee Circle · Gasan': 'No Group Manager yet — Kaluppa will review your request' };
+    const doc = (key, label, short, file, size, ext, on) => ({ label, short, empty: !on, done: on, file, size, ext, add: () => this.setState({ [key]: true }), remove: () => this.setState({ [key]: false }) });
+    return {
+      rejected: this.props.variant === 'rejected',
+      notSent: !sent, sent,
+      assocs: Object.keys(GM), assoc,
+      pickAssoc: (v) => this.setState({ assoc: v }),
+      hasAssoc: !!assoc,
+      assocNote: assoc ? (GM[assoc].startsWith('No') ? GM[assoc] : 'Group Manager: ' + GM[assoc] + ' · reviews within a few days') : '',
+      docs: [doc('id', 'Valid ID', 'valid ID', 'philsys-id-front.jpg', '1.8 MB · image', 'JPG', id), doc('land', 'Proof of land ownership', 'proof of land ownership', 'tax-declaration-2025.pdf', '3.2 MB · PDF', 'PDF', land)],
+      cantSend: !(assoc && id && land),
+      sendBg: assoc && id && land ? '#7B4A2A' : '#C4B0A0', sendCursor: assoc && id && land ? 'pointer' : 'not-allowed',
+      send: () => this.setState({ sent: true }),
+      sentText: 'We sent your documents to ' + (assoc ? assoc.split(' · ')[0] : 'your association') + '. You’ll get an email and a notification when your Group Manager decides.'
+    };
+  }
+}
+</script>
+</body>
+</html>

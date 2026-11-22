@@ -197,6 +197,9 @@ button:focus-visible,a:focus-visible{outline:2px solid #7B4A2A;outline-offset:2p
                 </span>
               </div>
               <p style="margin: 12px 0 0 52px; font-size: 14px; line-height: 1.65; color: #4A3A30">{{ rv.text }}</p>
+              <sc-if value="{{ rv.hasReply }}" hint-placeholder-val="{{ false }}">
+                <div style="margin: 12px 0 0 52px; padding: 12px 14px; border-radius: 8px; background: #F7EFE4; border-left: 3px solid #7B4A2A"><span style="display: block; font-size: 12.5px; font-weight: 600">Reply from Kaluppa</span><span style="display: block; margin-top: 3px; font-size: 13.5px; line-height: 1.6; color: #4A3A30">{{ rv.reply }}</span></div>
+              </sc-if>
             </li>
           </sc-for>
         </ul>
@@ -266,12 +269,12 @@ class Component extends DCLogic {
       ],
       picker: [1, 2, 3, 4, 5].map((i) => ({ label: i + (i === 1 ? ' star' : ' stars'), on: i === rating, fill: i <= rating ? '#C8913A' : 'none', pick: () => this.setState({ rating: i }) })),
       reviews: [
-        { initials: 'MA', bg: '#7B4A2A', name: 'Marites A.', date: 'Nov 14, 2026', stars: 5, text: 'Strong and smooth, exactly how barako should taste. Arrived in four days and smelled amazing.' },
+        { initials: 'MA', bg: '#7B4A2A', name: 'Marites A.', date: 'Nov 14, 2026', stars: 5, text: 'Strong and smooth, exactly how barako should taste. Arrived in four days and smelled amazing.', reply: 'Salamat po, Marites! The next roast batch is out on Friday.' },
         { initials: 'JL', bg: '#8A5A12', name: 'Jun L.', date: 'Nov 10, 2026', stars: 5, text: 'Great in the French press. Not bitter at all for a Liberica.' },
         { initials: 'CR', bg: '#4A3A30', name: 'Carla R.', date: 'Nov 2, 2026', stars: 4, text: 'Bold flavor. I wish there was a 500 g pack.' },
         { initials: 'PG', bg: '#7B4A2A', name: 'Paolo G.', date: 'Oct 28, 2026', stars: 5, text: 'My go-to now. I got a notification as soon as it shipped.' },
         { initials: 'AN', bg: '#8A5A12', name: 'Ana N.', date: 'Oct 21, 2026', stars: 5, text: 'Rich and chocolatey with milk. Will order again.' }
-      ].map((r) => ({ ...r, starList: stars(r.stars) }))
+      ].map((r) => ({ ...r, starList: stars(r.stars), hasReply: !!r.reply, reply: r.reply || '' }))
     };
   }
 }

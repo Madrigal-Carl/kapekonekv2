@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Inventory</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+.kk-f:focus{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
+.kk-menu{display:none !important}
+@media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+</style>
+</helmet>
+<div style="position: relative; width: 100%; min-height: 1050px; background: #F5F0EA; display: flex; align-items: stretch">
+  <div class="kk-side" style="width: 256px; flex-shrink: 0; background: #FFFFFF">
+    <dc-import name="Sidebar" role="kaluppa" active="Inventory" hint-size="256px,900px"></dc-import>
+  </div>
+  <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="DashTopbar" role="kaluppa" crumb-a="Marketplace" crumb-b="Inventory" hint-size="100%,64px"></dc-import>
+    <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+        <div style="min-width: 0; max-width: 720px">
+          <span style="display: block; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Marketplace</span>
+          <h1 style="margin: 8px 0 0; font-weight: 500; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15">Inventory</h1>
+          <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">What Kaluppa sells: coffee for buyers, fertilizer and seedlings for farmers.</p>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px"><button type="button" onClick="{{ openAdd }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; "><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Add product</button></div>
+      </div>
+      <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 8px; background: #E1F2E4; border: 1px solid #BFDFC6; color: #1E5A34; font-size: 13.5px; font-weight: 500"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg><span style="flex: 1">{{ toast }}</span><button type="button" aria-label="Dismiss" onClick="{{ clearToast }}" style="width: 32px; height: 32px; border: 0; background: transparent; color: #1E5A34; cursor: pointer; display: grid; place-items: center"><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>
+      </sc-if>
+      <dc-import name="DataTable" aria-label="Products" columns="{{ cols }}" rows="{{ rows }}" tabs="{{ tabs }}" filters="{{ filters }}" on-action="{{ onAction }}" selected-id="{{ selId }}" search-placeholder="Search product name" page-size="{{ 6 }}" min-width="{{ minW }}" hint-size="100%,560px"></dc-import>
+    </main>
+  </div>
+  <sc-if value="{{ isForm }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close panel" onClick="{{ closeDrawer }}" style="position: absolute; inset: 0; z-index: 60; border: 0; padding: 0; background: rgba(43,26,18,0.42); cursor: default"></button>
+    <aside role="dialog" aria-modal="true" aria-labelledby="dr-title" style="position: absolute; top: 0; right: 0; bottom: 0; z-index: 61; width: 660px; max-width: 100%; background: #FFFFFF; border-left: 1px solid #E7DCCD; box-shadow: -24px 0 48px -24px rgba(43,26,18,0.45); display: flex; flex-direction: column">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 32px 20px; border-bottom: 1px solid #EFE6DA">
+        <div style="min-width: 0"><span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Inventory</span><h2 id="dr-title" style="margin: 4px 0 0; font-size: 20px; font-weight: 600; line-height: 1.3">{{ formTitle }}</h2></div>
+        <button type="button" aria-label="Close" onClick="{{ closeDrawer }}" style="width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border: 0; background: transparent; border-radius: 5px; color: #6B5A4E; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+      </div>
+      <div style="flex: 1; overflow-y: auto; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px">
+        <div><label for="pn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Product name</label><input class="kk-f" id="pn" type="text" defaultValue="{{ pv.name }}" placeholder="e.g. Barako Medium Roast" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div>
+        <div style="position: relative; z-index: 14"><dc-import name="SearchSelect" label="Category" icon="tag" placeholder="Select category" search-placeholder="Search category" options="{{ cats }}" value="{{ cat }}" on-pick="{{ pickCat }}" hint-size="100%,70px"></dc-import></div>
+        <sc-if value="{{ isCoffee }}" hint-placeholder-val="{{ true }}"><div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px"><div style="position: relative; z-index: 13"><dc-import name="SearchSelect" label="Variety" icon="tag" placeholder="Select variety" search-placeholder="Search variety" options="{{ vars }}" value="{{ pvar }}" on-pick="{{ pickVar }}" hint-size="100%,70px"></dc-import></div><div style="position: relative; z-index: 12"><dc-import name="SearchSelect" label="Coffee type" icon="tag" placeholder="Select type" search-placeholder="Search coffee type" options="{{ types }}" value="{{ ptype }}" on-pick="{{ pickType }}" hint-size="100%,70px"></dc-import></div></div></sc-if>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
+          <div style="position: relative; z-index: 11"><dc-import name="SearchSelect" label="Unit" icon="tag" placeholder="Unit" search-placeholder="Search unit" options="{{ units }}" value="{{ unit }}" on-pick="{{ pickUnit }}" hint-size="100%,70px"></dc-import></div>
+          <div><label for="pp" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Price (₱)</label><input class="kk-f" id="pp" type="number" defaultValue="{{ pv.price }}" placeholder="0.00" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div>
+          <div><label for="ps" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Stock</label><input class="kk-f" id="ps" type="number" defaultValue="{{ pv.stock }}" placeholder="0" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"><span style="display: block; margin-top: 6px; font-size: 12px; line-height: 1.5; color: #6B5A4E">{{ stockHint }}</span></div>
+        </div>
+        <div>
+          <span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Photos <span style="text-transform: none; letter-spacing: 0; color: #7A6A5E">(up to 5, images up to 5 MB each)</span></span>
+          <span style="display: block; margin-top: 4px; font-size: 12px; color: #6B5A4E">Click a photo to make it the thumbnail. It shows on product cards, in the cart and on orders.</span>
+          <div style="margin-top: 10px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px">
+            <sc-for list="{{ photos }}" as="ph" hint-placeholder-count="3">
+              <div style="position: relative">
+                <button type="button" aria-pressed="{{ ph.isThumb }}" aria-label="{{ ph.aria }}" onClick="{{ ph.pick }}" style="width: 100%; aspect-ratio: 1 / 1; border-radius: 8px; border: {{ ph.border }}; background: #EADCCB; display: grid; place-items: center; color: #8B6A4F; font: inherit; font-size: 11px; font-weight: 600; cursor: pointer; padding: 0; overflow: hidden; box-shadow: {{ ph.ring }}">{{ ph.n }}</button>
+                <sc-if value="{{ ph.isThumb }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 6px; bottom: 6px; display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 999px; background: #7B4A2A; color: #FFFFFF; font-size: 10.5px; font-weight: 600; pointer-events: none"><svg aria-hidden="true" viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>Thumbnail</span></sc-if>
+                <button type="button" aria-label="Remove photo {{ ph.n }}" onClick="{{ ph.remove }}" style="position: absolute; top: 5px; right: 5px; width: 26px; height: 26px; border: 0; border-radius: 999px; background: rgba(43,26,18,0.72); color: #FFFFFF; cursor: pointer; font-size: 14px; line-height: 1">×</button>
+              </div>
+            </sc-for>
+            <sc-if value="{{ canAddPhoto }}" hint-placeholder-val="{{ true }}">
+              <button type="button" onClick="{{ addPhoto }}" aria-label="Add photo" style="aspect-ratio: 1 / 1; border: 1.5px dashed #DCCBB5; border-radius: 8px; background: #FFFFFF; color: #7B4A2A; display: grid; place-items: center; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+            </sc-if>
+          </div>
+        </div>
+        <div><label for="pd" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Description</label><textarea class="kk-f" id="pd" rows="4" placeholder="Taste, size, how to use" style="margin-top: 8px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; line-height: 1.55; resize: vertical">{{ pv.desc }}</textarea></div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 14px; border: 1px solid #E7DCCD; border-radius: 8px"><span><span style="display: block; font-size: 14px; font-weight: 600">Featured on the landing page</span><span style="display: block; font-size: 12px; color: #6B5A4E">Coffee only. Shown in the hero carousel and featured row.</span></span><button type="button" role="switch" aria-checked="{{ feat.on }}" aria-label="Featured on the landing page" onClick="{{ toggleFeat }}" style="width: 46px; height: 26px; flex-shrink: 0; border: 0; border-radius: 999px; background: {{ feat.track }}; position: relative; cursor: pointer"><span aria-hidden="true" style="position: absolute; top: 3px; left: {{ feat.left }}; width: 20px; height: 20px; border-radius: 999px; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: left .15s"></span></button></div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 14px; border: 1px solid #E7DCCD; border-radius: 8px"><span><span style="display: block; font-size: 14px; font-weight: 600">Active</span><span style="display: block; font-size: 12px; color: #6B5A4E">Inactive products are hidden from the store but kept here.</span></span><button type="button" role="switch" aria-checked="{{ act.on }}" aria-label="Active" onClick="{{ toggleAct }}" style="width: 46px; height: 26px; flex-shrink: 0; border: 0; border-radius: 999px; background: {{ act.track }}; position: relative; cursor: pointer"><span aria-hidden="true" style="position: absolute; top: 3px; left: {{ act.left }}; width: 20px; height: 20px; border-radius: 999px; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: left .15s"></span></button></div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; padding: 18px 32px; border-top: 1px solid #EFE6DA; background: #FBF8F4">
+<button type="button" onClick="{{ closeDrawer }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Cancel</button><button type="button" onClick="{{ save }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">{{ formCta }}</button>
+      </div>
+    </aside>
+  </sc-if>  <sc-if value="{{ isArchive }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close dialog" onClick="{{ closeModal }}" style="position: absolute; inset: 0; z-index: 70; border: 0; padding: 0; background: rgba(43,26,18,0.5); cursor: default"></button>
+    <div role="alertdialog" aria-modal="true" aria-labelledby="a-title" style="position: absolute; left: 50%; top: 160px; transform: translateX(-50%); z-index: 71; width: 460px; max-width: calc(100% - 32px); background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 24px 48px -24px rgba(43,26,18,0.5); padding: 24px">
+      <span aria-hidden="true" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 999px; background: #FDF0EE; color: #A1362B"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v5H3zM5 8v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8M10 12h4"></path></svg></span>
+      <h2 id="a-title" style="margin: 14px 0 0; font-size: 18px; font-weight: 600">Archive {{ cur.name }}?</h2>
+<p style="margin: 6px 0 0; font-size: 13.5px; color: #4A3A30; line-height: 1.6">It leaves the store and this list. Past orders keep their copy of the product. You can restore it.</p>
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" onClick="{{ closeModal }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Keep</button><button type="button" onClick="{{ doArchive }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #A1362B; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Archive product</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"start": {"editor": "enum", "options": ["", "add"], "default": ""}, "$preview": {"width": 1440, "height": 1050}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { mode: props.start || null, row: null, modal: null, toast: '', rejecting: false, tab: props.tab || 'details', pin: null, muni: null, brgy: null, view: null, adding: false, cat: null, pvar: null, ptype: null, unit: null, feat: false, act: true, nph: 3, thumb: 0 }; if (props.start === 'add') Object.assign(this.state, { cat: 'Coffee', pvar: 'Liberica', ptype: 'Roasted beans', unit: 'pack (250 g)', feat: true, thumb: 1 }); }
+  renderVals() {
+    const s = this.state;
+    const close = () => this.setState({ mode: null, row: null, rejecting: false, adding: false });
+    const base = {
+      selId: s.row ? s.row.id : null,
+      closeDrawer: close, closeModal: () => this.setState({ modal: null }),
+      hasToast: !!s.toast, toast: s.toast, clearToast: () => this.setState({ toast: '' }),
+      minW: '820px'
+    };
+    const pill = (label, tone) => ({ label, tone });
+    const peso = (n) => '₱' + n.toLocaleString('en-PH', { minimumFractionDigits: 2 });
+    const P = [
+      ['p1', 'Barako Medium Roast', 'Coffee', 'Liberica · Roasted beans', 'pack (250 g)', 260, 38, true, 'active'],
+      ['p2', 'Liberica Green Beans', 'Coffee', 'Liberica · Green beans', 'kg', 320, 64, false, 'active'],
+      ['p3', 'Excelsa Green Beans', 'Coffee', 'Excelsa · Green beans', 'kg', 340, 3, false, 'active'],
+      ['p4', 'Robusta Ground', 'Coffee', 'Robusta · Ground', 'pack (250 g)', 210, 52, true, 'active'],
+      ['p5', 'Arabica Light Roast', 'Coffee', 'Arabica · Roasted beans', 'pack (250 g)', 380, 0, false, 'active'],
+      ['p6', 'Complete fertilizer 14-14-14', 'Fertilizer', '50 kg sack', 'sack', 1320, 44, false, 'active'],
+      ['p7', 'Organic fertilizer', 'Fertilizer', '25 kg sack', 'sack', 690, 6, false, 'active'],
+      ['p8', 'Liberica seedlings', 'Seedlings', '6–8 months, bagged', 'piece', 35, 40, false, 'active'],
+      ['p9', 'Robusta seedlings', 'Seedlings', '6 months, bagged', 'piece', 30, 320, false, 'active'],
+      ['p10', 'Excelsa Dark Roast', 'Coffee', 'Excelsa · Roasted beans', 'pack (250 g)', 270, 12, false, 'inactive']
+    ];
+    const low = (p) => p[6] === 0 ? 'Out of stock' : (p[6] <= (p[4] === 'piece' ? 50 : 10) ? 'Low stock' : '');
+    const rows = P.map((p) => ({ id: p[0], label: p[1], p, tab: p[8], prod: { main: p[1], sub: p[3] }, cat: pill(p[2], p[2] === 'Coffee' ? 'roast' : (p[2] === 'Fertilizer' ? 'green' : 'blue')), unit: p[4], price: peso(p[5]), stock: { main: p[6] + ' ' + (p[4].startsWith('pack') ? 'packs' : (p[4] === 'piece' ? 'pcs' : p[4] + (p[6] === 1 ? '' : 's'))), sub: low(p) || 'In stock' }, feat: p[7] ? 'Featured' : '—', status: p[8] === 'active' ? pill('Active', 'green') : pill('Inactive', 'gray'), f: { cat: p[2], stock: low(p) || 'In stock' }, actions: ['edit', 'archive'] }));
+    const cur = s.row ? s.row.p : P[0];
+    const editing = s.mode === 'edit';
+    const cat = s.cat || (editing ? cur[2] : null);
+    const sw = (on) => ({ on, track: on ? '#7B4A2A' : '#DCCBB5', left: on ? '23px' : '3px' });
+    return {
+      ...base, minW: '960px',
+      cols: [{ key: 'prod', label: 'Product', kind: 'strong' }, { key: 'cat', label: 'Category', kind: 'pill' }, { key: 'unit', label: 'Unit' }, { key: 'price', label: 'Price', align: 'right' }, { key: 'stock', label: 'Stock', align: 'right' }, { key: 'feat', label: 'Landing', kind: 'muted' }, { key: 'status', label: 'Status', kind: 'pill' }],
+      rows, tabs: [{ key: 'active', label: 'Active' }, { key: 'inactive', label: 'Inactive' }, { key: 'archived', label: 'Archived', count: 1 }],
+      filters: [{ key: 'cat', label: 'Category', options: ['All categories', 'Coffee', 'Fertilizer', 'Seedlings'] }, { key: 'stock', label: 'Stock', options: ['Any stock', 'Low stock', 'Out of stock', 'In stock'] }],
+      onAction: (k, r) => { if (k === 'edit') this.setState({ mode: 'edit', row: r, nph: 3, thumb: 0, cat: r.p[2], pvar: r.p[3].split(' · ')[0], ptype: r.p[3].split(' · ')[1] || null, unit: r.p[4], feat: r.p[7], act: r.p[8] === 'active' }); else this.setState({ modal: 'archive', row: r }); },
+      isForm: s.mode === 'add' || editing, isArchive: s.modal === 'archive',
+      formTitle: editing ? 'Edit ' + cur[1] : 'Add a product', formCta: editing ? 'Save changes' : 'Add product',
+      pv: editing ? { name: cur[1], price: String(cur[5]), stock: String(cur[6]), desc: 'Whole beans roasted to a medium level: heavy body, low acidity, smoky chocolate finish.' } : { name: '', price: '', stock: '', desc: '' },
+      stockHint: 'Low-stock alert below 10 (50 for seedlings).',
+      cats: ['Coffee', 'Fertilizer', 'Seedlings'], cat, pickCat: (v) => this.setState({ cat: v, unit: null, feat: v === 'Coffee' ? s.feat : false }), isCoffee: cat === 'Coffee',
+      vars: ['Liberica', 'Excelsa', 'Robusta', 'Arabica'], pvar: s.pvar, pickVar: (v) => this.setState({ pvar: v }),
+      types: ['Roasted beans', 'Ground', 'Green beans'], ptype: s.ptype, pickType: (v) => this.setState({ ptype: v }),
+      units: cat === 'Coffee' ? ['pack (250 g)', 'kg'] : (cat === 'Fertilizer' ? ['sack', 'kg'] : (cat === 'Seedlings' ? ['piece'] : [])), unit: s.unit, pickUnit: (v) => this.setState({ unit: v }),
+      photos: Array.from({ length: s.nph }, (_, i) => { const on = i === s.thumb; return { n: i + 1, isThumb: on, aria: on ? 'Photo ' + (i + 1) + ', the thumbnail' : 'Make photo ' + (i + 1) + ' the thumbnail', border: on ? '2px solid #7B4A2A' : '1px solid #E7DCCD', ring: on ? '0 0 0 3px rgba(123,74,42,.18)' : 'none', pick: () => this.setState({ thumb: i }), remove: () => this.setState({ nph: s.nph - 1, thumb: i === s.thumb ? 0 : (i < s.thumb ? s.thumb - 1 : s.thumb) }) }; }), canAddPhoto: s.nph < 5, addPhoto: () => this.setState({ nph: s.nph + 1 }),
+      feat: sw(s.feat && cat === 'Coffee'), toggleFeat: () => { if (cat === 'Coffee') this.setState({ feat: !s.feat }); },
+      act: sw(s.act), toggleAct: () => this.setState({ act: !s.act }),
+      cur: { name: cur[1] },
+      openAdd: () => this.setState({ mode: 'add', row: null, cat: null, pvar: null, ptype: null, unit: null, feat: false, act: true, nph: 0, thumb: 0 }),
+      save: () => this.setState({ mode: null, toast: editing ? 'Product updated.' : 'Product added to the store.' }),
+      doArchive: () => this.setState({ modal: null, toast: cur[1] + ' was archived.' })
+    };
+  }
+}
+</script>
+</body>
+</html>

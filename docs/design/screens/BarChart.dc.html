@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Bar chart</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<figure style="margin: 0; font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; color: #2B1A12">
+  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; min-height: 28px">
+    <sc-if value="{{ hasLegend }}" hint-placeholder-val="{{ false }}">
+      <ul aria-label="Legend" style="list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px">
+        <sc-for list="{{ legend }}" as="lg" hint-placeholder-count="4">
+          <li style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #4A3A30"><span aria-hidden="true" style="width: 10px; height: 10px; border-radius: 3px; background: {{ lg.color }}"></span>{{ lg.name }}</li>
+        </sc-for>
+      </ul>
+    </sc-if>
+    <span style="flex: 1"></span>
+    <button type="button" aria-pressed="{{ asTable }}" onClick="{{ toggleTable }}" style="min-height: 30px; padding: 0 10px; border: 1px solid #E7DCCD; background: #FFFFFF; border-radius: 5px; color: #4A3A30; font: inherit; font-size: 12px; font-weight: 500; cursor: pointer">{{ tableLabel }}</button>
+  </div>
+
+  <sc-if value="{{ asChart }}" hint-placeholder-val="{{ true }}">
+    <div style="position: relative; margin-top: 8px" onMouseLeave="{{ leave }}">
+      <svg role="img" aria-label="{{ aria }}" viewBox="0 0 640 {{ H }}" style="display: block; width: 100%; height: auto; overflow: visible">
+        <sc-for list="{{ grid }}" as="g" hint-placeholder-count="4">
+          <line x1="44" x2="636" y1="{{ g.y }}" y2="{{ g.y }}" stroke="#EFE6DA" stroke-width="1"></line>
+          <text x="38" y="{{ g.ty }}" text-anchor="end" font-size="10.5" fill="#6B5A4E" font-family="Poppins, sans-serif">{{ g.label }}</text>
+        </sc-for>
+        <line x1="44" x2="636" y1="{{ base }}" y2="{{ base }}" stroke="#CDBBA6" stroke-width="1"></line>
+        <sc-for list="{{ cols }}" as="c" hint-placeholder-count="12">
+          <rect x="{{ c.hx }}" y="0" width="{{ c.hw }}" height="{{ base }}" fill="{{ c.hover }}"></rect>
+          <sc-for list="{{ c.segs }}" as="s" hint-placeholder-count="1">
+            <path d="{{ s.d }}" fill="{{ s.color }}"></path>
+          </sc-for>
+          <text x="{{ c.cx }}" y="{{ c.ly }}" text-anchor="middle" font-size="10.5" fill="#6B5A4E" font-family="Poppins, sans-serif">{{ c.label }}</text>
+          <rect x="{{ c.hx }}" y="0" width="{{ c.hw }}" height="{{ H }}" fill="transparent" onMouseEnter="{{ c.enter }}" style="cursor: crosshair"></rect>
+        </sc-for>
+      </svg>
+      <sc-if value="{{ hasTip }}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="position: absolute; left: {{ tip.left }}; top: 4px; transform: translateX({{ tip.shift }}); min-width: 150px; background: #2B1A12; color: #FFFFFF; border-radius: 6px; padding: 8px 10px; font-size: 12px; pointer-events: none; box-shadow: 0 10px 24px -12px rgba(43,26,18,0.6)">
+          <span style="display: block; font-weight: 600; margin-bottom: 4px">{{ tip.label }}</span>
+          <sc-for list="{{ tip.rows }}" as="tr" hint-placeholder-count="2">
+            <span style="display: flex; align-items: center; gap: 6px; justify-content: space-between"><span style="display: inline-flex; align-items: center; gap: 6px; color: #E7DCCD"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 2px; background: {{ tr.color }}"></span>{{ tr.name }}</span><span style="font-weight: 600">{{ tr.value }}</span></span>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ asTable }}" hint-placeholder-val="{{ false }}">
+    <div style="margin-top: 8px; overflow-x: auto; border: 1px solid #EFE6DA; border-radius: 6px">
+      <table style="width: 100%; border-collapse: collapse; font-size: 12.5px">
+        <thead><tr style="background: #FBF8F4"><th scope="col" style="text-align: left; padding: 8px 10px; color: #6B5A4E; font-weight: 600">{{ xName }}</th><sc-for list="{{ legend }}" as="lg" hint-placeholder-count="2"><th scope="col" style="text-align: right; padding: 8px 10px; color: #6B5A4E; font-weight: 600">{{ lg.name }}</th></sc-for></tr></thead>
+        <tbody><sc-for list="{{ tableRows }}" as="tr" hint-placeholder-count="6"><tr style="border-top: 1px solid #F1E9DE"><th scope="row" style="text-align: left; padding: 7px 10px; font-weight: 500">{{ tr.label }}</th><sc-for list="{{ tr.vals }}" as="tv" hint-placeholder-count="2"><td style="text-align: right; padding: 7px 10px">{{ tv }}</td></sc-for></tr></sc-for></tbody>
+      </table>
+    </div>
+  </sc-if>
+  <figcaption style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">{{ aria }}</figcaption>
+</figure>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"labels":{"editor":null},"series":{"editor":null},"prefix":{"editor":null},"suffix":{"editor":null},"height":{"editor":"int","default":220},"xName":{"editor":null},"aria":{"editor":null},"$preview":{"width":640,"height":280}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { hover: -1, table: false }; }
+  renderVals() {
+    const p = this.props;
+    const labels = p.labels || ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+    const series = p.series || [{ name: 'Harvest', color: '#7B4A2A', values: [120, 180, 90, 60, 210, 260] }];
+    const pre = p.prefix || '', suf = p.suffix || '';
+    const fmt = (v) => pre + Number(v).toLocaleString('en-PH', { maximumFractionDigits: 1 }) + suf;
+    const H = p.height || 220, base = H - 24, top = 10;
+    const totals = labels.map((_, i) => series.reduce((s, se) => s + (se.values[i] || 0), 0));
+    const rawMax = Math.max(1, ...totals);
+    const mag = Math.pow(10, Math.floor(Math.log10(rawMax)));
+    const step = [1, 2, 2.5, 5, 10].map((m) => m * mag / 1).find((s) => rawMax / s <= 4) || mag * 10;
+    const max = Math.ceil(rawMax / step) * step;
+    const y = (v) => base - (v / max) * (base - top);
+    const n = labels.length, x0 = 50, w = 586, slot = w / n, bw = Math.min(28, slot * 0.56);
+    const roundTop = (x, yy, ww, hh, r) => { if (hh <= 0) return ''; r = Math.min(r, ww / 2, hh); return 'M' + x + ' ' + (yy + hh) + 'V' + (yy + r) + 'Q' + x + ' ' + yy + ' ' + (x + r) + ' ' + yy + 'H' + (x + ww - r) + 'Q' + (x + ww) + ' ' + yy + ' ' + (x + ww) + ' ' + (yy + r) + 'V' + (yy + hh) + 'Z'; };
+    const rect = (x, yy, ww, hh) => (hh <= 0 ? '' : 'M' + x + ' ' + yy + 'h' + ww + 'v' + hh + 'h' + (-ww) + 'Z');
+    const hv = this.state.hover;
+    const cols = labels.map((lab, i) => {
+      const cx = x0 + slot * i + slot / 2;
+      let acc = 0; const segs = [];
+      const live = series.filter((se) => (se.values[i] || 0) > 0);
+      series.forEach((se) => {
+        const v = se.values[i] || 0; if (!v) return;
+        const y1 = y(acc + v), y0 = y(acc); acc += v;
+        const isTop = se === live[live.length - 1];
+        const gap = acc - v > 0 ? 2 : 0;
+        segs.push({ color: se.color, d: isTop ? roundTop(cx - bw / 2, y1, bw, (y0 - y1) - gap, 4) : rect(cx - bw / 2, y1, bw, (y0 - y1) - gap) });
+      });
+      return { cx, label: lab, ly: H - 6, hx: x0 + slot * i, hw: slot, hover: i === hv ? 'rgba(123,74,42,0.06)' : 'transparent', segs, enter: () => this.setState({ hover: i }) };
+    });
+    const tipLeft = hv >= 0 ? ((x0 + slot * hv + slot / 2) / 640 * 100) : 0;
+    return {
+      aria: p.aria || 'Bar chart',
+      xName: p.xName || 'Month',
+      H, base,
+      grid: [1, 2, 3, 4].map((k) => k * max / 4).filter((v) => v <= max).map((v) => ({ y: y(v), ty: y(v) + 3.5, label: fmt(v) })),
+      cols,
+      hasLegend: series.length > 1,
+      legend: series.map((s) => ({ name: s.name, color: s.color })),
+      hasTip: hv >= 0,
+      tip: hv >= 0 ? { left: tipLeft.toFixed(2) + '%', shift: tipLeft > 70 ? '-100%' : (tipLeft < 20 ? '0%' : '-50%'), label: labels[hv] + (series.length > 1 ? ' · ' + fmt(totals[hv]) : ''), rows: series.map((s) => ({ name: s.name, color: s.color, value: fmt(s.values[hv] || 0) })) } : { left: '0%', shift: '0%', label: '', rows: [] },
+      leave: () => this.setState({ hover: -1 }),
+      asTable: this.state.table, asChart: !this.state.table,
+      tableLabel: this.state.table ? 'Show chart' : 'View as table',
+      toggleTable: () => this.setState({ table: !this.state.table, hover: -1 }),
+      tableRows: labels.map((lab, i) => ({ label: lab, vals: series.map((s) => fmt(s.values[i] || 0)) }))
+    };
+  }
+}
+</script>
+</body>
+</html>
