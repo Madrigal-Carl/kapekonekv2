@@ -16,7 +16,10 @@ export function useCart() {
   return useQuery({ queryKey: cartKeys.all, queryFn: cartService.getCart, enabled: isAuthenticated && !mustVerify && canCart })
 }
 
-/** Cart mutations put the returned cart straight into the cache. */
+/**
+ * Cart mutations put the returned cart straight into the cache. A 409 `QUANTITY_EXCEEDS_STOCK` shows the
+ * server's numbers and refetches the cart, so steppers re-cap at the real stock.
+ */
 function useCartMutation(mutationFn, options = {}) {
   const queryClient = useQueryClient()
   return useMutation({
@@ -25,6 +28,10 @@ function useCartMutation(mutationFn, options = {}) {
     onSuccess: (cart, ...rest) => {
       queryClient.setQueryData(cartKeys.all, cart)
       options.onSuccess?.(cart, ...rest)
+    },
+    onError: (error, ...rest) => {
+      if (error.response?.data?.code === 'QUANTITY_EXCEEDS_STOCK') queryClient.invalidateQueries({ queryKey: cartKeys.all })
+      options.onError?.(error, ...rest)
     },
   })
 }

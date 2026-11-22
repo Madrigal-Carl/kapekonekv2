@@ -28,5 +28,5 @@ export const errorHandler = (err, _req, res, _next) => {
     if (env.NODE_ENV !== 'test') console.error(err);
     return res.status(500).json({ success: false, message: 'Something went wrong. Please try again.', code: 'SERVER_ERROR', errors: {} });
   }
-  res.status(appError.statusCode).json({ success: false, message: appError.message, code: appError.code, errors: appError.errors });
+  res.status(appError.statusCode).json({ success: false, message: appError.message, code: appError.code, errors: appError.errors, ...(appError.data && { data: appError.data }) });
 };

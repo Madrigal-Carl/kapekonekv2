@@ -57,6 +57,13 @@ export const customLabelRule = z.string().trim().max(30, 'Use 30 characters or f
 /** Quantity steps by unit: kg in 0.5 steps (min 0.5); packs and pieces whole (min 1). */
 export const QUANTITY_STEP = { kg: 0.5, pack: 1, piece: 1 };
 
+/**
+ * A quantity as a whole number of unit steps (2.5 kg → 5), so totals compare without float drift.
+ * @param {'kg'|'pack'|'piece'} unit
+ * @param {number} quantity
+ */
+export const toSteps = (unit, quantity) => Math.round(quantity / (QUANTITY_STEP[unit] ?? 1));
+
 /** @param {'kg'|'pack'|'piece'} unit */
 export const quantityRule = (unit) => {
   const step = QUANTITY_STEP[unit] ?? 1;

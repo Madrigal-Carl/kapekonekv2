@@ -8,6 +8,7 @@ import { Modal } from '@/components/ui/Modal'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { productMeta } from '@/constants/catalog'
 import { useCart, useClearCart, useRemoveCartItem, useSetCartQuantity } from '@/hooks/useCart'
+import { cn } from '@/lib/cn'
 import { formatPeso, quantityShort, quantityWords } from '@/lib/format'
 import { stepFor } from '@/lib/quantity'
 import { useCartDrawer } from '@/stores/cart.store'
@@ -18,7 +19,7 @@ function flagText({ flags, product }) {
   if (flags.includes('INACTIVE')) return 'This item is no longer available. Remove it to check out.'
   if (flags.includes('NOT_PURCHASABLE')) return 'Your account can’t buy this item. Remove it to check out.'
   if (flags.includes('OUT_OF_STOCK')) return 'Sold out. Remove it to check out.'
-  if (flags.includes('OVER_STOCK')) return `Only ${quantityWords(product.stock, product.unit)} left. Lower the quantity to check out.`
+  if (flags.includes('OVER_STOCK')) return `Only ${quantityWords(product.stock, product.unit)} left now. The stock changed after you added it, so lower the quantity to check out.`
   return null
 }
 
@@ -27,6 +28,7 @@ function CartLine({ line, onRemove }) {
   const setQuantity = useSetCartQuantity()
   const step = stepFor(product.unit)
   const warning = flagText(line)
+  const atCap = quantity + step > product.stock + 1e-9
   const change = (next) => setQuantity.mutate({ productId: product._id, quantity: next })
   const stepButton = 'grid size-9 cursor-pointer place-items-center border-0 bg-white text-ink disabled:cursor-not-allowed disabled:opacity-40'
   return (
@@ -62,15 +64,18 @@ function CartLine({ line, onRemove }) {
               <button
                 type="button"
                 aria-label="Increase"
-                disabled={quantity + step > product.stock || setQuantity.isPending}
+                disabled={atCap || setQuantity.isPending}
                 onClick={() => change(quantity + step)}
-                className={stepButton}
+                className={cn(stepButton, atCap && 'disabled:bg-cream disabled:text-stepper-off disabled:opacity-100')}
               >
                 <Plus aria-hidden="true" className="size-3.5" strokeWidth={2} />
               </button>
             </div>
             <span className="text-[15px] font-semibold">{formatPeso(line.lineTotalCentavos)}</span>
           </div>
+          {atCap && !warning && (
+            <p aria-live="polite" className="mb-0 mt-2 text-xs text-ink-3">That is all we have: {quantityWords(product.stock, product.unit)}.</p>
+          )}
           {warning && (
             <p role="alert" className="mt-2.5 flex items-start gap-2 rounded-control border border-notice-line bg-notice-bg px-2.5 py-2 text-[12.5px] text-caramel-badge">
               <TriangleAlert aria-hidden="true" className="mt-px size-[15px] shrink-0" strokeWidth={2} />

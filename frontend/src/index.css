@@ -41,6 +41,7 @@
   --color-warning-bg: #FDF1DC; --color-warning-ink: #8A5A00; /* logout icon tile */
   --color-notice-line-strong: #DDBE86; /* button on a notice banner */
   --color-disabled-bg: #E3D6C6; --color-disabled-ink: #6E5A4A;
+  --color-stepper-off: #B5A89C; /* stepper + at its cap (on cream) */
 
   /* role avatars & badges (PostDetail) */
   --color-manager: #2F6690; --color-manager-tint: #E3EEF8; --color-manager-ink: #1F4E79;

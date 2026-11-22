@@ -12,12 +12,13 @@ export class AppError extends Error {
   /**
    * @param {number} statusCode
    * @param {string} message
-   * @param {{ code?: string, errors?: Record<string, string> }} [options]
+   * @param {{ code?: string, errors?: Record<string, string>, data?: object }} [options] `data` is sent as the response's `data`
    */
-  constructor(statusCode, message, { code, errors = {} } = {}) {
+  constructor(statusCode, message, { code, errors = {}, data } = {}) {
     super(message);
     this.statusCode = statusCode;
     this.code = code ?? CODE_BY_STATUS[statusCode] ?? 'SERVER_ERROR';
     this.errors = errors;
+    this.data = data;
   }
 }

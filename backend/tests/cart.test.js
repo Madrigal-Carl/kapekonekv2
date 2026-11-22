@@ -104,6 +104,52 @@ describe('cart', () => {
     expect(subtotalCentavos).toBe(4 * 26000 + 20000);
   });
 
+  it('adds to the line and refuses a total above stock (packs)', async () => {
+    await Product.updateOne({ slug: 'barako-medium-roast' }, { stock: 3 });
+    await add('barako-medium-roast', 2).expect(200);
+    const res = await add('barako-medium-roast', 2);
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe('QUANTITY_EXCEEDS_STOCK');
+    expect(res.body.data).toEqual({ stock: 3, inCart: 2, maxAddable: 1 });
+    expect((await buyer.get('/api/cart')).body.data.lines[0]).toMatchObject({ quantity: 2, inCart: 2 });
+    await add('barako-medium-roast', 1).expect(200);
+    expect((await add('barako-medium-roast', 1)).body.data).toEqual({ stock: 3, inCart: 3, maxAddable: 0 });
+  });
+
+  it('two adds at the same moment never push the line past stock', async () => {
+    await Product.updateOne({ slug: 'barako-medium-roast' }, { stock: 3 });
+    const results = await Promise.all([add('barako-medium-roast', 2), add('barako-medium-roast', 2)]);
+    expect(results.map((r) => r.status).sort()).toEqual([200, 409]);
+    expect((await buyer.get('/api/cart')).body.data.lines[0].quantity).toBe(2);
+  });
+
+  it('checks kg totals in exact 0.5 steps', async () => {
+    await Product.updateOne({ slug: 'liberica-green-beans' }, { stock: 3 });
+    await add('liberica-green-beans', 2.5).expect(200);
+    const over = await add('liberica-green-beans', 1);
+    expect(over.status).toBe(409);
+    expect(over.body.data).toEqual({ stock: 3, inCart: 2.5, maxAddable: 0.5 });
+    const ok = await add('liberica-green-beans', 0.5);
+    expect(ok.status).toBe(200);
+    expect(ok.body.data.lines[0].quantity).toBe(3);
+  });
+
+  it('refuses to set a line above stock (PATCH)', async () => {
+    await Product.updateOne({ slug: 'barako-medium-roast' }, { stock: 3 });
+    await add('barako-medium-roast', 1).expect(200);
+    const res = await buyer.patch(`/api/cart/items/${id('barako-medium-roast')}`).send({ quantity: 4 });
+    expect(res.status).toBe(409);
+    expect(res.body).toMatchObject({ code: 'QUANTITY_EXCEEDS_STOCK', data: { stock: 3, inCart: 1, maxAddable: 2 } });
+    await buyer.patch(`/api/cart/items/${id('barako-medium-roast')}`).send({ quantity: 3 }).expect(200);
+  });
+
+  it('tells the product page how many are already in the cart', async () => {
+    await add('barako-medium-roast', 2).expect(200);
+    expect((await buyer.get('/api/products/barako-medium-roast')).body.data.inCart).toBe(2);
+    expect((await buyer.get('/api/products/liberica-green-beans')).body.data.inCart).toBe(0);
+    expect((await request(app).get('/api/products/barako-medium-roast')).body.data.inCart).toBe(0);
+  });
+
   it('refuses to add a sold-out product', async () => {
     await Product.updateOne({ slug: 'robusta-ground' }, { stock: 0 });
     expect((await add('robusta-ground', 1)).status).toBe(409);

@@ -1,4 +1,5 @@
 import { PRODUCT_SORTS } from '../constants/catalog.js';
+import { findLineQuantity } from '../repositories/cart.repository.js';
 import { listCategories } from '../repositories/category.repository.js';
 import { countProducts, findActiveById, findActiveBySlug, listProductsPage } from '../repositories/product.repository.js';
 import { AppError } from '../utils/AppError.js';
@@ -74,8 +75,14 @@ async function visibleOr404(viewer, product) {
   return present(viewer, product);
 }
 
-/** @param {object|undefined} viewer @param {string} slug */
-export const getProductBySlug = async (viewer, slug) => visibleOr404(viewer, await findActiveBySlug(slug));
+/**
+ * Product detail, with `inCart` (how much of it is already in the viewer's cart; 0 for guests).
+ * @param {object|undefined} viewer @param {string} slug
+ */
+export async function getProductBySlug(viewer, slug) {
+  const product = await visibleOr404(viewer, await findActiveBySlug(slug));
+  return { ...product, inCart: viewer ? await findLineQuantity(viewer._id, product._id) : 0 };
+}
 
 /** @param {object|undefined} viewer @param {string} id */
 export const getProductById = async (viewer, id) => visibleOr404(viewer, await findActiveById(id));

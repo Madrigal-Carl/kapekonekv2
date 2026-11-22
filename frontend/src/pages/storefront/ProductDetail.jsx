@@ -10,10 +10,10 @@ import { QuantityStepper } from '@/components/ui/QuantityStepper'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { StarRating } from '@/components/ui/StarRating'
 import { COFFEE_TYPES, LOW_STOCK, VARIETIES } from '@/constants/catalog'
-import { useAddToCart } from '@/hooks/useCart'
+import { useAddToCart, useCart } from '@/hooks/useCart'
 import { useProduct, useReviewSummary } from '@/hooks/useProducts'
 import { cn } from '@/lib/cn'
-import { formatPeso } from '@/lib/format'
+import { formatPeso, quantityWords } from '@/lib/format'
 import { stepFor } from '@/lib/quantity'
 import { imageUrl } from '@/lib/image'
 
@@ -79,14 +79,22 @@ function Summary({ productId }) {
 /** Quantity, total and "Add to cart"; keyed by product so the quantity resets per product. */
 function PurchasePanel({ product }) {
   const { add: addToCart, isPending: adding } = useAddToCart()
-  const { priceCentavos, unit, stock } = product
+  const { data: cart } = useCart()
+  const { _id, priceCentavos, unit, stock } = product
   const out = stock <= 0
-  const [quantity, setQuantity] = useState(stepFor(unit))
+  // The cart cache is updated by every cart change, so it wins over the product's `inCart` once loaded.
+  const inCart = cart ? (cart.lines.find((l) => l.product._id === _id)?.quantity ?? 0) : (product.inCart ?? 0)
+  const step = stepFor(unit)
+  const maxAddable = Math.max(0, Math.floor((stock - inCart) / step + 1e-9) * step)
+  const full = maxAddable < step
+  const [picked, setQuantity] = useState(step)
+  const quantity = full ? step : Math.min(picked, maxAddable)
+  const capHint = `That is the most you can add. ${quantityWords(stock, unit)} in stock${inCart ? `, ${quantityWords(inCart, unit)} already in your cart` : ''}.`
   return (
     <>
       {!out && (
         <div className="mt-7 flex flex-wrap items-end gap-5 border-t border-sand pt-6">
-          <QuantityStepper value={quantity} onChange={setQuantity} unit={unit} stock={stock} hint={STEP_HINT[unit]} />
+          <QuantityStepper value={quantity} onChange={setQuantity} unit={unit} max={maxAddable} hint={STEP_HINT[unit]} capHint={capHint} />
           <div className="flex-[1_1_160px]">
             <Eyebrow className="text-[10.5px] text-ink-2">Total</Eyebrow>
             <span className="mt-2 block text-[26px] font-semibold leading-[44px]">{formatPeso(Math.round(priceCentavos * quantity))}</span>
@@ -95,7 +103,20 @@ function PurchasePanel({ product }) {
         </div>
       )}
 
-      <Button onClick={() => addToCart(product, quantity)} disabled={out} pending={adding} className="mt-6 w-full py-[15px] text-[15px]">
+      {!out && inCart > 0 && (
+        <p className="mb-0 mt-5 flex items-center gap-2 text-[13px] text-ink-2">
+          <ShoppingBag aria-hidden="true" className="size-[15px] shrink-0 text-roast" strokeWidth={2} />
+          <span>
+            <strong>{quantityWords(inCart, unit)}</strong> already in your cart · {full ? 'that is all we have.' : <>you can add up to <strong>{quantityWords(maxAddable, unit)}</strong> more.</>}
+          </span>
+        </p>
+      )}
+      <Button
+        onClick={() => addToCart(product, quantity)}
+        disabled={out || full}
+        pending={adding}
+        className={cn('w-full py-[15px] text-[15px]', !out && inCart > 0 ? 'mt-3.5' : 'mt-6')}
+      >
         <ShoppingBag aria-hidden="true" className="size-[18px]" strokeWidth={2} />
         {out ? 'Sold out' : 'Add to cart'}
       </Button>

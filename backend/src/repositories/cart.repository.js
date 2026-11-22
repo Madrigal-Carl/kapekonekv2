@@ -10,20 +10,33 @@ export async function findCartLines(userId) {
   return cart?.items ?? [];
 }
 
-/** Add `quantity` to the product's line, creating the cart or line when missing. */
-export async function addToLine(userId, productId, quantity) {
-  const merged = await Cart.updateOne({ user: userId, 'items.product': productId }, { $inc: { 'items.$.quantity': quantity } });
-  if (merged.matchedCount) return;
+/** Quantity of the product already in the user's cart (0 when there is no line). */
+export async function findLineQuantity(userId, productId) {
+  const cart = await Cart.findOne({ user: userId, 'items.product': productId }, { 'items.$': 1 }).lean();
+  return cart?.items[0]?.quantity ?? 0;
+}
+
+/**
+ * Add `quantity` to the product's line, creating the cart or line when missing. The merge only matches
+ * while the line stays at or below `maxQuantity`, so two parallel adds can't push it past stock.
+ * @returns {Promise<boolean>} false when the line would go over `maxQuantity`
+ */
+export async function addToLine(userId, productId, quantity, maxQuantity) {
+  const guarded = { user: userId, items: { $elemMatch: { product: productId, quantity: { $lte: maxQuantity - quantity } } } };
+  const merge = async () => (await Cart.updateOne(guarded, { $inc: { 'items.$.quantity': quantity } })).matchedCount > 0;
+  if (await merge()) return true;
+  if (quantity > maxQuantity) return false;
   try {
     await Cart.updateOne(
       { user: userId, 'items.product': { $ne: productId } },
       { $push: { items: { product: productId, quantity, addedAt: new Date() } } },
       { upsert: true },
     );
+    return true;
   } catch (error) {
-    // A parallel add created the line first (the upsert hit the unique user index): merge into it.
+    // The cart already has this line (over the cap, or a parallel add made it first): the upsert hit the unique user index.
     if (error.code !== 11000) throw error;
-    await Cart.updateOne({ user: userId, 'items.product': productId }, { $inc: { 'items.$.quantity': quantity } });
+    return merge();
   }
 }
 
