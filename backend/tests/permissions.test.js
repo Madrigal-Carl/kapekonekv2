@@ -110,6 +110,14 @@ describe('permission cache', () => {
     await Role.updateOne({ slug: 'farmer' }, { $pull: { permissions: 'orders.manage' } });
   });
 
+  it('is cleared for every user when the roles seeder runs', async () => {
+    const u = await user('buyer');
+    await resolvePermissions(u);
+    expect(await getValkey().exists(`perm:user:${u._id}`)).toBe(1);
+    await runSeeders({ only: ['roles'], log: () => {} });
+    expect(await getValkey().exists(`perm:user:${u._id}`)).toBe(0);
+  });
+
   it('falls back to Mongo when Valkey is down', async () => {
     const valkey = getValkey();
     const get = valkey.get;
