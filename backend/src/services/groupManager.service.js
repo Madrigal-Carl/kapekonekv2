@@ -39,9 +39,10 @@ const toDto = (user, association, counts) => ({
   email: user.email,
   contactNumber: user.contactNumber ?? null,
   association: association
-    ? { id: String(association._id), name: association.name, farmerCount: counts.get(String(association._id))?.approved ?? 0 }
+    ? { id: String(association._id), name: association.name, farmerCount: counts.get(String(association._id))?.approved ?? 0, waitingCount: counts.get(String(association._id))?.pending ?? 0 }
     : null,
   status: status(user, association),
+  lastSignInAt: user.lastLoginAt ?? null,
   createdAt: user.createdAt,
 });
 const auditView = (user, association) => ({

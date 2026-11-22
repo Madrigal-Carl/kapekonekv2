@@ -92,7 +92,8 @@ function PhotoBand({ user }) {
 }
 
 /** /profile (Profile.dc.html). */
-export function Profile() {
+/** Profile page. `embedded`: inside the dashboard's Account settings tabs, which bring their own header and width. */
+export function Profile({ embedded = false }) {
   const { data: user } = useProfile()
   const update = useUpdateProfile()
   const { register, control, handleSubmit, reset: resetForm, setError, formState: { errors } } = useForm({
@@ -118,10 +119,12 @@ export function Profile() {
 
   return (
     <>
-      <div className="mx-auto max-w-[1080px] px-4 pt-9 sm:px-8">
-        <AccountHeading eyebrow="Account" title="Profile" />
-      </div>
-      <div className="mx-auto flex max-w-[1080px] flex-col gap-6 px-4 pb-20 pt-6 sm:px-8">
+      {!embedded && (
+        <div className="mx-auto max-w-[1080px] px-4 pt-9 sm:px-8">
+          <AccountHeading eyebrow="Account" title="Profile" />
+        </div>
+      )}
+      <div className={embedded ? 'flex flex-col gap-6' : 'mx-auto flex max-w-[1080px] flex-col gap-6 px-4 pb-20 pt-6 sm:px-8'}>
         <div className="w-full min-w-0 overflow-hidden rounded-card border border-sand bg-white">
           <PhotoBand user={user} />
 

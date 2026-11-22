@@ -73,6 +73,8 @@ describe('Group Managers', () => {
 
     const res = await kaluppa.patch(`/api/group-managers/${lenaUser._id}`).send({ ...lena, associationId: gasan.id });
     expect(res.status).toBe(200);
+    // The view drawer shows the association's waiting requests and the last sign-in.
+    expect(res.body.data).toMatchObject({ association: { id: gasan.id, farmerCount: 0, waitingCount: 0 }, lastSignInAt: null });
     expect(await member(boac.groupChat, lenaUser._id)).toMatchObject({ canPost: false });
     expect(await member(direct._id, farmer._id)).toMatchObject({ canPost: false });
     expect(await member(gasan.groupChat, lenaUser._id)).toMatchObject({ canPost: true });

@@ -79,7 +79,7 @@ export function ConfirmModal({
       <h2 id={`${id}-t`} className="mt-3 text-[17px] font-semibold">{title}</h2>
       {children && <p id={`${id}-d`} className="mt-1.5 text-[13.5px] leading-[1.6] text-ink-2">{children}</p>}
       {password && <CopyBox value={password} />}
-      {needsReason && (
+      {needsReason && onConfirm && (
         <label className="mt-3 block">
           <span className="block text-[10.5px] font-medium uppercase tracking-[0.16em] text-ink-2">Reason · required</span>
           <textarea
@@ -98,14 +98,17 @@ export function ConfirmModal({
         ) : (
           <>
             <Button ref={safe} variant="outline" onClick={close} className="min-h-[42px] py-0 font-semibold">{cancelLabel}</Button>
-            <Button
-              onClick={() => onConfirm?.(needsReason ? reason.trim() : undefined)}
-              disabled={!reasonOk}
-              pending={pending}
-              className={cn('min-h-[42px] py-0', tone.confirm)}
-            >
-              {confirmLabel}
-            </Button>
+            {/* No onConfirm: the modal only explains why the action can't happen yet. */}
+            {onConfirm && (
+              <Button
+                onClick={() => onConfirm(needsReason ? reason.trim() : undefined)}
+                disabled={!reasonOk}
+                pending={pending}
+                className={cn('min-h-[42px] py-0', tone.confirm)}
+              >
+                {confirmLabel}
+              </Button>
+            )}
           </>
         )}
       </div>

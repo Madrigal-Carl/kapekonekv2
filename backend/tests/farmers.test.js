@@ -35,7 +35,8 @@ const login = (identifier, password) => request(app).post('/api/auth/login').sen
 
 describe('farmers a Group Manager adds', () => {
   it('without an email: a temporary password shown once, then "Set a new password"', async () => {
-    const res = await manager.post('/api/farmers').send(nora);
+    // The dashboard form sends a blank email as null.
+    const res = await manager.post('/api/farmers').send({ ...nora, email: null });
     expect(res.status).toBe(201);
     const { farmer, temporaryPassword } = res.body.data;
     expect(temporaryPassword).toMatch(/^.{12}$/);
@@ -90,6 +91,13 @@ describe('farmer list', () => {
     expect(waiting.body.data[0]).toMatchObject({ username: 'waiting', status: 'pending', contactNumber: '09175550100' });
     expect((await manager.get(`/api/farmers/${elsewhere.user._id}`)).status).toBe(404);
     expect((await manager.get(`/api/farmers/${user._id}`)).body.data.documents.validId).toMatchObject({ kind: 'image' });
+
+    // Kaluppa narrows to one association (the Associations view drawer); a Group Manager can't widen past its own.
+    const kaluppa = await signedIn(app, 'kaluppa');
+    const boac = await kaluppa.get(`/api/farmers?associationId=${associations.boac.id}`);
+    expect(boac.body.data.map((f) => f.username)).toEqual(['elsewhere']);
+    const widened = await manager.get(`/api/farmers?associationId=${associations.boac.id}`);
+    expect(widened.body.data.map((f) => f.username).sort()).toEqual(['nora.lim', 'nora.mail', 'waiting']);
   });
 
   it('is closed to farmers', async () => {

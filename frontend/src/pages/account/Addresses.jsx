@@ -16,7 +16,8 @@ import { errorMessage } from '@/lib/applyServerErrors'
 const MAX_ADDRESSES = 10
 
 /** /addresses (Addresses.dc.html). */
-export function Addresses() {
+/** Address book. `embedded`: inside the dashboard's Account settings tabs, which bring their own header and width. */
+export function Addresses({ embedded = false }) {
   const { user } = useAuth()
   const addresses = useAddresses()
   const setDefault = useSetDefaultAddress()
@@ -37,16 +38,18 @@ export function Addresses() {
 
   return (
     <>
-      <div className="mx-auto flex max-w-[1080px] flex-wrap items-end justify-between gap-4 px-4 pt-9 sm:px-8">
-        <AccountHeading eyebrow="Account" title="Addresses">
-          Where we deliver your orders. We deliver anywhere in Marinduque.
-        </AccountHeading>
+      <div className={embedded ? 'flex justify-end' : 'mx-auto flex max-w-[1080px] flex-wrap items-end justify-between gap-4 px-4 pt-9 sm:px-8'}>
+        {!embedded && (
+          <AccountHeading eyebrow="Account" title="Addresses">
+            Where we deliver your orders. We deliver anywhere in Marinduque.
+          </AccountHeading>
+        )}
         <Button onClick={() => setEditing(null)} disabled={full || addresses.isPending} className="px-[18px] py-3 font-semibold">
           <Plus aria-hidden="true" className="size-4" strokeWidth={2} />
           Add new address
         </Button>
       </div>
-      <div className="mx-auto max-w-[1080px] px-4 pb-20 pt-6 sm:px-8">
+      <div className={embedded ? 'pt-4' : 'mx-auto max-w-[1080px] px-4 pb-20 pt-6 sm:px-8'}>
         {addresses.isPending ? (
           <ul aria-busy="true" className="m-0 flex list-none flex-col gap-3.5 p-0">
             {[0, 1, 2].map((i) => (

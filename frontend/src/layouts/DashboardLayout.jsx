@@ -3,7 +3,8 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { DashTopbar } from '@/components/dashboard/DashTopbar'
 import { Sidebar } from '@/components/dashboard/Sidebar'
 import { Modal } from '@/components/ui/Modal'
-import { crumbsFor } from '@/constants/dashboardNav'
+import { AssociationWindow } from '@/components/dashboard/AssociationWindow'
+import { ASSOCIATION_WINDOW, crumbsFor } from '@/constants/dashboardNav'
 import { primaryRole } from '@/constants/roles'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -25,6 +26,7 @@ export function DashboardLayout() {
         <DashTopbar role={role} crumbs={crumbsFor(role, pathname)} onMenu={() => setNavOpen(true)} menuOpen={navOpen} />
         <Outlet />
       </div>
+      {ASSOCIATION_WINDOW.has(role) && <AssociationWindow />}
     </div>
   )
 }

@@ -86,6 +86,14 @@ describe('association requests', () => {
     expect(await Notification.exists({ user: user._id, type: 'farmer_decision' })).toBeTruthy();
     expect(mail.filter((m) => m.job === 'farmer-decision').map((m) => m.data.approved)).toEqual([true]);
     expect((await agent.get('/api/auth/me')).body.data.user).toMatchObject({ farmerStatus: 'approved', associationId: associations.santacruz.id });
+    // The account page shows who runs the association, how many farmers it has and who approved.
+    expect((await agent.get('/api/me/farmer-profile')).body.data).toMatchObject({
+      association: { groupManager: { id: expect.any(String), name: 'Liza Ramos', contactNumber: null }, farmers: expect.any(Number) },
+      approvedBy: { name: 'Liza Ramos' },
+    });
+    // The association window names each association's Group Manager.
+    const options = (await agent.get('/api/associations/options')).body.data;
+    expect(options.find((o) => o.id === associations.santacruz.id).groupManager).toEqual({ name: 'Liza Ramos' });
   });
 
   it('rejection needs a reason the farmer sees, and they can ask again', async () => {

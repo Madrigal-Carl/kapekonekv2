@@ -77,8 +77,8 @@ async function loadFarmer(actor, id) {
 }
 
 /** @param {{ q?: string, status?: string, page: number, limit: number }} query */
-export async function listFarmers(actor, { q, status, page, limit }) {
-  const associationId = scopeOf(actor);
+export async function listFarmers(actor, { q, status, associationId: chosen, page, limit }) {
+  const associationId = scopeOf(actor) ?? chosen ?? null;
   if (associationId === false) return { items: [], meta: { page, limit, total: 0 } };
   const ids = await profiles.findFarmerIdsInScope({ associationId, status });
   const { items, meta } = await listUsersAmong({ ids, words: q ? q.split(/\s+/).map(containsPattern) : [], page, limit });

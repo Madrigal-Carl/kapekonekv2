@@ -7,6 +7,11 @@ import { RootLayout } from '@/layouts/RootLayout'
 import { StorefrontLayout } from '@/layouts/StorefrontLayout'
 import { Forbidden } from '@/pages/errors/Forbidden' // the guards render it too
 import { GuestRoute, ProtectedRoute, StorefrontRoute } from './guards'
+import { AccountSettings } from '@/pages/dashboard/account/AccountSettings'
+import { Association as DashboardAssociation } from '@/pages/dashboard/account/Association'
+import { Associations } from '@/pages/dashboard/associations/Associations'
+import { Farmers } from '@/pages/dashboard/farmers/Farmers'
+import { GroupManagers } from '@/pages/dashboard/groupManagers/GroupManagers'
 
 // Each page is its own chunk, loaded on first visit (RootLayout's Suspense shows the spinner).
 const page = (load, name) => lazy(() => load().then((m) => ({ default: m[name] })))
@@ -41,15 +46,17 @@ const DASHBOARD_PAGES = [
   ['beans', 'dashboard.view'], // farmers and Group Managers sell, Kaluppa reviews
   ['orders', 'dashboard.view'], // farmers' own orders, Kaluppa manages all
   ['farm-map', 'map.view'],
-  ['farmers', 'farmers.manage'],
-  ['group-managers', 'group_managers.manage'],
-  ['associations', 'associations.manage'],
   ['inventory', 'inventory.manage'],
   ['reviews', 'reviews.moderate'],
   ['reports', 'reports.view'],
   ['audit-log', 'audit.view'],
   ['settings', 'settings.manage'],
-  ['account/*', 'profile.update'],
+]
+// Built pages: [path, permission, element].
+const RECORD_PAGES = [
+  ['farmers', 'farmers.manage', <Farmers key="farmers" />],
+  ['group-managers', 'group_managers.manage', <GroupManagers key="gm" />],
+  ['associations', 'associations.manage', <Associations key="associations" />],
 ]
 
 export const router = createBrowserRouter([
@@ -123,6 +130,28 @@ export const router = createBrowserRouter([
                 element: <ProtectedRoute permissions={[permission]} />,
                 children: [{ path, element: <ComingSoon /> }],
               })),
+              ...RECORD_PAGES.map(([path, permission, element]) => ({
+                element: <ProtectedRoute permissions={[permission]} />,
+                children: [{ path, element }],
+              })),
+              {
+                // Tabs are role-keyed (ACCOUNT_TABS); AccountSettings redirects a tab the role doesn't have.
+                path: 'account',
+                element: <ProtectedRoute permissions={['profile.update']} />,
+                children: [
+                  {
+                    element: <AccountSettings />,
+                    children: [
+                      { index: true, element: null },
+                      { path: 'profile', element: <Profile embedded /> },
+                      { path: 'security', element: <Settings embedded /> },
+                      { path: 'association', element: <DashboardAssociation /> },
+                      { path: 'addresses', element: <Addresses embedded /> },
+                      { path: '*', element: null },
+                    ],
+                  },
+                ],
+              },
             ],
           },
         ],

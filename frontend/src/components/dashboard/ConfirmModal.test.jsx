@@ -39,4 +39,9 @@ describe('ConfirmModal', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Done' }))
     expect(onClose).toHaveBeenCalled()
   })
+
+  it('without onConfirm it only explains, with one close button', () => {
+    render(<ConfirmModal open variant="archive" title="Archive Boac Growers?" cancelLabel="Close" confirmLabel="Archive" onClose={() => {}}>You can’t archive it yet.</ConfirmModal>)
+    expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual(['Close'])
+  })
 })

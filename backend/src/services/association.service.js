@@ -51,7 +51,12 @@ export async function getAssociation(id) {
 
 /** Active associations for the farmer's "Join your association" window. */
 export const associationOptions = async () =>
-  (await repo.listActiveOptions()).map((a) => ({ id: String(a._id), name: a.name, municipality: a.municipality }));
+  (await repo.listActiveOptions()).map((a) => ({
+    id: String(a._id),
+    name: a.name,
+    municipality: a.municipality,
+    groupManager: a.groupManager ? { name: `${a.groupManager.firstName} ${a.groupManager.lastName}` } : null,
+  }));
 
 /**
  * Move a Group Manager between associations (either may be null). Its chats follow: the old group chat and its

@@ -25,7 +25,7 @@ const farmerFields = {
   middleName: optionalNameRule,
   lastName: nameRule,
   username: usernameRule,
-  email: z.union([z.literal(''), emailRule]).optional().transform((v) => v || null),
+  email: z.union([z.literal(''), emailRule]).nullish().transform((v) => v || null),
   contactNumber: phoneRule,
   validId: uploadRef('valid ID').nullable().optional(),
   landProof: uploadRef('proof of land ownership').nullable().optional(),
@@ -36,4 +36,5 @@ export const farmerUpdateSchema = z.object({ ...farmerFields, issueTemporaryPass
 export const farmerListQuery = pageQuerySchema.extend({
   q: z.string().trim().max(80).optional(),
   status: z.enum(['pending', 'approved', 'rejected']).optional(),
+  associationId: objectIdRule.optional(), // Kaluppa only; a Group Manager stays in its own association
 });

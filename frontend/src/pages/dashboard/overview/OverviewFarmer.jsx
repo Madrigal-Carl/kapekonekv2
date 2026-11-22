@@ -10,9 +10,11 @@ import { SINGLE_SERIES, stageItems } from '@/constants/charts'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/cn'
 import { greeting, todayInManila } from '@/lib/date'
+import { useAssociationWindow } from '@/stores/associationWindow.store'
 import { ChartCard, HeaderAction, KpiRow, Row } from './Overview'
 
 const ASSOCIATION_PAGE = '/dashboard/account/association'
+const BANNER_CTA = 'inline-flex min-h-10 cursor-pointer items-center rounded-control border bg-white px-3.5 text-[13px] font-semibold text-inherit no-underline hover:text-inherit'
 
 /** The status banner per farmer state (OverviewFarmer.dc.html); approved farmers have none. */
 function bannerFor({ status, association, groupManager, rejectionReason }) {
@@ -33,6 +35,7 @@ function bannerFor({ status, association, groupManager, rejectionReason }) {
       title: 'Your request wasn’t approved',
       text: `Reason from ${groupManager?.name ?? 'Kaluppa'}: “${rejectionReason}”`,
       cta: 'Update and resend',
+      opensWindow: true,
     },
     none: {
       tone: 'bg-crema text-ink-2',
@@ -41,11 +44,12 @@ function bannerFor({ status, association, groupManager, rejectionReason }) {
       title: 'Join your association to sell without limits',
       text: 'Pick your association and upload a valid ID and proof of land ownership. Your Group Manager approves you.',
       cta: 'Join an association',
+      opensWindow: true,
     },
   }[status]
 }
 
-function Banner({ banner }) {
+function Banner({ banner, onOpen }) {
   return (
     <div role="status" className={cn('flex flex-wrap items-center gap-3.5 rounded-card border px-4 py-3.5', banner.tone, banner.line)}>
       <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-full bg-white">
@@ -55,9 +59,11 @@ function Banner({ banner }) {
         <span className="block text-sm font-semibold">{banner.title}</span>
         <span className="mt-0.5 block text-[13px] leading-[1.55]">{banner.text}</span>
       </div>
-      <Link to={ASSOCIATION_PAGE} className={cn('inline-flex min-h-10 items-center rounded-control border bg-white px-3.5 text-[13px] font-semibold text-inherit no-underline hover:text-inherit', banner.line)}>
-        {banner.cta}
-      </Link>
+      {banner.opensWindow ? (
+        <button type="button" onClick={onOpen} className={cn(BANNER_CTA, banner.line)}>{banner.cta}</button>
+      ) : (
+        <Link to={ASSOCIATION_PAGE} className={cn(BANNER_CTA, banner.line)}>{banner.cta}</Link>
+      )}
     </div>
   )
 }
@@ -69,6 +75,8 @@ export function OverviewFarmer({ data }) {
   const { user } = useAuth()
   const { farmer, cap, kpis, harvestByMonth, treesByStage } = data
   const banner = bannerFor(farmer)
+  const showWindow = useAssociationWindow((s) => s.show)
+  const openWindow = () => showWindow(farmer.status === 'rejected' ? { reason: farmer.rejectionReason, by: farmer.groupManager?.name ?? null } : null)
   const stages = stageItems(treesByStage)
   const trees = stages.reduce((s, i) => s + i.count, 0)
 
@@ -85,7 +93,7 @@ export function OverviewFarmer({ data }) {
           </>
         }
       />
-      {banner && <Banner banner={banner} />}
+      {banner && <Banner banner={banner} onOpen={openWindow} />}
       {farmer.status !== 'approved' && <CapMeter usedKg={cap.usedKg} limitKg={cap.limitKg} />}
       <KpiRow>
         <KpiTile to="/dashboard/farms" label="Farms" icon="farm" value={kpis.farms} note={kpis.farms ? undefined : 'No farms recorded yet'} />

@@ -72,6 +72,23 @@ export const NAV = {
 
 /** Roles whose top bar shows the cart button (DashTopbar.dc.html: farmers only; Kaluppa passes every permission check). */
 export const TOPBAR_CART = new Set(['farmer'])
+/** Roles that get the "Join your association" window (Kaluppa passes `association.request` as super-admin, so not by permission). */
+export const ASSOCIATION_WINDOW = new Set(['farmer'])
+
+/** Account settings tabs (FarmerAssociation.dc.html). Role-keyed like the nav: Kaluppa passes every permission check. */
+const BASE_TABS = [
+  { to: 'profile', label: 'Profile', description: 'Your name, photo and contact number.' },
+  { to: 'security', label: 'Security', description: 'Your email and password.' },
+]
+export const ACCOUNT_TABS = {
+  farmer: [
+    ...BASE_TABS,
+    { to: 'association', label: 'Association', description: 'Your association, your documents and transfers.' },
+    { to: 'addresses', label: 'Addresses', description: 'Where we deliver your orders. We deliver anywhere in Marinduque.' },
+  ],
+  group_manager: BASE_TABS,
+  kaluppa: BASE_TABS,
+}
 
 const ACCOUNT_CRUMBS = { profile: 'Profile', security: 'Security', addresses: 'Addresses', association: 'Association' }
 

@@ -92,7 +92,7 @@ describe('associations', () => {
     const farmer = await signedIn('farmer.approved');
     const options = await farmer.get('/api/associations/options');
     expect(options.status).toBe(200);
-    expect(options.body.data[0]).toEqual({ id: expect.any(String), name: expect.any(String), municipality: expect.any(String) });
+    expect(options.body.data[0]).toEqual({ id: expect.any(String), name: expect.any(String), municipality: expect.any(String), groupManager: expect.toBeOneOf([null, { name: expect.any(String) }]) });
     expect((await farmer.get('/api/associations')).status).toBe(403);
     const manager = await signedIn('manager.santacruz');
     expect((await manager.post('/api/associations').send({ name: 'Nope', municipality: 'Boac' })).status).toBe(403);

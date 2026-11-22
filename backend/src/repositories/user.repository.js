@@ -111,7 +111,7 @@ export const findActiveRecipientsByRole = (role) =>
   User.find({ roles: role, status: 'active', email: { $ne: null } }, 'firstName email').lean();
 
 /** Recipient fields of one account. */
-export const findRecipient = (id) => User.findById(id, 'firstName lastName email status').lean();
+export const findRecipient = (id) => User.findById(id, 'firstName lastName email status contactNumber').lean();
 
 /**
  * One page of these users (newest first); each search word must match a name or the username.

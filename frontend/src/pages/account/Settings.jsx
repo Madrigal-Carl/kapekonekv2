@@ -136,14 +136,17 @@ function ChangePasswordForm() {
 }
 
 /** /settings (Settings.dc.html). */
-export function Settings() {
+/** Email and password. `embedded`: inside the dashboard's Account settings tabs, which bring their own header and width. */
+export function Settings({ embedded = false }) {
   const { user } = useAuth()
   return (
     <>
-      <div className="mx-auto max-w-[1080px] px-4 pt-9 sm:px-8">
-        <AccountHeading eyebrow="Account" title="Settings" />
-      </div>
-      <div className="mx-auto flex max-w-[1080px] flex-col gap-6 px-4 pb-20 pt-6 sm:px-8">
+      {!embedded && (
+        <div className="mx-auto max-w-[1080px] px-4 pt-9 sm:px-8">
+          <AccountHeading eyebrow="Account" title="Settings" />
+        </div>
+      )}
+      <div className={embedded ? 'flex flex-col gap-6' : 'mx-auto flex max-w-[1080px] flex-col gap-6 px-4 pb-20 pt-6 sm:px-8'}>
         <div className="flex w-full min-w-0 flex-col gap-5">
           <ChangeEmailForm email={user.email} />
           <ChangePasswordForm />

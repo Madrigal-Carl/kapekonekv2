@@ -47,7 +47,22 @@ async function myProfile(user) {
   return profile;
 }
 
-export const getMyProfile = async (user) => profileDto(await myProfile(user));
+/** The farmer's own view adds who runs the association, its size and who approved them (FarmerAssociation.dc.html). */
+export async function getMyProfile(user) {
+  const profile = await myProfile(user);
+  const dto = profileDto(profile);
+  const association = profile.association;
+  if (!association) return dto;
+  const [manager, approver, counts] = await Promise.all([
+    association.groupManager ? findRecipient(association.groupManager) : null,
+    profile.approvedBy ? findRecipient(profile.approvedBy) : null,
+    profiles.countFarmersByAssociation([association._id]),
+  ]);
+  dto.association.groupManager = manager ? { id: String(manager._id), name: fullName(manager), contactNumber: manager.contactNumber ?? null } : null;
+  dto.association.farmers = counts.get(String(association._id)).approved;
+  dto.approvedBy = approver ? { name: fullName(approver) } : null;
+  return dto;
+}
 
 /**
  * Check an uploaded document (owner's folder, type, size) and describe it for storage.
