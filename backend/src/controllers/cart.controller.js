@@ -23,4 +23,4 @@ export const clear = asyncHandler(async (req, res) => {
   sendSuccess(res, { message: 'Your cart is empty.', data: await cart.clearCart(req.user) });
 });
 
-export const uploadSignature = (req, res) => sendSuccess(res, { data: createUploadSignature(req.user, req.body.type) });
+export const uploadSignature = (req, res) => sendSuccess(res, { data: createUploadSignature(req.user, req.body.purpose) });

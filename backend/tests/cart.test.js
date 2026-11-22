@@ -157,13 +157,15 @@ describe('cart', () => {
 });
 
 describe('upload signatures', () => {
-  it('signs a receipt upload into the user’s own receipts folder', async () => {
-    expect((await request(app).post('/api/uploads/signature').send({ type: 'receipt' })).status).toBe(401);
-    const res = await buyer.post('/api/uploads/signature').send({ type: 'receipt' });
+  it('signs a receipt or avatar upload into the user’s own folder, with the image limit', async () => {
+    expect((await request(app).post('/api/uploads/signature').send({ purpose: 'receipt' })).status).toBe(401);
+    const res = await buyer.post('/api/uploads/signature').send({ purpose: 'receipt' });
     expect(res.status).toBe(200);
     const me = (await buyer.get('/api/auth/me')).body.data.user;
-    expect(res.body.data).toMatchObject({ folder: `kapekonek/receipts/${me.id}`, apiKey: 'test', allowedFormats: 'jpg,jpeg,png,webp,heic,heif', maxBytes: 5 * 1024 * 1024 });
+    expect(res.body.data).toMatchObject({ folder: `kapekonek/receipts/${me.id}`, apiKey: 'test', allowedFormats: 'jpg,jpeg,png,webp,heic,heif', kind: 'image', maxBytes: 5 * 1024 * 1024 });
     expect(res.body.data.signature).toMatch(/^[a-f0-9]{40}$/);
-    expect((await buyer.post('/api/uploads/signature').send({ type: 'product' })).status).toBe(400);
+    const avatar = await buyer.post('/api/uploads/signature').send({ purpose: 'avatar' });
+    expect(avatar.body.data).toMatchObject({ folder: `kapekonek/avatars/${me.id}`, kind: 'image', maxBytes: 5 * 1024 * 1024 });
+    expect((await buyer.post('/api/uploads/signature').send({ purpose: 'product' })).status).toBe(400);
   });
 });

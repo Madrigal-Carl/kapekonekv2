@@ -12,7 +12,7 @@ import {
 import { AppError } from '../utils/AppError.js';
 import { verifyRefreshToken } from '../utils/tokens.js';
 import { buildSession, publicUser, sendVerificationEmail } from './auth.service.js';
-import { isOwnUpload } from './upload.service.js';
+import { assertUploadAllowed, isOwnUpload } from './upload.service.js';
 
 const fieldError = (field, message) => new AppError(400, 'Please check the highlighted fields.', { errors: { [field]: message } });
 
@@ -38,6 +38,7 @@ export const updateProfile = async (user, fields) => publicUser(await updateProf
  */
 export async function setAvatar(user, avatar) {
   if (!isOwnUpload(user, 'avatar', avatar)) throw fieldError('avatar', 'Upload your photo again.');
+  await assertUploadAllowed('avatar', avatar.publicId, 'avatar');
   const oldId = user.avatar?.publicId;
   const updated = await updateAvatar(user._id, avatar);
   if (oldId && oldId !== avatar.publicId) await destroyImage(oldId);

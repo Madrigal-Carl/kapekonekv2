@@ -11,10 +11,13 @@ vi.mock('../src/config/valkey.js', async () => {
 vi.mock('../src/queues/email.queue.js', () => ({
   enqueueEmail: vi.fn(async (job, data) => { mail.push({ job, data }); }),
 }));
-vi.mock('../src/clients/cloudinary.client.js', () => ({ destroyImage: vi.fn(async () => {}) }));
+vi.mock('../src/clients/cloudinary.client.js', () => ({
+  destroyImage: vi.fn(async () => {}),
+  getUploadedAsset: vi.fn(async () => ({ bytes: 400_000, format: 'jpg', resourceType: 'image', originalFilename: 'me' })),
+}));
 
 const { getValkey } = await import('../src/config/valkey.js');
-const { destroyImage } = await import('../src/clients/cloudinary.client.js');
+const { destroyImage, getUploadedAsset } = await import('../src/clients/cloudinary.client.js');
 const { default: app } = await import('../src/app.js');
 const { runSeeders } = await import('../src/database/seeders/index.js');
 const { User } = await import('../src/models/index.js');
@@ -117,6 +120,14 @@ describe('avatar', () => {
     expect((await agent.patch('/api/account/avatar').send(upload(other._id, 'x'))).status).toBe(400);
     const receipt = { url: `https://res.cloudinary.com/test/image/upload/v1/kapekonek/receipts/${user._id}/r.jpg`, publicId: `kapekonek/receipts/${user._id}/r` };
     expect((await agent.patch('/api/account/avatar').send(receipt)).body.errors).toEqual({ avatar: 'Upload your photo again.' });
+    // Exactly 5 MB passes; one byte more is deleted and refused.
+    getUploadedAsset.mockResolvedValueOnce({ bytes: 5 * 1024 * 1024, format: 'png', resourceType: 'image', originalFilename: 'five' });
+    await agent.patch('/api/account/avatar').send(upload(user._id, 'five')).expect(200);
+    getUploadedAsset.mockResolvedValueOnce({ bytes: 5 * 1024 * 1024 + 1, format: 'png', resourceType: 'image', originalFilename: 'over' });
+    const over = await agent.patch('/api/account/avatar').send(upload(user._id, 'over'));
+    expect(over.status).toBe(422);
+    expect(over.body.code).toBe('FILE_TOO_LARGE');
+    expect(destroyImage).toHaveBeenLastCalledWith(upload(user._id, 'over').publicId);
   });
 });
 

@@ -1,16 +1,17 @@
 import axios from 'axios'
 import { api } from '@/api/axios'
+import { tooLargeLines } from '@/schemas/rules'
 
 /**
  * Signed direct upload to Cloudinary (the API signs, the browser uploads).
  * @param {File} file
- * @param {'avatar'|'receipt'} type
+ * @param {'avatar'|'receipt'} purpose
  * @param {(percent: number) => void} [onProgress]
  * @returns {Promise<{ url: string, publicId: string }>}
  */
-export async function uploadImage(file, type, onProgress) {
-  const sig = (await api.post('/uploads/signature', { type })).data.data
-  if (file.size > sig.maxBytes) throw new Error(`That file is over ${Math.round(sig.maxBytes / 1024 / 1024)} MB. Choose a smaller one.`)
+export async function uploadImage(file, purpose, onProgress) {
+  const sig = (await api.post('/uploads/signature', { purpose })).data.data
+  if (file.size > sig.maxBytes) throw new Error(tooLargeLines(sig.kind, file.name, file.size).join(' '))
   const form = new FormData()
   form.append('file', file)
   form.append('api_key', sig.apiKey)

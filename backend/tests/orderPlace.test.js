@@ -14,8 +14,13 @@ vi.mock('../src/clients/mapbox.client.js', () => ({
   forwardGeocode: vi.fn(async () => []),
 }));
 vi.mock('../src/queues/email.queue.js', () => ({ enqueueEmail: vi.fn(async () => {}) }));
+vi.mock('../src/clients/cloudinary.client.js', () => ({
+  getUploadedAsset: vi.fn(async () => ({ bytes: 180_000, format: 'jpg', resourceType: 'image', originalFilename: 'gcash-nov21' })),
+  destroyImage: vi.fn(async () => {}),
+}));
 
 const { enqueueEmail } = await import('../src/queues/email.queue.js');
+const { destroyImage, getUploadedAsset } = await import('../src/clients/cloudinary.client.js');
 const { default: app } = await import('../src/app.js');
 const { runSeeders } = await import('../src/database/seeders/index.js');
 const { Cart, Notification, Order, Product, User } = await import('../src/models/index.js');
@@ -98,6 +103,20 @@ describe('placing an order', () => {
     expect(stolen.body.errors).toHaveProperty('receipt');
     const outside = await place({ method: 'delivery', addressId, paymentMethod: 'e_wallet', provider: 'GCash', receipt: { url: 'https://res.cloudinary.com/test/image/upload/v1/kapekonek/avatars/x.jpg', publicId: 'kapekonek/avatars/x' } });
     expect(outside.status).toBe(400);
+
+    // The server re-checks what Cloudinary stored: too big or not an image → deleted and refused.
+    getUploadedAsset.mockResolvedValueOnce({ bytes: Math.round(7.2 * 1024 * 1024), format: 'png', resourceType: 'image', originalFilename: 'receipt' });
+    const big = await place({ method: 'delivery', addressId, paymentMethod: 'e_wallet', provider: 'GCash', receipt: receiptFor(buyerId, 'big') });
+    expect(big.status).toBe(422);
+    expect(big.body).toMatchObject({ code: 'FILE_TOO_LARGE', errors: { receipt: 'receipt.png is 7.2 MB. Images can be up to 5 MB.' } });
+    expect(destroyImage).toHaveBeenLastCalledWith(receiptFor(buyerId, 'big').publicId);
+    getUploadedAsset.mockResolvedValueOnce({ bytes: 90_000, format: 'pdf', resourceType: 'image', originalFilename: 'receipt' });
+    const pdf = await place({ method: 'delivery', addressId, paymentMethod: 'e_wallet', provider: 'GCash', receipt: receiptFor(buyerId, 'pdf') });
+    expect(pdf.status).toBe(422);
+    expect(pdf.body.code).toBe('FILE_TYPE_NOT_ALLOWED');
+    getUploadedAsset.mockResolvedValueOnce(null);
+    expect((await place({ method: 'delivery', addressId, paymentMethod: 'e_wallet', provider: 'GCash', receipt: receiptFor(buyerId, 'gone') })).status).toBe(400);
+    expect(await Order.countDocuments({ buyer: buyerId })).toBe(0);
 
     const res = await place({ method: 'delivery', addressId, paymentMethod: 'e_wallet', provider: 'GCash', receipt: receiptFor(buyerId) });
     expect(res.status).toBe(201);

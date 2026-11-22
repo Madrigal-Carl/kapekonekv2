@@ -5,18 +5,18 @@ import { useForm, useWatch } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
+import { FileDrop } from '@/components/ui/FileDrop'
 import { FieldHint, Input, Label } from '@/components/ui/Input'
 import { useChangeAvatar, useProfile, useRemoveAvatar, useUpdateProfile } from '@/hooks/useAccount'
 import { useUsernameStatus } from '@/hooks/useUsernameStatus'
 import { AccountHeading } from '@/layouts/AccountLayout'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
 import { cn } from '@/lib/cn'
+import { problemText } from '@/lib/fileCheck'
 import { formatPhone } from '@/lib/format'
 import { profileSchema } from '@/schemas/account.schema'
 import { imageUrl } from '@/lib/image'
 
-const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp']
-const PHOTO_MAX_BYTES = 2 * 1024 * 1024
 const FIELDS = ['firstName', 'middleName', 'lastName', 'username', 'contactNumber']
 
 const toForm = (user) => ({
@@ -36,13 +36,7 @@ function PhotoBand({ user }) {
   const [error, setError] = useState(null)
   const busy = change.isPending || remove.isPending
 
-  const choose = (event) => {
-    const file = event.target.files?.[0]
-    event.target.value = ''
-    if (!file) return
-    if (!PHOTO_TYPES.includes(file.type)) return setError('Choose a JPG, PNG or WebP image.')
-    if (file.size > PHOTO_MAX_BYTES) return setError('That photo is over 2 MB. Choose a smaller one.')
-    setError(null)
+  const choose = (file) => {
     setProgress(0)
     change.mutate(
       { file, onProgress: setProgress },
@@ -67,26 +61,20 @@ function PhotoBand({ user }) {
       <div>
         <p className="text-base font-semibold">Profile photo</p>
         <p id={`${id}-hint`} className="mt-0.5 text-[12.5px] text-ink-3">
-          Shows your initials until you upload one. JPG, PNG or WebP, up to 2 MB.
+          Shows your initials until you upload one. JPG, PNG or WebP, up to 5 MB.
         </p>
         <div className="mt-3 flex gap-2.5">
-          <label
-            className={cn(
-              'relative inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-control bg-roast px-3.5 py-[9px] text-[13px] font-medium text-white hover:bg-roast-hover focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-roast',
-              busy && 'pointer-events-none opacity-60',
-            )}
+          <FileDrop
+            kind="image"
+            onFile={choose}
+            onError={setError}
+            busy={busy}
+            describedBy={`${id}-hint ${id}-error`}
+            className="inline-flex min-h-10 items-center gap-2 rounded-control bg-roast px-3.5 py-[9px] text-[13px] font-medium text-white hover:bg-roast-hover"
           >
             <Camera aria-hidden="true" className="size-[15px]" strokeWidth={2} />
             <span aria-live="polite">{change.isPending ? `Uploading… ${progress}%` : 'Upload photo'}</span>
-            <input
-              type="file"
-              accept={PHOTO_TYPES.join(',')}
-              aria-describedby={`${id}-hint ${id}-error`}
-              disabled={busy}
-              onChange={choose}
-              className="absolute size-px opacity-0"
-            />
-          </label>
+          </FileDrop>
           <Button
             variant="outline"
             onClick={removePhoto}
@@ -97,7 +85,7 @@ function PhotoBand({ user }) {
             Remove
           </Button>
         </div>
-        <FieldHint id={`${id}-error`} error={error} />
+        <FieldHint id={`${id}-error`} error={problemText(error)} />
       </div>
     </div>
   )

@@ -78,3 +78,66 @@ export const cancelReasonRule = z
   .trim()
   .min(5, 'Tell us a little more (at least 5 characters)')
   .max(300, 'Use 300 characters or fewer');
+
+const MB = 1024 * 1024;
+
+/**
+ * Upload limits (PRODUCT-SPEC §9). Checked in the browser before uploading and again on the server
+ * from Cloudinary's stored `bytes` and `format`.
+ */
+export const UPLOAD_RULES = {
+  image: {
+    formats: ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'],
+    mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'],
+    maxBytes: 5 * MB,
+    noun: 'Images',
+    hint: 'JPG, PNG, WebP or HEIC · up to 5 MB',
+  },
+  file: {
+    formats: ['pdf', 'mp4', 'webm'],
+    mimeTypes: ['application/pdf', 'video/mp4', 'video/webm'],
+    maxBytes: 10 * MB,
+    noun: 'Files',
+    hint: 'PDF, MP4 or WebM · up to 10 MB',
+  },
+};
+
+/**
+ * Which rule an upload follows. Avatar and receipt are images; the seeder-only product/post media follow
+ * the rule of their resource type (`image` or anything else).
+ * @param {'avatar'|'receipt'|'product'|'post'} purpose
+ * @param {string} [resourceType] Cloudinary resource type, for product/post media
+ * @returns {'image'|'file'}
+ */
+export const kindForPurpose = (purpose, resourceType = 'image') =>
+  purpose === 'avatar' || purpose === 'receipt' || resourceType === 'image' ? 'image' : 'file';
+
+/** "7.2 MB" */
+export const formatMegabytes = (bytes) => `${(bytes / MB).toFixed(1)} MB`;
+
+/**
+ * The two lines of the "too large" message: `["receipt.png is 7.2 MB.", "Images can be up to 5 MB."]`.
+ * @param {'image'|'file'} kind
+ */
+export const tooLargeLines = (kind, name, bytes) => [
+  // A file just over the limit never reads as the limit ("5.0 MB … up to 5 MB").
+  `${name} is ${formatMegabytes(Math.max(bytes, UPLOAD_RULES[kind].maxBytes + 0.1 * MB))}.`,
+  `${UPLOAD_RULES[kind].noun} can be up to ${UPLOAD_RULES[kind].maxBytes / MB} MB.`,
+];
+
+/**
+ * A file to upload, described as `{ name, size, format }` (`format` = extension, e.g. `png`), so the browser
+ * (File) and the server (Cloudinary `bytes` / `format`) check the same thing.
+ * @param {'image'|'file'} kind
+ */
+export const uploadRule = (kind) =>
+  z
+    .object({ name: z.string(), size: z.number().nonnegative(), format: z.string() })
+    .superRefine(({ name, size, format }, ctx) => {
+      const rule = UPLOAD_RULES[kind];
+      if (!rule.formats.includes(format.toLowerCase())) {
+        ctx.addIssue({ code: 'custom', path: ['format'], message: `${name} isn't a supported type. Use ${rule.hint.split(' · ')[0]}.`, params: { code: 'FILE_TYPE_NOT_ALLOWED' } });
+      } else if (size > rule.maxBytes) {
+        ctx.addIssue({ code: 'custom', path: ['size'], message: tooLargeLines(kind, name, size).join(' '), params: { code: 'FILE_TOO_LARGE' } });
+      }
+    });

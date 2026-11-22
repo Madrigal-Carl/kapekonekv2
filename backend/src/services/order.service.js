@@ -17,7 +17,7 @@ import { quoteForAddress } from './deliveryQuote.service.js';
 import { notifyKaluppa, notifyUsers } from './notification.service.js';
 import { userCan } from './permission.service.js';
 import { getSetting } from './setting.service.js';
-import { isOwnUpload } from './upload.service.js';
+import { assertUploadAllowed, isOwnUpload } from './upload.service.js';
 
 const fieldError = (field, message) => new AppError(400, 'Please check the highlighted fields.', { errors: { [field]: message } });
 const notFound = () => new AppError(404, "We couldn't find that order.");
@@ -57,9 +57,10 @@ export const orderEmailData = (order, eta) => ({
 });
 
 /** E-wallet receipts must be the buyer's own Cloudinary upload. */
-function receiptFor(user, { paymentMethod, receipt }, now) {
+async function receiptFor(user, { paymentMethod, receipt }, now) {
   if (paymentMethod !== 'e_wallet') return {};
   if (!isOwnUpload(user, 'receipt', receipt)) throw fieldError('receipt', 'Upload your receipt again, then place the order.');
+  await assertUploadAllowed('receipt', receipt.publicId, 'receipt');
   return { receipt, submittedAt: now };
 }
 
@@ -113,7 +114,7 @@ async function createFromCart(user, body) {
   if (blocked.length) {
     throw new AppError(409, `Some items can't be ordered right now: ${blocked.map((l) => l.product.name).join(', ')}. Update your cart and try again.`);
   }
-  const payment = { method: body.paymentMethod, provider: body.provider ?? null, ...receiptFor(user, body, now) };
+  const payment = { method: body.paymentMethod, provider: body.provider ?? null, ...(await receiptFor(user, body, now)) };
   const { feeCentavos, fulfillment } = body.method === 'delivery' ? await deliveryFor(user, body.addressId) : await pickupFor(user, body.contactPhone);
 
   const order = await createOrder({
