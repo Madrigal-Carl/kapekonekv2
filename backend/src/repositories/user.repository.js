@@ -44,6 +44,19 @@ export const touchLastLogin = (userId) => User.updateOne({ _id: userId }, { last
  * Set a new password and bump tokenVersion, which signs out every refresh token.
  * @returns {Promise<import('mongoose').Document | null>}
  */
+/**
+ * Set the first password of an account flagged `mustChangePassword`, clear the flag and end other sessions.
+ * @returns {Promise<object|null>} null when the account isn't flagged
+ */
+export async function setFirstPassword(userId, password) {
+  const user = await User.findOne({ _id: userId, mustChangePassword: true });
+  if (!user) return null;
+  user.password = password;
+  user.mustChangePassword = false;
+  user.tokenVersion += 1;
+  return user.save();
+}
+
 export async function replacePassword(userId, password) {
   const user = await User.findById(userId);
   if (!user) return null;

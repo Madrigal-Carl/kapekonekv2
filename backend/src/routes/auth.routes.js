@@ -4,6 +4,7 @@ import { authenticate, guestOnly } from '../middlewares/auth.middleware.js';
 import { rateLimit } from '../middlewares/rateLimit.middleware.js';
 import { validate } from '../middlewares/validate.js';
 import {
+  firstPasswordSchema,
   forgotPasswordSchema,
   loginSchema,
   registerSchema,
@@ -37,6 +38,7 @@ router.post('/login', guestOnly, loginLimit, validate({ body: loginSchema }), au
 router.post('/refresh', auth.refresh);
 router.post('/logout', authenticate, auth.logout);
 router.get('/me', authenticate, auth.me);
+router.patch('/password/first', authenticate, validate({ body: firstPasswordSchema }), auth.firstPassword);
 
 router.get('/username-availability', usernameLimit, validate({ query: usernameQuerySchema }), auth.usernameAvailability);
 router.get('/username-suggestions', usernameLimit, validate({ query: suggestionsQuerySchema }), auth.usernameSuggestions);

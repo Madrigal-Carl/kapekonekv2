@@ -132,9 +132,9 @@ describe('removing your review', () => {
     expect((await buyer.delete(`/api/reviews/${mine._id}`)).status).toBe(404);
   });
 
-  it('keeps farmers out until the farmer shop ships', async () => {
-    const farmer = await signedIn('kapekonek.farmer.approved@gmail.com');
-    expect((await farmer.post(reviewsUrl()).send({ rating: 5, comment: 'Great coffee indeed.' })).status).toBe(403);
-    expect((await farmer.delete('/api/reviews/5f0000000000000000000000')).status).toBe(403);
+  it('keeps out roles without review permissions (Group Managers)', async () => {
+    const manager = await signedIn('kapekonek.manager.santacruz@gmail.com');
+    expect((await manager.post(reviewsUrl()).send({ rating: 5, comment: 'Great coffee indeed.' })).status).toBe(403);
+    expect((await manager.delete('/api/reviews/5f0000000000000000000000')).status).toBe(403);
   });
 });

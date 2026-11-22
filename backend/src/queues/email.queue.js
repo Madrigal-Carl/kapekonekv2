@@ -24,6 +24,7 @@ const getQueue = () =>
  */
 export async function enqueueEmail(job, data) {
   if (!JOB_NAMES.has(job)) throw new Error(`Unknown email job: ${job}`);
+  if (!data.to) return; // accounts a Group Manager created may have no email
   await getQueue().add(job, data);
 }
 

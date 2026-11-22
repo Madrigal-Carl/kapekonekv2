@@ -30,23 +30,23 @@ const ROLES = [
   { value: 'farmer', title: 'Sell as a farmer', description: 'Record your farms and sell beans to Kaluppa. Verify your email to start.' },
 ]
 
-const FIELDS = ['firstName', 'middleName', 'lastName', 'username', 'email', 'password', 'role']
+const FIELDS = ['firstName', 'middleName', 'lastName', 'username', 'email', 'contactNumber', 'password', 'role']
 
 export function Register() {
   const signup = useRegister()
   const [showPasswords, setShowPasswords] = useState(false)
   const { register, control, handleSubmit, setValue, setError, formState: { errors } } = useForm({
     resolver: zodResolver(registerSchema),
-    defaultValues: { role: 'buyer', firstName: '', middleName: '', lastName: '', username: '', email: '', password: '', confirmPassword: '' },
+    defaultValues: { role: 'buyer', firstName: '', middleName: '', lastName: '', username: '', email: '', contactNumber: '', password: '', confirmPassword: '' },
   })
   const [role, firstName, lastName, username, password] = useWatch({ control, name: ['role', 'firstName', 'lastName', 'username', 'password'] })
   const status = useUsernameStatus(username, errors.username?.message)
   const suggestions = useUsernameSuggestions(useDebouncedValue(firstName.trim(), 500), useDebouncedValue(lastName.trim(), 500))
 
   // GuestRoute sends buyers to verify their email and farmers to their dashboard once the session is set.
-  // The API's schema drops confirmPassword.
-  const onSubmit = (values) =>
-    signup.mutate(values, { onError: (error) => applyServerErrors(error, setError, FIELDS) })
+  // The API's schema drops confirmPassword; only farmers send a contact number.
+  const onSubmit = ({ contactNumber, ...values }) =>
+    signup.mutate(values.role === 'farmer' ? { ...values, contactNumber } : values, { onError: (error) => applyServerErrors(error, setError, FIELDS) })
   const formError = signup.isError && !Object.keys(signup.error.response?.data?.errors ?? {}).length ? errorMessage(signup.error) : null
 
   return (
@@ -134,6 +134,14 @@ export function Register() {
           <Input id="email" type="email" autoComplete="email" placeholder="you@example.com" className="mt-2" invalid={Boolean(errors.email)} aria-describedby="email-error" {...register('email')} />
           <FieldHint id="email-error" error={errors.email?.message} />
         </div>
+
+        {role === 'farmer' && (
+          <div>
+            <Label htmlFor="contactNumber">Contact number</Label>
+            <Input id="contactNumber" type="tel" inputMode="tel" autoComplete="tel" placeholder="09XX XXX XXXX" className="mt-2" invalid={Boolean(errors.contactNumber)} aria-describedby="contactNumber-error" {...register('contactNumber')} />
+            <FieldHint id="contactNumber-error" error={errors.contactNumber?.message} />
+          </div>
+        )}
 
         <div>
           <Label htmlFor="password">Password</Label>

@@ -31,6 +31,12 @@ export const logout = (_req, res) => {
   sendSuccess(res, { message: 'Signed out.' });
 };
 
+export const firstPassword = asyncHandler(async (req, res) => {
+  const { user, session } = await authService.setFirstPasswordFor(req.user, req.body);
+  setAuthCookies(res, user, { remember: false });
+  sendSuccess(res, { message: 'Password set.', data: session });
+});
+
 export const me = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: await authService.buildSession(req.user) });
 });

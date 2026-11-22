@@ -9,7 +9,8 @@ const userSchema = new mongoose.Schema(
     middleName: { type: String, trim: true, default: null },
     lastName: { type: String, required: true, trim: true },
     username: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    // Optional only for farmers a Group Manager creates (they sign in by username); the services require it otherwise.
+    email: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
     password: { type: String, required: true, select: false },
     emailVerifiedAt: { type: Date, default: null },
     roles: { type: [String], default: [] }, // role slugs
@@ -19,6 +20,8 @@ const userSchema = new mongoose.Schema(
     tokenVersion: { type: Number, default: 0 },
     status: { type: String, enum: ['active', 'suspended'], default: 'active' },
     lastLoginAt: { type: Date, default: null },
+    mustChangePassword: { type: Boolean, default: false }, // first sign-in goes to "Set a new password"
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     isSeed: { type: Boolean, default: false }, // the mail worker skips these unless SEED_EMAIL_BASE is set
   },
   { timestamps: true },

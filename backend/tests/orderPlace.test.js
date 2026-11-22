@@ -187,8 +187,8 @@ describe('placing an order', () => {
   });
 
   it('needs orders.create and a verified email', async () => {
-    const farmer = await signedIn('kapekonek.farmer.approved@gmail.com');
-    expect((await place({ method: 'pickup', paymentMethod: 'cash' }, farmer)).status).toBe(403);
+    const manager = await signedIn('kapekonek.manager.santacruz@gmail.com');
+    expect((await place({ method: 'pickup', paymentMethod: 'cash' }, manager)).status).toBe(403);
     const unverified = await signedIn('kapekonek.buyer.unverified@gmail.com');
     expect((await place({ method: 'pickup', paymentMethod: 'cash' }, unverified)).body.code).toBe('EMAIL_NOT_VERIFIED');
   });

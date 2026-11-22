@@ -54,14 +54,14 @@ beforeEach(async () => {
 });
 
 describe('guards', () => {
-  it('guests get 401 and unverified buyers 403 EMAIL_NOT_VERIFIED; unverified farmers may act', async () => {
+  it('guests get 401 and unverified buyers 403 EMAIL_NOT_VERIFIED; unverified farmers too (Phase 2)', async () => {
     expect((await request(app).get('/api/account/profile')).status).toBe(401);
     const pedro = await signedIn('buyer.unverified');
     const res = await pedro.patch('/api/account/profile').send({ firstName: 'Pedro', lastName: 'Lopez', username: 'buyer.unverified' });
     expect(res.status).toBe(403);
     expect(res.body.code).toBe('EMAIL_NOT_VERIFIED');
     const nora = await signedIn('farmer.unverified');
-    expect((await nora.get('/api/account/profile')).status).toBe(200);
+    expect((await nora.get('/api/account/profile')).body.code).toBe('EMAIL_NOT_VERIFIED');
   });
 });
 

@@ -29,6 +29,13 @@ describe('email queue', () => {
     expect(queueOptions.defaultJobOptions).toMatchObject({ attempts: 3, backoff: { type: 'exponential' } });
   });
 
+  it('queues nothing for an account without an email (Group Manager-created farmers)', async () => {
+    added.length = 0;
+    await enqueueEmail(EMAIL_JOBS.TEST, { to: null, name: 'Nora' });
+    await enqueueEmail(EMAIL_JOBS.TEST, { name: 'Nora' });
+    expect(added).toEqual([]);
+  });
+
   it('refuses unknown job names when queueing', async () => {
     await expect(enqueueEmail('nope', {})).rejects.toThrow(/Unknown email job/);
   });

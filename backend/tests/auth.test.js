@@ -66,6 +66,16 @@ describe('register', () => {
     expect(Object.keys(res.body.errors).sort()).toEqual(['password', 'role', 'username']);
   });
 
+  it('needs a contact number from a farmer, and saves it', async () => {
+    const farmer = { ...juana, username: 'pedrofarm', email: 'pedro@example.com', role: 'farmer' };
+    const missing = await request(app).post('/api/auth/register').send(farmer);
+    expect(missing.status).toBe(400);
+    expect(Object.keys(missing.body.errors)).toEqual(['contactNumber']);
+    const res = await request(app).post('/api/auth/register').send({ ...farmer, contactNumber: '0917 555 0199' });
+    expect(res.status).toBe(201);
+    expect(res.body.data.user.contactNumber).toBe('09175550199');
+  });
+
   it('refuses someone already signed in', async () => {
     const agent = request.agent(app);
     await agent.post('/api/auth/login').send({ identifier: 'kapekonek.buyer@gmail.com', password: 'KapeKonek@123' });
@@ -114,6 +124,28 @@ describe('session', () => {
 
     expect((await agent.post('/api/auth/logout')).status).toBe(200);
     expect((await agent.get('/api/auth/me')).status).toBe(401);
+  });
+
+  it('sets a first password once, then signs out other sessions', async () => {
+    await User.create({
+      firstName: 'Nora', lastName: 'Nomail', username: 'nora.nomail', password: 'Temp@1234', roles: ['farmer'],
+      emailVerifiedAt: new Date(), mustChangePassword: true,
+    });
+    const agent = request.agent(app);
+    await agent.post('/api/auth/login').send({ identifier: 'nora.nomail', password: 'Temp@1234' });
+    const other = await request(app).post('/api/auth/login').send({ identifier: 'nora.nomail', password: 'Temp@1234' });
+    expect((await agent.get('/api/auth/me')).body.data.user).toMatchObject({ mustChangePassword: true, email: null });
+
+    expect((await agent.patch('/api/auth/password/first').send({ newPassword: 'short' })).status).toBe(400);
+    const res = await agent.patch('/api/auth/password/first').send({ newPassword: 'Fresh@Pass1' });
+    expect(res.status).toBe(200);
+    expect(res.body.data.user.mustChangePassword).toBe(false);
+    expect((await agent.get('/api/auth/me')).status).toBe(200); // this session got new cookies
+    const otherRefresh = await request(app).post('/api/auth/refresh').set('Cookie', cookie(other, 'refreshToken'));
+    expect(otherRefresh.status).toBe(401);
+
+    expect((await agent.patch('/api/auth/password/first').send({ newPassword: 'Again@Pass1' })).status).toBe(409);
+    expect((await request(app).post('/api/auth/login').send({ identifier: 'nora.nomail', password: 'Fresh@Pass1' })).status).toBe(200);
   });
 
   it('refresh without a cookie is 401', async () => {

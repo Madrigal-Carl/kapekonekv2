@@ -15,6 +15,7 @@ import {
   findUserById,
   markEmailVerified,
   replacePassword,
+  setFirstPassword,
   touchLastLogin,
 } from '../repositories/user.repository.js';
 import { AppError } from '../utils/AppError.js';
@@ -35,11 +36,12 @@ export const publicUser = (user) => ({
   fullName: user.fullName,
   initials: user.initials,
   username: user.username,
-  email: user.email,
+  email: user.email ?? null,
   emailVerifiedAt: user.emailVerifiedAt ?? null,
   contactNumber: user.contactNumber ?? null,
   avatar: user.avatar?.url ? { url: user.avatar.url } : null,
   roles: user.roles,
+  mustChangePassword: Boolean(user.mustChangePassword),
   createdAt: user.createdAt,
 });
 
@@ -162,6 +164,16 @@ export async function resetPassword({ token, password }) {
   if (!user) {
     throw new AppError(400, 'This reset link has expired or was already used.', { errors: { token: 'Link expired or used' } });
   }
+}
+
+/**
+ * First sign-in of an account a Group Manager created: replace the temporary password. Other sessions end.
+ * @throws {AppError} 409 when the account has no temporary password to replace
+ */
+export async function setFirstPasswordFor(user, { newPassword }) {
+  const updated = await setFirstPassword(user._id, newPassword);
+  if (!updated) throw new AppError(409, 'Your password is already set. Change it from Account settings.');
+  return { user: updated, session: await buildSession(updated) };
 }
 
 /** @param {{ username: string }} query */

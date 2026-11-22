@@ -74,8 +74,43 @@ describe('verified', () => {
     expect(res.body.code).toBe('EMAIL_NOT_VERIFIED');
   });
 
-  it('lets an unverified farmer through', async () => {
-    expect((await request(app).get('/dashboard').set('Cookie', as(await user('farmer.unverified')))).status).toBe(200);
+  it('blocks an unverified farmer too (Phase 2)', async () => {
+    const res = await request(app).get('/dashboard').set('Cookie', as(await user('farmer.unverified')));
+    expect(res.status).toBe(403);
+    expect(res.body.code).toBe('EMAIL_NOT_VERIFIED');
+  });
+
+  it('lets an unverified Group Manager through', async () => {
+    const gm = await user('manager.santacruz');
+    await User.updateOne({ _id: gm._id }, { emailVerifiedAt: null });
+    expect((await request(app).get('/dashboard').set('Cookie', as(gm))).status).toBe(200);
+    await User.updateOne({ _id: gm._id }, { emailVerifiedAt: new Date() });
+  });
+});
+
+describe('role matrix (PHASE-2-SPEC §2)', () => {
+  const all = ['dashboard.view', 'inbox.use', 'posts.create', 'posts.react', 'posts.comment', 'map.view', 'notifications.view', 'profile.update'];
+  const shop = ['catalog.farm_supplies', 'cart.manage', 'addresses.manage', 'orders.create', 'orders.view_own', 'orders.cancel_own', 'reviews.create', 'reviews.update_own', 'reviews.delete_own'];
+  const records = ['farms.manage', 'trees.manage', 'harvests.manage'];
+  const expected = {
+    farmer: [...all, 'association.request', ...records, 'beans.sell', ...shop],
+    group_manager: [...all, 'farmers.manage', 'farmers.approve', ...records, 'beans.sell', 'reports.view'],
+    kaluppa: [
+      ...all, 'farmers.manage', 'farmers.approve', 'group_managers.manage', 'associations.manage', ...records, 'records.view_all',
+      'beans.review', ...shop, 'catalog.coffee', 'orders.manage', 'inventory.manage', 'reviews.moderate', 'settings.manage',
+      'posts.moderate', 'audit.view', 'reports.view',
+    ],
+  };
+
+  it.each(Object.keys(expected))('%s holds exactly its permissions', async (slug) => {
+    const role = await Role.findOne({ slug }).lean();
+    expect([...role.permissions].sort()).toEqual([...new Set(expected[slug])].sort());
+  });
+
+  it('buyers keep their Phase 1 permissions', async () => {
+    const role = await Role.findOne({ slug: 'buyer' }).lean();
+    expect(role.permissions).toEqual(expect.arrayContaining(['catalog.coffee', 'cart.manage', 'orders.create']));
+    expect(role.permissions).not.toContain('dashboard.view');
   });
 });
 

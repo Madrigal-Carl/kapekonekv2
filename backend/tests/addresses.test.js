@@ -45,10 +45,12 @@ afterAll(stopMemoryDb);
 beforeEach(() => Address.deleteMany({}));
 
 describe('addresses', () => {
-  it('needs a verified buyer with addresses.manage', async () => {
+  it('needs a signed-in user with addresses.manage (buyers and farmers)', async () => {
     expect((await request(app).get('/api/addresses')).status).toBe(401);
+    const manager = await signedIn('kapekonek.manager.santacruz@gmail.com');
+    expect((await manager.get('/api/addresses')).status).toBe(403);
     const farmer = await signedIn('kapekonek.farmer.approved@gmail.com');
-    expect((await farmer.get('/api/addresses')).status).toBe(403);
+    expect((await farmer.get('/api/addresses')).status).toBe(200);
   });
 
   it('makes the first address the default, derives the postal code and lists the quote', async () => {

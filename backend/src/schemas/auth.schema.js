@@ -1,16 +1,21 @@
 import { z } from 'zod';
 import { SIGNUP_ROLES } from '../constants/permissions.js';
-import { emailRule, nameRule, optionalNameRule, passwordRule, usernameRule } from './rules.js';
+import { emailRule, nameRule, optionalNameRule, passwordRule, phoneRule, usernameRule } from './rules.js';
 
-export const registerSchema = z.object({
-  firstName: nameRule,
-  middleName: optionalNameRule,
-  lastName: nameRule,
-  username: usernameRule,
-  email: emailRule,
-  password: passwordRule,
-  role: z.enum(SIGNUP_ROLES, 'Choose how you want to use KapeKonek'),
-});
+export const registerSchema = z
+  .object({
+    firstName: nameRule,
+    middleName: optionalNameRule,
+    lastName: nameRule,
+    username: usernameRule,
+    email: emailRule,
+    password: passwordRule,
+    role: z.enum(SIGNUP_ROLES, 'Choose how you want to use KapeKonek'),
+    contactNumber: phoneRule.optional(),
+  })
+  .refine((v) => v.role !== 'farmer' || v.contactNumber, { path: ['contactNumber'], message: 'Farmers need a contact number' });
+
+export const firstPasswordSchema = z.object({ newPassword: passwordRule });
 
 export const loginSchema = z.object({
   identifier: z.string().trim().toLowerCase().min(1, 'Enter your email or username'),
