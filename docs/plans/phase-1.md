@@ -317,3 +317,11 @@ frontend/e2e/    Playwright specs + helpers (latestMailLink, api login)
 - Root workspace, scripts, `.gitignore`, both scaffolds, Tailwind v4 without a config file, `@` alias, Poppins 400–700, `vercel.json`, both `.env.example` files: all match Tasks 0.1–0.2.
 - Boot check: `npm run dev` starts both apps; `/api/health` → 200 `ok` once Valkey connects (503 `degraded` for the first second); the browser reports `Poppins` and `--color-roast` `#7B4A2A`.
 - Fixed: a stale `index.css` comment still said "eyebrow bars" (removed in Change 02).
+
+### M1 — checked 2026-11-23
+- Every test the plan names exists and passes. Added: `env` refuses JWT secrets under 32 characters and `CRON_SECRET` under 16 (q13 had no test).
+
+### M2 — checked 2026-11-23
+- Seed handles, `KapeKonek@123`, `seedEmail` both ways, guards, cache, rules table (identical on both sides), auth endpoints, `safeRedirect`, axios single refresh, `SearchSelect`, `ConfirmDialog`, page copy: all match. Playwright auth 8/8 after `migrate:fresh -- --seed`.
+- Added: the roles seeder clears every cached permission set (it did, untested).
+- Fixed: the expiry sweep failed at every boot ("Stream isn't writeable…") because it runs before the cache connection is ready, and that connection has no offline queue. `whenReady` moved from `permission.service` to `utils/lock.js`, and `withLock` waits for it, so the checkout lock is covered too.

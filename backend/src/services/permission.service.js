@@ -1,6 +1,7 @@
 import { getValkey } from '../config/valkey.js';
 import { ROLES } from '../constants/permissions.js';
 import { findPermissionSlugsForRoles } from '../repositories/role.repository.js';
+import { whenReady } from '../utils/lock.js';
 
 const TTL_SECONDS = 600;
 const key = (userId) => `perm:user:${userId}`;
@@ -26,23 +27,6 @@ export async function resolvePermissions(user) {
 
 /** Call after a user's roles or direct permissions change. */
 export const clearPermissionCache = (userId) => getValkey().del(key(userId));
-
-/**
- * Wait (up to 5 s) for the cache connection. It has no offline queue, so the seeder (a short-lived script) would
- * otherwise send its first command while still connecting and fail.
- */
-async function whenReady(client, ms = 5000) {
-  if (!client.status || client.status === 'ready') return; // ioredis-mock has no status
-  await new Promise((resolve) => {
-    const timer = setTimeout(done, ms);
-    function done() {
-      clearTimeout(timer);
-      client.off('ready', done);
-      resolve();
-    }
-    client.once('ready', done);
-  });
-}
 
 /** Call after the role/permission seeder runs. */
 export async function clearAllPermissionCaches() {
