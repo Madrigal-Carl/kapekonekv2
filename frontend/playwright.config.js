@@ -8,6 +8,7 @@ const WEB_PORT = 5174
 export default defineConfig({
   testDir: 'e2e',
   timeout: 60_000,
+  expect: { timeout: 10_000 }, // the dev database is on Atlas (Singapore): a write can take a few seconds
   workers: 1,
   reporter: [['list']],
   use: { baseURL: `http://localhost:${WEB_PORT}`, trace: 'retain-on-failure' },

@@ -2,8 +2,8 @@ import { expect, test } from '@playwright/test'
 
 // M10 flows (PHASE-2-SPEC §3.5): needs a fresh `npm run migrate:fresh -- --seed` (beans seeder: farmer.pending at 3 of 5 kg;
 // pending listings from Joy, Rodel and Felix; approved ones from Rodel, expiring within a day, and Nestor).
-// Creating a listing needs Mongo transactions (a replica set), so these flows stop at the Send button; the API tests
-// cover creation. Approve, reject, complete and cancel run without transactions.
+// Creating and editing a listing use Mongo transactions, so the database must be a replica set (Atlas is).
+const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMB/axh0n0AAAAASUVORK5CYII=', 'base64')
 
 async function signIn(page, identifier, password = 'KapeKonek@123') {
   await page.goto('/login')
@@ -41,6 +41,35 @@ test('unapproved farmer sees 3 of 5 kg used, and Send stays off above the 2 kg l
   await page.screenshot({ path: 'test-results/beans/farmer-sell-1440.png' })
 })
 
+// Dario (unapproved, nothing listed yet) so Joy's seeded 3 of 5 kg stays as the other tests expect.
+test('unapproved farmer lists 1.5 kg with a photo, then edits it to 2 kg', async ({ page }) => {
+  await signIn(page, 'dario.lopez')
+  await page.goto('/dashboard/beans')
+  await page.getByRole('button', { name: 'Sell beans' }).click()
+  const drawer = page.getByRole('dialog', { name: 'List beans for Kaluppa' })
+  await pick(page, drawer, /^Variety/, 'Excelsa')
+  await pick(page, drawer, /^Form/, 'Parchment')
+  await drawer.getByLabel('Weight (kg)').fill('1.5')
+  await drawer.getByLabel('Your price per kg (₱)').fill('240')
+  await drawer.locator('input[type="file"]').setInputFiles({ name: 'beans.png', mimeType: 'image/png', buffer: PNG })
+  await expect(drawer.getByRole('img', { name: 'Photo 1' })).toBeVisible({ timeout: 20_000 })
+  await page.getByRole('button', { name: 'Send to Kaluppa' }).click()
+  await expect(page.getByText('Listing sent. Kaluppa will review it soon.')).toBeVisible()
+
+  const row = page.getByRole('row', { name: /Excelsa Parchment 1\.5 kg/ })
+  await expect(row).toContainText('Waiting for review')
+  await expect(page.getByRole('region', { name: 'Selling limit' })).toContainText('3.5 kg left')
+  await row.getByRole('button', { name: /^Edit BN-/ }).click()
+  const edit = page.getByRole('dialog', { name: /^Edit BN-\d{4}-\d{4}$/ })
+  await expect(edit.getByLabel('Weight (kg)')).toHaveValue('1.5')
+  await expect(edit.getByText('You can list up to 5 kg more until you’re approved.')).toBeVisible() // its own 1.5 kg counts back
+  await edit.getByLabel('Weight (kg)').fill('2')
+  await page.getByRole('button', { name: 'Save changes' }).click()
+  await expect(page.getByText('Listing updated.')).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Selling limit' })).toContainText('3 kg left')
+  await expect(page.getByRole('row', { name: /Excelsa Parchment 2 kg/ })).toBeVisible()
+})
+
 test('approved farmer sees the deadline, the branch hours and phone on an approved listing', async ({ page }) => {
   await signIn(page, 'farmer.approved')
   await page.goto('/dashboard/beans?status=approved')
@@ -70,7 +99,9 @@ test('Kaluppa approves, completes, rejects with a reason and cancels a sale', as
   await signIn(page, 'kaluppa')
   await page.goto('/dashboard/beans')
   await expect(page.getByRole('heading', { name: 'Beans from farmers' })).toBeVisible()
-  await expect(page.getByRole('list', { name: 'Bean summary' })).toContainText('To review3')
+  // The To review tile counts what the default To review list shows.
+  const shown = (await page.getByText(/^Showing 1–\d+ of \d+$/).textContent()).match(/of (\d+)/)[1]
+  await expect(page.getByRole('list', { name: 'Bean summary' })).toContainText(`To review${shown}`)
   await page.screenshot({ path: 'test-results/beans/kaluppa-list-1440.png', fullPage: true })
 
   // Approve Rodel's 30 kg, then complete it with the weight from the branch.
@@ -98,7 +129,7 @@ test('Kaluppa approves, completes, rejects with a reason and cancels a sale', as
 
   // Reject Joy's listing: the reason needs 5 or more characters.
   await page.goto('/dashboard/beans?q=Joy')
-  await page.getByRole('row', { name: /Joy Lacsamana/ }).getByRole('button', { name: /^Review BN-/ }).click()
+  await page.getByRole('row', { name: /Joy Lacsamana.*Liberica/ }).getByRole('button', { name: /^Review BN-/ }).click()
   drawer = page.getByRole('dialog', { name: '2 kg Liberica, dried cherry' })
   await expect(drawer.getByText('Within 5 kg limit')).toBeVisible()
   await drawer.getByRole('button', { name: 'Reject' }).click()
