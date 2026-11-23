@@ -166,3 +166,14 @@ export const farmSizeRule = z
   .min(0.01, 'Enter at least 0.01 hectares')
   .max(500, 'Enter 500 hectares or less');
 export const farmStreetRule = z.string().trim().max(200, 'Use 200 characters or fewer');
+
+/** Manila "YYYY-MM-DD" for today (the server runs in UTC; date inputs send local calendar days). */
+export const todayKey = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila' }).format(new Date());
+export const pastDateRule = z.iso.date('Pick a date').refine((day) => day <= todayKey(), 'Pick today or an earlier date');
+export const treeCountRule = z.number('Enter the number of trees').int('Use a whole number').min(1, 'Enter at least 1 tree').max(100_000, 'Enter 100,000 trees or fewer');
+export const yieldRule = z
+  .number('Enter the yield in kg')
+  .min(0.5, 'Enter at least 0.5 kg')
+  .max(100_000, 'Enter 100,000 kg or less')
+  .refine((kg) => Number.isInteger(kg * 2), 'Use steps of 0.5 kg');
+export const recordNoteRule = z.string().trim().max(500, 'Use 500 characters or fewer');

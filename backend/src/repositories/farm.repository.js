@@ -50,3 +50,10 @@ export const setOwnerAssociation = (ownerId, associationId) =>
 
 /** Kaluppa farms count toward the association of the Group Manager that manages them. */
 export const setManagedAssociation = (managerId, associationId) => Farm.updateMany({ managedBy: managerId }, { association: associationId });
+
+/** Ids of the farms in a scope, archived ones included (their harvests stay visible). null scope = every farm. */
+export const findFarmIdsInScope = (scope, q) =>
+  Farm.find({ ...scopeFilter(scope), ...(q && { $or: [{ propertyNumber: q }, { lotNumber: q }] }) }).distinct('_id');
+
+/** Ids of the Kaluppa farms a Group Manager manages. */
+export const findManagedFarmIds = (managerId) => Farm.find({ managedBy: managerId }).distinct('_id');

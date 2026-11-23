@@ -1,7 +1,7 @@
 // The same table runs in backend/tests/rules.test.js — keep them identical.
 import { describe, expect, it } from 'vitest';
 import {
-  associationDescriptionRule, associationNameRule, cancelReasonRule, farmSizeRule, lotNumberRule, customLabelRule, kindForFormat, passwordRule, phoneRule, quantityRule, ratingRule, recipientNameRule, reviewCommentRule, streetRule, uploadRule, usernameRule,
+  associationDescriptionRule, associationNameRule, cancelReasonRule, farmSizeRule, lotNumberRule, pastDateRule, todayKey, treeCountRule, yieldRule, customLabelRule, kindForFormat, passwordRule, phoneRule, quantityRule, ratingRule, recipientNameRule, reviewCommentRule, streetRule, uploadRule, usernameRule,
 } from './rules.js';
 
 const ok = (rule, value) => rule.safeParse(value).success;
@@ -104,4 +104,31 @@ describe('record rules (PHASE-2-SPEC §7)', () => {
     [500.5, false],
     ['1.2', false],
   ])('farm size %s → %s', (value, expected) => expect(ok(farmSizeRule, value)).toBe(expected));
+});
+
+describe('tree and harvest rules (PHASE-2-SPEC §7)', () => {
+  it.each([
+    [1, true],
+    [100_000, true],
+    [0, false],
+    [100_001, false],
+    [2.5, false],
+  ])('tree count %s → %s', (value, expected) => expect(ok(treeCountRule, value)).toBe(expected));
+
+  it.each([
+    [0.5, true],
+    [112.5, true],
+    [100_000, true],
+    [1.25, false],
+    [0, false],
+    [100_000.5, false],
+  ])('yield %s → %s', (value, expected) => expect(ok(yieldRule, value)).toBe(expected));
+
+  it('dates can’t be in the future', () => {
+    const tomorrow = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila' }).format(new Date(Date.now() + 2 * 86_400_000));
+    expect(ok(pastDateRule, todayKey())).toBe(true);
+    expect(ok(pastDateRule, '2022-03-15')).toBe(true);
+    expect(ok(pastDateRule, tomorrow)).toBe(false);
+    expect(ok(pastDateRule, '15/03/2022')).toBe(false);
+  });
 });
