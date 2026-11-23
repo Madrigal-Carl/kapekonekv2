@@ -183,7 +183,7 @@ describe('catalog, settings, posts and demo seeders', () => {
 
     await runSeeders({ log });
     expect(await allCounts()).toEqual(first);
-  });
+  }, 60_000); // every seeder, twice, on a shared mongod while other files run
 
   it('--only=settings touches settings only', async () => {
     await Product.deleteOne({ slug: 'robusta-ground' });

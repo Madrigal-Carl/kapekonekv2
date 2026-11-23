@@ -1,15 +1,22 @@
-import { BEAN_CAP_KG, BEAN_STATUS_GROUPS } from '../constants/beans.js';
+import { env } from '../config/env.js';
+import { BEAN_CAP_KG, BEAN_FORMS, BEAN_STATUS_GROUPS } from '../constants/beans.js';
 import { VARIETIES } from '../constants/catalog.js';
+import { EMAIL_JOBS } from '../queues/email.jobs.js';
+import { enqueueEmail } from '../queues/email.queue.js';
+import { findAssociationById } from '../repositories/association.repository.js';
 import * as repo from '../repositories/bean.repository.js';
 import { nextSequence } from '../repositories/counter.repository.js';
 import { findProfileScope, lockForBeanCap } from '../repositories/farmerProfile.repository.js';
 import { inTransaction } from '../repositories/transaction.js';
-import { findUserIdsByName } from '../repositories/user.repository.js';
+import { findRecipient, findUserIdsByName } from '../repositories/user.repository.js';
+import { realtime } from '../sockets/realtime.js';
 import { AppError } from '../utils/AppError.js';
 import { containsPattern } from '../utils/escapeRegex.js';
 import { manilaDateKey } from '../utils/manilaDate.js';
 import { record } from './audit.service.js';
+import { notifyKaluppa, notifyUsers } from './notification.service.js';
 import { isAssociationManager, isGroupManager, isOwner, seesEveryAssociation } from './policy.service.js';
+import { branchAddress, formatHours, getSetting } from './setting.service.js';
 import { assertUploadAllowed, isOwnUpload } from './upload.service.js';
 
 const AUDITED = ['farmer', 'variety', 'form', 'weightKg', 'pricePerKgCentavos', 'note'];
@@ -173,4 +180,127 @@ export async function updateListing(actor, id, { farmerId: _ignored, photos, ...
   const after = await repo.findListingById(id);
   await record({ actor, area: 'beans', action: 'update', entity: entity(after), before: auditView(before), after: auditView(after), fields: AUDITED });
   return toDto(after, actor);
+}
+
+// ── Review (Kaluppa), cancel, expiry ─────────────────────────────────────────────────────────────────────────────
+
+const DAY = 86_400_000;
+const decided = () => new AppError(409, 'This listing was already decided.');
+const summaryOf = (l) => `${l.weightKg} kg ${label(l.variety)}, ${BEAN_FORMS[l.form].toLowerCase()}`;
+const step = (actor, action, at, note) => ({ action, at, by: actor?._id ?? null, byRole: actor ? roleOf(actor) : 'system', ...(note && { note }) });
+
+/**
+ * Tell everyone a listing changed (PHASE-2-SPEC §6): in-app to the farmer and their Group Manager (not whoever acted),
+ * `bean:updated` to both, an email to the farmer (skipped when they have none), and in-app to Kaluppa when `toKaluppa`.
+ */
+async function tell(listing, { actor, title, body = '', email = true, toKaluppa = false, emailData = {} }) {
+  const farmerId = idOf(listing.farmer);
+  const association = listing.association ? await findAssociationById(idOf(listing.association)) : null;
+  const managerId = association?.groupManager?._id ?? null;
+  const people = [farmerId, managerId].filter(Boolean);
+  const link = `/dashboard/beans?open=${listing._id}`;
+  const content = { type: 'bean_status', title, body, link, data: { listingId: String(listing._id), status: listing.status } };
+  await notifyUsers(people.filter((id) => !actor || String(id) !== String(actor._id)), content);
+  if (toKaluppa) await notifyKaluppa(content);
+  for (const id of people) realtime.toUser(id, 'bean:updated', { id: String(listing._id), listingNumber: listing.listingNumber, status: listing.status });
+  if (!email) return;
+  const farmer = await findRecipient(farmerId);
+  await enqueueEmail(EMAIL_JOBS.BEAN_STATUS, {
+    to: farmer.email, name: farmer.firstName, status: listing.status, listingNumber: listing.listingNumber, summary: summaryOf(listing),
+    url: `${env.CLIENT_URL}${link}`, ...emailData,
+  });
+}
+
+/** Move a listing from one of `from` to its next status exactly once; a second decision gets 409. */
+async function decide(actor, id, from, update) {
+  const listing = await loadListing(actor, id);
+  if (!(await repo.updateListingWhen(listing._id, { status: { $in: from } }, update))) throw decided();
+  return { before: listing, after: await repo.findListingById(id) };
+}
+const audit = (actor, action, l, before, after) => record({ actor, area: 'beans', action, entity: entity(l), before, after, fields: Object.keys(after) });
+
+/** Approve: the farmer has 7 days to bring the beans to the branch. */
+export async function approveListing(actor, id) {
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 7 * DAY);
+  const { after } = await decide(actor, id, ['pending'], {
+    $set: { status: 'approved', approvedAt: now, approvedBy: actor._id, expiresAt }, $push: { history: step(actor, 'approved', now) },
+  });
+  const branch = await getSetting('branch');
+  await tell(after, {
+    actor, title: `${after.listingNumber} approved`, body: `Bring your beans to the Kaluppa branch within 7 days (${branchAddress(branch)}).`,
+    emailData: { deadline: expiresAt.toISOString(), branch: { name: branch.name, address: branchAddress(branch), hours: formatHours(branch.hours), phone: branch.phone } },
+  });
+  await audit(actor, 'approve', after, { status: 'pending' }, { status: 'approved', expiresAt });
+  return toDto(after, actor);
+}
+
+/** Reject a pending listing with a reason. */
+export async function rejectListing(actor, id, { reason }) {
+  const now = new Date();
+  const { after } = await decide(actor, id, ['pending'], {
+    $set: { status: 'rejected', rejection: { reason, at: now, by: actor._id } }, $push: { history: step(actor, 'rejected', now, reason) },
+  });
+  await tell(after, { actor, title: `${after.listingNumber} wasn’t approved`, body: reason, emailData: { reason } });
+  await audit(actor, 'reject', after, { status: 'pending' }, { status: 'rejected', reason });
+  return toDto(after, actor);
+}
+
+/** The beans arrived: record what Kaluppa weighed and paid. The listed weight and price stay as they were. */
+export async function completeListing(actor, id, { finalWeightKg, finalAmountCentavos }) {
+  const now = new Date();
+  const { after } = await decide(actor, id, ['approved'], {
+    $set: { status: 'completed', completion: { finalWeightKg, finalAmountCentavos, at: now, by: actor._id } },
+    $push: { history: step(actor, 'completed', now) },
+  });
+  const listed = { weightKg: after.weightKg, amountCentavos: Math.round(after.weightKg * after.pricePerKgCentavos) };
+  await tell(after, {
+    actor, title: `${after.listingNumber} completed`, body: `Final: ${finalWeightKg} kg.`,
+    emailData: { final: { weightKg: finalWeightKg, amountCentavos: finalAmountCentavos }, listed },
+  });
+  await audit(actor, 'complete', after, { status: 'approved' }, { status: 'completed', finalWeightKg, finalAmountCentavos });
+  return toDto(after, actor);
+}
+
+/**
+ * Cancel. The farmer (or their Group Manager) withdraws a pending or approved listing and Kaluppa is told; Kaluppa
+ * cancels an approved sale whose beans never came, with a reason the farmer is emailed.
+ */
+export async function cancelListing(actor, id, { reason }) {
+  const listing = await loadListing(actor, id);
+  const byKaluppa = seesEveryAssociation(actor);
+  if (!byKaluppa && !sellsFor(actor, listing)) throw new AppError(403, 'You can’t cancel this listing.');
+  const from = byKaluppa ? ['approved'] : ['pending', 'approved'];
+  if (!from.includes(listing.status)) throw new AppError(409, byKaluppa ? 'Only approved sales can be cancelled.' : 'This listing can no longer be cancelled.');
+  if (byKaluppa && !reason) throw fieldError('reason', 'Tell the farmer why the sale is cancelled');
+  const now = new Date();
+  const { after } = await decide(actor, id, [listing.status], {
+    $set: { status: 'cancelled', cancellation: { reason: reason ?? null, at: now, by: actor._id, byRole: roleOf(actor) } },
+    $push: { history: step(actor, 'cancelled', now, reason) },
+  });
+  await tell(after, {
+    actor, title: `${after.listingNumber} was cancelled`, body: reason ?? `${fullName(after.farmer)} withdrew this listing.`,
+    email: byKaluppa, toKaluppa: !byKaluppa, emailData: { reason },
+  });
+  await audit(actor, 'cancel', after, { status: listing.status }, { status: 'cancelled', ...(reason && { reason }) });
+  return toDto(after, actor);
+}
+
+/**
+ * `beans:expire` (hourly): approved listings past `expiresAt` expire, as the system. Each listing changes once,
+ * so a second run, or two at once, change nothing more.
+ * @param {Date} now
+ * @returns {Promise<{ expired: number }>}
+ */
+export async function expireBeanListings(now) {
+  let expired = 0;
+  for (const id of await repo.findOverdueIds(now)) {
+    const update = { $set: { status: 'expired' }, $push: { history: step(null, 'expired', now) } };
+    if (!(await repo.updateListingWhen(id, { status: 'approved', expiresAt: { $lte: now } }, update))) continue;
+    expired += 1;
+    const listing = await repo.findListingById(id);
+    await tell(listing, { actor: null, title: `${listing.listingNumber} expired`, body: 'The beans weren’t brought within 7 days of approval.' });
+    await audit(null, 'expire', listing, { status: 'approved' }, { status: 'expired' });
+  }
+  return { expired };
 }

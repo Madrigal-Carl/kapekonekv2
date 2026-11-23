@@ -4,7 +4,9 @@ import app from './app.js';
 import { connectDb, disconnectDb } from './config/db.js';
 import { closeValkeyConnections } from './config/valkey.js';
 import { closeEmailQueue } from './queues/email.queue.js';
+import { closeJobsQueue, scheduleRepeatingJobs } from './queues/jobs.queue.js';
 import { closeEmailWorker, startEmailWorker } from './queues/workers/email.worker.js';
+import { closeJobsWorker, startJobsWorker } from './queues/workers/jobs.worker.js';
 import { startOrderExpiryScheduler } from './schedulers/orderExpiry.scheduler.js';
 import { runOrderExpiry } from './services/orderExpiry.service.js';
 import { initSockets } from './sockets/index.js';
@@ -20,6 +22,8 @@ try {
 const httpServer = http.createServer(app);
 const io = initSockets(httpServer);
 startEmailWorker();
+startJobsWorker();
+scheduleRepeatingJobs().catch((error) => console.error(`[jobs] scheduling failed: ${error.message}`));
 const stopScheduler = startOrderExpiryScheduler(runOrderExpiry, { intervalMs: env.ORDER_EXPIRY_INTERVAL_MINUTES * 60_000 });
 
 httpServer.listen(env.PORT, () => console.log(`API listening on http://localhost:${env.PORT}`));
@@ -35,8 +39,8 @@ async function shutdown(signal) {
     ['HTTP', () => { httpServer.close(); httpServer.closeIdleConnections(); }],
     ['Socket.IO', () => io.close()],
     ['scheduler', stopScheduler],
-    ['worker', closeEmailWorker],
-    ['queue', closeEmailQueue],
+    ['workers', () => Promise.all([closeEmailWorker(), closeJobsWorker()])],
+    ['queues', () => Promise.all([closeEmailQueue(), closeJobsQueue()])],
     ['Valkey', closeValkeyConnections],
     ['Mongo', disconnectDb],
   ];

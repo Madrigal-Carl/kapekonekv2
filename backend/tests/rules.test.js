@@ -1,7 +1,7 @@
 // The same table runs in frontend/src/schemas/rules.test.js — keep them identical.
 import { describe, expect, it } from 'vitest';
 import {
-  associationDescriptionRule, associationNameRule, beanPhotosRule, beanPriceRule, beanWeightRule, cancelReasonRule, farmSizeRule, lotNumberRule, pastDateRule, todayKey, treeCountRule, yieldRule, customLabelRule, kindForFormat, passwordRule, phoneRule, quantityRule, ratingRule, recipientNameRule, reviewCommentRule, streetRule, uploadRule, usernameRule,
+  associationDescriptionRule, associationNameRule, beanAmountRule, beanFinalWeightRule, beanPhotosRule, beanPriceRule, beanWeightRule, cancelReasonRule, farmSizeRule, lotNumberRule, pastDateRule, todayKey, treeCountRule, yieldRule, customLabelRule, kindForFormat, passwordRule, phoneRule, quantityRule, ratingRule, recipientNameRule, reviewCommentRule, streetRule, uploadRule, usernameRule,
 } from '../src/schemas/rules.js';
 
 const ok = (rule, value) => rule.safeParse(value).success;
@@ -145,4 +145,11 @@ describe('bean listing rules (PHASE-2-SPEC §7)', () => {
     expect(kindForFormat('bean_photo', 'jpg')).toBe('image');
     expect(kindForFormat('bean_photo', 'pdf')).toBeNull();
   });
+});
+
+describe('bean completion rules (PHASE-2-SPEC §3.5)', () => {
+  it.each([[2.8, true], [0.01, true], [10_000, true], [0, false], [2.805, false], [10_001, false]])('final weight %s → %s', (value, expected) =>
+    expect(ok(beanFinalWeightRule, value)).toBe(expected));
+  it.each([[100, true], [89_600, true], [100_000_000, true], [99, false], [896.5, false], [100_000_001, false]])('amount %s centavos → %s', (value, expected) =>
+    expect(ok(beanAmountRule, value)).toBe(expected));
 });

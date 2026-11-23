@@ -11,4 +11,5 @@ export const EMAIL_JOBS = Object.freeze({
   ORDER_PLACED: 'order-placed',
   KALUPPA_NEW_ORDER: 'kaluppa-new-order',
   ORDER_STATUS_CHANGED: 'order-status-changed',
+  BEAN_STATUS: 'bean-status',
 });

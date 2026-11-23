@@ -53,3 +53,6 @@ export function listListings({ scope, statuses, variety, form, farmerId, search,
   };
   return pageList(BeanListing.find(filter).sort({ createdAt: -1, _id: -1 }).populate(POPULATE), { page, limit });
 }
+
+/** Ids of approved listings whose drop-off deadline has passed. */
+export const findOverdueIds = (now) => BeanListing.find({ status: 'approved', expiresAt: { $lte: now } }).distinct('_id');

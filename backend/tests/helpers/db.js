@@ -1,15 +1,13 @@
-import { MongoMemoryReplSet } from 'mongodb-memory-server';
+import { randomUUID } from 'node:crypto';
 import mongoose from 'mongoose';
+import { inject } from 'vitest';
 
-let server;
-
-// A one-node replica set: the bean cap runs in a transaction (PHASE-2-SPEC §3.5), which standalone mongod refuses.
+/** Connect this test file to a database of its own on the shared replica set (tests/globalSetup.js). */
 export async function startMemoryDb() {
-  server = await MongoMemoryReplSet.create({ replSet: { count: 1, storageEngine: 'wiredTiger' } });
-  await mongoose.connect(server.getUri());
+  await mongoose.connect(inject('mongoUri'), { dbName: `test-${randomUUID()}` });
 }
 
 export async function stopMemoryDb() {
+  await mongoose.connection.dropDatabase();
   await mongoose.disconnect();
-  await server?.stop();
 }

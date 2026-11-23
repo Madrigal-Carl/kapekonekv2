@@ -195,3 +195,15 @@ export const beanPhotosRule = z
   .array(z.object({ url: z.url().max(500), publicId: z.string().min(1).max(300) }), 'Add at least 1 photo')
   .min(1, 'Add at least 1 photo')
   .max(5, 'Add up to 5 photos');
+/** What Kaluppa weighed at the branch: any weight to 2 decimals (the listed weight uses 0.5 kg steps). */
+export const beanFinalWeightRule = z
+  .number('Enter the weight measured at the branch')
+  .gt(0, 'Enter more than 0 kg')
+  .max(10_000, 'Enter 10,000 kg or less')
+  .refine((kg) => Math.abs(kg * 100 - Math.round(kg * 100)) < 1e-6, 'Use up to 2 decimals');
+/** What Kaluppa paid, in centavos: ₱1 to ₱1,000,000. */
+export const beanAmountRule = z
+  .number('Enter the amount paid')
+  .int('Use whole centavos')
+  .min(100, 'Enter at least ₱1')
+  .max(100_000_000, 'Enter ₱1,000,000 or less');
