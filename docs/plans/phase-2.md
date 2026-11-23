@@ -264,3 +264,14 @@ frontend/src/
 ## Milestone summaries
 
 (Added after each milestone.)
+
+### M8 — done (2026-11-23)
+
+- **Permissions and policies**: Phase 2 permission slugs and role matrix; policy helpers (`isOwner`, `isAssociationManager`, `isAssignedManager`, `isKaluppaFarm`, `seesEveryAssociation`); farmers must verify their email (`verified` middleware); Group Manager-created farmers sign in by username and set a new password at `/set-password` (`mustChangePassword`, `POST /auth/first-password`).
+- **Platform pieces**: `audit.record` with allow-listed fields; chat memberships (Kaluppa chat per farmer/Group Manager, association group chat; `pairKey` upserts); page-numbered lists for management tables; upload purposes incl. `farmer_document` (images and PDF).
+- **Associations and Group Managers**: CRUD, archive/restore (refused while farmers are approved or waiting), one Group Manager per association, archived Group Manager sessions revoked.
+- **Farmers**: profile states none → pending → approved/rejected, transfers, removal with reason, Group Manager-added farmers (temporary password shown once when there's no email); exactly one decision wins (conditional update → 409); every step audited and notified (no email to email-less farmers).
+- **Dashboard**: shell (role-keyed sidebar, top bar, badges, sidebar association card), overviews for farmer / Group Manager / Kaluppa, `DataTable` + `Drawer` + `ConfirmModal`, Farmers / Group Managers / Associations pages, Account settings tabs (Profile, Security, Association, Addresses for farmers), the "Join your association" window.
+- **Seeds**: `associations` seeder — 3 associations (Santa Cruz, Boac, Gasan without a Group Manager), `manager.boac`, farmers in every state (`farmer.pending`, `farmer.new`, `farmer.nomail`, `farmer.rejected`, `farmer.transfer` + 10 more); `manager.santacruz` starts with 4 waiting.
+- **Verified**: backend 311/311, frontend 122/122, lint clean in both apps; `migrate:fresh -- --seed` ok; Playwright 33/33 (Phase 1 + `dashboard.spec.js`: sign-up → verify → join → approve, email-less farmer → set password, Kaluppa archives a Group Manager, Group Manager 403 guard, every M8 page per role at 1440/390); screens compared by hand at 1440/390 in 8.5–8.7; graphify updated (code only — the 79 docs were not re-extracted).
+- **Waiting on later milestones**: farm and harvest columns/tiles (M9), `farmer.pending`'s 3 of 5 kg (M10), storefront for farmers (M11), Inbox/Hub/Farm Map pages and seeds (M12–M13); their sidebar entries show a Coming soon page.
