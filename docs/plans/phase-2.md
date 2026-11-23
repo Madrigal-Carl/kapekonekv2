@@ -171,6 +171,16 @@ frontend/src/
 
 ---
 
+### M10 — done (2026-11-24)
+
+- **Listings and the 5 kg cap**: `BN-YYMM-NNNN` listings (variety, form, weight in 0.5 kg steps, the farmer's price, 1–5 photos, note) by the farmer or their Group Manager (`farmerId`); association snapshot; pending, approved and completed kilograms of unapproved farmers count, checked in a transaction behind a per-farmer lock (403 `BEAN_CAP_EXCEEDED` with the meter); edit only while pending; scope by policy; every change audited.
+- **Review flow**: Kaluppa approves (7 days to bring the beans), rejects with a reason, completes with the weight and amount from the branch (both values kept), or cancels a sale with a reason; the farmer side cancels while pending or approved; an hourly `beans:expire` BullMQ job expires approved listings; in-app, email (queued) and `bean:updated` socket events to the farmer and Group Manager. The `branch` setting (address, hours, phone) replaces `pickup.location`.
+- **Dashboard**: Beans page per role (BeansFarmer / BeansKaluppa): the selling-limit meter and the four steps, sell/edit drawer (Send off above the cap, live total, photo uploads), view drawer (status banner, branch box, 16:10 gallery, history), Kaluppa tiles from list `meta.tiles`, review drawer, cancel modals, Status / Variety / Form filters, 404 for a listing outside your scope; `beans` sidebar badge; the farmer's overview cap meter and Kaluppa's to-review count are real.
+- **Seeds**: `beans` seeder — 13 listings in every status, one approved listing expiring within a day, `farmer.pending` at 3 of 5 kg, photos from the seed media.
+- **Verified**: backend 428/428, frontend 195/195, lint clean in both apps (and both suites green when run at the same time); `migrate:fresh -- --seed` ok; Playwright 49/49 (Phase 1 + M8 + M9 + `beans.spec.js`: over-cap Send off, approved banner with the branch hours and phone, the Group Manager's farmer limit, Kaluppa approve → complete / reject with a reason / cancel sale, buyer 403 guard, the Beans page per role at 1440/390); screenshots compared with BeansFarmer / BeansKaluppa; graphify updated (code only).
+- **Not verified**: creating or editing a listing from the browser. The local Mongo is still standalone and these need transactions (a replica set). The API tests cover them on an in-memory replica set.
+- **Waiting on later milestones**: the other overview bean tiles and charts (M14.2); Kaluppa's live refresh of the bean table (the `team:kaluppa` room, M12).
+
 ## M11 — Store for farmers, Kaluppa orders, inventory, reviews, settings
 
 ### Task 11.1: Farmers in the store and farmer orders
