@@ -30,3 +30,6 @@ export const isKaluppaFarm = (farm) => farm.ownerType === 'kaluppa';
  * @param {{ ownerType: string, managedBy?: unknown }} farm
  */
 export const isAssignedManager = (user, farm) => isKaluppaFarm(farm) && same(user._id, farm.managedBy);
+
+/** Group Managers act for the farmers of their association (and the Kaluppa farm they manage). */
+export const isGroupManager = (user) => user.roles.includes(ROLES.GROUP_MANAGER);

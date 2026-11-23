@@ -158,3 +158,11 @@ export const uploadRule = (kind) =>
         ctx.addIssue({ code: 'custom', path: ['size'], message: tooLargeLines(kind, name, size).join(' '), params: { code: 'FILE_TOO_LARGE' } });
       }
     });
+
+// Records (PHASE-2-SPEC §7). Mirrored in frontend/src/schemas/rules.js.
+export const lotNumberRule = z.string('Enter the lot number').trim().min(1, 'Enter the lot number').max(40, 'Use 40 characters or fewer');
+export const farmSizeRule = z
+  .number('Enter the size in hectares')
+  .min(0.01, 'Enter at least 0.01 hectares')
+  .max(500, 'Enter 500 hectares or less');
+export const farmStreetRule = z.string().trim().max(200, 'Use 200 characters or fewer');

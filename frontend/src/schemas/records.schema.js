@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { associationDescriptionRule, associationNameRule, emailRule, nameRule, optionalNameRule, phoneRule, usernameRule } from './rules.js'
+import { associationDescriptionRule, associationNameRule, emailRule, farmSizeRule, farmStreetRule, lotNumberRule, nameRule, optionalNameRule, phoneRule, usernameRule } from './rules.js'
 
 // Mirror backend/src/schemas/{farmer,groupManager,association}.schema.js. Documents and pickers are sent beside these.
 
@@ -29,6 +29,22 @@ export const associationFormSchema = z.object({
   description: associationDescriptionRule,
   groupManagerId: z.string().nullable(),
 })
+
+/**
+ * Add/edit a farm (mirrors backend farm.schema.js). A Group Manager's form names the farmer first (`needsFarmer`);
+ * Kaluppa's sets `managedById` (null = "Assign later"). The barangay list itself comes from `/locations`.
+ */
+export const farmFormSchema = ({ needsFarmer = false } = {}) =>
+  z.object({
+    farmerId: needsFarmer ? z.string('Choose the farmer who owns this farm').min(1, 'Choose the farmer who owns this farm') : z.string().optional(),
+    managedById: z.string().nullable().optional(),
+    lotNumber: lotNumberRule,
+    sizeHa: farmSizeRule,
+    municipality: z.string('Choose a municipality in Marinduque').min(1, 'Choose a municipality in Marinduque'),
+    barangay: z.string('Choose a barangay').min(1, 'Choose a barangay'),
+    street: farmStreetRule,
+    location: z.object({ lat: z.number(), lng: z.number() }, 'Drop the farm pin on the map'),
+  })
 
 /** "Rodel Mendoza" → "rodel.mendoza" (the screens' "Suggested from the name"). */
 export const suggestUsername = (first = '', last = '') =>

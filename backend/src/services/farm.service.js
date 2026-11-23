@@ -1,0 +1,202 @@
+import { findAssociationByManager } from '../repositories/association.repository.js';
+import { nextSequence } from '../repositories/counter.repository.js';
+import * as repo from '../repositories/farm.repository.js';
+import { findProfileScope } from '../repositories/farmerProfile.repository.js';
+import { findGroupManagerById } from '../repositories/user.repository.js';
+import { AppError } from '../utils/AppError.js';
+import { containsPattern } from '../utils/escapeRegex.js';
+import { manilaDateKey } from '../utils/manilaDate.js';
+import { record } from './audit.service.js';
+import { isAssignedManager, isAssociationManager, isGroupManager, isKaluppaFarm, isOwner, seesEveryAssociation } from './policy.service.js';
+
+const AUDITED = ['lotNumber', 'sizeHa', 'municipality', 'barangay', 'street', 'managedBy'];
+const notFound = () => new AppError(404, 'Farm not found.');
+const lotTaken = (message) => new AppError(409, message, { errors: { lotNumber: 'You already have a farm with this lot number' } });
+const fullName = (user) => (user ? `${user.firstName} ${user.lastName}` : null);
+const person = (user) => (user ? { id: String(user._id), name: fullName(user), username: user.username } : null);
+const idOf = (ref) => ref?._id ?? ref ?? null;
+
+/** The farm's references as ids, for the policy helpers (the repository populates them). */
+const refs = (farm) => ({ owner: idOf(farm.owner), ownerType: farm.ownerType, association: idOf(farm.association), managedBy: idOf(farm.managedBy) });
+
+/** Who may see a farm: its owner, the Group Manager of its farmer's association or of a managed Kaluppa farm, Kaluppa. */
+function canSee(actor, farm) {
+  const f = refs(farm);
+  if (seesEveryAssociation(actor) || isOwner(actor, f) || isAssignedManager(actor, f)) return true;
+  return !isKaluppaFarm(f) && isAssociationManager(actor, f.association);
+}
+
+/** Who may change a farm's details: Kaluppa only its own farms; the owner and their Group Manager farmer farms. */
+export function canEditFarm(actor, farm) {
+  const f = refs(farm);
+  if (seesEveryAssociation(actor)) return isKaluppaFarm(f);
+  return !isKaluppaFarm(f) && (isOwner(actor, f) || isAssociationManager(actor, f.association));
+}
+
+/** The scope of `GET /farms` for this actor (see farm.repository `scopeFilter`). */
+const scopeOf = (actor) => {
+  if (seesEveryAssociation(actor)) return {};
+  if (isGroupManager(actor)) return { associationId: actor.associationId ?? null, managerId: actor._id };
+  return { ownerId: actor._id };
+};
+
+/** API shape. `canEdit` / `canAssignFarmers` tell the dashboard which actions to show. */
+export const toFarmDto = (farm, actor) => {
+  const [lng, lat] = farm.location.coordinates;
+  return {
+    id: String(farm._id),
+    propertyNumber: farm.propertyNumber,
+    lotNumber: farm.lotNumber,
+    ownerType: farm.ownerType,
+    owner: person(farm.owner),
+    association: farm.association ? { id: String(farm.association._id), name: farm.association.name } : null,
+    managedBy: isKaluppaFarm(farm) ? person(farm.managedBy) : null,
+    assignedFarmers: (farm.assignedFarmers ?? []).map((u) => ({ id: String(u._id), name: fullName(u) })),
+    sizeHa: farm.sizeHa,
+    municipality: farm.municipality,
+    barangay: farm.barangay,
+    street: farm.street,
+    location: { lat, lng },
+    status: farm.archivedAt ? 'archived' : 'active',
+    archivedAt: farm.archivedAt,
+    createdAt: farm.createdAt,
+    canEdit: canEditFarm(actor, farm),
+    canAssignFarmers: isAssignedManager(actor, refs(farm)),
+  };
+};
+
+const entity = (farm) => ({ type: 'farm', id: farm._id, label: `${farm.propertyNumber} · ${farm.lotNumber}` });
+const auditView = (farm) => ({ ...Object.fromEntries(AUDITED.map((k) => [k, farm[k] ?? null])), managedBy: fullName(farm.managedBy) });
+const toDoc = ({ location, ...fields }) => ({ ...fields, location: { type: 'Point', coordinates: [location.lng, location.lat] } });
+
+/** `TCT-<year>-<NNNN>`, one sequence per Manila calendar year. */
+async function nextPropertyNumber() {
+  const year = manilaDateKey().slice(0, 4);
+  return `TCT-${year}-${String(await nextSequence(`farm:${year}`)).padStart(4, '0')}`;
+}
+
+/** A duplicate `{owner, lotNumber}` (partial unique index) becomes a 409 on lotNumber; anything else rethrows. */
+async function guardLot(write, message) {
+  try {
+    return await write();
+  } catch (err) {
+    if (err?.code === 11000 && err.keyPattern?.lotNumber) throw lotTaken(message);
+    throw err;
+  }
+}
+
+/** A farmer approved into the Group Manager's association; 404 otherwise, so other associations don't leak. */
+async function farmerOfManager(actor, farmerId) {
+  const profile = await findProfileScope(farmerId);
+  if (!actor.associationId || profile?.status !== 'approved' || !isAssociationManager(actor, profile.association)) {
+    throw new AppError(404, 'Farmer not found.');
+  }
+  return profile;
+}
+
+/** A Group Manager for a Kaluppa farm, with the association its farm counts toward. */
+async function managerFor(managedById) {
+  if (!managedById) return { managedBy: null, association: null };
+  const manager = await findGroupManagerById(managedById);
+  if (!manager || manager.status !== 'active') {
+    throw new AppError(400, 'Choose an active Group Manager.', { code: 'VALIDATION_ERROR', errors: { managedById: 'Choose an active Group Manager' } });
+  }
+  return { managedBy: manager._id, association: (await findAssociationByManager(manager._id))?._id ?? null };
+}
+
+/** A farm the actor may see; 404 otherwise. */
+async function loadFarm(actor, id) {
+  const farm = await repo.findFarmById(id);
+  if (!farm || !canSee(actor, farm)) throw notFound();
+  return farm;
+}
+const forbidden = (message = 'You can’t change this farm.') => new AppError(403, message);
+
+/** @param {object} actor @param {{ q?: string, status?: string, municipality?: string, ownerType?: string, farmerId?: string, page: number, limit: number }} query */
+export async function listFarms(actor, { q, ...query }) {
+  const { items, meta } = await repo.listFarms({ ...query, scope: scopeOf(actor), q: q ? containsPattern(q) : undefined });
+  return { items: items.map((f) => toFarmDto(f, actor)), meta };
+}
+
+export const getFarm = async (actor, id) => toFarmDto(await loadFarm(actor, id), actor);
+
+/**
+ * Add a farm. Kaluppa adds Kaluppa farms; a Group Manager adds one for a farmer it manages (`farmerId` required);
+ * a farmer adds their own (approved or not).
+ */
+export async function createFarm(actor, { farmerId, managedById, ...fields }) {
+  let owner = actor._id;
+  let ownerType = 'farmer';
+  let placement = { managedBy: null, association: actor.associationId ?? null };
+  if (seesEveryAssociation(actor)) {
+    ownerType = 'kaluppa';
+    placement = await managerFor(managedById);
+  } else if (isGroupManager(actor)) {
+    if (!farmerId) throw new AppError(400, 'Choose the farmer who owns this farm.', { code: 'VALIDATION_ERROR', errors: { farmerId: 'Choose the farmer who owns this farm' } });
+    const profile = await farmerOfManager(actor, farmerId);
+    owner = farmerId;
+    placement = { managedBy: null, association: profile.association };
+  }
+  const farm = await guardLot(
+    async () => repo.createFarm(toDoc({ ...fields, ...placement, owner, ownerType, createdBy: actor._id, propertyNumber: await nextPropertyNumber() })),
+    'That owner already has a farm with this lot number.',
+  );
+  await record({ actor, area: 'farms', action: 'create', entity: entity(farm), after: auditView(farm), fields: AUDITED });
+  return toFarmDto(farm, actor);
+}
+
+/** Change a farm's details. Kaluppa may also change who manages a Kaluppa farm (its assigned farmers are cleared). */
+export async function updateFarm(actor, id, { farmerId: _ignored, managedById, ...fields }) {
+  const before = await loadFarm(actor, id);
+  if (!canEditFarm(actor, before)) throw forbidden();
+  if (before.archivedAt) throw new AppError(409, 'Restore this farm before you edit it.');
+  const changes = toDoc(fields);
+  if (isKaluppaFarm(before) && managedById !== undefined && String(managedById) !== String(idOf(before.managedBy))) {
+    Object.assign(changes, await managerFor(managedById), { assignedFarmers: [] });
+  }
+  const after = await guardLot(() => repo.updateFarm(id, changes), 'That owner already has a farm with this lot number.');
+  await record({ actor, area: 'farms', action: 'update', entity: entity(after), before: auditView(before), after: auditView(after), fields: AUDITED });
+  return toFarmDto(after, actor);
+}
+
+/** Soft delete (PHASE-2-SPEC §3.6). Tree groups follow in Task 9.2; harvests stay. */
+export async function archiveFarm(actor, id) {
+  const farm = await loadFarm(actor, id);
+  if (!canEditFarm(actor, farm)) throw forbidden();
+  if (farm.archivedAt) throw new AppError(409, 'This farm is already archived.');
+  const after = await repo.updateFarm(id, { archivedAt: new Date() });
+  await record({ actor, area: 'farms', action: 'archive', entity: entity(after), before: { status: 'active' }, after: { status: 'archived' }, fields: ['status'] });
+  return toFarmDto(after, actor);
+}
+
+/** Undo an archive. 409 when the owner has since used the lot number on an active farm. */
+export async function restoreFarm(actor, id) {
+  const farm = await loadFarm(actor, id);
+  if (!canEditFarm(actor, farm)) throw forbidden();
+  if (!farm.archivedAt) throw new AppError(409, 'This farm isn’t archived.');
+  const after = await guardLot(() => repo.updateFarm(id, { archivedAt: null }), 'An active farm already uses this lot number. Change that one first.');
+  await record({ actor, area: 'farms', action: 'restore', entity: entity(after), before: { status: 'archived' }, after: { status: 'active' }, fields: ['status'] });
+  return toFarmDto(after, actor);
+}
+
+/** The farmers working on a Kaluppa farm: only its Group Manager sets them, from its own approved farmers. */
+export async function setAssignedFarmers(actor, id, { farmerIds }) {
+  const farm = await loadFarm(actor, id);
+  if (!isAssignedManager(actor, refs(farm))) throw forbidden('Only the Group Manager this farm is assigned to can change who works on it.');
+  if (farm.archivedAt) throw new AppError(409, 'Restore this farm first.');
+  const unique = [...new Set(farmerIds.map(String))];
+  const profiles = await Promise.all(unique.map((farmerId) => findProfileScope(farmerId)));
+  if (profiles.some((p) => p?.status !== 'approved' || !isAssociationManager(actor, p.association))) {
+    throw new AppError(400, 'Choose approved farmers from your association.', { code: 'VALIDATION_ERROR', errors: { farmerIds: 'Choose approved farmers from your association' } });
+  }
+  const after = await repo.updateFarm(id, { assignedFarmers: unique });
+  const names = (f) => (f.assignedFarmers ?? []).map(fullName);
+  await record({ actor, area: 'farms', action: 'assign_farmers', entity: entity(after), before: { assignedFarmers: names(farm) }, after: { assignedFarmers: names(after) }, fields: ['assignedFarmers'] });
+  return toFarmDto(after, actor);
+}
+
+/** A farmer joined, moved or left an association: their records move with them (PHASE-2-SPEC §4 `association`). */
+export const moveOwnerRecords = (ownerId, associationId) => repo.setOwnerAssociation(ownerId, associationId ?? null);
+
+/** A Group Manager moved associations: the Kaluppa farms it manages count toward the new one. */
+export const moveManagedFarms = (managerId, associationId) => repo.setManagedAssociation(managerId, associationId ?? null);

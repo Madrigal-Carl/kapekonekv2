@@ -2,6 +2,7 @@ import { Router } from 'express';
 import accountRoutes from './account.routes.js';
 import associationRoutes from './association.routes.js';
 import dashboardRoutes from './dashboard.routes.js';
+import farmRoutes from './farm.routes.js';
 import farmerRoutes from './farmer.routes.js';
 import addressRoutes from './address.routes.js';
 import authRoutes from './auth.routes.js';
@@ -31,6 +32,7 @@ router.use(notificationRoutes);
 router.use(accountRoutes);
 router.use(associationRoutes);
 router.use(farmerRoutes);
+router.use(farmRoutes);
 router.use(dashboardRoutes);
 
 export default router;

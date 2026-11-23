@@ -6,6 +6,7 @@ export * from './cart.model.js';
 export * from './category.model.js';
 export * from './conversation.model.js';
 export * from './conversationMember.model.js';
+export * from './farm.model.js';
 export * from './farmerProfile.model.js';
 export * from './counter.model.js';
 export * from './notification.model.js';

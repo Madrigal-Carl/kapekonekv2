@@ -14,6 +14,7 @@ import { containsPattern } from '../utils/escapeRegex.js';
 import { record } from './audit.service.js';
 import { sendAccountInvite } from './auth.service.js';
 import { endDirectChatsBetween, endMembership, joinGroup } from './chat.service.js';
+import { moveOwnerRecords } from './farm.service.js';
 import {
   activeAssociation,
   farmerEntity,
@@ -172,6 +173,7 @@ export async function approveFarmer(actor, id) {
   });
   if (!updated) throw decided();
   await joinGroup(id, association._id);
+  await moveOwnerRecords(id, association._id);
   await tellFarmer(id, {
     type: 'farmer_decision', job: EMAIL_JOBS.FARMER_DECISION, title: `You're now an approved farmer of ${association.name}`,
     emailData: { approved: true, associationName: association.name },
@@ -214,6 +216,7 @@ export async function approveTransfer(actor, id) {
     await endDirectChatsBetween(id, [...oldMembers, ...(old.groupManager ? [old.groupManager] : [])]);
   }
   await joinGroup(id, target._id);
+  await moveOwnerRecords(id, target._id);
   await tellFarmer(id, {
     type: 'transfer_decision', job: EMAIL_JOBS.TRANSFER_DECISION, title: `You moved to ${target.name}`,
     emailData: { approved: true, associationName: target.name },
@@ -250,6 +253,7 @@ export async function removeFarmer(actor, id, { reason }) {
   });
   if (!updated) throw new AppError(409, 'This farmer isn’t an approved member of the association anymore.');
   await endMembership(id, [association.groupChat]);
+  await moveOwnerRecords(id, null);
   if (association.groupManager) await endDirectChatsBetween(id, [association.groupManager]);
   await tellFarmer(id, { type: 'farmer_decision', title: `You were removed from ${association.name}`, body: reason });
   await record({

@@ -5,6 +5,7 @@ import { AppError } from '../utils/AppError.js';
 import { containsPattern } from '../utils/escapeRegex.js';
 import { record } from './audit.service.js';
 import { closeChat, endDirectChatsBetween, endMembership, ensureGroupChat, joinGroup } from './chat.service.js';
+import { moveManagedFarms } from './farm.service.js';
 
 const AUDITED = ['name', 'municipality', 'description', 'groupManager'];
 const notFound = () => new AppError(404, 'Association not found.');
@@ -74,6 +75,7 @@ export async function moveManager(managerId, from, to, field = 'associationId') 
     await endDirectChatsBetween(managerId, await findApprovedFarmerIds(from._id));
   }
   if (to) await joinGroup(managerId, to._id);
+  await moveManagedFarms(managerId, to?._id);
 }
 
 /** A Group Manager free to run `associationId` (one association per Group Manager). */

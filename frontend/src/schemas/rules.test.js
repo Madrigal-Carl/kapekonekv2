@@ -1,7 +1,7 @@
 // The same table runs in backend/tests/rules.test.js — keep them identical.
 import { describe, expect, it } from 'vitest';
 import {
-  associationDescriptionRule, associationNameRule, cancelReasonRule, customLabelRule, kindForFormat, passwordRule, phoneRule, quantityRule, ratingRule, recipientNameRule, reviewCommentRule, streetRule, uploadRule, usernameRule,
+  associationDescriptionRule, associationNameRule, cancelReasonRule, farmSizeRule, lotNumberRule, customLabelRule, kindForFormat, passwordRule, phoneRule, quantityRule, ratingRule, recipientNameRule, reviewCommentRule, streetRule, uploadRule, usernameRule,
 } from './rules.js';
 
 const ok = (rule, value) => rule.safeParse(value).success;
@@ -88,4 +88,20 @@ describe('UPLOAD_RULES', () => {
     for (const purpose of ['avatar', 'receipt', 'farmer_document']) expect(kindForFormat(purpose, 'mp4')).toBeNull();
     expect(kindForFormat('post_media', 'mp4')).toBe('video');
   });
+});
+
+describe('record rules (PHASE-2-SPEC §7)', () => {
+  it.each([
+    ['Lot 12-B', true],
+    ['', false],
+    ['x'.repeat(41), false],
+  ])('lot number %s → %s', (value, expected) => expect(ok(lotNumberRule, value)).toBe(expected));
+
+  it.each([
+    [0.01, true],
+    [500, true],
+    [0, false],
+    [500.5, false],
+    ['1.2', false],
+  ])('farm size %s → %s', (value, expected) => expect(ok(farmSizeRule, value)).toBe(expected));
 });
