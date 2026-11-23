@@ -13,7 +13,7 @@ export const findAssociationBySlug = (slug, exceptId) =>
   Association.exists({ slug, ...(exceptId && { _id: { $ne: exceptId } }) });
 
 export const updateAssociationFields = (id, fields) =>
-  Association.findByIdAndUpdate(id, fields, { new: true }).populate(MANAGER).lean();
+  Association.findByIdAndUpdate(id, fields, { returnDocument: 'after' }).populate(MANAGER).lean();
 
 /**
  * Page of associations. `status`: active|archived; `q` matches name or town.

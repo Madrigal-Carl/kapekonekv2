@@ -38,7 +38,7 @@ export const findProfileScope = (userId) => FarmerProfile.findOne({ user: userId
  * @returns {Promise<object|null>} the updated profile, or null when it no longer matched
  */
 export const updateProfileWhen = (userId, when, update) =>
-  FarmerProfile.findOneAndUpdate({ user: userId, ...when }, update, { new: true }).populate(ASSOCIATIONS).lean();
+  FarmerProfile.findOneAndUpdate({ user: userId, ...when }, update, { returnDocument: 'after' }).populate(ASSOCIATIONS).lean();
 
 /**
  * User ids in a Group Manager's scope: farmers of the association (any status) plus incoming transfers.

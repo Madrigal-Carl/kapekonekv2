@@ -11,6 +11,7 @@ async function fillSignup(page, { role, first, last, username, email }) {
   await page.getByLabel('Last name').fill(last)
   await page.getByLabel('Username').fill(username)
   await expect(page.getByText(`@${username} is available`)).toBeVisible()
+  if (role === 'farmer') await page.getByLabel('Contact number').fill('09171234500') // farmers need one (Phase 2)
   await page.getByLabel('Email', { exact: true }).fill(email)
   await page.getByLabel('Password', { exact: true }).fill('KapeKonek@123')
   await page.getByLabel('Confirm password').fill('KapeKonek@123')
@@ -38,12 +39,15 @@ test('buyer signs up, verifies the email from the mailbox and lands on the store
   await expect(page.getByRole('button', { name: 'Account menu for Ella Buyer' })).toBeVisible()
 })
 
-test('farmer signs up and goes straight to the dashboard with the unverified banner', async ({ page }) => {
+// Phase 2: farmers verify before the dashboard (the rest of the flow is in dashboard.spec.js).
+test('farmer signs up and is asked to verify the email first', async ({ page }) => {
   const id = unique()
-  await fillSignup(page, { role: 'farmer', first: 'Fred', last: 'Farmer', username: `fred${id}`, email: `e2e.farmer.${id}@example.com` })
-  await expect(page).toHaveURL('/dashboard/overview')
-  await expect(page.getByRole('heading', { name: /, Fred$/ })).toBeVisible()
-  await expect(page.getByText("Your email isn't verified yet. You can keep using your dashboard.")).toBeVisible()
+  const email = `e2e.farmer.${id}@example.com`
+  await fillSignup(page, { role: 'farmer', first: 'Fred', last: 'Farmer', username: `fred${id}`, email })
+  await expect(page).toHaveURL('/verify-email')
+  await page.goto('/dashboard/overview')
+  await expect(page).toHaveURL('/verify-email')
+  await expect(page.getByText(email)).toBeVisible()
 })
 
 test('forgot password → reset → sign in with the new password', async ({ page, request }) => {
@@ -106,12 +110,16 @@ test('logout asks first, then signs out', async ({ page }) => {
   await page.goto('/login')
   await signIn(page, 'kapekonek.kaluppa@gmail.com')
   await expect(page).toHaveURL('/dashboard/overview')
-  await page.getByRole('button', { name: 'Log out' }).click()
+  // The dashboard keeps Log out in the account menu (DashTopbar).
+  const openMenu = () => page.getByRole('button', { name: /^Account menu for Kaluppa Admin/ }).click()
+  await openMenu()
+  await page.getByRole('menuitem', { name: 'Log out' }).click()
   const dialog = page.getByRole('dialog', { name: 'Log out of KapeKonek?' })
   await expect(dialog).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(dialog).toBeHidden()
-  await page.getByRole('button', { name: 'Log out' }).click()
+  await openMenu()
+  await page.getByRole('menuitem', { name: 'Log out' }).click()
   await dialog.getByRole('button', { name: 'Log out' }).click()
   await expect(page).toHaveURL('/')
   await expect(page.getByRole('link', { name: 'Log in' })).toBeVisible()

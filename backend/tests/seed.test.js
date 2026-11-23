@@ -61,6 +61,57 @@ describe('runSeeders', () => {
   });
 });
 
+describe('associations seeder (PHASE-2-SPEC §8)', () => {
+  const log = () => {};
+
+  it('seeds 3 associations and farmers in every state, once', async () => {
+    const { Association, FarmerProfile, AuditLog, Conversation, ConversationMember } = await import('../src/models/index.js');
+    await runSeeders({ only: ['roles', 'users', 'associations'], log });
+    const snapshot = async () => [await Association.countDocuments(), await FarmerProfile.countDocuments(), await AuditLog.countDocuments(), await User.countDocuments()];
+    const first = await snapshot();
+    await runSeeders({ only: ['associations'], log });
+    expect(await snapshot()).toEqual(first);
+
+    const user = (username) => User.findOne({ username }).lean();
+    const id = async (username) => (await user(username))._id;
+    const byName = Object.fromEntries((await Association.find().lean()).map((a) => [a.municipality, a]));
+    expect(Object.keys(byName).sort()).toEqual(['Boac', 'Gasan', 'Santa Cruz']);
+    expect(byName['Santa Cruz']).toMatchObject({ name: 'Santa Cruz Coffee Growers', groupManager: await id('manager.santacruz') });
+    expect(byName.Boac.groupManager).toEqual(await id('manager.boac'));
+    expect(byName.Gasan.groupManager ?? null).toBeNull();
+    expect(Object.values(byName).every((a) => a.groupChat)).toBe(true);
+    expect(await Association.exists({ groupManager: await id('manager.unassigned') })).toBeNull();
+
+    const profile = async (username) => FarmerProfile.findOne({ user: await id(username) }).lean();
+    const sc = byName['Santa Cruz']._id;
+    expect(await profile('farmer.approved')).toMatchObject({ status: 'approved', association: sc, approvedBy: await id('manager.santacruz') });
+    expect(await profile('farmer.pending')).toMatchObject({ status: 'pending', association: sc });
+    expect(await profile('farmer.new')).toMatchObject({ status: 'none' });
+    expect((await user('farmer.new')).emailVerifiedAt).not.toBeNull();
+    expect(await profile('farmer.rejected')).toMatchObject({ status: 'rejected', association: sc, rejectionReason: expect.stringMatching(/.{5,}/) });
+    expect(await profile('farmer.transfer')).toMatchObject({ status: 'approved', association: byName.Boac._id, transferRequest: { association: sc } });
+    const nomail = await user('farmer.nomail');
+    expect(nomail).toMatchObject({ mustChangePassword: true, createdBy: await id('manager.santacruz') });
+    expect(nomail.email ?? null).toBeNull();
+    expect(nomail.emailVerifiedAt).not.toBeNull();
+    expect(await profile('farmer.nomail')).toMatchObject({ status: 'approved', association: sc });
+
+    // manager.santacruz lands with 4 waiting (3 requests + 1 transfer in); about 14 farmers in all.
+    const { countWaiting } = await import('../src/repositories/farmerProfile.repository.js');
+    expect(await countWaiting(sc)).toBe(4);
+    expect(await FarmerProfile.countDocuments()).toBeGreaterThanOrEqual(14);
+
+    // Approved farmers are in their group chat; everyone has a chat with Kaluppa.
+    expect(await ConversationMember.exists({ conversation: byName['Santa Cruz'].groupChat, user: await id('farmer.approved'), canPost: true })).toBeTruthy();
+    expect(await Conversation.countDocuments({ type: 'kaluppa' })).toBeGreaterThanOrEqual(16);
+
+    // Seeded decisions are audited, without documents.
+    expect(await AuditLog.countDocuments({ area: 'farmers', action: { $in: ['approve', 'reject', 'request', 'transfer_request', 'create'] } })).toBeGreaterThanOrEqual(10);
+    expect(await AuditLog.countDocuments({ area: 'associations', action: 'create' })).toBe(3);
+    expect(JSON.stringify(await AuditLog.find().lean())).not.toMatch(/documents|validId|landProof/);
+  });
+});
+
 describe('catalog, settings, posts and demo seeders', () => {
   const log = () => {};
 

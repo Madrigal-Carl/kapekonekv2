@@ -1,4 +1,5 @@
 import { seedAddresses } from './addresses.seeder.js';
+import { associationAccounts, seedAssociationsAndFarmers } from './associations.seeder.js';
 import { seedCategories } from './categories.seeder.js';
 import { seedDemo } from './demo.seeder.js';
 import { seedPosts } from './posts.seeder.js';
@@ -11,6 +12,7 @@ import { seedUsers, signInTable } from './users.seeder.js';
 export const SEEDERS = [
   { name: 'roles', run: seedRoles },
   { name: 'users', run: seedUsers },
+  { name: 'associations', run: seedAssociationsAndFarmers },
   { name: 'categories', run: seedCategories },
   { name: 'products', run: seedProducts },
   { name: 'settings', run: seedSettings },
@@ -30,5 +32,5 @@ export async function runSeeders({ only, fresh = false, log = console.log } = {}
     if (only?.length && !only.includes(seeder.name)) continue;
     log(`[seed] ${seeder.name}: ${await seeder.run({ fresh })}`);
   }
-  if (!only?.length || only.includes('users')) log(signInTable());
+  if (!only?.length || only.includes('users')) log(signInTable(associationAccounts()));
 }

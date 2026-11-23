@@ -7,7 +7,7 @@ import { ConversationMember } from '../models/conversationMember.model.js';
  * @param {{ type: string, association?: unknown }} fields set only when it's created
  */
 export const upsertConversation = (pairKey, fields) =>
-  Conversation.findOneAndUpdate({ pairKey }, { $setOnInsert: { pairKey, ...fields } }, { upsert: true, new: true, lean: true });
+  Conversation.findOneAndUpdate({ pairKey }, { $setOnInsert: { pairKey, ...fields } }, { upsert: true, returnDocument: 'after', lean: true });
 
 /** Add a member, or reopen one whose membership ended. `who` is `{ user }` or `{ team: 'kaluppa' }`. */
 export const upsertMember = (conversationId, who) =>

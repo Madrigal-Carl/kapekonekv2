@@ -62,19 +62,23 @@ export async function seedUsers() {
 /** What each account is for, in the sign-in table. */
 const NOTES = {
   'kaluppa': 'Kaluppa (admin)',
-  'manager.santacruz': 'Group Manager',
+  'manager.santacruz': 'Group Manager, Santa Cruz Coffee Growers (4 waiting)',
   'manager.unassigned': 'Group Manager, no association',
-  'farmer.approved': 'Farmer',
+  'farmer.approved': 'Approved farmer, Santa Cruz',
   'farmer.unverified': 'Farmer, email not verified',
   'buyer': 'Buyer with addresses and orders',
   'buyer.unverified': 'Buyer, blocked until verified',
 };
 
-/** The sign-in table printed after seeding. */
-export function signInTable() {
+/**
+ * The sign-in table printed after seeding.
+ * @param {string[][]} [more] rows from later seeders: [email, username, account]
+ */
+export function signInTable(more = []) {
   const rows = [
     ['Email', 'Username', 'Account'],
     ...ACCOUNTS.map((a) => [seedEmail(a.handle), a.handle, NOTES[a.handle]]),
+    ...more,
     [`${seedEmail('buyer01')} … buyer20`, 'buyer01 … buyer20', 'Buyers (reviewers)'],
   ];
   const width = (i) => Math.max(...rows.map((r) => r[i].length));
