@@ -1,4 +1,5 @@
 import { countActiveAssociations, findAssociationById } from '../repositories/association.repository.js';
+import { capUsedKg, countPendingListings } from '../repositories/bean.repository.js';
 import { countFarmersByAssociation, countFarmersEverywhere, countWaiting, findProfileByUser, listWaiting } from '../repositories/farmerProfile.repository.js';
 import { countOrdersToConfirm, listOrdersToConfirm, sumSalesByMonth } from '../repositories/order.repository.js';
 import { findLowStock } from '../repositories/product.repository.js';
@@ -44,6 +45,7 @@ export async function badgesFor(user) {
   const associationId = managedAssociation(user);
   if (associationId && (await userCan(user, 'farmers.approve'))) badges.farmers = await countWaiting(associationId);
   if (await userCan(user, 'orders.manage')) badges.orders = (await countOrdersToConfirm()).all;
+  if (await userCan(user, 'beans.review')) badges.beans = await countPendingListings();
   return badges;
 }
 
@@ -72,7 +74,7 @@ async function farmerOverview(user) {
       groupManager: manager ? { name: fullName(manager) } : null,
       rejectionReason: profile?.rejectionReason ?? null,
     },
-    cap: { usedKg: 0, limitKg: 5 }, // bean listings arrive in M10
+    cap: { usedKg: await capUsedKg(user._id), limitKg: 5 },
     kpis: { farms: 0, trees: 0, harvestThisYearKg: 0, beansSoldKg: 0 },
     harvestByMonth: emptySeries(12),
     treesByStage: [],
@@ -106,13 +108,14 @@ async function managerOverview(user) {
 
 async function kaluppaOverview() {
   const months = lastMonths(6);
-  const [toConfirm, sales, farmers, associations, orders, lowStock] = await Promise.all([
+  const [toConfirm, sales, farmers, associations, orders, lowStock, beansToReview] = await Promise.all([
     countOrdersToConfirm(),
     sumSalesByMonth(months.since),
     countFarmersEverywhere(),
     countActiveAssociations(),
     listOrdersToConfirm(4),
     findLowStock(4),
+    countPendingListings(),
   ]);
   const salesValues = months.keys.map((k) => sales.get(k) ?? 0);
   return {
@@ -122,7 +125,7 @@ async function kaluppaOverview() {
       receiptsToCheck: toConfirm.receipts,
       salesThisMonthCentavos: salesValues.at(-1),
       salesLastMonthCentavos: salesValues.at(-2),
-      beanListingsToReview: 0, // M10
+      beanListingsToReview: beansToReview,
       farmers: farmers.approved,
       waitingFarmers: farmers.waiting,
       associations,

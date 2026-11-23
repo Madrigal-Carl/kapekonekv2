@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { seedCatalogFixture } from './helpers/catalog.js';
 import { startMemoryDb, stopMemoryDb } from './helpers/db.js';
+import { photosOf } from './helpers/beans.js';
 import { documentsOf, registerFarmer, setUpAssociations, signedIn } from './helpers/farmers.js';
 import { makeOrder } from './helpers/orders.js';
 
@@ -33,6 +34,8 @@ beforeAll(async () => {
   }
   const elsewhere = await registerFarmer(app, User, 'boacfarmer');
   await elsewhere.agent.post('/api/me/farmer-profile/request').send({ associationId: associations.boac.id, ...documentsOf(elsewhere.user._id) }).expect(200);
+  // Wes (waiting for approval) lists 3 kg: his cap meter and Kaluppa's review count use it.
+  await waiting.agent.post('/api/beans').send({ variety: 'liberica', form: 'dried_cherry', weightKg: 3, pricePerKgCentavos: 18_000, photos: photosOf(waiting.user._id, 1) }).expect(201);
   await makeOrder(products, { status: 'pending' });
   await makeOrder(products, { status: 'pending', paymentMethod: 'e_wallet' });
   await makeOrder(products, { status: 'sold' });
@@ -45,9 +48,9 @@ describe('GET /dashboard/badges', () => {
     expect((await manager.get('/api/dashboard/badges')).body.data).toEqual({ farmers: 2 });
   });
 
-  it('gives Kaluppa the orders to confirm', async () => {
+  it('gives Kaluppa the orders to confirm and the bean listings to review', async () => {
     const kaluppa = await signedIn(app, 'kaluppa');
-    expect((await kaluppa.get('/api/dashboard/badges')).body.data).toEqual({ orders: 2 });
+    expect((await kaluppa.get('/api/dashboard/badges')).body.data).toEqual({ orders: 2, beans: 1 });
   });
 
   it('has nothing for a farmer yet, and is closed to buyers', async () => {
@@ -71,7 +74,7 @@ describe('GET /dashboard/overview', () => {
     expect(data).toMatchObject({
       view: 'farmer',
       farmer: { status: 'pending', association: { name: 'Santa Cruz Growers' }, groupManager: { name: 'Liza Ramos' }, rejectionReason: null },
-      cap: { usedKg: 0, limitKg: 5 },
+      cap: { usedKg: 3, limitKg: 5 },
       kpis: { farms: 0, trees: 0, harvestThisYearKg: 0, beansSoldKg: 0 },
       harvestByMonth: { labels: expect.any(Array), values: expect.any(Array) },
       treesByStage: [],
@@ -94,7 +97,7 @@ describe('GET /dashboard/overview', () => {
     const { data } = (await kaluppa.get('/api/dashboard/overview')).body;
     expect(data).toMatchObject({
       view: 'kaluppa',
-      kpis: { ordersToConfirm: 2, receiptsToCheck: 1, farmers: 0, waitingFarmers: 3, associations: 3, beanListingsToReview: 0 },
+      kpis: { ordersToConfirm: 2, receiptsToCheck: 1, farmers: 0, waitingFarmers: 3, associations: 3, beanListingsToReview: 1 },
     });
     expect(data.kpis.salesThisMonthCentavos).toBeGreaterThan(0);
     expect(data.salesByMonth.values.at(-1)).toBe(data.kpis.salesThisMonthCentavos);

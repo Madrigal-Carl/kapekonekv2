@@ -227,6 +227,34 @@ describe('records seeder (PHASE-2-SPEC §8)', () => {
   });
 });
 
+describe('beans seeder (PHASE-2-SPEC §8)', () => {
+  it('seeds every status, one approved listing expiring within a day and farmer.pending at 3 of 5 kg, once', async () => {
+    const { BeanListing } = await import('../src/models/index.js');
+    await runSeeders({ only: ['roles', 'users', 'associations', 'beans'], log: () => {} });
+    const total = await BeanListing.countDocuments();
+    await runSeeders({ only: ['beans'], log: () => {} });
+    expect(await BeanListing.countDocuments()).toBe(total);
+
+    expect((await BeanListing.distinct('status')).sort()).toEqual(['approved', 'cancelled', 'completed', 'expired', 'pending', 'rejected']);
+    const day = Date.now() + 86_400_000;
+    expect(await BeanListing.countDocuments({ status: 'approved', expiresAt: { $gt: new Date(), $lte: new Date(day) } })).toBe(1);
+    const joy = await User.findOne({ username: 'farmer.pending' }).lean();
+    const { capUsedKg } = await import('../src/repositories/bean.repository.js');
+    expect(await capUsedKg(joy._id)).toBe(3);
+    // Numbers come from the shared counter, so the next real listing can't collide.
+    const numbers = await BeanListing.distinct('listingNumber');
+    expect(numbers.every((n) => /^BN-\d{4}-\d{4}$/.test(n))).toBe(true);
+    const { nextSequence } = await import('../src/repositories/counter.repository.js');
+    const yymm = (await BeanListing.findOne().sort({ createdAt: -1 }).lean()).listingNumber.slice(3, 7);
+    const latest = numbers.filter((n) => n.slice(3, 7) === yymm).sort().at(-1);
+    expect(await nextSequence(`bean:${yymm}`)).toBe(Number(latest.slice(-4)) + 1);
+    for (const l of await BeanListing.find().lean()) {
+      expect(l.photos.length).toBeGreaterThan(0);
+      expect(l.history[0].action).toBe('listed');
+    }
+  });
+});
+
 describe('migrate:fresh guard', () => {
   it('refuses production without --force', () => {
     expect(() => assertCanDropDatabase('production', ['--seed'])).toThrow(/Refusing/);

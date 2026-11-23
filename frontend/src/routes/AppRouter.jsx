@@ -12,6 +12,7 @@ import { Association as DashboardAssociation } from '@/pages/dashboard/account/A
 import { Associations } from '@/pages/dashboard/associations/Associations'
 import { Farmers } from '@/pages/dashboard/farmers/Farmers'
 import { GroupManagers } from '@/pages/dashboard/groupManagers/GroupManagers'
+import { Beans } from '@/pages/dashboard/beans/Beans'
 import { Farms } from '@/pages/dashboard/records/Farms'
 import { Harvests } from '@/pages/dashboard/records/Harvests'
 import { Trees } from '@/pages/dashboard/records/Trees'
@@ -43,7 +44,6 @@ const Products = page(() => import('@/pages/storefront/Products'), 'Products')
 const DASHBOARD_PAGES = [
   ['inbox/*', 'inbox.use'],
   ['hub/*', 'dashboard.view'],
-  ['beans', 'dashboard.view'], // farmers and Group Managers sell, Kaluppa reviews
   ['orders', 'dashboard.view'], // farmers' own orders, Kaluppa manages all
   ['farm-map', 'map.view'],
   ['inventory', 'inventory.manage'],
@@ -60,6 +60,7 @@ const RECORD_PAGES = [
   ['farms', 'farms.manage', <Farms key="farms" />],
   ['trees', 'trees.manage', <Trees key="trees" />],
   ['harvests', 'harvests.manage', <Harvests key="harvests" />],
+  ['beans', 'beans.sell', <Beans key="beans" />], // farmers and Group Managers sell; Kaluppa passes every check and reviews
 ]
 
 export const router = createBrowserRouter([

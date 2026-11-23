@@ -13,6 +13,7 @@ import { realtime } from '../sockets/realtime.js';
 import { AppError } from '../utils/AppError.js';
 import { containsPattern } from '../utils/escapeRegex.js';
 import { manilaDateKey } from '../utils/manilaDate.js';
+import { todayKey } from '../schemas/rules.js';
 import { record } from './audit.service.js';
 import { notifyKaluppa, notifyUsers } from './notification.service.js';
 import { isAssociationManager, isGroupManager, isOwner, seesEveryAssociation } from './policy.service.js';
@@ -128,8 +129,23 @@ export async function listListings(actor, { q, status, ...query }) {
     varieties: Object.keys(VARIETIES).filter((key) => pattern.test(VARIETIES[key])),
     farmerIds: await findUserIdsByName(q.split(/\s+/).map(containsPattern)),
   };
-  const { items, meta } = await repo.listListings({ ...query, scope, statuses: status && BEAN_STATUS_GROUPS[status], search });
-  return { items: items.map((l) => toDto(l, actor)), meta };
+  const [{ items, meta }, tiles] = await Promise.all([
+    repo.listListings({ ...query, scope, statuses: status && BEAN_STATUS_GROUPS[status], search }),
+    seesEveryAssociation(actor) ? kaluppaTiles(new Date()) : undefined,
+  ]);
+  return { items: items.map((l) => toDto(l, actor)), meta: { ...meta, ...(tiles && { tiles }) } };
+}
+
+/** The Kaluppa Beans page tiles (BeansKaluppa.dc.html): to review, waiting for drop-off, bought this month, average price over 30 days. */
+async function kaluppaTiles(now) {
+  const monthStart = new Date(`${todayKey().slice(0, 7)}-01T00:00:00+08:00`);
+  const t = await repo.beanTiles({ monthStart, since: new Date(now.getTime() - 30 * 86_400_000) });
+  return {
+    toReview: { count: t.toReview?.count ?? 0, kg: t.toReview?.kg ?? 0 },
+    waiting: { count: t.waiting?.count ?? 0, kg: t.waiting?.kg ?? 0, nextExpiresAt: t.waiting?.nextExpiresAt ?? null },
+    boughtThisMonth: { kg: t.month?.kg ?? 0, paidCentavos: t.month?.paid ?? 0 },
+    averagePriceCentavos: t.recent?.kg ? Math.round(t.recent.paid / t.recent.kg) : null,
+  };
 }
 
 export const getListing = async (actor, id) => toDto(await loadListing(actor, id), actor);

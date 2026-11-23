@@ -36,16 +36,15 @@ export const branchAddress = (b) => [b.street, b.barangay, b.municipality, 'Mari
 /** The branch as pickup orders save it (orders keep this copy when the branch changes later). */
 export async function getPickup() {
   const branch = await getSetting('branch');
-  return { name: branch.name, address: branchAddress(branch), hours: formatHours(branch.hours), location: branch.location };
+  return { name: branch.name, address: branchAddress(branch), hours: formatHours(branch.hours), phone: branch.phone, location: branch.location };
 }
 
 /** Public delivery facts for the storefront: pickup, fee rules (without the origin pin) and ETA days. */
 export async function getDeliveryInfo() {
   const [fee, eta, pickup] = await Promise.all([getSetting('delivery.fee'), getSetting('delivery.eta'), getPickup()]);
   const { baseFeeCentavos, baseKm, perKmCentavos, roundUpToCentavos, maxKm } = fee;
-  const { name, address, hours, location } = pickup;
   return {
-    pickup: { name, address, hours, location },
+    pickup,
     fee: { baseFeeCentavos, baseKm, perKmCentavos, roundUpToCentavos, maxKm },
     eta: { minBusinessDays: eta.minBusinessDays, maxBusinessDays: eta.maxBusinessDays },
   };

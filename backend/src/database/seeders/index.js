@@ -1,4 +1,5 @@
 import { seedAddresses } from './addresses.seeder.js';
+import { seedBeans } from './beans.seeder.js';
 import { associationAccounts, seedAssociationsAndFarmers } from './associations.seeder.js';
 import { seedCategories } from './categories.seeder.js';
 import { seedDemo } from './demo.seeder.js';
@@ -15,6 +16,7 @@ export const SEEDERS = [
   { name: 'users', run: seedUsers },
   { name: 'associations', run: seedAssociationsAndFarmers },
   { name: 'records', run: seedRecords },
+  { name: 'beans', run: seedBeans },
   { name: 'categories', run: seedCategories },
   { name: 'products', run: seedProducts },
   { name: 'settings', run: seedSettings },

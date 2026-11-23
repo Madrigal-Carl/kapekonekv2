@@ -48,7 +48,7 @@ describe('GET /delivery/info', () => {
     const res = await request(app).get('/api/delivery/info');
     expect(res.status).toBe(200);
     expect(res.body.data).toEqual({
-      pickup: { name: 'Kaluppa', address: 'Pantayin, Santa Cruz, Marinduque', hours: expect.any(String), location: { lat: expect.any(Number), lng: expect.any(Number) } },
+      pickup: { name: 'Kaluppa', address: 'Pantayin, Santa Cruz, Marinduque', hours: expect.any(String), phone: '0917 800 1122', location: { lat: expect.any(Number), lng: expect.any(Number) } },
       fee: { baseFeeCentavos: 5000, baseKm: 3, perKmCentavos: 1000, roundUpToCentavos: 500, maxKm: 60 },
       eta: { minBusinessDays: 3, maxBusinessDays: 5 },
     });

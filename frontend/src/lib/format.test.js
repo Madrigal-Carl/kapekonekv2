@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatPeso, formatPhone, quantityShort, quantityWords } from './format.js';
+import { formatKg, formatPeso, formatPesoShort, formatPhone, quantityShort, quantityWords } from './format.js';
 
 describe('formatPeso', () => {
   it('formats integer centavos as PHP', () => {
@@ -22,5 +22,18 @@ describe('formatPhone', () => {
   it('groups PH mobile numbers 4-3-4', () => {
     expect(formatPhone('09175550102')).toBe('0917 555 0102');
     expect(formatPhone('+63 917')).toBe('+63 917');
+  });
+});
+
+describe('formatPesoShort and formatKg (bean screens)', () => {
+  it('drops .00 on whole pesos and keeps real centavos', () => {
+    expect(formatPesoShort(45_000)).toBe('₱450');
+    expect(formatPesoShort(5_418_000)).toBe('₱54,180');
+    expect(formatPesoShort(89_650)).toBe('₱896.50');
+  });
+  it('writes kilograms with grouping and at most two decimals', () => {
+    expect(formatKg(2)).toBe('2 kg');
+    expect(formatKg(19.5)).toBe('19.5 kg');
+    expect(formatKg(1250.25)).toBe('1,250.25 kg');
   });
 });

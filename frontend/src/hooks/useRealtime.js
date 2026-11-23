@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { connectSocket } from '@/lib/socket'
 import { useAuth } from './useAuth'
+import { beanKeys } from './useBeans'
 import { dashboardKeys } from './useDashboard'
 import { notificationKeys } from './useNotifications'
 import { orderKeys } from './useOrders'
@@ -18,6 +19,10 @@ export function useRealtime() {
       // Notifications and order changes also move the dashboard's badges and overview counts.
       'notification:new': () => {
         queryClient.invalidateQueries({ queryKey: notificationKeys.all })
+        queryClient.invalidateQueries({ queryKey: dashboardKeys.all })
+      },
+      'bean:updated': () => {
+        queryClient.invalidateQueries({ queryKey: beanKeys.all })
         queryClient.invalidateQueries({ queryKey: dashboardKeys.all })
       },
       'order:updated': () => {

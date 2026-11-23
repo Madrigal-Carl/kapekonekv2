@@ -137,11 +137,36 @@ describe('PATCH /beans/:id', () => {
 describe('branch setting (PHASE-2-SPEC §3.13, q7)', () => {
   it('replaces pickup.location: pickup orders read it, the storefront shows it', async () => {
     const info = (await kaluppa.get('/api/delivery/info').expect(200)).body.data.pickup;
-    expect(info).toMatchObject({ name: 'Kaluppa', address: 'Pantayin, Santa Cruz, Marinduque', hours: 'Mon–Sat, 8:00 AM – 5:00 PM' });
+    expect(info).toMatchObject({ name: 'Kaluppa', address: 'Pantayin, Santa Cruz, Marinduque', hours: 'Mon–Sat, 8:00 AM – 5:00 PM', phone: '0917 800 1122' });
     expect(await Setting.countDocuments({ key: 'pickup.location' })).toBe(0);
     const branch = (await Setting.findOne({ key: 'branch' }).lean()).value;
     await Setting.updateOne({ key: 'branch' }, { value: { ...branch, street: 'Km 3', hours: branch.hours.map((h, i) => (i === 5 ? { ...h, to: '12:00' } : h)) } });
     const changed = (await kaluppa.get('/api/delivery/info').expect(200)).body.data.pickup;
     expect(changed).toMatchObject({ address: 'Km 3, Pantayin, Santa Cruz, Marinduque', hours: 'Mon–Fri, 8:00 AM – 5:00 PM · Sat, 8:00 AM – 12:00 PM' });
+  });
+});
+
+describe('Kaluppa page tiles (BeansKaluppa.dc.html)', () => {
+  it('counts what waits for review and drop-off, what was bought this month and the average price', async () => {
+    await BeanListing.deleteMany({});
+    const make = async (weightKg, pricePerKgCentavos, set = {}) => {
+      const { id } = (await ana.agent.post('/api/beans').send(beanBody(ana.user._id, { weightKg, pricePerKgCentavos })).expect(201)).body.data;
+      await BeanListing.updateOne({ _id: id }, set);
+    };
+    const soon = new Date(Date.now() + 86_400_000);
+    await make(2, 18_000);
+    await make(4, 18_000);
+    await make(30, 32_000, { status: 'approved', expiresAt: soon });
+    await make(10, 20_000, { status: 'approved', expiresAt: new Date(Date.now() + 5 * 86_400_000) });
+    await make(20, 25_000, { status: 'completed', completion: { finalWeightKg: 19.5, finalAmountCentavos: 487_500, at: new Date() } });
+    await make(5, 30_000, { status: 'completed', completion: { finalWeightKg: 5, finalAmountCentavos: 150_000, at: new Date(Date.now() - 60 * 86_400_000) } });
+    const { meta } = await listOf(kaluppa);
+    expect(meta.tiles).toEqual({
+      toReview: { count: 2, kg: 6 },
+      waiting: { count: 2, kg: 40, nextExpiresAt: soon.toISOString() },
+      boughtThisMonth: { kg: 19.5, paidCentavos: 487_500 },
+      averagePriceCentavos: 25_000, // completed in the last 30 days: ₱4,875 / 19.5 kg
+    });
+    expect((await listOf(ana.agent)).meta.tiles).toBeUndefined();
   });
 });

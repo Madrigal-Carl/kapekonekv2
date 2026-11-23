@@ -56,3 +56,31 @@ export function listListings({ scope, statuses, variety, form, farmerId, search,
 
 /** Ids of approved listings whose drop-off deadline has passed. */
 export const findOverdueIds = (now) => BeanListing.find({ status: 'approved', expiresAt: { $lte: now } }).distinct('_id');
+
+export const countPendingListings = () => BeanListing.countDocuments({ status: 'pending' });
+
+/**
+ * Kaluppa's bean tiles in one pass: waiting for review, waiting for drop-off, bought since `monthStart`, and the
+ * completed weight and amount since `since` (for the average price).
+ * @param {{ monthStart: Date, since: Date }} range
+ */
+export async function beanTiles({ monthStart, since }) {
+  const sum = (field) => ({ $sum: field });
+  const [row] = await BeanListing.aggregate([
+    {
+      $facet: {
+        toReview: [{ $match: { status: 'pending' } }, { $group: { _id: null, count: sum(1), kg: sum('$weightKg') } }],
+        waiting: [{ $match: { status: 'approved' } }, { $group: { _id: null, count: sum(1), kg: sum('$weightKg'), nextExpiresAt: { $min: '$expiresAt' } } }],
+        month: [{ $match: { status: 'completed', 'completion.at': { $gte: monthStart } } }, { $group: { _id: null, kg: sum('$completion.finalWeightKg'), paid: sum('$completion.finalAmountCentavos') } }],
+        recent: [{ $match: { status: 'completed', 'completion.at': { $gte: since } } }, { $group: { _id: null, kg: sum('$completion.finalWeightKg'), paid: sum('$completion.finalAmountCentavos') } }],
+      },
+    },
+  ]);
+  return Object.fromEntries(Object.entries(row).map(([k, v]) => [k, v[0] ?? null]));
+}
+
+/** Seeds only: is there any listing yet? */
+export const anyListing = async () => Boolean(await BeanListing.exists({}));
+
+/** Seeds only: bulk insert (no audit entries, like the seeded harvests). */
+export const insertListings = (docs) => BeanListing.insertMany(docs);
