@@ -2,7 +2,7 @@ import { SETTING_DEFAULTS } from '../../constants/settings.js';
 import { ROLES } from '../../constants/permissions.js';
 import { listActiveByUser } from '../../repositories/address.repository.js';
 import { insertNotifications } from '../../repositories/notification.repository.js';
-import { getSetting } from '../../services/setting.service.js';
+import { getPickup, getSetting } from '../../services/setting.service.js';
 import { buildBuyerOrders, noticesFor } from './buyerOrders.js';
 import { countOrders, insertOrders } from '../../repositories/order.repository.js';
 import { addSoldCount, listProductsByCategoryIds, reserveStock } from '../../repositories/product.repository.js';
@@ -16,7 +16,6 @@ import { nextOrderNumber } from '../../utils/orderNumber.js';
 
 const DAY = 86_400_000;
 const FEE = SETTING_DEFAULTS['delivery.fee'];
-const PICKUP = SETTING_DEFAULTS['pickup.location'];
 
 // [rating, comment]. Never mentions messaging or chat (PRODUCT-SPEC §11).
 const REVIEWS = [
@@ -61,6 +60,7 @@ const historyFor = (method, placedAt, soldAt) => [
  */
 export async function seedDemo() {
   if ((await countOrders()) > 0) return 'skipped (orders exist)';
+  const pickup = await getPickup();
   const ids = await categoryIdsBySlug();
   const products = Object.fromEntries((await listProductsByCategoryIds([ids.coffee])).map((p) => [p.slug, p]));
   if (!products['barako-medium-roast']) throw new Error('Run the products seeder first.');
@@ -103,7 +103,7 @@ export async function seedDemo() {
           address: { label: 'home', recipientName: contactName, phone: buyer.contactNumber, province: 'Marinduque', municipality: town.name, barangay: town.barangays[i % town.barangays.length], postalCode: town.postalCode },
           etaFrom: new Date(placedAt.getTime() + 3 * DAY), etaTo: new Date(placedAt.getTime() + 5 * DAY),
         }
-        : { method, contactName, contactPhone: buyer.contactNumber, pickup: { name: PICKUP.name, address: PICKUP.address, hours: PICKUP.hours, location: PICKUP.location } },
+        : { method, contactName, contactPhone: buyer.contactNumber, pickup },
       payment: i % 2 ? { method: 'e_wallet', provider: i % 4 === 1 ? 'GCash' : 'Maya', submittedAt: placedAt, verifiedAt: new Date(placedAt.getTime() + DAY / 4) } : { method: 'cash', cashCollectedAt: soldAt },
       status: 'sold',
       statusHistory: historyFor(method, placedAt, soldAt),
@@ -142,7 +142,7 @@ async function seedJuanaOrders(buyer, products) {
   const addresses = Object.fromEntries((await listActiveByUser(buyer._id)).map((a) => [ADDRESS_KEYS[a.label], a]));
   if (!addresses.home || !addresses.work || !addresses.mama) throw new Error('Run the addresses seeder first.');
   const [kaluppaId] = await findUserIdsByRole(ROLES.KALUPPA);
-  const [fee, eta, pickup] = await Promise.all([getSetting('delivery.fee'), getSetting('delivery.eta'), getSetting('pickup.location')]);
+  const [fee, eta, pickup] = await Promise.all([getSetting('delivery.fee'), getSetting('delivery.eta'), getPickup()]);
   const { orders, reserved, sold } = await buildBuyerOrders({ buyer, kaluppaId, addresses, products, fee, eta, pickup });
   const inserted = (await insertOrders(orders)).map((o) => o.toObject());
   const kaluppaNotices = inserted.filter((o) => o.status === 'pending').map((o) => ({

@@ -155,3 +155,10 @@ export function listGroupManagers({ words, orIds, status, assignedIds, page, lim
 /** Suspend (archive) or reactivate an account; suspending also ends every open session. */
 export const setAccountStatus = (userId, status) =>
   User.findByIdAndUpdate(userId, { status, ...(status === 'suspended' && { $inc: { tokenVersion: 1 } }) }, { returnDocument: 'after' }).lean();
+
+/**
+ * Ids of users whose name or username matches every word (searching records by person).
+ * @param {RegExp[]} words
+ */
+export const findUserIdsByName = (words) =>
+  User.find({ $and: words.map((w) => ({ $or: [{ firstName: w }, { lastName: w }, { username: w }] })) }).distinct('_id');

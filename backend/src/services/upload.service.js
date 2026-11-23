@@ -5,7 +5,7 @@ import { kindForFormat, UPLOAD_PURPOSES, UPLOAD_RULES, uploadRule } from '../sch
 import { AppError } from '../utils/AppError.js';
 
 /** Upload purposes users may sign and their Cloudinary folders (later milestones add theirs). */
-export const UPLOAD_FOLDERS = { avatar: 'avatars', receipt: 'receipts', farmer_document: 'farmer-documents' };
+export const UPLOAD_FOLDERS = { avatar: 'avatars', receipt: 'receipts', farmer_document: 'farmer-documents', bean_photo: 'bean-photos' };
 
 /** "JPG, PNG, WebP or HEIC, or PDF" */
 const acceptedTypes = (kinds) => kinds.map((kind) => UPLOAD_RULES[kind].hint.split(' · ')[0]).join(', or ');

@@ -2,6 +2,7 @@
 export * from './address.model.js';
 export * from './association.model.js';
 export * from './auditLog.model.js';
+export * from './beanListing.model.js';
 export * from './cart.model.js';
 export * from './category.model.js';
 export * from './conversation.model.js';

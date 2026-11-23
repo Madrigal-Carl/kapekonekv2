@@ -1,10 +1,11 @@
-import { MongoMemoryServer } from 'mongodb-memory-server';
+import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 
 let server;
 
+// A one-node replica set: the bean cap runs in a transaction (PHASE-2-SPEC §3.5), which standalone mongod refuses.
 export async function startMemoryDb() {
-  server = await MongoMemoryServer.create();
+  server = await MongoMemoryReplSet.create({ replSet: { count: 1, storageEngine: 'wiredTiger' } });
   await mongoose.connect(server.getUri());
 }
 

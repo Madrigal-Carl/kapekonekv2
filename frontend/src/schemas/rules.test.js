@@ -1,7 +1,7 @@
 // The same table runs in backend/tests/rules.test.js — keep them identical.
 import { describe, expect, it } from 'vitest';
 import {
-  associationDescriptionRule, associationNameRule, cancelReasonRule, farmSizeRule, lotNumberRule, pastDateRule, todayKey, treeCountRule, yieldRule, customLabelRule, kindForFormat, passwordRule, phoneRule, quantityRule, ratingRule, recipientNameRule, reviewCommentRule, streetRule, uploadRule, usernameRule,
+  associationDescriptionRule, associationNameRule, beanPhotosRule, beanPriceRule, beanWeightRule, cancelReasonRule, farmSizeRule, lotNumberRule, pastDateRule, todayKey, treeCountRule, yieldRule, customLabelRule, kindForFormat, passwordRule, phoneRule, quantityRule, ratingRule, recipientNameRule, reviewCommentRule, streetRule, uploadRule, usernameRule,
 } from './rules.js';
 
 const ok = (rule, value) => rule.safeParse(value).success;
@@ -130,5 +130,19 @@ describe('tree and harvest rules (PHASE-2-SPEC §7)', () => {
     expect(ok(pastDateRule, '2022-03-15')).toBe(true);
     expect(ok(pastDateRule, tomorrow)).toBe(false);
     expect(ok(pastDateRule, '15/03/2022')).toBe(false);
+  });
+});
+
+describe('bean listing rules (PHASE-2-SPEC §7)', () => {
+  it.each([[0.5, true], [3, true], [10_000, true], [0, false], [1.2, false], [10_000.5, false]])('weight %s → %s', (value, expected) =>
+    expect(ok(beanWeightRule, value)).toBe(expected));
+  it.each([[100, true], [18_050, true], [1_000_000, true], [99, false], [1_000_001, false], [180.5, false]])('price %s centavos → %s', (value, expected) =>
+    expect(ok(beanPriceRule, value)).toBe(expected));
+  const photo = { url: 'https://res.cloudinary.com/x/image/upload/a.jpg', publicId: 'a' };
+  it.each([[0, false], [1, true], [5, true], [6, false]])('%s photos → %s', (count, expected) =>
+    expect(ok(beanPhotosRule, Array(count).fill(photo))).toBe(expected));
+  it('takes bean photos as images only', () => {
+    expect(kindForFormat('bean_photo', 'jpg')).toBe('image');
+    expect(kindForFormat('bean_photo', 'pdf')).toBeNull();
   });
 });

@@ -10,11 +10,16 @@ export const SETTING_DEFAULTS = {
     roadFactorFallback: 1.35,
   },
   'delivery.eta': { minBusinessDays: 3, maxBusinessDays: 5 },
-  'pickup.location': {
+  // The Kaluppa branch (PHASE-2-SPEC §3.13; replaces Phase 1's pickup.location): pickup card, pickup orders, bean drop-off.
+  // hours[0] is Monday … hours[6] Sunday. Sample hours until Kaluppa confirms (phase-1-questions #24).
+  branch: {
     name: 'Kaluppa',
-    address: 'Pantayin, Santa Cruz, Marinduque',
-    hours: 'Monday to Saturday, 8:00 AM to 5:00 PM', // sample until Kaluppa confirms (phase-1-questions #24)
+    phone: '0917 800 1122',
+    street: '',
+    barangay: 'Pantayin',
+    municipality: 'Santa Cruz',
     location: { lat: 13.467, lng: 122.044 },
+    hours: [...Array(6).fill({ open: true, from: '08:00', to: '17:00' }), { open: false, from: '08:00', to: '17:00' }],
   },
   'payment.ewallet': {
     providers: ['GCash', 'Maya'],

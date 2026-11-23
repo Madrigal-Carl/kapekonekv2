@@ -117,6 +117,7 @@ export const UPLOAD_PURPOSES = {
   avatar: ['image'],
   receipt: ['image'],
   farmer_document: ['image', 'file'],
+  bean_photo: ['image'],
   post_media: ['image', 'video'],
 };
 
@@ -177,3 +178,20 @@ export const yieldRule = z
   .max(100_000, 'Enter 100,000 kg or less')
   .refine((kg) => Number.isInteger(kg * 2), 'Use steps of 0.5 kg');
 export const recordNoteRule = z.string().trim().max(500, 'Use 500 characters or fewer');
+
+// Bean listings (PHASE-2-SPEC §7). Mirrors backend/src/schemas/rules.js.
+export const beanWeightRule = z
+  .number('Enter the weight in kg')
+  .min(0.5, 'Enter at least 0.5 kg')
+  .max(10_000, 'Enter 10,000 kg or less')
+  .refine((kg) => Number.isInteger(kg * 2), 'Use steps of 0.5 kg');
+/** Price per kg in centavos: ₱1 to ₱10,000. */
+export const beanPriceRule = z
+  .number('Enter your price per kg')
+  .int('Use whole centavos')
+  .min(100, 'Enter at least ₱1 per kg')
+  .max(1_000_000, 'Enter ₱10,000 per kg or less');
+export const beanPhotosRule = z
+  .array(z.object({ url: z.url().max(500), publicId: z.string().min(1).max(300) }), 'Add at least 1 photo')
+  .min(1, 'Add at least 1 photo')
+  .max(5, 'Add up to 5 photos');

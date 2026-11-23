@@ -79,3 +79,13 @@ export async function countFarmersEverywhere() {
   ]);
   return { approved, waiting };
 }
+
+/**
+ * Take the farmer's bean-cap lock inside a transaction: the write makes a second listing transaction for the same
+ * farmer conflict and retry after this one commits (PHASE-2-SPEC §3.5). Returns the profile's current status.
+ * @param {unknown} userId
+ * @param {import('mongoose').ClientSession} session
+ * @returns {Promise<'none'|'pending'|'approved'|'rejected'>}
+ */
+export const lockForBeanCap = async (userId, session) =>
+  (await FarmerProfile.findOneAndUpdate({ user: userId }, { $inc: { capLock: 1 } }, { session, upsert: true, returnDocument: 'after', projection: 'status' }).lean()).status;

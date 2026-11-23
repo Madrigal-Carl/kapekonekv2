@@ -16,7 +16,7 @@ import { getCart } from './cart.service.js';
 import { quoteForAddress } from './deliveryQuote.service.js';
 import { notifyKaluppa, notifyUsers } from './notification.service.js';
 import { userCan } from './permission.service.js';
-import { getSetting } from './setting.service.js';
+import { getPickup, getSetting } from './setting.service.js';
 import { assertUploadAllowed, isOwnUpload } from './upload.service.js';
 
 const fieldError = (field, message) => new AppError(400, 'Please check the highlighted fields.', { errors: { [field]: message } });
@@ -85,8 +85,7 @@ async function pickupFor(user, contactPhone) {
   const phone = contactPhone ?? user.contactNumber;
   if (!phone) throw fieldError('contactPhone', 'Enter a contact number so Kaluppa can reach you about your pickup');
   if (phone !== user.contactNumber) await updateContactNumber(user._id, phone);
-  const { name, address, hours, location } = await getSetting('pickup.location');
-  return { feeCentavos: 0, fulfillment: { method: 'pickup', contactName: fullName(user), contactPhone: phone, pickup: { name, address, hours, location } } };
+  return { feeCentavos: 0, fulfillment: { method: 'pickup', contactName: fullName(user), contactPhone: phone, pickup: await getPickup() } };
 }
 
 /** Emails, notifications and the live update after a successful placement. Failures are logged, never undo the order. */

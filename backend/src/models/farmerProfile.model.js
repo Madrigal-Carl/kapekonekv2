@@ -21,6 +21,7 @@ const farmerProfileSchema = new mongoose.Schema(
       type: new mongoose.Schema({ association: { type: mongoose.Schema.Types.ObjectId, ref: 'Association' }, reason: String, requestedAt: Date }, { _id: false }),
       default: null,
     },
+    capLock: { type: Number, default: 0 }, // bumped inside the bean-cap transaction so one farmer's listings run one at a time
     history: [{ _id: false, action: String, by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, at: { type: Date, default: Date.now }, note: String }],
   },
   { timestamps: true },
