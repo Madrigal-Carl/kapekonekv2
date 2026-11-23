@@ -12,7 +12,7 @@ const VIEWS = { farmer: OverviewFarmer, group_manager: OverviewGM, kaluppa: Over
 
 /** The page frame every dashboard page uses (DESIGN §8.1). */
 export function DashPage({ children }) {
-  return <main className="flex w-full max-w-[1240px] flex-col gap-5 px-8 pb-14 pt-7 max-[960px]:px-4 max-[960px]:pb-10 max-[960px]:pt-5">{children}</main>
+  return <main className="flex w-full flex-col gap-5 px-8 pb-14 pt-7 max-[960px]:px-4 max-[960px]:pb-10 max-[960px]:pt-5">{children}</main>
 }
 
 /** White card for a chart: title, sub-line, then the chart. */
