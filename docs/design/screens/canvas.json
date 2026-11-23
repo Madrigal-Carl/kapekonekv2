@@ -278,8 +278,8 @@
       "x": 3040,
       "y": 13820,
       "w": 1440,
-      "h": 1100,
-      "title": "Farmer account settings — association & transfer",
+      "h": 1500,
+      "title": "Farmer account — Association (redesigned; tweak: status)",
       "expand": "fill",
       "is_interactive": true
     },
@@ -587,6 +587,22 @@
       "title": "Reviews — review drawer with reply",
       "expand": "fill",
       "is_interactive": true
+    },
+    "Buttons.dc.html": {
+      "x": 4520,
+      "y": 12400,
+      "w": 1440,
+      "h": 1100,
+      "title": "Button (component) — variants, sizes, states"
+    },
+    "FarmerAddresses.dc.html": {
+      "x": 7600,
+      "y": 13820,
+      "w": 1440,
+      "h": 1000,
+      "title": "Farmer account — Addresses (map cards)",
+      "expand": "fill",
+      "is_interactive": true
     }
   },
   "order": [
@@ -655,7 +671,9 @@
     "TreeForm.dc.html",
     "HarvestForm.dc.html",
     "Reviews.dc.html",
-    "ReviewView.dc.html"
+    "ReviewView.dc.html",
+    "Buttons.dc.html",
+    "FarmerAddresses.dc.html"
   ],
   "notes": {
     "row1": {
@@ -699,14 +717,14 @@
       "y": 12100,
       "text": "Dashboard (Phase 2) — shared pieces",
       "kind": "title1",
-      "maxW": 4440
+      "maxW": 5960
     },
     "row6": {
       "x": 0,
       "y": 13520,
       "text": "Dashboard — onboarding & overviews",
       "kind": "title1",
-      "maxW": 7520
+      "maxW": 9040
     },
     "row7": {
       "x": 0,

@@ -75,6 +75,7 @@ Everything is decided. If something is truly missing, write it in `docs/plans/ph
 - **`beans:expire` job** (hourly, idempotent) with notifications. Emails per PHASE-2-SPEC §6. Socket `bean:updated`.
 
 ### M11 — Store for farmers, Kaluppa orders, inventory, settings
+_(Change 05 runs before this milestone: react-icons, `<Button>`, map area highlights, username suggestions, redesigned farmer Association and Addresses pages. Use them from here on.)_
 - **Farmers in the store**: `/products` shows Fertilizer and Seedlings by permission; cart, addresses and checkout work for farmers. After placing an order, go to `/dashboard/orders?open=<id>`.
 - **Farmer Orders page**: table, view drawer, cancel modal.
 - **Kaluppa Orders**: table with tabs and filters; manage drawer (receipt check gate, confirm/reject, next steps, rider, cash collected, refund). Reuse the Phase 1 transition service; don't duplicate it.

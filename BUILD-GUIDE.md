@@ -119,7 +119,7 @@ You can also open the canvas next to the running app: https://claude.ai/artifact
 
 Ask Claude:
 ```
-Give me PowerShell commands to log in as kaluppa (password KapeKonek@123) and move my latest order through
+Give me PowerShell commands to log in as kaluppa@kapekonek.test and move my latest order through
 reserved → processing → out_for_delivery (rider Jun, 09175550102) → sold. Then do the same for a
 pickup order with ready_for_pickup, and show how to reject one and mark its refund.
 ```
@@ -130,13 +130,13 @@ Watch the buyer's order page, notifications and emails update.
 ```powershell
 npm run dev
 ```
-Frontend: http://localhost:5173 · Seed accounts (password `KapeKonek@123`; sign in with the username or the email from the table `migrate:fresh -- --seed` prints):
+Frontend: http://localhost:5173 · Seed accounts (password `Password123!`):
 
 | Account | Lands on |
 |---|---|
-| `buyer` | storefront (has 3 saved addresses and sample orders) |
-| `buyer.unverified` | verify-email page |
-| `kaluppa`, `manager.santacruz`, `farmer.approved` | dashboard placeholder |
+| `buyer@kapekonek.test` | storefront (has 3 saved addresses and sample orders) |
+| `buyer.unverified@kapekonek.test` | verify-email page |
+| `kaluppa@kapekonek.test`, `manager@kapekonek.test`, `farmer1@kapekonek.test` | dashboard placeholder |
 
 To reset the data: `cd backend`, then `npm run migrate:fresh -- --seed`.
 
@@ -159,6 +159,7 @@ Each one is a single Claude Code session. Copy the updated kit files in first (C
 | 02 · no eyebrow bar | done |
 | 03 · search selects, map zoom, upload limits, review rules, cart quantity fix | `Read CLAUDE.md and docs/prompts/CHANGE-03-SELECTS-MAP-ZOOM-UPLOADS-REVIEWS-CART.md, then carry out Change 03.` |
 | 04 · fixed post media frames, Gmail seed accounts (`KapeKonek@123`) | `Read CLAUDE.md and docs/prompts/CHANGE-04-POST-MEDIA-AND-SEED-ACCOUNTS.md, then carry out Change 04.` |
+| 05 · react-icons, one Button, map area highlights, username suggestions, farmer Association + Addresses redesign (**run after M10, before M11**) | `Read CLAUDE.md and docs/prompts/CHANGE-05-ICONS-BUTTONS-AREAS-USERNAMES-ACCOUNT.md, then carry out Change 05.` |
 
 ## Phase 2 — the dashboard (farmer, Group Manager, Kaluppa)
 

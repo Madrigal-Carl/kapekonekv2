@@ -223,6 +223,12 @@ The dashboard screens are the canvas rows titled "Dashboard". Each page has a **
 | `ChatList`, `ChatThread`, `MessageBubble`, `Composer` | `Inbox.dc.html`, `InboxMobile.dc.html` | Mine: roast bubble, white text, radius 14/14/4/14. Theirs: white with a sand border. Deleted: dashed outline, italic. Replies quote with a caramel left bar. Status line under my last message: ✓ Sent / ✓✓ Delivered (gray) / ✓✓ Seen (roast) or "Seen by N" with avatars. Hover actions: Reply, ⋯ (Edit within 15 min, Delete for everyone, Delete for me). Typing shows three dots. Read-only chats replace the composer with a note. |
 | `PostCard`, `PostComposer`, `ReactionPicker`, `CommentThread` | `Hub.dc.html` | **Fixed 16:10 media grid** (1 / 2 / 1+2 / 2×2 with "+N"), cover crop; the viewer uses contain on a dark stage. Tag chips under the text. Role badge: Farmer green, Group Manager blue, Kaluppa espresso. The "On the landing page" badge marks the top-3 posts. |
 
+| `Button` | `Buttons.dc.html` | One component. `variant` solid · outline · soft · ghost · danger · danger-outline · success · link (+ light / glass / caramel on dark), `size` sm 36 · md 42 · lg 48, `leftIcon` / `rightIcon`, `iconOnly`, `loading`, `fullWidth`, `as`. Hover, focus (2px roast ring, offset 2) and disabled (45% opacity) as on the board. |
+| Icons | all screens | `react-icons/lu` (Lucide) through `components/ui/icons.js`. Inline SVGs in the screens are just Lucide drawings. |
+| Area highlight | `MiniMap.dc.html`, `AddressModal.dc.html`, `FarmForm`, `FarmView`, `FarmMap`, `SettingsKaluppa`, `FarmerAddresses` | Municipality: fill `rgba(200,145,58,.16)` + 2px `#C8913A`. Barangay: fill `rgba(123,74,42,.24)` + 2px `#7B4A2A`, with the municipality outline still shown. The map fits the bounds of the highlighted area. The shapes on the canvas are approximations; the app uses real PSGC polygons (Change 05 Part C). |
+| `UsernameField` | `Register`, `FarmerForm`, `GroupManagerForm` | `@` prefix, a status line with an icon, and 3 one-line suggestion chips. |
+| `AccountNav` | `FarmerAssociation`, `FarmerAddresses` | A pill bar with icons; the active item is crema with an espresso label. |
+
 ### 8.3 Chart colors (validated with the dataviz checker; don't change the order)
 - **Varieties** (categorical): Liberica `#2a78d6`, Excelsa `#eb6834`, Robusta `#1baf7a`, Arabica `#eda100`.
 - **Tree stages**: Newly planted `#2a78d6`, Growing `#eb6834`, Flowering `#1baf7a`, Fruiting `#eda100`, Damaged `#e87ba4`.
@@ -235,7 +241,9 @@ The dashboard screens are the canvas rows titled "Dashboard". Each page has a **
 |---|---|---|
 | `OverviewFarmer` / `OverviewGM` / `OverviewKaluppa` | `/dashboard/overview` | farmer / group_manager / kaluppa |
 | `AssociationModal` | window on `/dashboard/*` | farmer (no association, no pending request) |
-| `FarmerAssociation` | `/dashboard/account/association` (with `/dashboard/account/profile`, `/security`, `/addresses`) | farmer |
+| `FarmerAssociation` (Tweaks: approved / pending / rejected / none) | `/dashboard/account/association` | farmer |
+| `FarmerAddresses` | `/dashboard/account/addresses` | farmer |
+| `Buttons` | the `<Button>` component | all |
 | `Farmers`, `FarmerReview`, `FarmerForm` | `/dashboard/farmers` | group_manager |
 | `GroupManagers`, `GroupManagerForm` | `/dashboard/group-managers` | kaluppa |
 | `Associations`, `AssociationForm` | `/dashboard/associations` | kaluppa |

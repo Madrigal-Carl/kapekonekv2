@@ -50,7 +50,21 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
       <div style="flex: 1; overflow-y: auto; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px">
         <h3 style="margin: 8px 0 -8px; padding-top: 18px; border-top: 1px solid #F1E9DE; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B5A4E; font-weight: 600">Name</h3>
         <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px"><div><label for="gfn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">First name</label><input class="kk-f" id="gfn" type="text" defaultValue="{{ g.first }}" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div><div><label for="gmn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Middle <span style="text-transform: none; letter-spacing: 0; color: #7A6A5E">(optional)</span></label><input class="kk-f" id="gmn" type="text" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div><div><label for="gln" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Last name</label><input class="kk-f" id="gln" type="text" defaultValue="{{ g.last }}" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div></div>
-        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px"><div><label for="gun" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Username</label><input class="kk-f" id="gun" type="text" defaultValue="{{ g.username }}" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div><div><label for="gcn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Contact number</label><input class="kk-f" id="gcn" type="tel" defaultValue="{{ g.phone }}" placeholder="09XX XXX XXXX" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div></div>
+        <div>
+          <label for="un" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Username</label>
+          <div style="position: relative; margin-top: 8px">
+            <span aria-hidden="true" style="position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #7A6A5E; font-size: 14px">@</span>
+            <input class="kk-f" id="un" value="{{ un }}" onInput="{{ onUn }}" autocomplete="off" aria-describedby="un-status" style="width: 100%; min-height: 44px; border: 1px solid {{ unBorder }}; border-radius: 5px; padding: 10px 13px 10px 31px; font: inherit; font-size: 14px">
+          </div>
+          <p id="un-status" aria-live="polite" style="margin: 7px 0 0; display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: {{ unColor }}; font-weight: 500"><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="{{ unIcon }}"></path></svg>{{ unMsg }}</p>
+          <div style="margin-top: 10px; display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; overflow-x: auto; white-space: nowrap">
+            <span style="flex-shrink: 0; font-size: 12px; color: #6B5A4E">Suggestions:</span>
+            <sc-for list="{{ unSugg }}" as="sg" hint-placeholder-count="3">
+              <button type="button" onClick="{{ sg.pick }}" style="flex-shrink: 0; white-space: nowrap; border: 1px solid {{ sg.border }}; background: {{ sg.bg }}; color: #2B1A12; border-radius: 999px; padding: 5px 11px; font: inherit; font-size: 12.5px; cursor: pointer; min-height: 32px">@{{ sg.name }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div><label for="gcn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Contact number</label><input class="kk-f" id="gcn" type="tel" defaultValue="{{ g.phone }}" placeholder="09XX XXX XXXX" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div>
         <div><label for="gem" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Email</label><input class="kk-f" id="gem" type="email" defaultValue="{{ g.email }}" placeholder="name@gmail.com" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"><span style="display: block; margin-top: 6px; font-size: 12px; line-height: 1.5; color: #6B5A4E">We send an invite link to set a password.</span></div>
         <h3 style="margin: 8px 0 -8px; padding-top: 18px; border-top: 1px solid #F1E9DE; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B5A4E; font-weight: 600">Association</h3>
         <div style="position: relative; z-index: 8"><dc-import name="SearchSelect" label="Association" icon="tag" placeholder="Assign later" search-placeholder="Search association" options="{{ assocOpts }}" value="{{ gAssoc }}" on-pick="{{ pickAssoc }}" hint-size="100%,70px"></dc-import></div>
@@ -91,7 +105,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"start": {"editor": "enum", "options": ["", "add", "view"], "default": ""}, "$preview": {"width": 1440, "height": 1000}}'>
 class Component extends DCLogic {
-  constructor(props) { super(props); this.state = { mode: props.start || null, row: null, modal: null, toast: '', rejecting: false, tab: props.tab || 'details', pin: null, muni: null, brgy: null, view: null, adding: false, assoc: null }; }
+  constructor(props) { super(props); this.state = { mode: props.start || null, row: null, modal: null, toast: '', rejecting: false, tab: props.tab || 'details', pin: null, muni: null, brgy: null, view: null, adding: false, assoc: null, un: 'celso' }; }
   renderVals() {
     const s = this.state;
     const close = () => this.setState({ mode: null, row: null, rejecting: false, adding: false });
@@ -111,22 +125,35 @@ class Component extends DCLogic {
     const rows = G.map((r) => ({ id: r[0], label: r[1], first: r[1].split(' ')[0], tab: r[8], gm: { name: r[1], sub: '@' + r[2], initials: r[3], bg: r[4] }, assoc: r[5] ? { main: r[5], sub: r[6] + ' farmers' } : { main: 'Not assigned', sub: 'Assign from Edit' }, phone: r[7], status: r[8] === 'archived' ? pill('Archived', 'gray') : (r[8] === 'unassigned' ? pill('No association', 'amber') : pill('Active', 'green')), since: r[9], assocName: r[5], actions: r[8] === 'archived' ? ['view', 'restore'] : ['view', 'edit', 'archive'] }));
     const cur = s.row || rows[0];
     const editing = s.mode === 'edit';
+    const unv = this.state.un;
+    const unFirst = (editing ? cur.first : 'Celso').toLowerCase().replace(/[^a-z]/g, ''), unLast = (editing ? cur.label.split(' ').slice(-1)[0] : 'Garcia').toLowerCase().replace(/[^a-z]/g, '');
+    const unTaken = ['celso', 'celso.garcia', 'liza.ramos', 'mario.santos'];
+    const unValid = /^[a-z0-9._]{3,30}$/.test(unv);
+    const unIsTaken = unTaken.includes(unv);
+    const unOk = unValid && !unIsTaken;
+    const unVals = {
+      un: unv, onUn: (e) => this.setState({ un: e.target.value.toLowerCase() }),
+      unMsg: !unv ? 'Pick a suggestion or type one. They sign in with it.' : (!unValid ? '3–30 characters: lowercase letters, numbers, dots or underscores' : (unIsTaken ? '@' + unv + ' is taken. Try a suggestion.' : '@' + unv + ' is available')),
+      unColor: !unv ? '#6B5A4E' : (unOk ? '#1E5A34' : '#A1362B'), unBorder: !unv ? '#DCCBB5' : (unOk ? '#7FB08E' : '#C2554A'),
+      unIcon: !unv ? 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 16v-4M12 8h.01' : (unOk ? 'M20 6 9 17l-5-5' : 'M18 6 6 18M6 6l12 12'),
+      unSugg: [unFirst + '.' + unLast, unFirst[0] + unLast, unFirst + unLast[0] + '2026'].filter((n) => !unTaken.includes(n)).slice(0, 3).map((name) => ({ name, bg: unv === name ? '#F7EFE4' : '#FFFFFF', border: unv === name ? '#7B4A2A' : '#DCCBB5', pick: () => this.setState({ un: name }) }))
+    };
     return {
-      ...base, minW: '760px',
+      ...base, ...unVals, minW: '760px',
       cols: [{ key: 'gm', label: 'Group Manager', kind: 'person' }, { key: 'assoc', label: 'Association' }, { key: 'phone', label: 'Contact' }, { key: 'status', label: 'Status', kind: 'pill' }, { key: 'since', label: 'Created', kind: 'muted' }],
       rows, filters: [],
       tabs: [{ key: 'all', label: 'All' }, { key: 'active', label: 'Active' }, { key: 'unassigned', label: 'No association' }, { key: 'archived', label: 'Archived' }],
-      onAction: (k, r) => { if (k === 'view') this.setState({ mode: 'view', row: r }); else if (k === 'edit') this.setState({ mode: 'edit', row: r, assoc: r.assocName || null }); else if (k === 'archive') this.setState({ modal: 'archive', row: r }); else if (k === 'restore') this.setState({ toast: r.label + ' was restored.' }); },
+      onAction: (k, r) => { if (k === 'view') this.setState({ mode: 'view', row: r }); else if (k === 'edit') this.setState({ mode: 'edit', row: r, assoc: r.assocName || null, un: r.gm.sub.slice(1) }); else if (k === 'archive') this.setState({ modal: 'archive', row: r }); else if (k === 'restore') this.setState({ toast: r.label + ' was restored.' }); },
       isForm: s.mode === 'add' || editing, isView: s.mode === 'view', isArchive: s.modal === 'archive',
       cur: { ...cur.gm, name: cur.label, sub: cur.gm.sub + ' · ' + cur.phone },
       formTitle: editing ? 'Edit ' + cur.label : 'Add a Group Manager', formCta: editing ? 'Save changes' : 'Create account',
-      g: editing ? { first: cur.first, last: cur.label.split(' ').slice(-1)[0], username: cur.gm.sub.slice(1), phone: cur.phone, email: cur.first.toLowerCase() + '.kapekonek@gmail.com' } : { first: '', last: '', username: '', phone: '', email: '' },
+      g: editing ? { first: cur.first, last: cur.label.split(' ').slice(-1)[0], username: cur.gm.sub.slice(1), phone: cur.phone, email: cur.first.toLowerCase() + '.kapekonek@gmail.com' } : { first: 'Celso', last: 'Garcia', username: '', phone: '', email: '' },
       assocOpts: ['Assign later', 'Gasan Coffee Circle · no Group Manager', 'Santa Cruz Coffee Growers · has Liza Ramos', 'Boac Highland Farmers · has Mario Santos'],
       gAssoc: s.assoc || 'Assign later', pickAssoc: (v) => this.setState({ assoc: v }),
       viewRows: [{ k: 'Association', v: cur.assoc.main }, { k: 'Email', v: cur.first.toLowerCase() + '.kapekonek@gmail.com' }, { k: 'Created', v: cur.since }, { k: 'Last sign-in', v: 'Today, 8:12 AM' }],
       stats: [{ k: 'Farmers', v: cur.assoc.sub ? cur.assoc.sub.split(' ')[0] : '0' }, { k: 'Waiting', v: cur.id === 'g1' ? '4' : '0' }, { k: 'Farms', v: cur.id === 'g1' ? '26' : (cur.id === 'g2' ? '19' : '0') }],
       archiveNote: cur.assocName ? cur.assocName + ' will have no Group Manager, and Kaluppa reviews its farmer requests until you assign one.' : '',
-      openAdd: () => this.setState({ mode: 'add', row: null, assoc: null }), editCur: () => this.setState({ mode: 'edit', assoc: cur.assocName || null }),
+      openAdd: () => this.setState({ mode: 'add', row: null, assoc: null, un: 'celso' }), editCur: () => this.setState({ mode: 'edit', assoc: cur.assocName || null, un: cur.gm.sub.slice(1) }),
       save: () => this.setState({ mode: null, toast: editing ? 'Changes saved.' : 'Account created. We emailed an invite link.' }),
       doArchive: () => this.setState({ modal: null, toast: cur.label + ' was archived.' })
     };

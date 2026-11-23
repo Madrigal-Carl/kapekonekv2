@@ -59,7 +59,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
         <div><label for="st" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Street, sitio or landmark <span style="text-transform: none; letter-spacing: 0; color: #7A6A5E">(optional)</span></label><input class="kk-f" id="st" type="text" defaultValue="{{ fv.street }}" placeholder="e.g. Sitio Ilaya, near the chapel" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div>
         <div>
           <span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Farm location</span>
-          <div style="margin-top: 8px; position: relative; z-index: 1"><dc-import name="MiniMap" aria-label="Farm map. Click to place the farm pin." pins="{{ formPins }}" focus="{{ focus }}" area="{{ area }}" on-map-click="{{ onMapClick }}" note="{{ zoomNote }}" hint-size="100%,460px"></dc-import></div>
+          <div style="margin-top: 8px; position: relative; z-index: 1"><dc-import name="MiniMap" aria-label="Farm map. Click to place the farm pin." pins="{{ formPins }}" focus="{{ focus }}" highlight="{{ hl }}" on-map-click="{{ onMapClick }}" note="{{ zoomNote }}" hint-size="100%,460px"></dc-import></div>
           <p aria-live="polite" style="margin: 8px 0 0; font-size: 12.5px; color: #4A3A30">{{ pinNote }}</p>
         </div>
       </div>
@@ -79,7 +79,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
           <sc-for list="{{ vtabs }}" as="t" hint-placeholder-count="3"><button type="button" role="tab" aria-selected="{{ t.on }}" onClick="{{ t.pick }}" style="min-height: 40px; padding: 0 12px; border: 0; border-bottom: 2px solid {{ t.line }}; margin-bottom: -1px; background: transparent; font: inherit; font-size: 13.5px; font-weight: {{ t.fw }}; color: {{ t.fg }}; cursor: pointer">{{ t.label }}</button></sc-for>
         </div>
         <sc-if value="{{ tabDetails }}" hint-placeholder-val="{{ true }}">
-          <div style="position: relative; z-index: 1"><dc-import name="MiniMap" pins="{{ viewPins }}" focus="{{ viewFocus }}" controls="{{ true }}" hint-size="100%,440px"></dc-import></div>
+          <div style="position: relative; z-index: 1"><dc-import name="MiniMap" pins="{{ viewPins }}" focus="{{ viewFocus }}" highlight="{{ viewHl }}" controls="{{ true }}" hint-size="100%,440px"></dc-import></div>
           <dl style="margin: 0; display: grid; grid-template-columns: 160px 1fr; gap: 12px 18px; font-size: 14px; line-height: 1.5"><sc-for list="{{ vRows }}" as="d" hint-placeholder-count="5"><dt style="color: #6B5A4E">{{ d.k }}</dt><dd style="margin: 0; font-weight: 500">{{ d.v }}</dd></sc-for></dl>
           <sc-if value="{{ isKalFarm }}" hint-placeholder-val="{{ false }}">
             <h3 style="margin: 8px 0 -8px; padding-top: 18px; border-top: 1px solid #F1E9DE; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B5A4E; font-weight: 600">Farmers working on it</h3>
@@ -205,7 +205,7 @@ class Component extends DCLogic {
       onMapClick: (x, y) => { let best = 'Boac', bd = 1e9; Object.keys(DOTS).forEach((t) => { const d = Math.hypot(DOTS[t][0] - x, DOTS[t][1] - y); if (d < bd) { bd = d; best = t; } }); const list = BRGY[best]; this.setState({ pin: [x, y], muni: best, brgy: list[hash(x.toFixed(0) + y.toFixed(0)) % list.length] }); },
       formPins: pin ? [{ id: 'new', x: pin[0], y: pin[1], label: 'Farm pin', tone: 'new' }] : [],
       focus: s.view || { cx: 300, cy: 220, z: 1 },
-      area: br && pin ? { cx: pin[0], cy: pin[1], r: 7 } : null,
+      hl: { muni: muni || null, brgy: br && pin ? { x: pin[0], y: pin[1], seed: muni + '|' + br } : null },
       zoomNote: br ? br + ', ' + muni + ' · zoomed to barangay' : (muni ? muni + ' · zoomed to municipality' : 'All of Marinduque'),
       pinNote: pin ? 'Pin placed. Drag or click the map to put it exactly on the farm.' : 'Pick the municipality and barangay to zoom in, or click the map to drop the pin.',
       save: () => this.setState({ mode: null, toast: editing ? 'Farm updated.' : 'Farm saved as TCT-2026-0025.' }),
@@ -216,7 +216,7 @@ class Component extends DCLogic {
       canEditCur: canEdit(cur), readOnlyCur: !canEdit(cur),
       vtabs: [['details', 'Details'], ['trees', 'Trees (' + cur.groups + ')'], ['harvests', 'Harvests']].map(([k, l]) => ({ label: l, on: vtab === k, pick: () => this.setState({ tab: k }), line: vtab === k ? '#7B4A2A' : 'transparent', fw: vtab === k ? 600 : 500, fg: vtab === k ? '#2B1A12' : '#6B5A4E' })),
       tabDetails: vtab === 'details', tabTrees: vtab === 'trees', tabHarvests: vtab === 'harvests',
-      viewPins: [{ id: cur.id, x: cur.x, y: cur.y, label: cur.code, tone: cur.kal ? 'kaluppa' : 'farmer' }], viewFocus: { cx: cur.x, cy: cur.y, z: 3.2 },
+      viewPins: [{ id: cur.id, x: cur.x, y: cur.y, label: cur.code, tone: cur.kal ? 'kaluppa' : 'farmer' }], viewFocus: { cx: cur.x, cy: cur.y, z: 3.2 }, viewHl: { muni: cur.muni, brgy: { x: cur.x, y: cur.y, seed: cur.muni + '|' + cur.brgy } },
       vRows: [{ k: 'Owner', v: cur.kal ? 'Kaluppa' : cur.owner }, { k: 'Association', v: cur.assoc }, { k: 'Size', v: cur.size.toFixed(1) + ' hectares' }, { k: 'Location', v: (cur.street ? cur.street + ', ' : '') + cur.brgy + ', ' + cur.muni }, { k: 'Varieties', v: cur.varieties.join(', ') }, { k: 'Last harvest', v: cur.last }].concat(cur.kal ? [{ k: 'Managed by', v: cur.managed }] : []),
       isKalFarm: cur.kal && role !== 'farmer',
       workers: [{ n: 'Nestor Perez', i: 'NP', bg: '#4A3A30' }, { n: 'Lorna Ilagan', i: 'LI', bg: '#8A5A12' }, { n: 'Marlon Sevilla', i: 'MS', bg: '#3F6B4E' }],

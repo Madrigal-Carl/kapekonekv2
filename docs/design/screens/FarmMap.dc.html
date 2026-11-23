@@ -41,7 +41,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
       </div>
       <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
         <div style="flex: 999 1 600px; min-width: 0; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 10px; padding: 8px; position: relative; z-index: 1">
-          <dc-import name="MiniMap" aria-label="Farms on the map of Marinduque" pins="{{ pins }}" selected-id="{{ sel }}" on-pin="{{ onPin }}" focus="{{ focus }}" note="{{ note }}" hint-size="100%,620px"></dc-import>
+          <dc-import name="MiniMap" aria-label="Farms on the map of Marinduque" pins="{{ pins }}" selected-id="{{ sel }}" on-pin="{{ onPin }}" focus="{{ focus }}" highlight="{{ hl }}" note="{{ note }}" hint-size="100%,620px"></dc-import>
         </div>
         <section aria-label="Farms" style="flex: 1 1 300px; max-width: 360px; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 10px">
           <div style="padding: 14px 16px; border-bottom: 1px solid #EFE6DA; display: flex; justify-content: space-between; align-items: baseline"><h2 style="margin: 0; font-size: 15px; font-weight: 600">{{ count }} farms</h2><span style="font-size: 12px; color: #6B5A4E">{{ ha }} ha · {{ trees }} trees</span></div>
@@ -68,14 +68,16 @@ class Component extends DCLogic {
     const pins = farms.map((f) => ({ id: f.id, x: f.x, y: f.y, label: f.code + ', ' + f.lot, tone: f.kal ? 'kaluppa' : 'farmer', pop: { code: f.code, title: f.lot + ' · ' + (f.kal ? 'Kaluppa farm' : f.owner), href: 'FarmView.dc.html', rows: [{ k: 'Association', v: f.assoc }, { k: 'Location', v: f.brgy + ', ' + f.muni }, { k: 'Size', v: f.size.toFixed(1) + ' ha' }, { k: 'Trees', v: f.trees + ' · ' + f.varieties.join(', ') }, { k: 'Stages', v: 'Fruiting 40% · Growing 35%' }, { k: 'Last harvest', v: f.last }].concat(f.kal ? [{ k: 'Managed by', v: f.managed }] : []) } }));
     const fl = [];
     if (role === 'kaluppa') fl.push({ label: 'Association', icon: 'tag', options: ['All associations', 'Santa Cruz Coffee Growers', 'Boac Highland Farmers', 'Gasan Coffee Circle'], value: s.assoc || 'All associations', pick: (v) => this.setState({ assoc: v }) });
-    fl.push({ label: 'Municipality', icon: 'pin', options: ['All towns', 'Boac', 'Buenavista', 'Gasan', 'Mogpog', 'Santa Cruz', 'Torrijos'], value: s.muni || 'All towns', pick: (v) => this.setState({ muni: v }) });
+    fl.push({ label: 'Municipality', icon: 'pin', options: ['All towns', 'Boac', 'Buenavista', 'Gasan', 'Mogpog', 'Santa Cruz', 'Torrijos'], value: s.muni || 'All towns', pick: (v) => this.setState({ muni: v, focus: null }) });
     fl.push({ label: 'Variety', icon: 'tag', options: ['All varieties', 'Liberica', 'Excelsa', 'Robusta', 'Arabica'], value: s.variety || 'All varieties', pick: (v) => this.setState({ variety: v }) });
     return {
       role,
       desc: role === 'kaluppa' ? 'Every farm on KapeKonek, including Kaluppa’s own. Click a pin for details.' : (role === 'farmer' ? 'Your farms on the map. Click a pin for details.' : 'Farms in Santa Cruz Coffee Growers and the Kaluppa farm you manage.'),
       fl: fl.map((f, i) => ({ ...f, z: 20 - i })),
       pins, sel: s.sel, onPin: (id) => this.setState({ sel: id }),
-      focus: s.focus, note: farms.length + ' farms shown',
+      focus: s.focus || (M ? { cx: { Boac: 185, Mogpog: 210, 'Santa Cruz': 320, Torrijos: 350, Buenavista: 255, Gasan: 190 }[M], cy: { Boac: 190, Mogpog: 125, 'Santa Cruz': 160, Torrijos: 245, Buenavista: 310, Gasan: 250 }[M], z: 2.2 } : null),
+      hl: (() => { const sf = farms.find((f) => f.id === s.sel); return { muni: M || (sf ? sf.muni : null), brgy: sf ? { x: sf.x, y: sf.y, seed: sf.muni + '|' + sf.brgy } : null }; })(),
+      note: farms.length + ' farms shown' + (M ? ' · ' + M + ' highlighted' : ''),
       count: farms.length, ha: farms.reduce((a, f) => a + f.size, 0).toFixed(1), trees: farms.reduce((a, f) => a + f.trees, 0).toLocaleString(),
       list: farms.map((f) => ({ code: f.code, sub: (f.kal ? 'Kaluppa farm' : f.owner) + ' · ' + f.brgy + ', ' + f.muni, size: f.size.toFixed(1) + ' ha', dot: f.kal ? '#2B1A12' : '#7B4A2A', on: f.id === s.sel, line: f.id === s.sel ? '#7B4A2A' : 'transparent', bg: f.id === s.sel ? '#FBF6F0' : '#FFFFFF', pick: () => this.setState({ sel: f.id, focus: { cx: f.x, cy: f.y, z: 2.6 } }) }))
     };

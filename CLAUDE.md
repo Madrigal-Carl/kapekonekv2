@@ -144,6 +144,11 @@ Zod schema (react-hook-form) → TanStack Query hook → service function → ax
 - Role display names in the UI ("Group Manager", not `group_manager`). English only.
 - Accessible: labelled inputs, focus rings, keyboard-operable menus/drawers/modals (focus trap, Esc closes).
 
+## Icons and buttons (Change 05)
+
+- **Icons**: only `react-icons`, Lucide set (`react-icons/lu`), imported through `components/ui/icons.js`. The only custom SVGs allowed are the logo mark, the reaction badges and map pins.
+- **Buttons**: every button and button-styled link is `<Button variant size …>` from `components/ui/Button.jsx` (see `Buttons.dc.html`). Never style a raw `<button>` outside `components/ui/`.
+
 ## Phase 2 rules (dashboard)
 
 - **Scope by policy, not by role.** Records use the policy helpers in PHASE-2-SPEC §2 (`isOwner`, `isAssociationManager`, `isAssignedManager`, `isKaluppaFarm`). A Group Manager acting for a farmer always sends `farmerId`, and the service checks that the farmer is in the Group Manager's association.

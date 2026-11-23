@@ -56,7 +56,7 @@ class Component extends DCLogic {
       kaluppa: { name: 'Ana Villanueva', username: 'kaluppa', initials: 'AV', bg: '#2B1A12', label: 'Kaluppa' }
     }[role];
     const menu = [{ label: 'Profile', href: 'Profile.dc.html' }, { label: 'Account settings', href: role === 'farmer' ? 'FarmerAssociation.dc.html' : 'Settings.dc.html' }];
-    if (role === 'farmer') menu.push({ label: 'Addresses', href: 'Addresses.dc.html' }, { label: 'Storefront', href: 'Products.dc.html' });
+    if (role === 'farmer') menu.push({ label: 'Addresses', href: 'FarmerAddresses.dc.html' }, { label: 'Storefront', href: 'Products.dc.html' });
     menu.push({ label: 'Log out', href: 'Modals.dc.html', fg: '#A1362B' });
     return {
       setRoot: (el) => { this.root = el; },

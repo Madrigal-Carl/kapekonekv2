@@ -137,9 +137,15 @@ The handover happens at the branch, outside the system.
 - **Harvest**: farm, variety (**only varieties the farm has tree groups of**), `yieldKg`, `harvestedAt`, `note`, `recordedBy`.
 - **Archive** = soft delete (`archivedAt`) with **Restore**. Archiving a farm archives its tree groups; harvests stay.
 
+### 3.6b Maps and boundaries (Change 05)
+- Real Marinduque municipality and barangay polygons (PSGC) are served by `GET /locations/boundaries?level=municipality|barangay[&municipality=]` (public, cached for a week).
+- Every map highlights the selected municipality and barangay and fits its bounds.
+- Picking a barangay moves the pin to the barangay's pole of inaccessibility, so no geocoding is needed.
+- Reverse geocoding uses point-in-polygon for municipality and barangay; Mapbox only fills the street.
+
 ### 3.7 Store for farmers
 - The **Store** sidebar item opens `/products`, which shows only categories the user may buy (Fertilizer and Seedlings for farmers, through `catalog.farm_supplies`). Buyers still only see Coffee.
-- Cart, addresses, checkout and reviews are the Phase 1 flows. After a farmer places an order, go to `/dashboard/orders?open=<id>`.
+- Cart, addresses, checkout and reviews are the Phase 1 flows. Farmers manage addresses at `/dashboard/account/addresses` (`FarmerAddresses.dc.html`) and get an extra **Farm** label (Home · Work · Farm · Other). After a farmer places an order, go to `/dashboard/orders?open=<id>`.
 - The farmer **Orders** page is a table with a View drawer: timeline, cancel while pending, and a link to the full order page.
 
 ### 3.8 Kaluppa orders
@@ -292,6 +298,7 @@ Every route follows the Phase 1 flow: route → **auth** → validation → cont
 
 **Account**
 - `PATCH /auth/password/first {newPassword}`: for accounts with `mustChangePassword`.
+- `GET /users/username-check?username` and `GET /users/username-suggestions?first&last` (Phase 1 sign-up endpoints) are also used by the Add farmer and Add Group Manager drawers. Creating or updating returns `409 USERNAME_TAKEN` on a clash.
 - `GET /me/farmer-profile`, `POST /me/farmer-profile/request {associationId, validId, landProof}`, `POST /me/farmer-profile/transfer {associationId, reason?}`, `DELETE /me/farmer-profile/transfer`.
 
 **Associations and Group Managers** (`associations.manage`, `group_managers.manage`)

@@ -56,7 +56,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
           <section style="flex: 1 1 420px; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; padding: 22px; display: flex; flex-direction: column; gap: 10px">
             <h2 style="margin: 0; font-size: 16px; font-weight: 600">Branch pin</h2>
             <p style="margin: 0; font-size: 12.5px; color: #6B5A4E">Pick the barangay to zoom in, then click the exact spot.</p>
-            <div style="position: relative; z-index: 1"><dc-import name="MiniMap" aria-label="Branch location. Click to move the pin." pins="{{ pins }}" focus="{{ focus }}" on-map-click="{{ onMapClick }}" note="{{ coords }}" hint-size="100%,460px"></dc-import></div>
+            <div style="position: relative; z-index: 1"><dc-import name="MiniMap" aria-label="Branch location. Click to move the pin." pins="{{ pins }}" focus="{{ focus }}" on-map-click="{{ onMapClick }}" highlight="{{ hl }}" note="{{ coords }}" hint-size="100%,460px"></dc-import></div>
           </section>
         </div>
       </sc-if>
@@ -123,6 +123,7 @@ class Component extends DCLogic {
       pickMuni: (m) => { const [x, y] = DOTS[m]; this.setState({ muni: m, brgy: null, pin: [x, y], focus: { cx: x, cy: y, z: 2.4 } }); },
       pickBrgy: (b) => { const [bx, by] = DOTS[s.muni]; const h = hash(s.muni + b); const a = (h % 360) * Math.PI / 180, r = 6 + (h >>> 9) % 18; const x = bx + Math.cos(a) * r, y = by + Math.abs(Math.sin(a)) * r; this.setState({ brgy: b, pin: [x, y], focus: { cx: x, cy: y, z: 4.6 } }); },
       pins: [{ id: 'branch', x: s.pin[0], y: s.pin[1], label: 'Kaluppa branch', tone: 'kaluppa' }], focus: s.focus,
+      hl: { muni: s.muni, brgy: s.brgy ? { x: s.pin[0], y: s.pin[1], seed: s.muni + '|' + s.brgy } : null },
       onMapClick: (x, y) => this.setState({ pin: [x, y] }), coords: 'Pin at ' + ll[0].toFixed(4) + ', ' + ll[1].toFixed(4),
       hours: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => { const c = !!s.closed[d]; return { d: { Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday', Sun: 'Sunday' }[d], open: !c, text: c ? 'Closed' : '8:00 AM – 5:00 PM', fg: c ? '#8C7A66' : '#2B1A12', track: c ? '#DCCBB5' : '#7B4A2A', knob: c ? '3px' : '21px', toggle: () => this.setState({ closed: { ...s.closed, [d]: !c } }) }; }),
       km: s.km, onKm: (e) => this.setState({ km: e.target.value }),
