@@ -17,17 +17,32 @@ const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce
 const controlButton = 'grid size-9 cursor-pointer place-items-center border-0 bg-white text-ink hover:bg-cream'
 
 /**
- * Mapbox map with a draggable delivery pin, place search, zoom controls and "Use my location" (AddressModal.dc.html).
- * Geocoding goes through the API (`/geo/*`); this component only reports points the user chose (`onPick(point, source)`).
+ * Mapbox map with a draggable pin, place search, zoom controls and "Use my location" (AddressModal.dc.html, MiniMap.dc.html).
+ * Shared by the address and farm pickers. Geocoding goes through the API (`/geo/*`); this component only reports points
+ * the user chose (`onPick(point, source)`). Without `onPick` it only shows the pin (a farm's details).
  * `focus` moves the camera whenever it changes: the municipality and barangay selects fly here (`jumpTo` under reduced motion).
  * @param {{
  *   value: { lat: number, lng: number } | null,
  *   onPick: (point: { lat: number, lng: number }, source: 'map'|'search'|'locate') => void,
  *   focus: { label: string, center?: { lat: number, lng: number }, zoom?: number, area?: boolean },
  *   origin?: { lat: number, lng: number }, error?: string|null, busy?: boolean, note?: string|null,
+ *   pinLabel?: string, ariaLabel?: string, searchable?: boolean, hints?: { empty: string, placed: string },
  * }} props
  */
-export function MapPicker({ value, onPick, focus, origin, error, busy, note }) {
+export function MapPicker({
+  value,
+  onPick,
+  focus,
+  origin,
+  error,
+  busy,
+  note,
+  pinLabel = 'Deliver here',
+  ariaLabel = 'Map. Click to drop your delivery pin.',
+  searchable = true,
+  hints,
+}) {
+  const pickable = Boolean(onPick)
   const map = useRef(null)
   const [query, setQuery] = useState('')
   const [listOpen, setListOpen] = useState(false)
@@ -55,7 +70,7 @@ export function MapPicker({ value, onPick, focus, origin, error, busy, note }) {
       move(point, 15)
       setOwnLabel(FREE)
     }
-    onPick(point, source)
+    onPick?.(point, source)
   }
   const fitIsland = () => {
     map.current?.fitBounds(ISLAND, { ...FIT, duration: reducedMotion() ? 0 : 900 })
@@ -78,53 +93,55 @@ export function MapPicker({ value, onPick, focus, origin, error, busy, note }) {
 
   return (
     <div className="flex min-w-0 flex-[1_1_460px] flex-col gap-2.5">
-      <div className="flex flex-wrap gap-2">
-        <div className="relative min-w-[200px] flex-1" onKeyDown={(e) => e.key === 'Escape' && listOpen && (e.stopPropagation(), setListOpen(false))}>
-          <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-4" strokeWidth={2} />
-          <label htmlFor="place-search" className="sr-only">Search a place</label>
-          <input
-            id="place-search"
-            type="search"
-            autoComplete="off"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value)
-              setListOpen(true)
-            }}
-            placeholder="Search a place, street or landmark"
-            aria-controls={results.length > 0 ? 'place-results' : undefined}
-            className={cn(inputClasses, 'py-2.5 pl-9 text-[13.5px]')}
-          />
-          {results.length > 0 && (
-            <ul id="place-results" className="absolute inset-x-0 top-full z-10 mt-1 max-h-64 list-none overflow-y-auto rounded-control border border-sand bg-white p-1 shadow-dropdown">
-              {results.map((place) => (
-                <li key={`${place.lat},${place.lng}`}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setListOpen(false)
-                      setQuery(place.name)
-                      pick({ lat: place.lat, lng: place.lng }, 'search')
-                    }}
-                    className="w-full cursor-pointer rounded-[4px] border-0 bg-transparent px-3 py-2 text-left hover:bg-crema"
-                  >
-                    <span className="block text-[13.5px] font-medium">{place.name}</span>
-                    <span className="block text-xs text-ink-3">{place.fullAddress}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
+      {searchable && pickable && (
+        <div className="flex flex-wrap gap-2">
+          <div className="relative min-w-[200px] flex-1" onKeyDown={(e) => e.key === 'Escape' && listOpen && (e.stopPropagation(), setListOpen(false))}>
+            <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-4" strokeWidth={2} />
+            <label htmlFor="place-search" className="sr-only">Search a place</label>
+            <input
+              id="place-search"
+              type="search"
+              autoComplete="off"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value)
+                setListOpen(true)
+              }}
+              placeholder="Search a place, street or landmark"
+              aria-controls={results.length > 0 ? 'place-results' : undefined}
+              className={cn(inputClasses, 'py-2.5 pl-9 text-[13.5px]')}
+            />
+            {results.length > 0 && (
+              <ul id="place-results" className="absolute inset-x-0 top-full z-10 mt-1 max-h-64 list-none overflow-y-auto rounded-control border border-sand bg-white p-1 shadow-dropdown">
+                {results.map((place) => (
+                  <li key={`${place.lat},${place.lng}`}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setListOpen(false)
+                        setQuery(place.name)
+                        pick({ lat: place.lat, lng: place.lng }, 'search')
+                      }}
+                      className="w-full cursor-pointer rounded-[4px] border-0 bg-transparent px-3 py-2 text-left hover:bg-crema"
+                    >
+                      <span className="block text-[13.5px] font-medium">{place.name}</span>
+                      <span className="block text-xs text-ink-3">{place.fullAddress}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={useMine}
+            className="inline-flex min-h-[42px] cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-control border border-sand-strong bg-white px-3 text-[13px] font-medium text-ink hover:bg-cream"
+          >
+            <LocateFixed aria-hidden="true" className="size-[15px]" strokeWidth={2} />
+            Use my location
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={useMine}
-          className="inline-flex min-h-[42px] cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-control border border-sand-strong bg-white px-3 text-[13px] font-medium text-ink hover:bg-cream"
-        >
-          <LocateFixed aria-hidden="true" className="size-[15px]" strokeWidth={2} />
-          Use my location
-        </button>
-      </div>
+      )}
 
       <div className="relative aspect-[600/440] overflow-hidden rounded-card border border-sand bg-water">
         {TOKEN ? (
@@ -133,12 +150,12 @@ export function MapPicker({ value, onPick, focus, origin, error, busy, note }) {
             mapboxAccessToken={TOKEN}
             initialViewState={value ? { latitude: value.lat, longitude: value.lng, zoom: 15 } : { bounds: ISLAND, fitBoundsOptions: FIT }}
             mapStyle="mapbox://styles/mapbox/streets-v12"
-            cursor="crosshair"
+            cursor={pickable ? 'crosshair' : 'grab'}
             logoPosition="bottom-right"
-            onClick={(e) => pick({ lat: e.lngLat.lat, lng: e.lngLat.lng }, 'map')}
+            onClick={pickable ? (e) => pick({ lat: e.lngLat.lat, lng: e.lngLat.lng }, 'map') : undefined}
             onDragStart={() => setOwnLabel(FREE)}
             style={{ width: '100%', height: '100%' }}
-            aria-label="Map. Click to drop your delivery pin."
+            aria-label={ariaLabel}
           >
             {origin && (
               <Marker latitude={origin.lat} longitude={origin.lng} anchor="top">
@@ -151,9 +168,9 @@ export function MapPicker({ value, onPick, focus, origin, error, busy, note }) {
               </Marker>
             )}
             {value && (
-              <Marker latitude={value.lat} longitude={value.lng} anchor="bottom" draggable onDragEnd={(e) => pick({ lat: e.lngLat.lat, lng: e.lngLat.lng }, 'map')}>
-                <span className="flex cursor-grab flex-col items-center">
-                  <span className="mb-0.5 whitespace-nowrap rounded-[4px] bg-espresso px-2 py-[3px] text-[11px] font-semibold text-white">Deliver here</span>
+              <Marker latitude={value.lat} longitude={value.lng} anchor="bottom" draggable={pickable} onDragEnd={(e) => pick({ lat: e.lngLat.lat, lng: e.lngLat.lng }, 'map')}>
+                <span className={cn('flex flex-col items-center', pickable && 'cursor-grab')}>
+                  <span className="mb-0.5 whitespace-nowrap rounded-[4px] bg-espresso px-2 py-[3px] text-[11px] font-semibold text-white">{pinLabel}</span>
                   <MapPin aria-hidden="true" className="size-[34px] fill-roast text-white" strokeWidth={1.5} />
                 </span>
               </Marker>
@@ -185,15 +202,17 @@ export function MapPicker({ value, onPick, focus, origin, error, busy, note }) {
         </span>
       </div>
 
-      <p aria-live="polite" className="m-0 flex items-center gap-2 text-[12.5px] text-ink-2">
-        <MapPin aria-hidden="true" className="size-3.5 shrink-0 text-roast" strokeWidth={2} />
-        {busy
-          ? 'Finding the address for your pin…'
-          : (note ??
-            (value
-              ? `Pin at ${value.lat.toFixed(4)}, ${value.lng.toFixed(4)} · drag or click the map to put it on your exact spot.`
-              : 'No pin yet. Pick your municipality and barangay to zoom in, or click the map.'))}
-      </p>
+      {pickable && (
+        <p aria-live="polite" className="m-0 flex items-center gap-2 text-[12.5px] text-ink-2">
+          <MapPin aria-hidden="true" className="size-3.5 shrink-0 text-roast" strokeWidth={2} />
+          {busy
+            ? 'Finding the address for your pin…'
+            : (note ??
+              (value
+                ? (hints?.placed ?? `Pin at ${value.lat.toFixed(4)}, ${value.lng.toFixed(4)} · drag or click the map to put it on your exact spot.`)
+                : (hints?.empty ?? 'No pin yet. Pick your municipality and barangay to zoom in, or click the map.')))}
+        </p>
+      )}
     </div>
   )
 }

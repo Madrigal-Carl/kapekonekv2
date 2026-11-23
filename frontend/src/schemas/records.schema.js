@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { associationDescriptionRule, associationNameRule, emailRule, farmSizeRule, farmStreetRule, lotNumberRule, nameRule, optionalNameRule, phoneRule, usernameRule } from './rules.js'
+import { associationDescriptionRule, associationNameRule, emailRule, farmSizeRule, farmStreetRule, lotNumberRule, nameRule, optionalNameRule, pastDateRule, phoneRule, recordNoteRule, treeCountRule, usernameRule, yieldRule } from './rules.js'
 
 // Mirror backend/src/schemas/{farmer,groupManager,association}.schema.js. Documents and pickers are sent beside these.
 
@@ -45,6 +45,27 @@ export const farmFormSchema = ({ needsFarmer = false } = {}) =>
     street: farmStreetRule,
     location: z.object({ lat: z.number(), lng: z.number() }, 'Drop the farm pin on the map'),
   })
+
+const pick = (message) => z.string(message).min(1, message)
+
+/** Add/edit a tree group (mirrors backend record.schema.js). */
+export const treeGroupFormSchema = z.object({
+  farmId: pick('Choose a farm'),
+  variety: pick('Choose a variety'),
+  stage: pick('Choose a stage'),
+  count: treeCountRule,
+  plantedAt: pastDateRule,
+  note: recordNoteRule,
+})
+
+/** Record/edit a harvest. The API checks that the farm has trees of the variety. */
+export const harvestFormSchema = z.object({
+  farmId: pick('Choose a farm'),
+  variety: pick('Choose a variety'),
+  yieldKg: yieldRule,
+  harvestedAt: pastDateRule,
+  note: recordNoteRule,
+})
 
 /** "Rodel Mendoza" → "rodel.mendoza" (the screens' "Suggested from the name"). */
 export const suggestUsername = (first = '', last = '') =>

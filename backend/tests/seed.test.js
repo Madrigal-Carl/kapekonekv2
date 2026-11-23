@@ -194,6 +194,39 @@ describe('catalog, settings, posts and demo seeders', () => {
   });
 });
 
+describe('records seeder (PHASE-2-SPEC §8)', () => {
+  const log = () => {};
+
+  it('seeds farms in all 6 towns, both Kaluppa farms, every tree stage and 12 months of harvests, once', async () => {
+    const { Farm, TreeGroup, Harvest, Association } = await import('../src/models/index.js');
+    await runSeeders({ only: ['roles', 'users', 'associations', 'records'], log });
+    const snapshot = async () => [await Farm.countDocuments(), await TreeGroup.countDocuments(), await Harvest.countDocuments()];
+    const first = await snapshot();
+    await runSeeders({ only: ['records'], log });
+    expect(await snapshot()).toEqual(first);
+
+    expect((await Farm.distinct('municipality')).sort()).toEqual(['Boac', 'Buenavista', 'Gasan', 'Mogpog', 'Santa Cruz', 'Torrijos']);
+    const manager = await User.findOne({ username: 'manager.santacruz' }).lean();
+    const kaluppaFarms = await Farm.find({ ownerType: 'kaluppa' }).lean();
+    expect(kaluppaFarms).toHaveLength(2);
+    const managed = kaluppaFarms.find((f) => f.managedBy);
+    expect(String(managed.managedBy)).toBe(String(manager._id));
+    expect(String(managed.association)).toBe(String((await Association.findOne({ groupManager: manager._id }).lean())._id));
+    expect(managed.assignedFarmers.length).toBeGreaterThan(0);
+    expect(kaluppaFarms.filter((f) => !f.managedBy)).toHaveLength(1);
+    expect(await Farm.countDocuments({ archivedAt: { $ne: null } })).toBeGreaterThan(0);
+
+    expect((await TreeGroup.distinct('stage', { archivedAt: null })).sort()).toEqual(['damaged', 'flowering', 'fruiting', 'growing', 'newly_planted']);
+    const months = new Set((await Harvest.find({}, 'harvestedAt').lean()).map((h) => h.harvestedAt.toISOString().slice(0, 7)));
+    expect(months.size).toBeGreaterThanOrEqual(12);
+    expect(await Harvest.countDocuments({ harvestedAt: { $gt: new Date() } })).toBe(0);
+    // Every harvest's variety has trees on its farm (the rule the API enforces).
+    for (const h of await Harvest.find().lean()) {
+      expect(await TreeGroup.exists({ farm: h.farm, variety: h.variety })).toBeTruthy();
+    }
+  });
+});
+
 describe('migrate:fresh guard', () => {
   it('refuses production without --force', () => {
     expect(() => assertCanDropDatabase('production', ['--seed'])).toThrow(/Refusing/);

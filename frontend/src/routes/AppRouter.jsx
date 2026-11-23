@@ -12,6 +12,9 @@ import { Association as DashboardAssociation } from '@/pages/dashboard/account/A
 import { Associations } from '@/pages/dashboard/associations/Associations'
 import { Farmers } from '@/pages/dashboard/farmers/Farmers'
 import { GroupManagers } from '@/pages/dashboard/groupManagers/GroupManagers'
+import { Farms } from '@/pages/dashboard/records/Farms'
+import { Harvests } from '@/pages/dashboard/records/Harvests'
+import { Trees } from '@/pages/dashboard/records/Trees'
 
 // Each page is its own chunk, loaded on first visit (RootLayout's Suspense shows the spinner).
 const page = (load, name) => lazy(() => load().then((m) => ({ default: m[name] })))
@@ -38,9 +41,6 @@ const Products = page(() => import('@/pages/storefront/Products'), 'Products')
 
 /** Dashboard pages from later milestones: [path, permission]. Each milestone swaps its placeholder for the real page. */
 const DASHBOARD_PAGES = [
-  ['farms', 'farms.manage'],
-  ['trees', 'trees.manage'],
-  ['harvests', 'harvests.manage'],
   ['inbox/*', 'inbox.use'],
   ['hub/*', 'dashboard.view'],
   ['beans', 'dashboard.view'], // farmers and Group Managers sell, Kaluppa reviews
@@ -57,6 +57,9 @@ const RECORD_PAGES = [
   ['farmers', 'farmers.manage', <Farmers key="farmers" />],
   ['group-managers', 'group_managers.manage', <GroupManagers key="gm" />],
   ['associations', 'associations.manage', <Associations key="associations" />],
+  ['farms', 'farms.manage', <Farms key="farms" />],
+  ['trees', 'trees.manage', <Trees key="trees" />],
+  ['harvests', 'harvests.manage', <Harvests key="harvests" />],
 ]
 
 export const router = createBrowserRouter([

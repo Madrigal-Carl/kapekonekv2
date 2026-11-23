@@ -1,4 +1,4 @@
-import { format, formatDistanceToNowStrict, isYesterday } from 'date-fns'
+import { format, formatDistanceToNowStrict, isYesterday, parseISO } from 'date-fns'
 
 /** "Nov 14, 2026" */
 export const formatDate = (value) => format(new Date(value), 'MMM d, yyyy')
@@ -28,3 +28,6 @@ export function greeting(now = new Date()) {
 
 /** "Monday, Nov 23" in Manila. */
 export const todayInManila = (now = new Date()) => manilaDay.format(now)
+
+/** A calendar day from the API ("2026-11-18") in the local calendar, never shifted by the time zone. */
+export const formatDay = (day, pattern = 'MMM d, yyyy') => format(parseISO(day), pattern)

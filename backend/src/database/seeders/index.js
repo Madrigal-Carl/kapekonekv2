@@ -4,6 +4,7 @@ import { seedCategories } from './categories.seeder.js';
 import { seedDemo } from './demo.seeder.js';
 import { seedPosts } from './posts.seeder.js';
 import { seedProducts } from './products.seeder.js';
+import { seedRecords } from './records.seeder.js';
 import { seedRoles } from './roles.seeder.js';
 import { seedSettings } from './settings.seeder.js';
 import { seedUsers, signInTable } from './users.seeder.js';
@@ -13,6 +14,7 @@ export const SEEDERS = [
   { name: 'roles', run: seedRoles },
   { name: 'users', run: seedUsers },
   { name: 'associations', run: seedAssociationsAndFarmers },
+  { name: 'records', run: seedRecords },
   { name: 'categories', run: seedCategories },
   { name: 'products', run: seedProducts },
   { name: 'settings', run: seedSettings },

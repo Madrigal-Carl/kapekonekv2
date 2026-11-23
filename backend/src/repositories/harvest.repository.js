@@ -50,3 +50,6 @@ export async function lastByFarms(farmIds) {
 
 export const setOwnerAssociation = (ownerId, associationId) => Harvest.updateMany({ owner: ownerId }, { association: associationId });
 export const setFarmsAssociation = (farmIds, associationId) => Harvest.updateMany({ farm: { $in: farmIds } }, { association: associationId });
+
+/** Seeder only: a year of harvests in one write (the API path is `createHarvest`). */
+export const insertHarvests = (docs) => Harvest.insertMany(docs);
