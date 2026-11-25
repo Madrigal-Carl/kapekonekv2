@@ -119,6 +119,7 @@ export const UPLOAD_PURPOSES = {
   farmer_document: ['image', 'file'],
   bean_photo: ['image'],
   product_photo: ['image'],
+  wallet_qr: ['image'],
   post_media: ['image', 'video'],
 };
 
@@ -240,3 +241,29 @@ export function refineProductCategory(p, ctx) {
   if (rules.coffeeType && !p.coffeeType) issue('coffeeType', 'Choose a coffee type');
   if (p.isFeatured && !rules.featured) issue('isFeatured', 'Only coffee can be featured on the landing page');
 }
+
+// Settings (PHASE-2-SPEC §3.13). Mirrored in the other app's rules.js.
+const clockRule = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use a time like 08:00');
+/** Monday first, seven days; an open day closes after it opens. */
+export const openingHoursRule = z
+  .array(z.object({ open: z.boolean(), from: clockRule, to: clockRule }), 'Set the opening hours')
+  .length(7, 'Set the hours for every day')
+  .superRefine((days, ctx) =>
+    days.forEach((d, i) => {
+      if (d.open && d.from >= d.to) ctx.addIssue({ code: 'custom', path: [i, 'to'], message: 'Closing time must be after opening time' });
+    }),
+  );
+export const EWALLET_PROVIDERS = ['GCash', 'Maya'];
+/** One account per provider (GCash, then Maya); at least one shown at checkout. */
+export const walletAccountsRule = z
+  .array(
+    z.object({
+      provider: z.enum(EWALLET_PROVIDERS),
+      accountName: z.string('Enter the account name').trim().min(2, 'Enter the account name').max(80, 'Use 80 characters or fewer'),
+      accountNumber: z.string('Enter the account number').trim().min(4, 'Enter the account number').max(30, 'Use 30 characters or fewer'),
+      enabled: z.boolean(),
+      qr: z.object({ url: z.url().max(500), publicId: z.string().min(1).max(300) }).nullable(),
+    }),
+  )
+  .refine((a) => a.map((x) => x.provider).join() === EWALLET_PROVIDERS.join(), 'Set up GCash and Maya')
+  .refine((a) => a.some((x) => x.enabled), 'Show at least one e-wallet at checkout');

@@ -16,6 +16,7 @@ import { Beans } from '@/pages/dashboard/beans/Beans'
 import { Inventory } from '@/pages/dashboard/inventory/Inventory'
 import { Orders as DashboardOrders } from '@/pages/dashboard/orders/Orders'
 import { Reviews } from '@/pages/dashboard/reviews/Reviews'
+import { Settings as KaluppaSettings } from '@/pages/dashboard/settings/Settings'
 import { Farms } from '@/pages/dashboard/records/Farms'
 import { Harvests } from '@/pages/dashboard/records/Harvests'
 import { Trees } from '@/pages/dashboard/records/Trees'
@@ -51,7 +52,6 @@ const DASHBOARD_PAGES = [
   ['farm-map', 'map.view'],
   ['reports', 'reports.view'],
   ['audit-log', 'audit.view'],
-  ['settings', 'settings.manage'],
 ]
 // Built pages: [path, permission, element].
 const RECORD_PAGES = [
@@ -65,6 +65,7 @@ const RECORD_PAGES = [
   ['orders', 'orders.view_own', <DashboardOrders key="orders" />], // farmers' own orders; Kaluppa manages all
   ['inventory', 'inventory.manage', <Inventory key="inventory" />],
   ['reviews', 'reviews.moderate', <Reviews key="reviews" />],
+  ['settings', 'settings.manage', <KaluppaSettings key="settings" />],
 ]
 
 export const router = createBrowserRouter([

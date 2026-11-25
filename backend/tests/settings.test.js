@@ -75,6 +75,6 @@ describe('settings', () => {
     expect((await unverified.get('/api/settings/payment')).body.code).toBe('EMAIL_NOT_VERIFIED');
     const res = await (await signedIn('kapekonek.buyer@gmail.com')).get('/api/settings/payment');
     expect(res.status).toBe(200);
-    expect(res.body.data).toMatchObject({ providers: ['GCash', 'Maya'], isSample: true, accountName: expect.any(String), accountNumber: expect.any(String) });
+    expect(res.body.data).toMatchObject({ providers: ['GCash', 'Maya'], isSample: true, accounts: { GCash: { accountName: expect.any(String), accountNumber: expect.any(String) }, Maya: expect.any(Object) } });
   });
 });

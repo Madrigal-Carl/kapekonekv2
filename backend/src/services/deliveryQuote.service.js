@@ -25,7 +25,8 @@ async function cached(key, compute) {
 
 /** Road distance from Kaluppa; Mapbox results are cached 24 h, the straight-line fallback is not. */
 async function roadDistance(origin, point, roadFactor) {
-  const key = `quote:${point.lat.toFixed(4)}:${point.lng.toFixed(4)}`;
+  // The branch pin is in the key, so moving it re-measures every address.
+  const key = `quote:${origin.lat.toFixed(4)}:${origin.lng.toFixed(4)}:${point.lat.toFixed(4)}:${point.lng.toFixed(4)}`;
   let fallback;
   const value = await cached(key, async () => {
     try {
@@ -47,8 +48,8 @@ async function roadDistance(origin, point, roadFactor) {
  */
 export async function quoteForPoint(point, now = new Date()) {
   if (!insideMarinduque(point)) throw outsideDeliveryArea();
-  const [rules, eta] = await Promise.all([getSetting('delivery.fee'), getSetting('delivery.eta')]);
-  const { distanceKm: raw, distanceSource } = await roadDistance(rules.origin, point, rules.roadFactorFallback);
+  const [rules, eta, branch] = await Promise.all([getSetting('delivery.fee'), getSetting('delivery.eta'), getSetting('branch')]);
+  const { distanceKm: raw, distanceSource } = await roadDistance(branch.location, point, rules.roadFactorFallback);
   // The fee uses the same rounded distance the buyer sees.
   const distanceKm = Math.round(raw * 10) / 10;
   if (distanceKm > rules.maxKm) throw outsideDeliveryArea();

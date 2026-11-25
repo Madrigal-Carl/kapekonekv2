@@ -116,6 +116,14 @@ describe('placing an order', () => {
     expect(pdf.body.code).toBe('FILE_TYPE_NOT_ALLOWED');
     getUploadedAsset.mockResolvedValueOnce(null);
     expect((await place({ method: 'delivery', addressId, paymentMethod: 'e_wallet', provider: 'GCash', receipt: receiptFor(buyerId, 'gone') })).status).toBe(400);
+    // A provider Kaluppa hides at checkout (Settings → E-wallet) is refused.
+    const { Setting } = await import('../src/models/index.js');
+    const { SETTING_DEFAULTS } = await import('../src/constants/settings.js');
+    const ewallet = SETTING_DEFAULTS['payment.ewallet'];
+    await Setting.updateOne({ key: 'payment.ewallet' }, { $set: { value: { ...ewallet, accounts: ewallet.accounts.map((a) => ({ ...a, enabled: a.provider === 'GCash' })) } } }, { upsert: true });
+    const hidden = await place({ method: 'delivery', addressId, paymentMethod: 'e_wallet', provider: 'Maya', receipt: receiptFor(buyerId) });
+    expect(hidden.body.errors.provider).toBe('Maya isn’t available right now. Choose another way to pay.');
+    await Setting.deleteOne({ key: 'payment.ewallet' });
     expect(await Order.countDocuments({ buyer: buyerId })).toBe(0);
 
     const res = await place({ method: 'delivery', addressId, paymentMethod: 'e_wallet', provider: 'GCash', receipt: receiptFor(buyerId) });

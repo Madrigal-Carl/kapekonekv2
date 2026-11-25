@@ -17,7 +17,7 @@ import { getCart } from './cart.service.js';
 import { quoteForAddress } from './deliveryQuote.service.js';
 import { notifyKaluppa, notifyUsers } from './notification.service.js';
 import { userCan } from './permission.service.js';
-import { getPickup, getSetting } from './setting.service.js';
+import { getPaymentSettings, getPickup, getSetting } from './setting.service.js';
 import { assertUploadAllowed, isOwnUpload } from './upload.service.js';
 
 const fieldError = (field, message) => new AppError(400, 'Please check the highlighted fields.', { errors: { [field]: message } });
@@ -58,8 +58,9 @@ export const orderEmailData = (order, eta) => ({
 });
 
 /** E-wallet receipts must be the buyer's own Cloudinary upload. */
-async function receiptFor(user, { paymentMethod, receipt }, now) {
+async function receiptFor(user, { paymentMethod, provider, receipt }, now) {
   if (paymentMethod !== 'e_wallet') return {};
+  if (!(await getPaymentSettings()).providers.includes(provider)) throw fieldError('provider', `${provider} isn’t available right now. Choose another way to pay.`);
   if (!isOwnUpload(user, 'receipt', receipt)) throw fieldError('receipt', 'Upload your receipt again, then place the order.');
   await assertUploadAllowed('receipt', receipt.publicId, 'receipt');
   return { receipt, submittedAt: now };

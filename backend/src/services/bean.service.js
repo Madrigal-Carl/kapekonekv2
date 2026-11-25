@@ -17,7 +17,7 @@ import { todayKey } from '../schemas/rules.js';
 import { record } from './audit.service.js';
 import { notifyKaluppa, notifyUsers } from './notification.service.js';
 import { isAssociationManager, isGroupManager, isOwner, seesEveryAssociation } from './policy.service.js';
-import { branchAddress, formatHours, getSetting } from './setting.service.js';
+import { getPickup } from './setting.service.js';
 import { assertUploadAllowed, isOwnUpload } from './upload.service.js';
 
 const AUDITED = ['farmer', 'variety', 'form', 'weightKg', 'pricePerKgCentavos', 'note'];
@@ -242,10 +242,11 @@ export async function approveListing(actor, id) {
   const { after } = await decide(actor, id, ['pending'], {
     $set: { status: 'approved', approvedAt: now, approvedBy: actor._id, expiresAt }, $push: { history: step(actor, 'approved', now) },
   });
-  const branch = await getSetting('branch');
+  const { name, address, hours, phone } = await getPickup();
+  const branch = { name, address, hours, phone };
   await tell(after, {
-    actor, title: `${after.listingNumber} approved`, body: `Bring your beans to the Kaluppa branch within 7 days (${branchAddress(branch)}).`,
-    emailData: { deadline: expiresAt.toISOString(), branch: { name: branch.name, address: branchAddress(branch), hours: formatHours(branch.hours), phone: branch.phone } },
+    actor, title: `${after.listingNumber} approved`, body: `Bring your beans to the Kaluppa branch within 7 days (${branch.address}).`,
+    emailData: { deadline: expiresAt.toISOString(), branch },
   });
   await audit(actor, 'approve', after, { status: 'pending' }, { status: 'approved', expiresAt });
   return toDto(after, actor);

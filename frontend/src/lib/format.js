@@ -18,3 +18,9 @@ export const formatPesoShort = (centavos) => (centavos % 100 === 0 ? wholePeso.f
 
 /** Kilograms with grouping: 1250.25 → “1,250.25 kg”. */
 export const formatKg = (kg) => `${kg.toLocaleString('en-PH', { maximumFractionDigits: 2 })} kg`;
+
+/** Delivery fee in centavos: base, plus per km past the first `baseKm`, rounded up (mirrors backend utils/deliveryFee.js). */
+export function feeForDistance(distanceKm, { baseFeeCentavos, baseKm, perKmCentavos, roundUpToCentavos }) {
+  const raw = baseFeeCentavos + Math.max(0, distanceKm - baseKm) * perKmCentavos
+  return Math.ceil(Math.round(raw) / roundUpToCentavos) * roundUpToCentavos
+}

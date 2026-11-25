@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import * as settings from '@/services/setting.service'
 
 export const settingKeys = {
+  all: ['settings'],
   landing: ['settings', 'landing'],
   delivery: ['settings', 'delivery'],
   locations: ['settings', 'locations'],

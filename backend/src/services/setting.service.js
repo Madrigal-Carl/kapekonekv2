@@ -36,7 +36,9 @@ export const branchAddress = (b) => [b.street, b.barangay, b.municipality, 'Mari
 /** The branch as pickup orders save it (orders keep this copy when the branch changes later). */
 export async function getPickup() {
   const branch = await getSetting('branch');
-  return { name: branch.name, address: branchAddress(branch), hours: formatHours(branch.hours), phone: branch.phone, location: branch.location };
+  // Saved as 09178001122 (phoneRule); shown as 0917 800 1122.
+  const phone = branch.phone?.replace(/^(\d{4})(\d{3})(\d{4})$/, '$1 $2 $3') ?? null;
+  return { name: branch.name, address: branchAddress(branch), hours: formatHours(branch.hours), phone, location: branch.location };
 }
 
 /** Public delivery facts for the storefront: pickup, fee rules (without the origin pin) and ETA days. */
@@ -52,4 +54,23 @@ export async function getDeliveryInfo() {
 
 export const getLanding = async () => ({ heroSlides: await getSetting('landing.heroSlides') });
 
-export const getPaymentSettings = () => getSetting('payment.ewallet');
+/** The e-wallet accounts; a value saved before Phase 2 (one account for both providers) reads as two. */
+export async function getEwallet() {
+  const value = await getSetting('payment.ewallet');
+  if (value.accounts) return value;
+  const { providers = ['GCash', 'Maya'], accountName, accountNumber, qrImageUrl, qrPayload, isSample } = value;
+  const qr = qrImageUrl ? { url: qrImageUrl, publicId: null } : null;
+  return { accounts: providers.map((provider) => ({ provider, accountName, accountNumber, enabled: true, qr })), qrPayload, isSample };
+}
+
+/** What checkout shows: the providers Kaluppa shows, each with its account and QR. */
+export async function getPaymentSettings() {
+  const { accounts, qrPayload, isSample } = await getEwallet();
+  const shown = accounts.filter((a) => a.enabled);
+  return {
+    providers: shown.map((a) => a.provider),
+    accounts: Object.fromEntries(shown.map((a) => [a.provider, { accountName: a.accountName, accountNumber: a.accountNumber, qrImageUrl: a.qr?.url ?? null }])),
+    qrPayload,
+    isSample,
+  };
+}

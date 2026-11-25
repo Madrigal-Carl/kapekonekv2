@@ -55,7 +55,7 @@ async function quoteFor(address, origin, rules) {
  */
 export async function buildBuyerOrders({ buyer, kaluppaId, addresses, products, fee, eta, pickup, now = Date.now() }) {
   const quotes = {};
-  for (const key of Object.keys(addresses)) quotes[key] = await quoteFor(addresses[key], fee.origin, fee);
+  for (const key of Object.keys(addresses)) quotes[key] = await quoteFor(addresses[key], pickup.location, fee);
   const orders = [];
   const reserved = [];
   const sold = [];

@@ -155,6 +155,13 @@ export function Checkout() {
     if (!addressId && saved?.length) setValue('addressId', (saved.find((a) => a.isDefault) ?? saved[0])._id)
   }, [addressId, addresses.data, setValue])
   const list = addresses.data ?? []
+  // Kaluppa may hide a provider in Settings → E-wallet: fall back to the first one shown.
+  const providers = payment.data?.providers ?? ['GCash', 'Maya']
+  useEffect(() => {
+    const shown = payment.data?.providers
+    if (shown?.length && !shown.includes(provider)) setValue('provider', shown[0])
+  }, [payment.data, provider, setValue])
+  const account = payment.data?.accounts?.[provider]
 
   const isDelivery = method === 'delivery'
   const ewallet = paymentMethod === 'e_wallet'
@@ -355,7 +362,7 @@ export function Checkout() {
                 <div className="flex flex-wrap gap-7 pt-1">
                   <div className="flex flex-none flex-col items-center gap-2.5 max-sm:w-full">
                     <div role="tablist" aria-label="E-wallet" className="inline-flex rounded-[6px] bg-foam p-[3px]">
-                      {(payment.data?.providers ?? ['GCash', 'Maya']).map((name) => (
+                      {providers.map((name) => (
                         <Button variant="bare"
                           key={name}
                           role="tab"
@@ -368,8 +375,8 @@ export function Checkout() {
                       ))}
                     </div>
                     <div className="relative size-[200px] rounded-card border border-sand bg-white p-3.5">
-                      {payment.data?.qrImageUrl ? (
-                        <img src={imageUrl(payment.data.qrImageUrl, 240)} alt={`${provider} QR code for Kaluppa`} className="size-full object-contain" />
+                      {account?.qrImageUrl ? (
+                        <img src={imageUrl(account.qrImageUrl, 240)} alt={`${provider} QR code for Kaluppa`} className="size-full object-contain" />
                       ) : payment.data ? (
                         <QRCodeSVG value={`${payment.data.qrPayload}:${provider}`} role="img" aria-label={`Sample ${provider} QR code`} className="size-full" />
                       ) : (
@@ -384,9 +391,9 @@ export function Checkout() {
                   <div className="flex min-w-0 flex-[1_1_280px] flex-col gap-3.5">
                     <dl className="m-0 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
                       <dt className="text-ink-3">Account name</dt>
-                      <dd className="m-0 font-semibold">{payment.data?.accountName ?? '…'}</dd>
+                      <dd className="m-0 font-semibold">{account?.accountName ?? '…'}</dd>
                       <dt className="text-ink-3">{provider} number</dt>
-                      <dd className="m-0 font-semibold">{payment.data?.accountNumber ?? '…'}</dd>
+                      <dd className="m-0 font-semibold">{account?.accountNumber ?? '…'}</dd>
                       <dt className="text-ink-3">Amount to pay</dt>
                       <dd className="m-0 text-lg font-bold text-roast">{formatPeso(total)}</dd>
                     </dl>
