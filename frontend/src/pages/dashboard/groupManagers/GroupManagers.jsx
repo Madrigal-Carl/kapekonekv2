@@ -2,10 +2,11 @@ import { Link } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { IconPlus } from '@/components/ui/icons'
 import { useId, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { ConfirmModal } from '@/components/dashboard/ConfirmModal'
 import { DataTable } from '@/components/dashboard/DataTable'
+import { UsernameField } from '@/components/auth/UsernameField'
 import { Drawer } from '@/components/dashboard/Drawer'
 import { PageHeader } from '@/components/dashboard/PageHeader'
 import { DetailList, PersonHeader, SectionTitle, StatTiles, TextField } from '@/components/dashboard/RecordParts'
@@ -23,9 +24,10 @@ import {
   useUpdateGroupManager,
 } from '@/hooks/useAssociations'
 import { useTableParams } from '@/hooks/useTableParams'
+import { USERNAME_INPUT, useUsernameStatus } from '@/hooks/useUsernameStatus'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
 import { formatDate, formatDateTime } from '@/lib/date'
-import { groupManagerFormSchema, suggestUsername } from '@/schemas/records.schema'
+import { groupManagerFormSchema } from '@/schemas/records.schema'
 import { FormFooter } from '../farmers/FarmerForm'
 import { DashPage } from '../overview/Overview'
 
@@ -197,14 +199,14 @@ function GroupManagerForm({ open, gm, onClose }) {
 
 function GroupManagerFields({ formId, gm, create, update, onClose }) {
   const options = useAssociationOptions()
-  const { register, control, handleSubmit, setValue, getValues, getFieldState, setError, formState: { errors } } = useForm({
+  const { register, control, handleSubmit, setValue, setError, formState: { errors } } = useForm({
     resolver: zodResolver(groupManagerFormSchema),
     defaultValues: toForm(gm),
   })
-  const suggest = () => {
-    if (!gm && !getFieldState('username').isDirty) setValue('username', suggestUsername(getValues('firstName'), getValues('lastName')))
-  }
+  const [firstName, lastName, username] = useWatch({ control, name: ['firstName', 'lastName', 'username'] })
+  const status = useUsernameStatus(username, errors.username?.message, { current: gm?.username, currentMessage: 'Their current username', emptyHint: 'Pick a suggestion or type one. They sign in with it.' })
   const onSubmit = (values) => {
+    if (status.tone === 'taken') return // the status line already says why
     const done = (message) => () => {
       toast.success(message)
       onClose()
@@ -220,14 +222,20 @@ function GroupManagerFields({ formId, gm, create, update, onClose }) {
     <form id={formId} noValidate onSubmit={handleSubmit(onSubmit)} className="contents">
       <SectionTitle>Name</SectionTitle>
       <div className="grid gap-5 sm:grid-cols-3">
-        <TextField id="gm-first" label="First name" autoComplete="off" error={errors.firstName?.message} {...register('firstName', { onChange: suggest })} />
+        <TextField id="gm-first" label="First name" autoComplete="off" error={errors.firstName?.message} {...register('firstName')} />
         <TextField id="gm-middle" label="Middle" optional autoComplete="off" error={errors.middleName?.message} {...register('middleName')} />
-        <TextField id="gm-last" label="Last name" autoComplete="off" error={errors.lastName?.message} {...register('lastName', { onChange: suggest })} />
+        <TextField id="gm-last" label="Last name" autoComplete="off" error={errors.lastName?.message} {...register('lastName')} />
       </div>
-      <div className="grid gap-5 sm:grid-cols-2">
-        <TextField id="gm-username" label="Username" autoComplete="off" error={errors.username?.message} {...register('username')} />
-        <TextField id="gm-phone" label="Contact number" type="tel" placeholder="09XX XXX XXXX" error={errors.contactNumber?.message} {...register('contactNumber')} />
-      </div>
+      <UsernameField
+        id="gm-username"
+        value={username}
+        status={status}
+        firstName={firstName}
+        lastName={lastName}
+        onPick={(name) => setValue('username', name, { shouldValidate: true, shouldDirty: true })}
+        registration={register('username', USERNAME_INPUT)}
+      />
+      <TextField id="gm-phone" label="Contact number" type="tel" placeholder="09XX XXX XXXX" error={errors.contactNumber?.message} {...register('contactNumber')} />
       <TextField id="gm-email" label="Email" type="email" placeholder="name@gmail.com" hint={gm ? undefined : 'We send an invite link to set a password.'} error={errors.email?.message} {...register('email')} />
       <SectionTitle>Association</SectionTitle>
       <Controller

@@ -77,6 +77,7 @@ async function assertIdentityFree(fields, exceptId) {
   const taken = await findIdentityConflicts(fields, exceptId);
   if (taken.email || taken.username) {
     throw new AppError(409, 'Some details are already in use.', {
+      code: taken.username ? 'USERNAME_TAKEN' : 'CONFLICT',
       errors: { ...(taken.email && { email: 'Email is already taken' }), ...(taken.username && { username: 'Username is already taken' }) },
     });
   }

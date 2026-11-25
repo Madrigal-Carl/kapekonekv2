@@ -66,11 +66,3 @@ export const harvestFormSchema = z.object({
   harvestedAt: pastDateRule,
   note: recordNoteRule,
 })
-
-/** "Rodel Mendoza" → "rodel.mendoza" (the screens' "Suggested from the name"). */
-export const suggestUsername = (first = '', last = '') =>
-  [first, last]
-    .map((part) => part.toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g, ''))
-    .filter(Boolean)
-    .join('.')
-    .slice(0, 30)

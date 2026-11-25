@@ -12,7 +12,7 @@ function toAppError(err) {
   if (err instanceof AppError) return err;
   if (err?.code === 11000) {
     const field = Object.keys(err.keyPattern ?? err.keyValue ?? { value: 1 })[0];
-    return new AppError(409, `${label(field)} is already taken`, { errors: { [field]: `${label(field)} is already taken` } });
+    return new AppError(409, `${label(field)} is already taken`, { code: field === 'username' ? 'USERNAME_TAKEN' : 'CONFLICT', errors: { [field]: `${label(field)} is already taken` } });
   }
   if (err instanceof mongoose.Error.CastError) return new AppError(404, 'Not found');
   if (err?.type === 'entity.parse.failed') return new AppError(400, 'The request body is not valid JSON.');

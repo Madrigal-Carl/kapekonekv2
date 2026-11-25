@@ -13,6 +13,11 @@ vi.mock('@/services/farmer.service', async (importOriginal) => ({
   listFarmers: vi.fn(async () => ({ items: [], meta: { page: 1, limit: 10, total: 0 } })),
   createFarmer: (body) => createFarmer(body),
 }))
+vi.mock('@/services/auth.service', async (importOriginal) => ({
+  ...(await importOriginal()),
+  usernameSuggestions: vi.fn(async () => ['ernestoj', 'ernesto.j', 'ejavier']),
+  usernameAvailability: vi.fn(async (username) => ({ username, available: username !== 'ernesto' })),
+}))
 vi.mock('@/services/dashboard.service', async (importOriginal) => ({
   ...(await importOriginal()),
   getOrgCard: vi.fn(async () => ({ kind: 'group_manager', association: { id: 'a1', name: 'Santa Cruz Coffee Growers' }, farmers: 0, waiting: 0 })),
@@ -43,14 +48,23 @@ describe('Farmers', () => {
     await screen.findByText('Santa Cruz Coffee Growers', { selector: 'strong' })
     fireEvent.change(screen.getByLabelText('First name'), { target: { value: 'Ernesto' } })
     fireEvent.change(screen.getByLabelText('Last name'), { target: { value: 'Javier' } })
-    expect(screen.getByLabelText('Username').value).toBe('ernesto.javier')
+    // Suggestions come from the name; a taken username blocks saving until a chip is picked.
+    fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'ernesto' } })
+    await screen.findByText('@ernesto is taken. Try a suggestion.', {}, { timeout: 2000 })
+    fireEvent.change(screen.getByLabelText('Contact number'), { target: { value: '09171234567' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Create farmer' }))
+    await new Promise((r) => setTimeout(r, 50))
+    expect(createFarmer).not.toHaveBeenCalled()
+    fireEvent.click(await screen.findByRole('button', { name: '@ernesto.j' }, { timeout: 2000 }))
+    expect(screen.getByLabelText('Username').value).toBe('ernesto.j')
+    await screen.findByText('@ernesto.j is available', {}, { timeout: 2000 })
     fireEvent.change(screen.getByLabelText('Contact number'), { target: { value: '09171234567' } })
     fireEvent.click(screen.getByRole('button', { name: 'Create farmer' }))
 
     const dialog = await screen.findByRole('dialog', { name: 'Account created' })
     expect(dialog.textContent).toContain(PASSWORD)
     expect(dialog.textContent).toContain('Give Ernesto this temporary password')
-    expect(createFarmer).toHaveBeenCalledWith(expect.objectContaining({ firstName: 'Ernesto', username: 'ernesto.javier', email: null, contactNumber: '09171234567' }))
+    expect(createFarmer).toHaveBeenCalledWith(expect.objectContaining({ firstName: 'Ernesto', username: 'ernesto.j', email: null, contactNumber: '09171234567' }))
 
     fireEvent.click(screen.getByRole('button', { name: 'Done' }))
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Account created' })).toBeNull())

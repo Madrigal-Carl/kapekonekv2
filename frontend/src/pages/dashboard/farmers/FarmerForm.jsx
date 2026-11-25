@@ -1,7 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useId, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
+import { UsernameField } from '@/components/auth/UsernameField'
 import { DocumentUpload } from '@/components/dashboard/DocumentUpload'
 import { Drawer } from '@/components/dashboard/Drawer'
 import { SectionTitle, TextField } from '@/components/dashboard/RecordParts'
@@ -10,8 +11,9 @@ import { SearchSelect } from '@/components/ui/SearchSelect'
 import { uploadValue } from '@/constants/records'
 import { useAssociationOptions } from '@/hooks/useAssociations'
 import { useCreateFarmer, useUpdateFarmer } from '@/hooks/useFarmers'
+import { USERNAME_INPUT, useUsernameStatus } from '@/hooks/useUsernameStatus'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
-import { farmerFormSchema, suggestUsername } from '@/schemas/records.schema'
+import { farmerFormSchema } from '@/schemas/records.schema'
 
 const FIELDS = ['firstName', 'middleName', 'lastName', 'username', 'contactNumber', 'email', 'validId', 'landProof', 'associationId']
 const ref = (doc) => doc && { url: doc.url, publicId: doc.publicId }
@@ -54,20 +56,19 @@ function FarmerFields({ formId, create, update, farmer, association, onClose, on
   const [docs, setDocs] = useState({ validId: uploadValue(farmer?.documents?.validId), landProof: uploadValue(farmer?.documents?.landProof) })
   const [changed, setChanged] = useState({})
   const [pickError, setPickError] = useState(null)
-  const { register, handleSubmit, setValue, getValues, getFieldState, setError, formState: { errors } } = useForm({
+  const { register, control, handleSubmit, setValue, setError, formState: { errors } } = useForm({
     resolver: zodResolver(farmerFormSchema),
     defaultValues: toForm(farmer),
   })
-  // "Suggested from the name" until the username is typed by hand.
-  const suggest = () => {
-    if (!editing && !getFieldState('username').isDirty) setValue('username', suggestUsername(getValues('firstName'), getValues('lastName')))
-  }
+  const [firstName, lastName, username] = useWatch({ control, name: ['firstName', 'lastName', 'username'] })
+  const status = useUsernameStatus(username, errors.username?.message, { current: farmer?.username, currentMessage: 'Their current username', emptyHint: 'Pick a suggestion or type one. They sign in with it.' })
   const setDoc = (key) => (doc) => {
     setDocs((d) => ({ ...d, [key]: doc }))
     setChanged((c) => ({ ...c, [key]: true }))
   }
 
   const onSubmit = (values) => {
+    if (status.tone === 'taken') return // the status line already says why
     if (!editing && !association && !associationId) return setPickError('Choose an association')
     const onError = (error) => {
       if (error?.response?.data?.errors?.associationId) setPickError(error.response.data.errors.associationId)
@@ -114,14 +115,20 @@ function FarmerFields({ formId, create, update, farmer, association, onClose, on
         ))}
       <SectionTitle>Name</SectionTitle>
       <div className="grid gap-5 sm:grid-cols-3">
-        <TextField id="fm-first" label="First name" autoComplete="off" error={errors.firstName?.message} {...register('firstName', { onChange: suggest })} />
+        <TextField id="fm-first" label="First name" autoComplete="off" error={errors.firstName?.message} {...register('firstName')} />
         <TextField id="fm-middle" label="Middle" optional autoComplete="off" error={errors.middleName?.message} {...register('middleName')} />
-        <TextField id="fm-last" label="Last name" autoComplete="off" error={errors.lastName?.message} {...register('lastName', { onChange: suggest })} />
+        <TextField id="fm-last" label="Last name" autoComplete="off" error={errors.lastName?.message} {...register('lastName')} />
       </div>
-      <div className="grid gap-5 sm:grid-cols-2">
-        <TextField id="fm-username" label="Username" autoComplete="off" hint="Suggested from the name. They sign in with this." error={errors.username?.message} {...register('username')} />
-        <TextField id="fm-phone" label="Contact number" type="tel" placeholder="09XX XXX XXXX" error={errors.contactNumber?.message} {...register('contactNumber')} />
-      </div>
+      <UsernameField
+        id="fm-username"
+        value={username}
+        status={status}
+        firstName={firstName}
+        lastName={lastName}
+        onPick={(name) => setValue('username', name, { shouldValidate: true, shouldDirty: true })}
+        registration={register('username', USERNAME_INPUT)}
+      />
+      <TextField id="fm-phone" label="Contact number" type="tel" placeholder="09XX XXX XXXX" error={errors.contactNumber?.message} {...register('contactNumber')} />
       <TextField
         id="fm-email"
         label="Email"

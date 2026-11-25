@@ -55,6 +55,13 @@ describe('Group Managers', () => {
     expect(await AuditLog.countDocuments({ area: 'group_managers', action: 'create' })).toBe(1);
   });
 
+  it('refuses a taken username with 409 USERNAME_TAKEN', async () => {
+    const res = await kaluppa.post('/api/group-managers').send({ ...lena, username: 'manager.santacruz', email: 'lena9@example.com' });
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe('USERNAME_TAKEN');
+    expect(res.body.errors.username).toBe('Username is already taken');
+  });
+
   it('needs an email, and allows one Group Manager per association', async () => {
     const noEmail = await kaluppa.post('/api/group-managers').send({ ...lena, username: 'lena2', email: '' });
     expect(noEmail.status).toBe(400);

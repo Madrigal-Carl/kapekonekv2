@@ -2,18 +2,17 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { Link } from 'react-router-dom'
+import { UsernameField } from '@/components/auth/UsernameField'
 import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { Eyebrow } from '@/components/ui/Eyebrow'
 import { FieldHint, Input, Label } from '@/components/ui/Input'
 import { PasswordInput, PasswordRule } from '@/components/ui/PasswordInput'
 import { RadioCard } from '@/components/ui/RadioCard'
-import { useRegister, useUsernameSuggestions } from '@/hooks/useAuth'
-import { useDebouncedValue } from '@/hooks/useDebouncedValue'
-import { useUsernameStatus } from '@/hooks/useUsernameStatus'
+import { useRegister } from '@/hooks/useAuth'
+import { USERNAME_INPUT, useUsernameStatus } from '@/hooks/useUsernameStatus'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
-import { cn } from '@/lib/cn'
 import { registerSchema } from '@/schemas/auth.schema'
 import { PASSWORD_RULE } from '@/schemas/rules'
 
@@ -41,7 +40,6 @@ export function Register() {
   })
   const [role, firstName, lastName, username, password] = useWatch({ control, name: ['role', 'firstName', 'lastName', 'username', 'password'] })
   const status = useUsernameStatus(username, errors.username?.message)
-  const suggestions = useUsernameSuggestions(useDebouncedValue(firstName.trim(), 500), useDebouncedValue(lastName.trim(), 500))
 
   // GuestRoute sends buyers to verify their email and farmers to their dashboard once the session is set.
   // The API's schema drops confirmPassword; only farmers send a contact number.
@@ -86,47 +84,15 @@ export function Register() {
           </div>
         </div>
 
-        <div>
-          <Label htmlFor="username">Username</Label>
-          <div className="relative mt-2">
-            <span aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-4">@</span>
-            <Input
-              id="username"
-              autoComplete="username"
-              aria-describedby="username-status"
-              invalid={status.tone === 'taken'}
-              className={cn('pl-[30px]', status.tone === 'available' && 'border-success-line')}
-              {...register('username', { setValueAs: (v) => v.toLowerCase(), onChange: (e) => { e.target.value = e.target.value.toLowerCase() } })}
-            />
-          </div>
-          <p
-            id="username-status"
-            aria-live="polite"
-            className={cn(
-              'mt-1.5 flex items-center gap-1.5 text-xs font-medium',
-              { muted: 'text-ink-3', taken: 'text-danger-ink', available: 'text-success-ink' }[status.tone],
-            )}
-          >
-            {status.message}
-          </p>
-          {suggestions.data?.length > 0 && (
-            <div className="mt-2 flex flex-nowrap items-center gap-1.5 overflow-x-auto whitespace-nowrap">
-              <span className="shrink-0 text-xs text-ink-3">Suggestions:</span>
-              {suggestions.data.map((name) => (
-                <Button variant="bare"
-                  key={name}
-                  onClick={() => setValue('username', name, { shouldValidate: true })}
-                  className={cn(
-                    'min-h-8 shrink-0 cursor-pointer whitespace-nowrap rounded-full border border-sand-strong px-[11px] py-[5px] text-[12.5px] text-ink',
-                    username === name ? 'bg-crema' : 'bg-white',
-                  )}
-                >
-                  @{name}
-                </Button>
-              ))}
-            </div>
-          )}
-        </div>
+        <UsernameField
+          id="username"
+          value={username}
+          status={status}
+          firstName={firstName}
+          lastName={lastName}
+          onPick={(name) => setValue('username', name, { shouldValidate: true })}
+          registration={register('username', USERNAME_INPUT)}
+        />
 
         <div>
           <Label htmlFor="email">Email</Label>

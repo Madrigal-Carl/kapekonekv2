@@ -105,3 +105,19 @@ describe('farmer list', () => {
     expect((await agent.get('/api/farmers')).status).toBe(403);
   });
 });
+
+describe('usernames', () => {
+  it('refuses a taken username with 409 USERNAME_TAKEN, on add and on edit; keeping your own is fine', async () => {
+    const add = await manager.post('/api/farmers').send({ ...nora, username: 'farmer.approved' });
+    expect(add.status).toBe(409);
+    expect(add.body.code).toBe('USERNAME_TAKEN');
+    expect(add.body.errors).toEqual({ username: 'Username is already taken' });
+
+    const created = await manager.post('/api/farmers').send({ ...nora, username: 'nora.unique', contactNumber: '09175550151' });
+    expect(created.status).toBe(201);
+    const { id } = created.body.data.farmer;
+    const edit = await manager.patch(`/api/farmers/${id}`).send({ ...nora, username: 'farmer.approved', contactNumber: '09175550151' });
+    expect(edit.body.code).toBe('USERNAME_TAKEN');
+    expect((await manager.patch(`/api/farmers/${id}`).send({ ...nora, username: 'nora.unique', contactNumber: '09175550151' })).status).toBe(200);
+  });
+});
