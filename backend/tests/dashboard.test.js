@@ -52,7 +52,7 @@ describe('GET /dashboard/badges', () => {
 
   it('gives Kaluppa the orders to confirm and the bean listings to review', async () => {
     const kaluppa = await signedIn(app, 'kaluppa');
-    expect((await kaluppa.get('/api/dashboard/badges')).body.data).toEqual({ orders: 2, beans: 1 });
+    expect((await kaluppa.get('/api/dashboard/badges')).body.data).toEqual({ orders: 2, beans: 1, reviews: 0 });
   });
 
   it('has nothing for a farmer yet, and is closed to buyers', async () => {

@@ -77,3 +77,9 @@ export const updateProduct = async (id, set) => {
   await Product.updateOne({ _id: id }, { $set: set });
   return findProductById(id);
 };
+
+/** `{ _id, name }` of these products, by name. */
+export const findProductNames = (ids) => Product.find({ _id: { $in: ids } }, 'name').sort({ name: 1 }).lean();
+
+/** Ids of products whose name matches. @param {RegExp} pattern */
+export const findProductIdsByName = (pattern) => Product.find({ name: pattern }).distinct('_id');

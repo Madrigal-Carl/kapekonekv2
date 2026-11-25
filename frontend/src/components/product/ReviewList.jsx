@@ -60,6 +60,12 @@ export function ReviewList({ productId, total }) {
               <StarRating value={review.rating} />
             </div>
             <p className="mb-0 ml-[52px] mt-3 text-sm leading-[1.65] text-ink-2">{review.comment}</p>
+            {review.reply && (
+              <div className="ml-[52px] mt-3 rounded-lg border-l-[3px] border-roast bg-crema px-3.5 py-3">
+                <span className="block text-[12.5px] font-semibold">Reply from Kaluppa</span>
+                <p className="mb-0 mt-1 text-[13.5px] leading-normal text-ink-2">{review.reply.body}</p>
+              </div>
+            )}
           </li>
         ))}
       </ul>

@@ -1,6 +1,6 @@
 import { useId, useRef, useState } from 'react'
 import { Button } from '@/components/ui/Button'
-import { IconApprove, IconArchive, IconCircleX, IconReject, IconRestore, IconTrash } from '@/components/ui/icons'
+import { IconApprove, IconArchive, IconCircleX, IconHide, IconReject, IconRestore, IconTrash } from '@/components/ui/icons'
 import { Modal } from '@/components/ui/Modal'
 import { SearchSelect } from '@/components/ui/SearchSelect'
 import { cn } from '@/lib/cn'
@@ -13,6 +13,7 @@ const VARIANTS = {
   reject: { tone: 'red', icon: IconReject, reason: true },
   cancel_sale: { tone: 'red', icon: IconCircleX, reason: true },
   remove_post: { tone: 'red', icon: IconTrash, reason: true },
+  hide: { tone: 'red', icon: IconHide, reason: true },
   temporary_password: { tone: 'green', icon: IconApprove },
 }
 const TONES = {

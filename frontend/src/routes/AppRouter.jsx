@@ -15,6 +15,7 @@ import { GroupManagers } from '@/pages/dashboard/groupManagers/GroupManagers'
 import { Beans } from '@/pages/dashboard/beans/Beans'
 import { Inventory } from '@/pages/dashboard/inventory/Inventory'
 import { Orders as DashboardOrders } from '@/pages/dashboard/orders/Orders'
+import { Reviews } from '@/pages/dashboard/reviews/Reviews'
 import { Farms } from '@/pages/dashboard/records/Farms'
 import { Harvests } from '@/pages/dashboard/records/Harvests'
 import { Trees } from '@/pages/dashboard/records/Trees'
@@ -48,7 +49,6 @@ const DASHBOARD_PAGES = [
   ['inbox/*', 'inbox.use'],
   ['hub/*', 'dashboard.view'],
   ['farm-map', 'map.view'],
-  ['reviews', 'reviews.moderate'],
   ['reports', 'reports.view'],
   ['audit-log', 'audit.view'],
   ['settings', 'settings.manage'],
@@ -61,9 +61,10 @@ const RECORD_PAGES = [
   ['farms', 'farms.manage', <Farms key="farms" />],
   ['trees', 'trees.manage', <Trees key="trees" />],
   ['harvests', 'harvests.manage', <Harvests key="harvests" />],
-  ['beans', 'beans.sell', <Beans key="beans" />],
-  ['orders', 'orders.view_own', <DashboardOrders key="orders" />],
-  ['inventory', 'inventory.manage', <Inventory key="inventory" />], // farmers' own orders; Kaluppa manages all // farmers and Group Managers sell; Kaluppa passes every check and reviews
+  ['beans', 'beans.sell', <Beans key="beans" />], // farmers and Group Managers sell; Kaluppa passes every check and reviews
+  ['orders', 'orders.view_own', <DashboardOrders key="orders" />], // farmers' own orders; Kaluppa manages all
+  ['inventory', 'inventory.manage', <Inventory key="inventory" />],
+  ['reviews', 'reviews.moderate', <Reviews key="reviews" />],
 ]
 
 export const router = createBrowserRouter([
