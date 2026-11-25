@@ -107,7 +107,7 @@ function Details({ farm }) {
       <Suspense fallback={<div className="aspect-[600/440] animate-pulse rounded-card bg-water" />}>
         <MapPicker
           value={farm.location}
-          focus={{ label: `${farm.barangay}, ${farm.municipality}` }}
+          focus={{ municipality: farm.municipality, barangay: farm.barangay }}
           pinLabel={farm.propertyNumber}
           ariaLabel={`Map of ${farm.propertyNumber}`}
         />

@@ -93,3 +93,8 @@ This means:
 - The API trusts one proxy hop (`trust proxy 1`), which is what Render uses.
 
 If you put both apps behind one domain (for example `api.example.com` and `app.example.com`), cookies become same-site and keep working with the same settings.
+
+## Data and credits
+
+- **Marinduque boundaries** (`backend/src/data/boundaries/`): municipality and barangay polygons from [faeldon/philippines-json-maps](https://github.com/faeldon/philippines-json-maps) v1.1.1 (PSGC 2026-3q, MIT). The underlying boundaries are © NAMRIA and PSA, published through OCHA's [Philippines COD-AB](https://data.humdata.org/dataset/cod-ab-phl) under [CC BY-IGO 3.0](http://creativecommons.org/licenses/by/3.0/igo/legalcode). The maps show this credit in their attribution control. Rebuild with `node backend/scripts/build-boundaries.js <unzipped topojson-hires>/topojson`.
+- **Maps**: © Mapbox, © OpenStreetMap contributors.

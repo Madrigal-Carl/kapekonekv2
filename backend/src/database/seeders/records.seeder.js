@@ -3,43 +3,38 @@ import { insertHarvests } from '../../repositories/harvest.repository.js';
 import { findUsersByUsernames } from '../../repositories/user.repository.js';
 import { loadScope } from '../../services/auth.service.js';
 import { archiveFarm, createFarm, setAssignedFarmers } from '../../services/farm.service.js';
-import { getLocations, isValidBarangay } from '../../services/location.service.js';
+import { labelPoint } from '../../services/boundary.service.js';
+import { isValidBarangay } from '../../services/location.service.js';
 import { createTreeGroup } from '../../services/treeGroup.service.js';
 
 const DAY = 86_400_000;
 /** Manila calendar day `days` ago, as the API takes it. */
 const dayAgo = (days) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila' }).format(new Date(Date.now() - days * DAY));
-// Pins sit a little inland from each town center, toward the middle of the island, so they stay on land.
-const ISLAND = { lat: 13.4, lng: 121.97 };
-const inland = (town, t) => {
-  const { center } = getLocations().find((m) => m.name === town);
-  return { lat: +(center.lat + (ISLAND.lat - center.lat) * t).toFixed(5), lng: +(center.lng + (ISLAND.lng - center.lng) * t).toFixed(5) };
-};
 
 /**
  * Farms in all 6 towns (PHASE-2-SPEC §8). `by` adds the farm (its owner, a Group Manager for its farmer, or Kaluppa);
  * `trees`: [variety, stage, count, years since planting, note?].
  */
 const FARMS = [
-  { by: 'farmer.approved', lotNumber: 'Lot 12-B', sizeHa: 1.2, municipality: 'Santa Cruz', barangay: 'Pantayin', street: 'Sitio Ilaya', t: 0.1,
+  { by: 'farmer.approved', lotNumber: 'Lot 12-B', sizeHa: 1.2, municipality: 'Santa Cruz', barangay: 'Pantayin', street: 'Sitio Ilaya',
     trees: [['liberica', 'fruiting', 120, 6, 'Shade-grown under coconut'], ['excelsa', 'fruiting', 80, 5], ['liberica', 'newly_planted', 40, 0]] },
-  { by: 'farmer.approved', lotNumber: 'Lot 3-A', sizeHa: 0.6, municipality: 'Mogpog', barangay: 'Bocboc', street: 'Purok 2', t: 0.25,
+  { by: 'farmer.approved', lotNumber: 'Lot 3-A', sizeHa: 0.6, municipality: 'Mogpog', barangay: 'Bocboc', street: 'Purok 2',
     trees: [['excelsa', 'flowering', 150, 4], ['excelsa', 'damaged', 30, 7, 'Leaf rust after the October rains']] },
-  { by: 'manager.santacruz', farmer: 'nestor.perez', lotNumber: 'Lot 21', sizeHa: 2.1, municipality: 'Santa Cruz', barangay: 'Lipa', street: 'Sitio Bato', t: 0.2,
+  { by: 'manager.santacruz', farmer: 'nestor.perez', lotNumber: 'Lot 21', sizeHa: 2.1, municipality: 'Santa Cruz', barangay: 'Lipa', street: 'Sitio Bato',
     trees: [['robusta', 'fruiting', 300, 8], ['liberica', 'growing', 180, 2], ['excelsa', 'fruiting', 130, 6]] },
-  { by: 'lorna.ilagan', lotNumber: 'Lot 4', sizeHa: 0.5, municipality: 'Santa Cruz', barangay: 'Napo', t: 0.15, trees: [['liberica', 'fruiting', 90, 5]] },
-  { by: 'felix.rey', lotNumber: 'Lot 9', sizeHa: 1.0, municipality: 'Boac', barangay: 'Tumagabok', t: 0.3,
+  { by: 'lorna.ilagan', lotNumber: 'Lot 4', sizeHa: 0.5, municipality: 'Santa Cruz', barangay: 'Napo', trees: [['liberica', 'fruiting', 90, 5]] },
+  { by: 'felix.rey', lotNumber: 'Lot 9', sizeHa: 1.0, municipality: 'Boac', barangay: 'Tumagabok',
     trees: [['arabica', 'fruiting', 180, 6], ['robusta', 'growing', 120, 2]] },
-  { by: 'farmer.transfer', lotNumber: 'Lot 2', sizeHa: 0.9, municipality: 'Boac', barangay: 'Mainit', t: 0.35, trees: [['robusta', 'fruiting', 260, 9]] },
-  { by: 'tomas.leano', lotNumber: 'Lot 5', sizeHa: 0.7, municipality: 'Gasan', barangay: 'Bahi', t: 0.25, trees: [['liberica', 'fruiting', 200, 7]] },
-  { by: 'farmer.new', lotNumber: 'Lot 1', sizeHa: 1.6, municipality: 'Buenavista', barangay: 'Sihi', t: 0.3,
+  { by: 'farmer.transfer', lotNumber: 'Lot 2', sizeHa: 0.9, municipality: 'Boac', barangay: 'Mainit', trees: [['robusta', 'fruiting', 260, 9]] },
+  { by: 'tomas.leano', lotNumber: 'Lot 5', sizeHa: 0.7, municipality: 'Gasan', barangay: 'Bahi', trees: [['liberica', 'fruiting', 200, 7]] },
+  { by: 'farmer.new', lotNumber: 'Lot 1', sizeHa: 1.6, municipality: 'Buenavista', barangay: 'Sihi',
     trees: [['excelsa', 'fruiting', 260, 6], ['liberica', 'flowering', 160, 3]] },
   { by: 'kaluppa', managedBy: 'manager.santacruz', workers: ['nestor.perez', 'lorna.ilagan', 'marlon.sevilla'],
-    lotNumber: 'Kaluppa Demo Farm', sizeHa: 3.5, municipality: 'Santa Cruz', barangay: 'Pantayin', street: 'Kaluppa compound', t: 0.05,
+    lotNumber: 'Kaluppa Demo Farm', sizeHa: 3.5, municipality: 'Santa Cruz', barangay: 'Pantayin', street: 'Kaluppa compound',
     trees: [['liberica', 'fruiting', 600, 8], ['excelsa', 'fruiting', 350, 6], ['arabica', 'growing', 200, 2], ['liberica', 'newly_planted', 100, 0, 'Seedlings from the Kaluppa nursery']] },
-  { by: 'kaluppa', lotNumber: 'Torrijos Nursery', sizeHa: 1.4, municipality: 'Torrijos', barangay: 'Bonliw', t: 0.2,
+  { by: 'kaluppa', lotNumber: 'Torrijos Nursery', sizeHa: 1.4, municipality: 'Torrijos', barangay: 'Bonliw',
     trees: [['robusta', 'newly_planted', 500, 0], ['liberica', 'growing', 300, 1]] },
-  { by: 'farmer.approved', lotNumber: 'Lot 2-C (old)', sizeHa: 0.3, municipality: 'Santa Cruz', barangay: 'Botilao', t: 0.12, archive: true,
+  { by: 'farmer.approved', lotNumber: 'Lot 2-C (old)', sizeHa: 0.3, municipality: 'Santa Cruz', barangay: 'Botilao', archive: true,
     trees: [['liberica', 'damaged', 20, 10, 'Old trees, replanted elsewhere']] },
 ];
 // Harvest season peaks November to February; the other months bring small pickings.
@@ -75,7 +70,7 @@ export async function seedRecords() {
     const actor = people[f.by];
     const farm = await createFarm(actor, {
       lotNumber: f.lotNumber, sizeHa: f.sizeHa, municipality: f.municipality, barangay: f.barangay, street: f.street ?? '',
-      location: inland(f.municipality, f.t),
+      location: labelPoint(f.municipality, f.barangay), // inside its barangay, so the map highlight matches
       ...(f.farmer && { farmerId: people[f.farmer]._id }),
       ...(f.by === 'kaluppa' && { managedById: f.managedBy ? people[f.managedBy]._id : null }),
     });

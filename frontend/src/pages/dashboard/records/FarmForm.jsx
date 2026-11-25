@@ -9,7 +9,7 @@ import { SearchSelect } from '@/components/ui/SearchSelect'
 import { Spinner } from '@/components/ui/Spinner'
 import { useGroupManagers } from '@/hooks/useAssociations'
 import { useFarmers } from '@/hooks/useFarmers'
-import { useFindBarangay, useReverseGeocode } from '@/hooks/useGeo'
+import { useBarangayPoint, useReverseGeocode } from '@/hooks/useGeo'
 import { useCreateFarm, useUpdateFarm } from '@/hooks/useRecords'
 import { useLocations } from '@/hooks/useSettings'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
@@ -20,7 +20,6 @@ import { FormFooter } from '../farmers/FarmerForm'
 const MapPicker = lazy(() => import('@/components/map/MapPicker').then((m) => ({ default: m.MapPicker })))
 
 const FIELDS = ['farmerId', 'managedById', 'lotNumber', 'sizeHa', 'municipality', 'barangay', 'street', 'location']
-const ZOOM = { municipality: 12.5, barangay: 15 }
 const OUTSIDE = 'Put the pin on the farm, inside Marinduque.'
 const HINTS = {
   empty: 'Pick the municipality and barangay to zoom in, or click the map to drop the pin.',
@@ -69,12 +68,12 @@ function FarmFields({ formId, farm, create, update, actsForFarmers, isKaluppa, o
   const needsFarmer = actsForFarmers && !editing
   const locations = useLocations()
   const reverse = useReverseGeocode()
-  const findBarangay = useFindBarangay()
+  const barangayPoint = useBarangayPoint()
   const farmers = useFarmers({ status: 'approved', limit: OPTION_LIMIT }, { enabled: needsFarmer })
   const managers = useGroupManagers({ limit: OPTION_LIMIT }, { enabled: isKaluppa })
   const [pinError, setPinError] = useState(null)
   const [pinNote, setPinNote] = useState(null)
-  const [focus, setFocus] = useState(() => (farm ? { label: `${farm.barangay}, ${farm.municipality} · zoomed to barangay` } : { label: 'All of Marinduque' }))
+  const [focus, setFocus] = useState(() => (farm ? { municipality: farm.municipality, barangay: farm.barangay } : {}))
 
   const { register, control, handleSubmit, setValue, getValues, setError, getFieldState, formState: { errors } } = useForm({
     resolver: zodResolver(farmFormSchema({ needsFarmer })),
@@ -95,6 +94,7 @@ function FarmFields({ formId, farm, create, update, actsForFarmers, isKaluppa, o
         setValue('municipality', place.municipality, { shouldValidate: true })
         setValue('barangay', place.barangay ?? '', { shouldValidate: Boolean(place.barangay) })
         if (place.street && !getFieldState('street').isDirty) setValue('street', place.street)
+        setFocus({ municipality: place.municipality, barangay: place.barangay })
       },
       onError: (error) => setPinError(errorMessage(error)),
     })
@@ -103,16 +103,14 @@ function FarmFields({ formId, farm, create, update, actsForFarmers, isKaluppa, o
     const center = locations.data.find((t) => t.name === name).center
     if (name !== municipality) setValue('barangay', '')
     movePin(center, 'select')
-    setFocus({ label: `${name} · zoomed to municipality`, center, zoom: ZOOM.municipality })
+    setFocus({ municipality: name, fit: true })
   }
   const pickBarangay = async (name) => {
     const town = getValues('municipality')
-    setPinNote(`Finding ${name} on the map…`)
-    const spot = await findBarangay(town, name).catch(() => null)
+    const spot = await barangayPoint(town, name).catch(() => null)
     if (getValues('barangay') !== name) return // picked another one meanwhile
-    if (!spot) return setPinNote('Couldn’t find that barangay on the map. Drag the pin to the farm.')
-    movePin({ lat: spot.lat, lng: spot.lng }, 'select')
-    setFocus({ label: `${name}, ${town} · zoomed to barangay`, center: { lat: spot.lat, lng: spot.lng }, zoom: ZOOM.barangay, area: true })
+    if (spot) movePin(spot, 'select')
+    setFocus({ municipality: town, barangay: name, fit: true })
   }
 
   const save = handleSubmit(({ farmerId, managedById, ...values }) => {

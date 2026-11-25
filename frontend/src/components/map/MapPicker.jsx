@@ -3,11 +3,11 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { IconLocate, IconMapPin, IconMaximize, IconMinus, IconPlus, IconSearch } from '@/components/ui/icons'
 
 import { useEffect, useRef, useState } from 'react'
-import MapGL, { Marker } from 'react-map-gl/mapbox'
+import MapGL, { Layer, Marker, Source } from 'react-map-gl/mapbox'
 import { toast } from 'sonner'
 import { inputClasses } from '@/components/ui/Input'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
-import { usePlaceSearch } from '@/hooks/useGeo'
+import { useBoundaries, usePlaceSearch } from '@/hooks/useGeo'
 import { cn } from '@/lib/cn'
 
 const TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
@@ -17,16 +17,27 @@ const FIT = { padding: 16 }
 const FREE = 'Click the map to move the pin'
 const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 const controlButton = 'grid size-9 cursor-pointer place-items-center border-0 bg-white text-ink hover:bg-cream'
+const AREA_PADDING = 40
+// PSGC boundaries (faeldon/philippines-json-maps), CC BY-IGO.
+const ATTRIBUTION = { customAttribution: 'Boundaries: NAMRIA, PSA via OCHA COD-AB (CC BY-IGO)' }
+// Mapbox paint can't read CSS variables, so the highlight colours are read from the theme tokens once.
+const token = (name) => (typeof document === 'undefined' ? '' : getComputedStyle(document.documentElement).getPropertyValue(`--color-${name}`).trim())
+const byName = (key, name) => ['==', ['get', key], name ?? '']
+
+/** Bottom-left map label for a highlighted area (MiniMap.dc.html). */
+const areaLabel = ({ municipality, barangay, label }) =>
+  label ?? (barangay ? `${barangay}, ${municipality} · barangay highlighted` : municipality ? `${municipality} · municipality highlighted` : 'All of Marinduque')
 
 /**
  * Mapbox map with a draggable pin, place search, zoom controls and "Use my location" (AddressModal.dc.html, MiniMap.dc.html).
  * Shared by the address and farm pickers. Geocoding goes through the API (`/geo/*`); this component only reports points
  * the user chose (`onPick(point, source)`). Without `onPick` it only shows the pin (a farm's details).
- * `focus` moves the camera whenever it changes: the municipality and barangay selects fly here (`jumpTo` under reduced motion).
+ * `focus` names the highlighted area (PSGC polygons: municipality fill caramel, barangay fill roast with its municipality
+ * outlined). A new focus object with `fit` fits the map to that area (padding 40; no animation under reduced motion).
  * @param {{
  *   value: { lat: number, lng: number } | null,
  *   onPick: (point: { lat: number, lng: number }, source: 'map'|'search'|'locate') => void,
- *   focus: { label: string, center?: { lat: number, lng: number }, zoom?: number, area?: boolean },
+ *   focus: { municipality?: string|null, barangay?: string|null, fit?: boolean, label?: string },
  *   origin?: { lat: number, lng: number }, error?: string|null, busy?: boolean, note?: string|null,
  *   pinLabel?: string, ariaLabel?: string, searchable?: boolean, hints?: { empty: string, placed: string },
  * }} props
@@ -51,21 +62,33 @@ export function MapPicker({
   // Set once the user zooms or pans by hand: the label stops naming the select's place (null = `focus.label`).
   const [ownLabel, setOwnLabel] = useState(null)
   const search = usePlaceSearch(useDebouncedValue(query, 350))
+  const [loaded, setLoaded] = useState(false)
+  const towns = useBoundaries('municipality')
+  const barangays = useBoundaries('barangay', focus.barangay ? focus.municipality : null)
+  const [colors] = useState(() => ({ municipality: token('caramel'), barangay: token('roast') }))
 
   const move = (center, zoom) => {
     const camera = { center: [center.lng, center.lat], zoom }
     if (reducedMotion()) map.current?.jumpTo(camera)
     else map.current?.flyTo({ ...camera, duration: 1400 })
   }
-  // A new focus object means the selects asked for a move (re-picking the same town flies there again).
+  // A new focus object means the selects (or a pin drop) changed the area; the label names it again.
   const [shown, setShown] = useState(focus)
   if (shown !== focus) {
     setShown(focus)
     setOwnLabel(null)
   }
+  const area = focus.barangay
+    ? barangays.data?.features.find((f) => f.properties.barangay === focus.barangay)
+    : towns.data?.features.find((f) => f.properties.municipality === focus.municipality)
+  // Fit once per focus, as soon as the map and the area's polygon are both ready.
+  const fitted = useRef(null)
   useEffect(() => {
-    if (focus.center) move(focus.center, focus.zoom)
-  }, [focus])
+    if (!focus.fit || !loaded || !area || fitted.current === focus) return
+    fitted.current = focus
+    const [w, s, e, n] = area.properties.bbox
+    map.current?.fitBounds([[w, s], [e, n]], { padding: AREA_PADDING, duration: reducedMotion() ? 0 : 900 })
+  }, [focus, loaded, area])
 
   const pick = (point, source) => {
     if (source !== 'map') {
@@ -150,6 +173,11 @@ export function MapPicker({
             logoPosition="bottom-right"
             onClick={pickable ? (e) => pick({ lat: e.lngLat.lat, lng: e.lngLat.lng }, 'map') : undefined}
             onDragStart={() => setOwnLabel(FREE)}
+            onLoad={(e) => {
+              setLoaded(true)
+              if (import.meta.env.DEV) window.__kkMap = e.target // e2e reads the drawn highlight layers
+            }}
+            attributionControl={ATTRIBUTION}
             style={{ width: '100%', height: '100%' }}
             aria-label={ariaLabel}
           >
@@ -158,10 +186,17 @@ export function MapPicker({
                 <span className="pointer-events-none whitespace-nowrap rounded-[4px] bg-white/90 px-1.5 py-px text-[10.5px] font-semibold text-ink">Kaluppa</span>
               </Marker>
             )}
-            {focus.area && focus.center && (
-              <Marker latitude={focus.center.lat} longitude={focus.center.lng} anchor="center" style={{ pointerEvents: 'none' }}>
-                <span aria-hidden="true" className="block size-28 rounded-full border-[1.5px] border-dashed border-caramel bg-caramel/16" />
-              </Marker>
+            {towns.data && (
+              <Source id="kk-municipalities" type="geojson" data={towns.data}>
+                <Layer id="kk-municipality-fill" type="fill" filter={byName('municipality', focus.municipality)} paint={{ 'fill-color': colors.municipality, 'fill-opacity': 0.16 }} />
+                <Layer id="kk-municipality-line" type="line" filter={byName('municipality', focus.municipality)} paint={{ 'line-color': colors.municipality, 'line-width': 2 }} />
+              </Source>
+            )}
+            {barangays.data && (
+              <Source id="kk-barangays" type="geojson" data={barangays.data}>
+                <Layer id="kk-barangay-fill" type="fill" filter={byName('barangay', focus.barangay)} paint={{ 'fill-color': colors.barangay, 'fill-opacity': 0.24 }} />
+                <Layer id="kk-barangay-line" type="line" filter={byName('barangay', focus.barangay)} paint={{ 'line-color': colors.barangay, 'line-width': 2 }} />
+              </Source>
             )}
             {value && (
               <Marker latitude={value.lat} longitude={value.lng} anchor="bottom" draggable={pickable} onDragEnd={(e) => pick({ lat: e.lngLat.lat, lng: e.lngLat.lng }, 'map')}>
@@ -194,7 +229,7 @@ export function MapPicker({
           </div>
         )}
         <span aria-live="polite" className="pointer-events-none absolute bottom-3 left-3 rounded-[4px] bg-white/92 px-2 py-[3px] text-[11px] text-ink-2">
-          {ownLabel ?? focus.label}
+          {ownLabel ?? areaLabel(focus)}
         </span>
       </div>
 

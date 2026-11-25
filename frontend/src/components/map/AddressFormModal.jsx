@@ -10,7 +10,7 @@ import { Modal } from '@/components/ui/Modal'
 import { SearchSelect } from '@/components/ui/SearchSelect'
 import { Spinner } from '@/components/ui/Spinner'
 import { useCreateAddress, useUpdateAddress } from '@/hooks/useAddresses'
-import { useFindBarangay, usePointQuote, useReverseGeocode } from '@/hooks/useGeo'
+import { useBarangayPoint, usePointQuote, useReverseGeocode } from '@/hooks/useGeo'
 import { useDeliveryInfo, useLocations } from '@/hooks/useSettings'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
 import { cn } from '@/lib/cn'
@@ -22,10 +22,8 @@ const MapPicker = lazy(() => import('./MapPicker').then((m) => ({ default: m.Map
 
 const FIELDS = ['label', 'customLabel', 'recipientName', 'phone', 'municipality', 'barangay', 'street', 'location', 'isDefault']
 const OUTSIDE = 'That spot is outside our delivery area. We deliver anywhere in Marinduque.'
-const BARANGAY_NOT_FOUND = 'Couldn’t find that barangay on the map. Drag the pin to your spot.'
 // Camera zoom for the selects (PRODUCT-SPEC §8): a municipality, then closer for a barangay.
-const ZOOM = { municipality: 12.5, barangay: 15 }
-const ISLAND_FOCUS = { label: 'All of Marinduque' }
+const ISLAND_FOCUS = {}
 const readOnlyClasses = 'w-full rounded-control border border-sand-soft bg-cream px-3 py-2.5 text-sm text-ink-2'
 
 const emptyAddress = (user) => ({
@@ -72,15 +70,13 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
   const locations = useLocations()
   const delivery = useDeliveryInfo()
   const reverse = useReverseGeocode()
-  const findBarangay = useFindBarangay()
+  const barangayPoint = useBarangayPoint()
   const create = useCreateAddress()
   const update = useUpdateAddress()
   const [pinError, setPinError] = useState(null)
   const [pinNote, setPinNote] = useState(null)
-  // Where the map should look. Edit opens on the saved pin at barangay zoom; a new address shows the whole island.
-  const [focus, setFocus] = useState(() =>
-    address?.location ? { label: `${address.barangay}, ${address.municipality} · zoomed to barangay` } : ISLAND_FOCUS,
-  )
+  // The highlighted area. Edit opens on the saved pin with its barangay highlighted; a new address shows the whole island.
+  const [focus, setFocus] = useState(() => (address ? { municipality: address.municipality, barangay: address.barangay, fit: !address.location } : ISLAND_FOCUS))
 
   const { register, control, handleSubmit, setValue, getValues, setError, getFieldState, formState: { errors } } = useForm({
     resolver: zodResolver(addressSchema),
@@ -106,6 +102,7 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
         setValue('municipality', place.municipality, { shouldValidate: true })
         setValue('barangay', place.barangay ?? '', { shouldValidate: Boolean(place.barangay) })
         if (place.street && !getFieldState('street').isDirty) setValue('street', place.street)
+        setFocus({ municipality: place.municipality, barangay: place.barangay }) // highlight where the pin landed, no camera move
       },
       onError: (error) => setPinError(errorMessage(error)),
     })
@@ -115,20 +112,16 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
     const center = locations.data.find((t) => t.name === name).center
     if (name !== municipality) setValue('barangay', '')
     movePin(center, 'select')
-    setFocus({ label: `${name} · zoomed to municipality`, center, zoom: ZOOM.municipality })
+    setFocus({ municipality: name, fit: true })
   }
 
+  // The pin goes to the barangay's label point (inside its polygon); no geocoding.
   const pickBarangay = async (name) => {
     const town = municipality
-    setPinNote(`Finding ${name} on the map…`)
-    const spot = await findBarangay(town, name).catch(() => null)
+    const spot = await barangayPoint(town, name).catch(() => null)
     if (getValues('barangay') !== name) return // picked another one meanwhile
-    if (!spot) {
-      setPinNote(BARANGAY_NOT_FOUND)
-      return setFocus({ label: `${town} · zoomed to municipality`, center: locations.data.find((t) => t.name === town).center, zoom: ZOOM.municipality })
-    }
-    movePin({ lat: spot.lat, lng: spot.lng }, 'select')
-    setFocus({ label: `${name}, ${town} · zoomed to barangay`, center: { lat: spot.lat, lng: spot.lng }, zoom: ZOOM.barangay, area: true })
+    if (spot) movePin(spot, 'select')
+    setFocus({ municipality: town, barangay: name, fit: true })
   }
 
   const save = handleSubmit((values) => {

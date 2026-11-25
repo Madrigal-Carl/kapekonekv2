@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { isValidBarangay } from '../services/location.service.js';
+import { getLocations } from '../services/location.service.js';
 import { objectIdRule } from './common.schema.js';
 
 const lat = z.coerce.number('Enter a latitude').min(-90).max(90);
@@ -7,15 +7,18 @@ const lng = z.coerce.number('Enter a longitude').min(-180).max(180);
 
 export const pointQuery = z.object({ lat, lng });
 
-/** A free-text search (`q`), or a barangay lookup (`municipality` + `barangay`, which must belong to it). */
-export const searchQuery = z
+/** A free-text place search. */
+export const searchQuery = z.object({ q: z.string('Type at least 2 characters').trim().min(2, 'Type at least 2 characters').max(120) });
+
+const MUNICIPALITY_NAMES = getLocations().map((m) => m.name);
+
+/** `level=municipality`, or `level=barangay&municipality=<name>`. */
+export const boundariesQuery = z
   .object({
-    q: z.string().trim().min(2, 'Type at least 2 characters').max(120).optional(),
-    municipality: z.string().trim().max(60).optional(),
-    barangay: z.string().trim().max(80).optional(),
+    level: z.enum(['municipality', 'barangay'], 'Choose municipality or barangay'),
+    municipality: z.enum(MUNICIPALITY_NAMES, 'Choose a municipality in Marinduque').optional(),
   })
-  .refine((s) => s.q || (s.municipality && s.barangay), { message: 'Type at least 2 characters', path: ['q'] })
-  .refine((s) => !s.barangay || isValidBarangay(s.municipality, s.barangay), { message: 'Choose a barangay of that municipality', path: ['barangay'] });
+  .refine((q) => q.level === 'municipality' || q.municipality, { message: 'Choose a municipality in Marinduque', path: ['municipality'] });
 
 /** Either `addressId` or `lat` + `lng`. */
 export const quoteQuery = z

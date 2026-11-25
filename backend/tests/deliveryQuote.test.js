@@ -123,42 +123,30 @@ describe('routes', () => {
     expect((await buyer.get('/api/delivery/quote')).status).toBe(400);
   });
 
-  it('/geo/reverse snaps the place to our municipality and barangay lists', async () => {
+  it('/geo/reverse takes municipality and barangay from the polygons and only the street from Mapbox', async () => {
     const buyer = await signedIn('kapekonek.buyer01@gmail.com');
-    mapbox.reverseGeocode.mockResolvedValueOnce([{ name: 'Purok 3', context: { street: 'Purok 3', locality: 'Balanacan', place: 'Mogpog' } }]);
-    const res = await buyer.get('/api/geo/reverse?lat=13.51&lng=121.86');
+    mapbox.reverseGeocode.mockResolvedValueOnce([{ name: 'Purok 3', context: { street: 'Purok 3', locality: 'Balanacan', place: 'Boac' } }]);
+    const res = await buyer.get('/api/geo/reverse?lat=13.527&lng=121.87');
     expect(res.body.data).toEqual({ municipality: 'Mogpog', barangay: 'Balanacan', street: 'Purok 3', postalCode: '4901', insideDeliveryArea: true });
 
-    mapbox.reverseGeocode.mockResolvedValueOnce([{ name: 'Somewhere', context: { locality: 'Not A Barangay' } }]);
-    const nearest = await buyer.get('/api/geo/reverse?lat=13.4467&lng=121.8406');
-    expect(nearest.body.data).toMatchObject({ municipality: 'Boac', barangay: null, postalCode: '4900' });
+    // Mapbox names nothing of ours (or fails): the polygons still answer.
+    mapbox.reverseGeocode.mockRejectedValueOnce(new Error('down'));
+    const pantayin = await buyer.get('/api/geo/reverse?lat=13.44545&lng=122.05866');
+    expect(pantayin.body.data).toMatchObject({ municipality: 'Santa Cruz', barangay: 'Pantayin', street: '', insideDeliveryArea: true });
+
+    // Inside the old lat/lng box but in the sea north of the island.
+    const sea = await buyer.get('/api/geo/reverse?lat=13.6&lng=121.85');
+    expect(sea.body.data.insideDeliveryArea).toBe(false);
+    expect(mapbox.reverseGeocode).toHaveBeenCalledTimes(2);
 
     const outside = await buyer.get('/api/geo/reverse?lat=14.6&lng=121');
     expect(outside.body.data.insideDeliveryArea).toBe(false);
   });
 
-  it('/geo/search finds a barangay near its town, caches it 7 days, and returns [] when Mapbox only knows the town', async () => {
+  it('/geo/search is free text only', async () => {
     const buyer = await signedIn('kapekonek.buyer02@gmail.com');
-    mapbox.forwardGeocode.mockResolvedValueOnce([
-      { name: 'Town hall', fullAddress: 'Boac, Marinduque', lat: 13.447, lng: 121.84, context: { place: 'Boac' } },
-      { name: 'Agot', fullAddress: 'Agot, Boac, Marinduque', lat: 13.42, lng: 121.86, context: { place: 'Boac' } },
-    ]);
-    const res = await buyer.get('/api/geo/search?municipality=Boac&barangay=Agot');
-    expect(res.status).toBe(200);
-    expect(res.body.data).toEqual([{ name: 'Agot', fullAddress: 'Agot, Boac, Marinduque', lat: 13.42, lng: 121.86 }]);
-    expect(mapbox.forwardGeocode).toHaveBeenCalledWith('Agot, Boac, Marinduque, Philippines', { proximity: { lat: 13.4467, lng: 121.8406 } });
-
-    const again = await buyer.get('/api/geo/search?municipality=Boac&barangay=Agot');
-    expect(again.body.data).toEqual(res.body.data);
-    expect(mapbox.forwardGeocode).toHaveBeenCalledTimes(1);
-    const { getValkey } = await import('../src/config/valkey.js');
-    expect(await getValkey().ttl('geo:brgy:Boac:Agot')).toBeGreaterThan(6 * 24 * 3600);
-
-    mapbox.forwardGeocode.mockResolvedValueOnce([{ name: 'Gasan', fullAddress: 'Gasan, Marinduque', lat: 13.32, lng: 121.85, context: {} }]);
-    expect((await buyer.get('/api/geo/search?municipality=Gasan&barangay=Antipolo')).body.data).toEqual([]);
-
-    expect((await buyer.get('/api/geo/search?municipality=Boac&barangay=Nowhere')).status).toBe(400);
     expect((await buyer.get('/api/geo/search')).status).toBe(400);
+    expect((await buyer.get('/api/geo/search?q=a')).status).toBe(400);
   });
 
   it('/locations gives each municipality its center', async () => {

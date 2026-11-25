@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { ADDRESS_LABELS, insideBounds } from '../constants/geo.js';
+import { ADDRESS_LABELS } from '../constants/geo.js';
+import { insideMarinduque } from '../services/boundary.service.js';
 import { getLocations, isValidBarangay } from '../services/location.service.js';
 import { customLabelRule, phoneRule, recipientNameRule, streetRule } from './rules.js';
 
@@ -17,7 +18,7 @@ export const addressSchema = z
     street: streetRule,
     location: z
       .object({ lat: z.number(), lng: z.number() })
-      .refine(insideBounds, 'That spot is outside our delivery area. We deliver anywhere in Marinduque.')
+      .refine(insideMarinduque, 'That spot is outside our delivery area. We deliver anywhere in Marinduque.')
       .nullable()
       .optional(),
     isDefault: z.boolean().optional().default(false),

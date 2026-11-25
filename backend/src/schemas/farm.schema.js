@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { insideBounds } from '../constants/geo.js';
+import { insideMarinduque } from '../services/boundary.service.js';
 import { getLocations, isValidBarangay } from '../services/location.service.js';
 import { objectIdRule, pageQuerySchema } from './common.schema.js';
 import { farmSizeRule, farmStreetRule, lotNumberRule } from './rules.js';
@@ -22,7 +22,7 @@ export const farmSchema = z
     street: farmStreetRule.optional().default(''),
     location: z
       .object({ lat: z.number(), lng: z.number() }, 'Drop the farm pin on the map')
-      .refine(insideBounds, 'Put the pin on the farm, inside Marinduque'),
+      .refine(insideMarinduque, 'Put the pin on the farm, inside Marinduque'),
   })
   .superRefine((value, ctx) => {
     if (!isValidBarangay(value.municipality, value.barangay)) {
