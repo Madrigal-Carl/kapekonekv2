@@ -161,8 +161,8 @@ function AssociationView({ open, association: a, onEdit, onClose }) {
   const members = useFarmers({ associationId: a?.id, limit: 5, page: 1 }, { enabled: Boolean(a) })
   const footer = a && (
     <>
-      <Button variant="outline" to="/dashboard/inbox" className="min-h-[42px] py-0 font-semibold">Open group chat</Button>
-      {a.status !== 'archived' && <Button onClick={onEdit} className="min-h-[42px] py-0">Edit</Button>}
+      <Button as={Link} variant="outline" to="/dashboard/inbox">Open group chat</Button>
+      {a.status !== 'archived' && <Button onClick={onEdit}>Edit</Button>}
     </>
   )
   const total = members.data?.meta.total ?? 0

@@ -39,11 +39,11 @@ export function VerifyEmail() {
       )}
 
       <div className="mt-6 flex flex-col gap-2.5">
-        <Button
+        <Button size="lg"
           onClick={resend.send}
-          pending={resend.isPending}
+          loading={resend.isPending}
           disabled={waiting}
-          className={cn('py-[13px] text-[14.5px]', waiting && 'bg-disabled-bg text-disabled-ink opacity-100 hover:bg-disabled-bg hover:text-disabled-ink')}
+          className={cn('', waiting && 'bg-disabled-bg text-disabled-ink opacity-100 hover:bg-disabled-bg hover:text-disabled-ink')}
         >
           {waiting ? `Resend available in ${resend.secondsLeft}s` : 'Resend verification email'}
         </Button>

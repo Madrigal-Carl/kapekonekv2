@@ -85,7 +85,7 @@ export function SetPassword() {
           />
           <FieldHint id="confirmPassword-error" error={errors.confirmPassword?.message} />
         </div>
-        <Button type="submit" pending={setPassword.isPending} className="py-[13px] text-[14.5px]">
+        <Button size="lg" type="submit" loading={setPassword.isPending}>
           Set password and continue
         </Button>
       </form>

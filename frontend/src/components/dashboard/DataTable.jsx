@@ -124,9 +124,9 @@ export function DataTable({
         {dropdowns.length > 0 && (
           <div role="group" aria-label="Filters" className="flex flex-wrap items-center justify-end gap-2.5">
             {filtered && (
-              <button type="button" onClick={clear} className="min-h-10 cursor-pointer border-0 bg-transparent px-2.5 text-[13px] font-semibold text-roast">
+              <Button variant="ghost" size="sm" onClick={clear} className="px-2.5">
                 Clear filters
-              </button>
+              </Button>
             )}
             {dropdowns.map((d) => (
               <SearchSelect
@@ -198,19 +198,21 @@ export function DataTable({
                     ))}
                     <td data-label="Actions" className="whitespace-nowrap px-2.5 py-2 text-right max-[640px]:flex max-[640px]:justify-end max-[640px]:border-t max-[640px]:border-sand-soft">
                       {keys.map((key) => (
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          iconOnly
                           key={key}
-                          type="button"
                           aria-label={`${ACTIONS[key][0]} ${row.label ?? ''}`.trim()}
                           title={ACTIONS[key][0]}
                           onClick={() => onAction?.(key, row)}
                           className={cn(
-                            'inline-grid size-9 cursor-pointer place-items-center rounded-control border-0 bg-transparent hover:bg-crema',
-                            DESTRUCTIVE.has(key) ? 'text-logout' : key === 'approve' ? 'text-success-ink' : 'text-ink-2',
+                            'hover:bg-crema',
+                            DESTRUCTIVE.has(key) ? 'text-logout hover:text-logout' : key === 'approve' ? 'text-success-ink hover:text-success-ink' : 'text-ink-2 hover:text-ink-2',
                           )}
                         >
                           <RowIcon icon={ACTIONS[key][1]} />
-                        </button>
+                        </Button>
                       ))}
                     </td>
                   </tr>
@@ -241,27 +243,28 @@ export function DataTable({
           {total ? `Showing ${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, total)} of ${total}` : loading ? 'Loading…' : 'No results'}
         </span>
         <nav aria-label="Pages" className="flex items-center gap-1">
-          <button type="button" aria-label="Previous page" disabled={page <= 1} onClick={() => set({ page: page - 1 })} className="grid size-9 cursor-pointer place-items-center rounded-control border border-sand bg-white text-ink disabled:cursor-default disabled:text-sand-strong">
+          <Button variant="outline" size="sm" iconOnly aria-label="Previous page" disabled={page <= 1} onClick={() => set({ page: page - 1 })} className="border-sand">
             <IconChevronLeft aria-hidden="true" className="size-[15px]" strokeWidth={2.2} />
-          </button>
+          </Button>
           {pageList(Math.min(page, pages), pages).map((n, i) =>
             n === '…' ? (
               <span key={`gap-${i}`} aria-hidden="true" className="px-1 text-[13px] text-ink-3">…</span>
             ) : (
-              <button
+              <Button
+                variant={n === page ? 'solid' : 'outline'}
+                size="sm"
                 key={n}
-                type="button"
                 aria-current={n === page ? 'page' : undefined}
                 onClick={() => set({ page: n })}
-                className={cn('h-9 min-w-9 cursor-pointer rounded-control border px-2 text-[13px] font-semibold', n === page ? 'border-roast bg-roast text-white' : 'border-sand bg-white text-ink')}
+                className={cn('min-w-9 px-2', n !== page && 'border-sand')}
               >
                 {n}
-              </button>
+              </Button>
             ),
           )}
-          <button type="button" aria-label="Next page" disabled={page >= pages} onClick={() => set({ page: page + 1 })} className="grid size-9 cursor-pointer place-items-center rounded-control border border-sand bg-white text-ink disabled:cursor-default disabled:text-sand-strong">
+          <Button variant="outline" size="sm" iconOnly aria-label="Next page" disabled={page >= pages} onClick={() => set({ page: page + 1 })} className="border-sand">
             <IconChevronRight aria-hidden="true" className="size-[15px]" strokeWidth={2.2} />
-          </button>
+          </Button>
         </nav>
       </div>
     </section>

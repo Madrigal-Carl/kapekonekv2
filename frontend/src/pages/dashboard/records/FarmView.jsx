@@ -27,7 +27,7 @@ const TABS = [
 const variety = (key) => VARIETIES.find((v) => v.key === key)?.label ?? key
 const stageOf = (key) => TREE_STAGES.find((s) => s.key === key)
 const lastHarvest = (farm) => (farm.lastHarvest ? `${formatDay(farm.lastHarvest.harvestedAt, 'MMM d')} · ${farm.lastHarvest.yieldKg} kg` : 'No harvest yet')
-const iconButton = 'grid size-[34px] cursor-pointer place-items-center rounded-control border-0 bg-transparent hover:bg-crema'
+const iconButton = 'size-[34px] hover:bg-crema'
 
 const farmTitle = (farm) => `${farm.lotNumber} · ${farm.barangay}, ${farm.municipality}`
 
@@ -39,16 +39,16 @@ export function FarmView({ open, farm, onClose, onEdit, onArchive, onRestore }) 
   const active = farm?.status === 'active'
   const footer = !farm ? null : farm.canEdit && active ? (
     <>
-      <Button variant="outline" onClick={onArchive} className="min-h-[42px] py-0 font-semibold text-logout">Archive</Button>
-      <Button onClick={onEdit} className="min-h-[42px] py-0 font-semibold">Edit farm</Button>
+      <Button variant="danger-outline" onClick={onArchive}>Archive</Button>
+      <Button onClick={onEdit}>Edit farm</Button>
     </>
   ) : farm.canEdit ? (
     <>
-      <Button variant="outline" onClick={onClose} className="min-h-[42px] py-0 font-semibold">Close</Button>
-      <Button onClick={onRestore} className="min-h-[42px] py-0 font-semibold">Restore farm</Button>
+      <Button variant="outline" onClick={onClose}>Close</Button>
+      <Button onClick={onRestore}>Restore farm</Button>
     </>
   ) : (
-    <Button variant="outline" onClick={onClose} className="min-h-[42px] py-0 font-semibold">Close</Button>
+    <Button variant="outline" onClick={onClose}>Close</Button>
   )
   return (
     <Drawer open={open} width={720} eyebrow={farm?.propertyNumber} title={farm ? farmTitle(farm) : 'Farm'} onClose={onClose} footer={footer}>
@@ -75,9 +75,8 @@ function FarmSections({ farm }) {
     <>
       <div role="tablist" aria-label="Farm sections" className="-mt-1.5 flex gap-1 border-b border-sand-soft">
         {TABS.map(([key, text]) => (
-          <button
+          <Button variant="bare"
             key={key}
-            type="button"
             role="tab"
             id={`${tabId}-${key}`}
             aria-selected={tab === key}
@@ -89,7 +88,7 @@ function FarmSections({ farm }) {
             )}
           >
             {label(key, text)}
-          </button>
+          </Button>
         ))}
       </div>
       <div role="tabpanel" id={`${tabId}-${tab}-panel`} aria-labelledby={`${tabId}-${tab}`} className="flex flex-col gap-6">
@@ -147,15 +146,14 @@ function Workers({ farm }) {
               <span aria-hidden="true" className={cn('grid size-6 place-items-center rounded-full text-[10px] font-semibold text-white', avatarFor(f.id))}>{initialsOf(f.name)}</span>
               {f.name}
               {farm.canAssignFarmers && (
-                <button
-                  type="button"
+                <Button variant="bare"
                   aria-label={`Remove ${f.name}`}
                   disabled={assign.isPending}
                   onClick={() => save(ids.filter((id) => id !== f.id), `${f.name} no longer works on this farm.`)}
                   className="grid size-6 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-ink-3 hover:bg-white"
                 >
                   <IconX aria-hidden="true" className="size-3.5" strokeWidth={2} />
-                </button>
+                </Button>
               )}
             </li>
           ))}
@@ -227,12 +225,12 @@ function Trees({ farm }) {
               </div>
               {g.canEdit && canAdd && (
                 <>
-                  <button type="button" aria-label="Edit tree group" onClick={() => setEditing(g)} className={cn(iconButton, 'text-ink-2')}>
+                  <Button variant="ghost" size="sm" iconOnly aria-label="Edit tree group" onClick={() => setEditing(g)} className={cn(iconButton, 'text-ink-2 hover:text-ink-2')}>
                     <IconEdit aria-hidden="true" className="size-4" strokeWidth={1.9} />
-                  </button>
-                  <button type="button" aria-label="Remove tree group" onClick={() => setRemoving(g)} className={cn(iconButton, 'text-logout')}>
+                  </Button>
+                  <Button variant="ghost" size="sm" iconOnly aria-label="Remove tree group" onClick={() => setRemoving(g)} className={cn(iconButton, 'text-logout hover:text-logout')}>
                     <IconTrash aria-hidden="true" className="size-4" strokeWidth={1.9} />
-                  </button>
+                  </Button>
                 </>
               )}
             </li>

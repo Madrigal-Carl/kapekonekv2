@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { IconBadgeCheck, IconTriangleAlert } from '@/components/ui/icons'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -73,8 +74,8 @@ function ApprovedCard({ profile: p }) {
         <dd className="m-0">None. You can list any amount of beans.</dd>
       </dl>
       <div className="mt-[18px] flex flex-wrap gap-2.5">
-        {gm && <Button variant="outline" to="/dashboard/inbox" className={OUTLINE_LINK}>Message {gm.name.split(' ')[0]}</Button>}
-        <Button variant="outline" to="/dashboard/inbox" className={OUTLINE_LINK}>Open group chat</Button>
+        {gm && <Button as={Link} variant="outline" to="/dashboard/inbox" className={OUTLINE_LINK}>Message {gm.name.split(' ')[0]}</Button>}
+        <Button as={Link} variant="outline" to="/dashboard/inbox" className={OUTLINE_LINK}>Open group chat</Button>
       </div>
     </section>
   )
@@ -181,7 +182,7 @@ function Transfer({ profile: p }) {
             <div className="mt-2.5">
               <Button
                 variant="outline"
-                pending={withdraw.isPending}
+                loading={withdraw.isPending}
                 onClick={() => withdraw.mutate(undefined, { onSuccess: () => toast.success('Transfer request withdrawn.'), onError })}
                 className="min-h-[38px] border-notice-line-strong px-3 py-0 text-[13px] font-semibold text-notice-ink"
               >
@@ -206,7 +207,7 @@ function Transfer({ profile: p }) {
               </Label>
               <Input id="transfer-reason" maxLength={300} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. My farm is closer to Boac" className="mt-1.5 min-h-[42px] py-[9px]" />
             </div>
-            <Button onClick={send} disabled={!target} pending={request.isPending} className="min-h-[42px] self-start py-0 font-semibold">Request transfer</Button>
+            <Button onClick={send} disabled={!target} loading={request.isPending} className="self-start">Request transfer</Button>
           </form>
         )}
       </div>

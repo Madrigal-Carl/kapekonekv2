@@ -79,6 +79,12 @@
   --color-avatar-green: #3F6B4E;
   --color-logout: #A1362B;
 
+  /* Button hovers and borders (Buttons.dc.html) */
+  --color-soft-hover: #F1E2CF;
+  --color-danger-hover: #8A2C22;
+  --color-danger-outline: #E3B3AC;
+  --color-success-hover: #256B42;
+
   --radius-control: 5px;   /* buttons, inputs */
   --radius-card: 8px;
   --shadow-card-hover: 0 14px 32px -20px rgba(43,26,18,.38);

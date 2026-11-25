@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/Button'
 import { IconArrowRight, IconShoppingBag } from '@/components/ui/icons'
 
 import { Link, useLocation } from 'react-router-dom'
@@ -12,7 +13,7 @@ import { AvatarMenu } from './AvatarMenu'
 import { MobileMenu } from './MobileMenu'
 import { NotificationMenu } from './NotificationMenu'
 
-const iconButton = 'relative grid size-11 cursor-pointer place-items-center rounded-control border-0 bg-transparent text-ink-2 hover:bg-crema hover:text-ink-2'
+const iconButton = 'relative size-11 text-ink-2 hover:bg-crema hover:text-ink-2'
 
 /** Storefront header for guests and buyers (Navbar.dc.html). */
 export function Navbar() {
@@ -48,12 +49,12 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-1 sm:gap-1.5">
-          <button type="button" aria-label={`Cart, ${cartCount} items`} onClick={() => requireAuth(showCart)} className={iconButton}>
+          <Button variant="ghost" iconOnly aria-label={`Cart, ${cartCount} items`} onClick={() => requireAuth(showCart)} className={iconButton}>
             <IconShoppingBag aria-hidden="true" className="size-5" strokeWidth={1.75} />
             {cartCount > 0 && (
               <span className="absolute right-1 top-1 h-[18px] min-w-[18px] rounded-full bg-roast px-[5px] text-center text-[10.5px] font-semibold leading-[18px] text-white">{cartCount}</span>
             )}
-          </button>
+          </Button>
           {isAuthenticated ? (
             <>
               <NotificationMenu buttonClassName={iconButton} />
@@ -64,13 +65,13 @@ export function Navbar() {
           ) : (
             <>
               <Link to="/login" className="px-3 py-2.5 text-[13.5px] text-ink-2 no-underline hover:text-roast max-[720px]:hidden">Log in</Link>
-              <Link
+              <Button as={Link} size="sm" className="h-10 gap-1.5 px-3 text-[13.5px] font-medium sm:px-3.5"
                 to="/register"
-                className="inline-flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-control bg-roast px-3 sm:px-3.5 py-[9px] text-[13.5px] font-medium text-white no-underline hover:bg-roast-hover hover:text-white"
+                
               >
                 Get started
                 <IconArrowRight aria-hidden="true" className="size-3.5 max-[400px]:hidden" strokeWidth={2} />
-              </Link>
+              </Button>
             </>
           )}
           <MobileMenu />

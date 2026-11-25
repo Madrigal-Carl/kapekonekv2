@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/Button'
 import { useId, useState } from 'react'
 
 const W = 640
@@ -63,17 +64,18 @@ export function BarChart({ labels, series, prefix = '', suffix = '', height = 22
           </ul>
         )}
         <span className="flex-1" />
-        <button
-          type="button"
+        <Button
+          variant="outline"
+          size="sm"
           aria-pressed={asTable}
           onClick={() => {
             setAsTable((t) => !t)
             setHover(-1)
           }}
-          className="min-h-[30px] cursor-pointer rounded-control border border-sand bg-white px-2.5 text-xs font-medium text-ink-2"
+          className="h-[30px] border-sand px-2.5 text-xs font-medium text-ink-2 hover:text-ink-2"
         >
           {asTable ? 'Show chart' : 'View as table'}
-        </button>
+        </Button>
       </div>
 
       {asTable ? (
@@ -135,9 +137,8 @@ export function BarChart({ labels, series, prefix = '', suffix = '', height = 22
           {/* Keyboard: one focusable column per label over the plot; focus shows the same tooltip as hover. */}
           <div className="absolute inset-y-0 flex" style={{ left: `${(X0 / W) * 100}%`, width: `${(PLOT_W / W) * 100}%` }}>
             {labels.map((label, i) => (
-              <button
+              <Button variant="bare"
                 key={label}
-                type="button"
                 aria-label={columnLabel(i)}
                 aria-describedby={hover === i ? tipId : undefined}
                 onFocus={() => setHover(i)}

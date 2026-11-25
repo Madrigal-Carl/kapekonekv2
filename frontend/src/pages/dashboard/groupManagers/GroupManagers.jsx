@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { IconPlus } from '@/components/ui/icons'
 import { useId, useState } from 'react'
@@ -140,8 +141,8 @@ export function GroupManagers() {
 function GroupManagerView({ open, gm, onEdit, onClose }) {
   const footer = gm && (
     <>
-      <Button variant="outline" to="/dashboard/inbox" className="min-h-[42px] py-0 font-semibold">Message</Button>
-      {gm.status !== 'archived' && <Button onClick={onEdit} className="min-h-[42px] py-0">Edit</Button>}
+      <Button as={Link} variant="outline" to="/dashboard/inbox">Message</Button>
+      {gm.status !== 'archived' && <Button onClick={onEdit}>Edit</Button>}
     </>
   )
   return (

@@ -207,7 +207,7 @@ export function OrderDetail() {
           icon={IconTriangleAlert}
           tone={missing ? 'neutral' : 'error'}
           title={missing ? 'We couldn’t find that order' : 'We couldn’t load this order'}
-          action={missing ? <Button to="/orders">Back to my orders</Button> : <Button variant="outline" onClick={() => order.refetch()}>Try again</Button>}
+          action={missing ? <Button as={Link} to="/orders">Back to my orders</Button> : <Button variant="outline" onClick={() => order.refetch()}>Try again</Button>}
           className="bg-white"
         >
           {missing ? 'It may have been placed from another account.' : 'Check your connection and try again.'}

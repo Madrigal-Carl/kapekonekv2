@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/Button'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { IconLocate, IconMapPin, IconMaximize, IconMinus, IconPlus, IconSearch } from '@/components/ui/icons'
 
@@ -116,8 +117,7 @@ export function MapPicker({
               <ul id="place-results" className="absolute inset-x-0 top-full z-10 mt-1 max-h-64 list-none overflow-y-auto rounded-control border border-sand bg-white p-1 shadow-dropdown">
                 {results.map((place) => (
                   <li key={`${place.lat},${place.lng}`}>
-                    <button
-                      type="button"
+                    <Button variant="bare"
                       onClick={() => {
                         setListOpen(false)
                         setQuery(place.name)
@@ -127,20 +127,15 @@ export function MapPicker({
                     >
                       <span className="block text-[13.5px] font-medium">{place.name}</span>
                       <span className="block text-xs text-ink-3">{place.fullAddress}</span>
-                    </button>
+                    </Button>
                   </li>
                 ))}
               </ul>
             )}
           </div>
-          <button
-            type="button"
-            onClick={useMine}
-            className="inline-flex min-h-[42px] cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-control border border-sand-strong bg-white px-3 text-[13px] font-medium text-ink hover:bg-cream"
-          >
-            <IconLocate aria-hidden="true" className="size-[15px]" strokeWidth={2} />
+          <Button variant="outline" onClick={useMine} leftIcon={<IconLocate aria-hidden="true" className="size-[15px]" strokeWidth={2} />} className="gap-1.5 px-3 text-[13px] font-medium">
             Use my location
-          </button>
+          </Button>
         </div>
       )}
 
@@ -182,15 +177,15 @@ export function MapPicker({
         )}
         {TOKEN && (
           <div className="absolute right-3 top-3 flex flex-col overflow-hidden rounded-[6px] border border-sand-strong bg-white shadow-[0_4px_12px_-6px_rgb(43_26_18/0.35)]">
-            <button type="button" aria-label="Zoom in" onClick={() => zoomBy(1)} className={cn(controlButton, 'border-b border-sand-soft')}>
+            <Button variant="bare" aria-label="Zoom in" onClick={() => zoomBy(1)} className={cn(controlButton, 'border-b border-sand-soft')}>
               <IconPlus aria-hidden="true" className="size-4" strokeWidth={2} />
-            </button>
-            <button type="button" aria-label="Zoom out" onClick={() => zoomBy(-1)} className={cn(controlButton, 'border-b border-sand-soft')}>
+            </Button>
+            <Button variant="bare" aria-label="Zoom out" onClick={() => zoomBy(-1)} className={cn(controlButton, 'border-b border-sand-soft')}>
               <IconMinus aria-hidden="true" className="size-4" strokeWidth={2} />
-            </button>
-            <button type="button" aria-label="Show all of Marinduque" onClick={fitIsland} className={cn(controlButton, 'text-roast')}>
+            </Button>
+            <Button variant="bare" aria-label="Show all of Marinduque" onClick={fitIsland} className={cn(controlButton, 'text-roast')}>
               <IconMaximize aria-hidden="true" className="size-4" strokeWidth={2} />
-            </button>
+            </Button>
           </div>
         )}
         {error && (

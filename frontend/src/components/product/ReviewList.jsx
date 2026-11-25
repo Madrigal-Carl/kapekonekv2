@@ -65,7 +65,7 @@ export function ReviewList({ productId, total }) {
       </ul>
       <div className="mt-6 flex flex-col items-center gap-2">
         {hasNextPage && (
-          <Button variant="outline" pending={isFetchingNextPage} onClick={() => fetchNextPage()} className="px-[22px] font-medium">
+          <Button variant="outline" loading={isFetchingNextPage} onClick={() => fetchNextPage()} className="px-[22px] font-medium">
             Load more reviews
           </Button>
         )}

@@ -41,9 +41,9 @@ function Comment({ comment, defaultOpen }) {
               </span>
             )}
             {n > 0 && (
-              <button type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="cursor-pointer border-0 bg-transparent px-0 py-1 text-[12.5px] font-semibold text-roast">
+              <Button variant="link" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="h-auto px-0 py-1 text-[12.5px]">
                 {open ? 'Hide replies' : `View ${n} ${n === 1 ? 'reply' : 'replies'}`}
-              </button>
+              </Button>
             )}
           </div>
           {open && n > 0 && (
@@ -59,14 +59,14 @@ function Comment({ comment, defaultOpen }) {
               ))}
               {(more.hasNextPage || (comment.repliesNextCursor && more.isPending)) && (
                 <li>
-                  <button
-                    type="button"
+                  <Button
+                    variant="link"
                     disabled={more.isFetching}
                     onClick={() => more.fetchNextPage()}
-                    className="cursor-pointer border-0 bg-transparent p-0 text-[12.5px] font-semibold text-roast"
+                    className="h-auto p-0 text-[12.5px]"
                   >
                     {more.isFetching ? 'Loading replies…' : 'View more replies'}
-                  </button>
+                  </Button>
                 </li>
               )}
             </ol>
@@ -106,7 +106,7 @@ export function CommentThread({ postId, total }) {
           </ol>
           <div className="mt-5 flex flex-col items-center gap-1.5">
             {hasNextPage && (
-              <Button variant="outline" pending={isFetchingNextPage} onClick={() => fetchNextPage()} className="px-5 font-medium">Load more comments</Button>
+              <Button variant="outline" loading={isFetchingNextPage} onClick={() => fetchNextPage()} className="px-5 font-medium">Load more comments</Button>
             )}
             <span className="text-[12.5px] text-ink-3">Showing {shown} of {total} comments</span>
           </div>

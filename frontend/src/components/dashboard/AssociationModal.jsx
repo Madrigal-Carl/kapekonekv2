@@ -42,7 +42,7 @@ export function AssociationModal({ open, onClose, rejection = null }) {
           <p className="mt-1.5 text-sm leading-relaxed text-ink-2">
             We sent your documents to {sentTo}. You’ll get an email and a notification when your Group Manager decides.
           </p>
-          <Button onClick={onClose} className="mt-5 font-semibold">Go to my dashboard</Button>
+          <Button onClick={onClose} className="mt-5">Go to my dashboard</Button>
         </div>
       ) : (
         <>
@@ -90,8 +90,8 @@ export function AssociationModal({ open, onClose, rejection = null }) {
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2.5 rounded-b-card border-t border-sand-soft bg-cream px-[26px] py-4">
             <span className="text-xs text-ink-3">You can also do this later in Account settings → Association.</span>
             <div className="ml-auto flex gap-2.5">
-              <Button variant="outline" onClick={onClose} className="min-h-[42px] py-0">Skip for now</Button>
-              <Button onClick={submit} disabled={!ready} pending={send.isPending} className="min-h-[42px] px-[18px] py-0 font-semibold">Send request</Button>
+              <Button variant="outline" onClick={onClose}>Skip for now</Button>
+              <Button onClick={submit} disabled={!ready} loading={send.isPending} className="px-[18px]">Send request</Button>
             </div>
           </div>
         </>

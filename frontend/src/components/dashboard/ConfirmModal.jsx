@@ -24,16 +24,17 @@ function CopyBox({ value }) {
   return (
     <div className="mt-3 flex items-center gap-2.5 rounded-md border border-dashed border-sand-strong bg-crema px-3.5 py-3">
       <span className="flex-1 font-mono text-[17px] font-semibold tracking-[0.04em]">{value}</span>
-      <button
-        type="button"
+      <Button
+        variant="outline"
+        size="sm"
         onClick={async () => {
           await navigator.clipboard.writeText(value)
           setCopied(true)
         }}
-        className="min-h-9 cursor-pointer rounded-control border border-sand-strong bg-white px-3 text-[12.5px] font-semibold text-ink"
+        className="text-[12.5px]"
       >
         {copied ? 'Copied' : 'Copy'}
-      </button>
+      </Button>
     </div>
   )
 }
@@ -93,10 +94,10 @@ export function ConfirmModal({
       )}
       <div className="mt-[18px] flex justify-end gap-2.5">
         {variant === 'temporary_password' ? (
-          <Button ref={safe} onClick={close} className="min-h-[42px] py-0">Done</Button>
+          <Button ref={safe} onClick={close}>Done</Button>
         ) : (
           <>
-            <Button ref={safe} variant="outline" onClick={close} className="min-h-[42px] py-0 font-semibold">{cancelLabel}</Button>
+            <Button ref={safe} variant="outline" onClick={close}>{cancelLabel}</Button>
             {/* No onConfirm: the modal only explains why the action can't happen yet. */}
             {onConfirm && (
               <Button

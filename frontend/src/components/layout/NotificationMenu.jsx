@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/Button'
 import { IconBell } from '@/components/ui/icons'
 
 import { useEffect, useId, useRef, useState } from 'react'
@@ -53,9 +54,10 @@ export function NotificationMenu({ buttonClassName, badgeClassName = NAVBAR_BADG
 
   return (
     <div ref={root} className="relative" onBlur={onBlur}>
-      <button
+      <Button
+        variant="ghost"
+        iconOnly
         ref={trigger}
-        type="button"
         aria-label={count ? `Notifications, ${count} unread` : 'Notifications'}
         aria-expanded={open}
         aria-controls={panelId}
@@ -68,7 +70,7 @@ export function NotificationMenu({ buttonClassName, badgeClassName = NAVBAR_BADG
             {count > 99 ? '99+' : count}
           </span>
         )}
-      </button>
+      </Button>
 
       {open && (
         <section
@@ -78,14 +80,15 @@ export function NotificationMenu({ buttonClassName, badgeClassName = NAVBAR_BADG
         >
           <header className="flex items-center justify-between gap-3 border-b border-sand-soft px-4 py-3">
             <h2 className="m-0 text-[15px] font-semibold">Notifications</h2>
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="sm"
               disabled={count === 0 || markAll.isPending}
               onClick={() => markAll.mutate()}
-              className="min-h-9 cursor-pointer rounded-control border-0 bg-transparent px-2 text-[13px] font-semibold text-roast hover:bg-crema disabled:cursor-default disabled:text-ink-4 disabled:hover:bg-transparent"
+              className="px-2 hover:bg-crema"
             >
               Mark all as read
-            </button>
+            </Button>
           </header>
 
           <div className="flex-1 overflow-y-auto">
@@ -101,9 +104,9 @@ export function NotificationMenu({ buttonClassName, badgeClassName = NAVBAR_BADG
             ) : list.isError ? (
               <p role="alert" className="m-0 px-4 py-8 text-center text-[13.5px] text-ink-2">
                 We couldn’t load your notifications.{' '}
-                <button type="button" onClick={() => list.refetch()} className="cursor-pointer border-0 bg-transparent p-0 font-semibold text-roast underline">
+                <Button variant="link" onClick={() => list.refetch()} className="h-auto p-0 underline">
                   Try again
-                </button>
+                </Button>
               </p>
             ) : items.length === 0 ? (
               <p className="m-0 px-4 py-10 text-center text-[13.5px] text-ink-2">No notifications yet. Order updates from Kaluppa show up here.</p>
@@ -111,8 +114,7 @@ export function NotificationMenu({ buttonClassName, badgeClassName = NAVBAR_BADG
               <ul className="m-0 list-none p-0">
                 {items.map((n) => (
                   <li key={n._id} className="border-b border-sand-soft last:border-b-0">
-                    <button
-                      type="button"
+                    <Button variant="bare"
                       onClick={() => openItem(n)}
                       className={cn('flex w-full cursor-pointer gap-3 border-0 px-4 py-3 text-left hover:bg-crema focus-visible:bg-crema', n.readAt ? 'bg-white' : 'bg-cream')}
                     >
@@ -125,7 +127,7 @@ export function NotificationMenu({ buttonClassName, badgeClassName = NAVBAR_BADG
                         {n.body && <span className="mt-0.5 line-clamp-2 block text-[12.5px] leading-[1.5] text-ink-2">{n.body}</span>}
                         <span className="mt-1 block text-[11.5px] text-ink-3">{timeAgo(n.createdAt)}</span>
                       </span>
-                    </button>
+                    </Button>
                   </li>
                 ))}
               </ul>
@@ -134,14 +136,15 @@ export function NotificationMenu({ buttonClassName, badgeClassName = NAVBAR_BADG
 
           {list.hasNextPage && (
             <footer className="border-t border-sand-soft p-2">
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                fullWidth
                 disabled={list.isFetchingNextPage}
                 onClick={() => list.fetchNextPage()}
-                className="min-h-10 w-full cursor-pointer rounded-control border-0 bg-transparent text-[13px] font-semibold text-roast hover:bg-crema disabled:text-ink-4"
+                className="h-10 text-[13px] hover:bg-crema"
               >
                 {list.isFetchingNextPage ? 'Loading…' : 'Load more'}
-              </button>
+              </Button>
             </footer>
           )}
         </section>

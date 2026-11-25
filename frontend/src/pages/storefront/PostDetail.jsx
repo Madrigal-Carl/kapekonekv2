@@ -29,7 +29,7 @@ export function PostDetail() {
         {isPending && <Skeleton className="h-[520px] rounded-card" />}
         {isError && (
           error?.response?.status === 404 || error?.response?.status === 422 ? (
-            <EmptyState icon={IconFileQuestion} title="We couldn't find that post" action={<Button to="/">Back to home</Button>} className="bg-white">It may have been removed.</EmptyState>
+            <EmptyState icon={IconFileQuestion} title="We couldn't find that post" action={<Button as={Link} to="/">Back to home</Button>} className="bg-white">It may have been removed.</EmptyState>
           ) : (
             <EmptyState tone="error" icon={IconRefresh} title="We couldn't load this post" action={<Button variant="outline" onClick={() => refetch()}>Try again</Button>} className="bg-white" />
           )

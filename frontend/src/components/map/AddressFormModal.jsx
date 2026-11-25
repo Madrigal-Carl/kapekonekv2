@@ -157,9 +157,9 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
             {editing ? 'Edit address' : 'Add new address'}
           </h2>
         </div>
-        <button type="button" aria-label="Close" onClick={onClose} className="grid size-10 cursor-pointer place-items-center rounded-control border-0 bg-transparent text-ink-3 hover:bg-crema">
+        <Button variant="ghost" iconOnly aria-label="Close" onClick={onClose} className="size-10 text-ink-3 hover:bg-crema hover:text-ink-3">
           <IconX aria-hidden="true" className="size-[18px]" strokeWidth={2} />
-        </button>
+        </Button>
       </div>
 
       <div className="flex flex-wrap gap-6 overflow-y-auto px-6 py-5">
@@ -178,9 +178,8 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
             <legend className="p-0 text-[10.5px] font-medium uppercase tracking-[0.16em] text-ink-2">Label</legend>
             <div className="mt-2 flex gap-2">
               {ADDRESS_LABELS.map((name) => (
-                <button
+                <Button variant="bare"
                   key={name}
-                  type="button"
                   aria-pressed={label === name}
                   onClick={() => setValue('label', name, { shouldValidate: true })}
                   className={cn(
@@ -189,7 +188,7 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
                   )}
                 >
                   {name}
-                </button>
+                </Button>
               ))}
             </div>
           </fieldset>
@@ -290,7 +289,7 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
 
       <div className="flex justify-end gap-2.5 border-t border-sand-soft bg-cream px-6 py-4">
         <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
-        <Button type="submit" form={`${id}-form`} pending={saving} disabled={!locations.data}>Save address</Button>
+        <Button type="submit" form={`${id}-form`} loading={saving} disabled={!locations.data}>Save address</Button>
       </div>
     </Modal>
   )

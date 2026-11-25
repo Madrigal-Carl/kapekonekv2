@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/Button'
 import { IconPlus } from '@/components/ui/icons'
 import { Link } from 'react-router-dom'
 import { Star } from '@/components/ui/StarRating'
@@ -55,17 +56,17 @@ export function ProductCard({ product, featured = false }) {
             <span className="text-[12.5px] text-ink-4"> / {unit}</span>
           </div>
           {out ? (
-            <button type="button" disabled className="min-h-10 rounded-control bg-sold-out-bg px-3 py-[9px] text-[13px] font-medium text-sold-out-ink">Sold out</button>
+            <Button size="sm" disabled className="h-10 border-sold-out-bg bg-sold-out-bg font-medium text-sold-out-ink opacity-100 disabled:opacity-100">Sold out</Button>
           ) : (
-            <button
-              type="button"
+            <Button
+              size="sm"
               aria-label={`Add ${name} to cart`}
               onClick={() => addToCart(product)}
-              className="inline-flex min-h-10 cursor-pointer items-center gap-1.5 rounded-control bg-roast px-3 py-[9px] text-[13px] font-medium text-white hover:bg-roast-hover"
+              leftIcon={<IconPlus aria-hidden="true" className="size-[15px]" strokeWidth={2} />}
+              className="h-10 gap-1.5 font-medium"
             >
-              <IconPlus aria-hidden="true" className="size-[15px]" strokeWidth={2} />
               Add
-            </button>
+            </Button>
           )}
         </div>
       </div>

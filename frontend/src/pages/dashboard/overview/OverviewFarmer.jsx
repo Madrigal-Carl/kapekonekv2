@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/Button'
 import { Link } from 'react-router-dom'
 import { BarChart } from '@/components/dashboard/BarChart'
 import { CapMeter } from '@/components/dashboard/CapMeter'
@@ -14,7 +15,7 @@ import { useAssociationWindow } from '@/stores/associationWindow.store'
 import { ChartCard, HeaderAction, KpiRow, Row } from './Overview'
 
 const ASSOCIATION_PAGE = '/dashboard/account/association'
-const BANNER_CTA = 'inline-flex min-h-10 cursor-pointer items-center rounded-control border bg-white px-3.5 text-[13px] font-semibold text-inherit no-underline hover:text-inherit'
+const BANNER_CTA = 'h-10 px-3.5 text-[13px] text-inherit hover:text-inherit'
 
 /** The status banner per farmer state (OverviewFarmer.dc.html); approved farmers have none. */
 function bannerFor({ status, association, groupManager, rejectionReason }) {
@@ -60,9 +61,9 @@ function Banner({ banner, onOpen }) {
         <span className="mt-0.5 block text-[13px] leading-[1.55]">{banner.text}</span>
       </div>
       {banner.opensWindow ? (
-        <button type="button" onClick={onOpen} className={cn(BANNER_CTA, banner.line)}>{banner.cta}</button>
+        <Button variant="outline" onClick={onOpen} className={cn(BANNER_CTA, banner.line)}>{banner.cta}</Button>
       ) : (
-        <Link to={ASSOCIATION_PAGE} className={cn(BANNER_CTA, banner.line)}>{banner.cta}</Link>
+        <Button as={Link} variant="outline" to={ASSOCIATION_PAGE} className={cn(BANNER_CTA, banner.line)}>{banner.cta}</Button>
       )}
     </div>
   )

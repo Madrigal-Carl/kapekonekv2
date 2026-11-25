@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/Button'
 import { Link } from 'react-router-dom'
 import { BarChart } from '@/components/dashboard/BarChart'
 import { KpiTile } from '@/components/dashboard/KpiTile'
@@ -52,13 +53,16 @@ export function OverviewGM({ data }) {
               </span>
             ),
             action: (
-              <Link
+              <Button
+                as={Link}
+                variant="outline"
+                size="sm"
                 to={`/dashboard/farmers?open=${q.id}&mode=view`}
                 aria-label={`Review ${q.name}`}
-                className="inline-flex min-h-9 items-center rounded-control border border-sand-strong px-3 text-[12.5px] font-semibold text-ink no-underline hover:bg-cream hover:text-ink"
+                className="text-[12.5px]"
               >
                 Review
-              </Link>
+              </Button>
             ),
           }))}
         />

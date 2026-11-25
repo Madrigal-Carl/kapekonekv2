@@ -103,7 +103,7 @@ export function ResetPassword() {
               />
               <FieldHint id="confirmPassword-error" error={errors.confirmPassword?.message} />
             </div>
-            <Button type="submit" pending={reset.isPending} className="py-[13px] text-[14.5px]">
+            <Button size="lg" type="submit" loading={reset.isPending}>
               Reset password
             </Button>
           </form>

@@ -134,9 +134,9 @@ export function Products() {
               {priceInput('max', 'Maximum price', maxPrice, setMaxPrice, 'Max')}
             </div>
           </fieldset>
-          <button type="button" onClick={() => setParams({}, { replace: true })} className="cursor-pointer self-start border-0 bg-transparent px-0 py-1.5 text-[13px] font-semibold text-roast">
+          <Button variant="link" onClick={() => setParams({}, { replace: true })} className="h-auto self-start px-0 py-1.5 text-[13px]">
             Clear all filters
-          </button>
+          </Button>
         </aside>
 
         <div className="min-w-0 flex-[999_1_560px]">

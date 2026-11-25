@@ -180,8 +180,8 @@ export function TreeGroupFields({ formId, group = null, farm, farms, actsForFarm
       )}
       {inline && (
         <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={onSaved} className="min-h-[38px] py-0 font-semibold">Cancel</Button>
-          <Button type="submit" pending={pending} className="min-h-[38px] py-0">{group ? 'Save changes' : 'Add trees'}</Button>
+          <Button size="sm" variant="outline" onClick={onSaved}>Cancel</Button>
+          <Button size="sm" type="submit" loading={pending}>{group ? 'Save changes' : 'Add trees'}</Button>
         </div>
       )}
     </form>

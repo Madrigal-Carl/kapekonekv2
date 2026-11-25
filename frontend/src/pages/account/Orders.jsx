@@ -1,5 +1,5 @@
 import { IconPackage, IconTriangleAlert } from '@/components/ui/icons'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import { OrderCard } from '@/components/order/OrderCard'
 import { OrderGroupTabs, StatusChips } from '@/components/order/OrderGroupTabs'
 import { Button } from '@/components/ui/Button'
@@ -58,7 +58,7 @@ export function Orders() {
           <EmptyState
             icon={IconPackage}
             title={group.key === 'all' ? 'No orders yet' : 'No orders with this status'}
-            action={group.key === 'all' && <Button to="/products">Browse coffee</Button>}
+            action={group.key === 'all' && <Button as={Link} to="/products">Browse coffee</Button>}
             className="bg-white"
           >
             Orders you place will show up here.

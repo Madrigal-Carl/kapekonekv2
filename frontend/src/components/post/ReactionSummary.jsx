@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/Button'
 import { IconHeart, IconStar, IconThumbsUp } from '@/components/ui/icons'
 import { useState } from 'react'
 import { cn } from '@/lib/cn'
@@ -30,9 +31,9 @@ export function ReactionSummary({ counts = {}, commentCount = 0 }) {
             </span>
           )}
           {total > 0 ? (
-            <button type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="cursor-pointer border-0 bg-transparent px-0 py-1.5 text-[13.5px] text-ink-2">
+            <Button variant="bare" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="cursor-pointer border-0 bg-transparent px-0 py-1.5 text-[13.5px] text-ink-2">
               {plural(total, 'reaction')}
-            </button>
+            </Button>
           ) : (
             <span className="text-[13.5px] text-ink-3">No reactions yet</span>
           )}

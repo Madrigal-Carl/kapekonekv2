@@ -1,7 +1,7 @@
 import { IconArrowRight, IconMinus, IconPlus, IconShoppingBag, IconTrash, IconTriangleAlert, IconX } from '@/components/ui/icons'
 
 import { useId, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -41,14 +41,16 @@ function CartLine({ line, onRemove }) {
         <div className="min-w-0 flex-1">
           <div className="flex justify-between gap-2">
             <span className="text-[14.5px] font-semibold leading-[1.3]">{product.name}</span>
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="sm"
+              iconOnly
               aria-label={`Remove ${product.name}`}
               onClick={() => onRemove(line)}
-              className="-mr-2 -mt-2 grid size-9 shrink-0 cursor-pointer place-items-center rounded-control border-0 bg-transparent text-ink-4 hover:bg-crema"
+              className="-mr-2 -mt-2 text-ink-4 hover:bg-crema hover:text-ink-4"
             >
               <IconTrash aria-hidden="true" className="size-[17px]" strokeWidth={1.75} />
-            </button>
+            </Button>
           </div>
           <span className="mt-0.5 block text-xs text-ink-3">{productMeta(product)}</span>
           <span className="mt-0.5 block text-[12.5px] text-ink-2">
@@ -56,21 +58,20 @@ function CartLine({ line, onRemove }) {
           </span>
           <div className="mt-2.5 flex items-center justify-between">
             <div role="group" aria-label={`Quantity for ${product.name}`} className="inline-flex items-center overflow-hidden rounded-control border border-sand-strong">
-              <button type="button" aria-label="Decrease" disabled={quantity <= step || setQuantity.isPending} onClick={() => change(quantity - step)} className={stepButton}>
+              <Button variant="bare" aria-label="Decrease" disabled={quantity <= step || setQuantity.isPending} onClick={() => change(quantity - step)} className={stepButton}>
                 <IconMinus aria-hidden="true" className="size-3.5" strokeWidth={2} />
-              </button>
+              </Button>
               <output aria-live="polite" className="min-w-[52px] border-x border-sand text-center text-[13.5px] font-semibold leading-9">
                 {quantityShort(quantity, product.unit)}
               </output>
-              <button
-                type="button"
+              <Button variant="bare"
                 aria-label="Increase"
                 disabled={atCap || setQuantity.isPending}
                 onClick={() => change(quantity + step)}
                 className={cn(stepButton, atCap && 'disabled:bg-cream disabled:text-stepper-off disabled:opacity-100')}
               >
                 <IconPlus aria-hidden="true" className="size-3.5" strokeWidth={2} />
-              </button>
+              </Button>
             </div>
             <span className="text-[15px] font-semibold">{formatPeso(line.lineTotalCentavos)}</span>
           </div>
@@ -120,9 +121,9 @@ export function CartDrawer() {
               Your cart
             </h2>
           </div>
-          <button type="button" aria-label="Close cart" onClick={hide} className="grid size-11 cursor-pointer place-items-center rounded-control border-0 bg-transparent text-ink-2 hover:bg-crema">
+          <Button variant="ghost" iconOnly aria-label="Close cart" onClick={hide} className="size-11 text-ink-2 hover:bg-crema hover:text-ink-2">
             <IconX aria-hidden="true" className="size-[18px]" strokeWidth={2} />
-          </button>
+          </Button>
         </div>
 
         {cart.isPending ? (
@@ -146,7 +147,7 @@ export function CartDrawer() {
           </div>
         ) : count === 0 ? (
           <div className="flex-1 p-6">
-            <EmptyState icon={IconShoppingBag} title="Your cart is empty" action={<Button to="/products" onClick={hide}>Browse coffee</Button>}>
+            <EmptyState icon={IconShoppingBag} title="Your cart is empty" action={<Button as={Link} to="/products" onClick={hide}>Browse coffee</Button>}>
               Add coffee from the products page and it will show up here.
             </EmptyState>
           </div>
@@ -165,16 +166,15 @@ export function CartDrawer() {
               <p className="mt-1.5 text-[12.5px] text-ink-3">Choose delivery or pickup and how to pay (GCash, Maya or cash) at checkout.</p>
               <div className="mt-4 flex flex-col gap-2.5">
                 {cart.data.canCheckout ? (
-                  <Button onClick={() => setConfirm('checkout')} className="min-h-12 w-full">
+                  <Button size="lg" fullWidth onClick={() => setConfirm('checkout')} rightIcon={<IconArrowRight aria-hidden="true" className="size-4" strokeWidth={2} />}>
                     Checkout
-                    <IconArrowRight aria-hidden="true" className="size-4" strokeWidth={2} />
                   </Button>
                 ) : (
-                  <button type="button" disabled className="min-h-12 w-full rounded-control border-0 bg-disabled-bg px-4 py-3 text-sm font-semibold text-disabled-ink">
+                  <Button size="lg" fullWidth disabled>
                     Checkout
-                  </button>
+                  </Button>
                 )}
-                <Button variant="outline" onClick={() => setConfirm('clear')} className="min-h-12 w-full">
+                <Button variant="outline" size="lg" fullWidth onClick={() => setConfirm('clear')}>
                   Clear cart
                 </Button>
               </div>

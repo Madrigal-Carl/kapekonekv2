@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/Button'
 import { IconLogOut, IconMenu, IconX } from '@/components/ui/icons'
 
 import { useEffect, useRef, useState } from 'react'
@@ -35,17 +36,18 @@ export function MobileMenu() {
 
   return (
     <div className="min-[721px]:hidden">
-      <button
+      <Button
+        variant="outline"
+        iconOnly
         ref={trigger}
-        type="button"
         aria-label={open ? 'Close menu' : 'Open menu'}
         aria-expanded={open}
         aria-controls="mobile-menu"
         onClick={() => setOpen((o) => !o)}
-        className="grid size-11 cursor-pointer place-items-center rounded-control border border-sand bg-white text-ink hover:bg-crema"
+        className="size-11 border-sand hover:bg-crema"
       >
         {open ? <IconX aria-hidden="true" className="size-[18px]" strokeWidth={2} /> : <IconMenu aria-hidden="true" className="size-[18px]" strokeWidth={2} />}
-      </button>
+      </Button>
       {open && (
         <nav ref={panel} id="mobile-menu" aria-label="Menu" className="absolute inset-x-0 top-16 z-40 border-b border-sand bg-white px-4 pb-4 pt-2 shadow-dropdown">
           <Link to="/products" className={linkClasses}>Products</Link>
@@ -59,10 +61,10 @@ export function MobileMenu() {
                   {label}
                 </Link>
               ))}
-              <button type="button" onClick={() => setConfirmLogout(true)} className={`${linkClasses} w-full cursor-pointer border-0 bg-transparent text-danger-ink hover:text-danger-ink`}>
+              <Button variant="bare" onClick={() => setConfirmLogout(true)} className={`${linkClasses} w-full cursor-pointer border-0 bg-transparent text-danger-ink hover:text-danger-ink`}>
                 <IconLogOut aria-hidden="true" className="size-[17px]" strokeWidth={1.9} />
                 Log out
-              </button>
+              </Button>
             </>
           ) : (
             <Link to="/login" className={linkClasses}>Log in</Link>

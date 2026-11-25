@@ -75,7 +75,7 @@ export function Login() {
           <input type="checkbox" className="m-[3px_3px_3px_4px] size-[18px] accent-roast" {...register('remember')} />
           Remember me
         </label>
-        <Button type="submit" pending={login.isPending} className="py-[13px] text-[14.5px]">
+        <Button size="lg" type="submit" loading={login.isPending}>
           Sign in
           {!login.isPending && <IconArrowRight aria-hidden="true" className="size-4" strokeWidth={2} />}
         </Button>

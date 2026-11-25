@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/Button'
 import { IconChevronDown, IconLogOut } from '@/components/ui/icons'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -49,9 +50,8 @@ export function AvatarMenu({ links = ACCOUNT_LINKS, roleLabel, avatarClassName =
 
   return (
     <div ref={root} className="relative ml-1" onKeyDown={open ? onKeyDown : undefined}>
-      <button
+      <Button variant="bare"
         ref={trigger}
-        type="button"
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
@@ -73,7 +73,7 @@ export function AvatarMenu({ links = ACCOUNT_LINKS, roleLabel, avatarClassName =
           </span>
         )}
         <IconChevronDown aria-hidden="true" className={cn('transition-transform', dashboard ? 'size-[15px] text-ink-3' : 'size-4', open && 'rotate-180')} strokeWidth={2} />
-      </button>
+      </Button>
       {open && (
         <div role="menu" aria-label="Account" className="absolute right-0 top-[calc(100%+8px)] z-50 w-60 rounded-card border border-sand bg-white p-1.5 shadow-dropdown">
           <div className="mb-1.5 border-b border-sand-soft px-3 pb-3 pt-2.5">
@@ -87,8 +87,7 @@ export function AvatarMenu({ links = ACCOUNT_LINKS, roleLabel, avatarClassName =
             </Link>
           ))}
           {!dashboard && <div className="mx-1 my-1.5 h-px bg-sand-soft" />}
-          <button
-            type="button"
+          <Button variant="bare"
             role="menuitem"
             onClick={() => {
               setOpen(false)
@@ -98,7 +97,7 @@ export function AvatarMenu({ links = ACCOUNT_LINKS, roleLabel, avatarClassName =
           >
             {!dashboard && <IconLogOut aria-hidden="true" className="size-[17px]" strokeWidth={1.9} />}
             Log out
-          </button>
+          </Button>
         </div>
       )}
       <LogoutDialog open={confirmLogout} onClose={() => setConfirmLogout(false)} />

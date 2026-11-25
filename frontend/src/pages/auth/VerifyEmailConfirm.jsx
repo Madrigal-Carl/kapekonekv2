@@ -1,6 +1,6 @@
 import { IconMail } from '@/components/ui/icons'
 import { useEffect, useRef } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
@@ -48,7 +48,7 @@ export function VerifyEmailConfirm() {
           <Alert tone="danger" className="mt-[18px]">
             This verification link has expired or was already used. Sign in and ask for a new link.
           </Alert>
-          <Button to="/verify-email" className="mt-6 w-full py-[13px] text-[14.5px]">
+          <Button size="lg" as={Link} to="/verify-email" fullWidth className="mt-6">
             Get a new link
           </Button>
         </>

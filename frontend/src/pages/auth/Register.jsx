@@ -113,9 +113,8 @@ export function Register() {
             <div className="mt-2 flex flex-nowrap items-center gap-1.5 overflow-x-auto whitespace-nowrap">
               <span className="shrink-0 text-xs text-ink-3">Suggestions:</span>
               {suggestions.data.map((name) => (
-                <button
+                <Button variant="bare"
                   key={name}
-                  type="button"
                   onClick={() => setValue('username', name, { shouldValidate: true })}
                   className={cn(
                     'min-h-8 shrink-0 cursor-pointer whitespace-nowrap rounded-full border border-sand-strong px-[11px] py-[5px] text-[12.5px] text-ink',
@@ -123,7 +122,7 @@ export function Register() {
                   )}
                 >
                   @{name}
-                </button>
+                </Button>
               ))}
             </div>
           )}
@@ -177,7 +176,7 @@ export function Register() {
           <FieldHint id="confirmPassword-error" error={errors.confirmPassword?.message} />
         </div>
 
-        <Button type="submit" pending={signup.isPending} className="py-[13px] text-[14.5px]">
+        <Button size="lg" type="submit" loading={signup.isPending}>
           Create account
         </Button>
       </form>

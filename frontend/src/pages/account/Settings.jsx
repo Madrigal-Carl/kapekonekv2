@@ -51,7 +51,7 @@ function ChangeEmailForm({ email }) {
       intro={<>Current: <strong className="text-ink">{email}</strong></>}
       onSubmit={handleSubmit(onSubmit)}
       bodyClassName="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-[18px] px-6 py-[22px]"
-      footer={<Button type="submit" pending={change.isPending} className="px-5">Update email</Button>}
+      footer={<Button type="submit" loading={change.isPending} className="px-5">Update email</Button>}
     >
       <div>
         <Label htmlFor="newEmail">New email</Label>
@@ -100,7 +100,7 @@ function ChangePasswordForm() {
       intro="You'll stay signed in here. Your other devices are signed out."
       onSubmit={handleSubmit(onSubmit)}
       bodyClassName="flex max-w-[520px] flex-col gap-[18px] px-6 py-[22px]"
-      footer={<Button type="submit" pending={change.isPending} className="px-5">Update password</Button>}
+      footer={<Button type="submit" loading={change.isPending} className="px-5">Update password</Button>}
     >
       <div>
         <Label htmlFor="currentPassword">Current password</Label>

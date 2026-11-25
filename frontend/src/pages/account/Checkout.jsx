@@ -102,7 +102,7 @@ function PlaceOrderDialog({ open, onClose, onConfirm, pending, rows, ewallet }) 
         <Button variant="outline" onClick={onClose} disabled={pending}>
           Go back
         </Button>
-        <Button onClick={onConfirm} pending={pending}>
+        <Button onClick={onConfirm} loading={pending}>
           Place order
         </Button>
       </div>
@@ -178,7 +178,7 @@ export function Checkout() {
   if (!lines.length) {
     return (
       <CheckoutShell>
-        <EmptyState icon={IconShoppingBag} title="Your cart is empty" action={<Button to="/products">Browse coffee</Button>} className="bg-white">
+        <EmptyState icon={IconShoppingBag} title="Your cart is empty" action={<Button as={Link} to="/products">Browse coffee</Button>} className="bg-white">
           Add coffee to your cart, then come back to check out.
         </EmptyState>
       </CheckoutShell>
@@ -250,10 +250,9 @@ export function Checkout() {
             title={isDelivery ? 'Delivery address' : `Pickup at ${pickup.name}`}
             action={
               isDelivery && list.length < 10 && (
-                <button type="button" onClick={() => setAddingAddress(true)} className="inline-flex min-h-10 cursor-pointer items-center gap-1.5 whitespace-nowrap border-0 bg-transparent text-[13.5px] font-semibold text-roast hover:text-roast-hover">
-                  <IconPlus aria-hidden="true" className="size-[15px]" strokeWidth={2} />
+                <Button variant="link" onClick={() => setAddingAddress(true)} leftIcon={<IconPlus aria-hidden="true" className="size-[15px]" strokeWidth={2} />} className="h-10 gap-1.5 text-[13.5px]">
                   Add new address
-                </button>
+                </Button>
               )
             }
           >
@@ -354,16 +353,15 @@ export function Checkout() {
                   <div className="flex flex-none flex-col items-center gap-2.5 max-sm:w-full">
                     <div role="tablist" aria-label="E-wallet" className="inline-flex rounded-[6px] bg-foam p-[3px]">
                       {(payment.data?.providers ?? ['GCash', 'Maya']).map((name) => (
-                        <button
+                        <Button variant="bare"
                           key={name}
-                          type="button"
                           role="tab"
                           aria-selected={provider === name}
                           onClick={() => setValue('provider', name)}
                           className={cn('min-h-9 cursor-pointer rounded-control border-0 px-[18px] py-2 text-[13px] font-semibold', provider === name ? 'bg-white text-ink' : 'bg-transparent text-ink-3')}
                         >
                           {name}
-                        </button>
+                        </Button>
                       ))}
                     </div>
                     <div className="relative size-[200px] rounded-card border border-sand bg-white p-3.5">
@@ -481,14 +479,14 @@ export function Checkout() {
                 <span>
                   {blockedReason}{' '}
                   {!canCheckout && (
-                    <button type="button" onClick={showCart} className="cursor-pointer border-0 bg-transparent p-0 font-semibold text-roast underline">
+                    <Button variant="link" onClick={showCart} className="h-auto p-0 text-[length:inherit] underline">
                       Open your cart
-                    </button>
+                    </Button>
                   )}
                 </span>
               </p>
             )}
-            <Button type="submit" form="checkout" disabled={Boolean(blockedReason)} className="mt-4 w-full py-[15px] text-[15px]">
+            <Button type="submit" size="lg" fullWidth form="checkout" disabled={Boolean(blockedReason)} className="mt-4 h-[52px]">
               Place order
             </Button>
             <p className="mt-3 text-xs leading-[1.6] text-ink-3">
@@ -511,9 +509,9 @@ function CheckoutShell({ children }) {
   return (
     <>
       <div className="mx-auto max-w-[1280px] px-4 pt-8 sm:px-8">
-        <button type="button" onClick={showCart} className="cursor-pointer border-0 bg-transparent p-0 text-[13px] text-ink-3 hover:text-roast">
+        <Button variant="bare" onClick={showCart} className="cursor-pointer border-0 bg-transparent p-0 text-[13px] text-ink-3 hover:text-roast">
           ← Back to cart
-        </button>
+        </Button>
         <div className="mt-4 text-[11px] font-medium uppercase tracking-[0.16em] text-ink-3">Order</div>
         <h1 className="mt-2.5 text-[28px] font-medium tracking-[-0.02em] sm:text-4xl">Checkout</h1>
       </div>

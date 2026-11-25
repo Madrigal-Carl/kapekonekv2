@@ -52,8 +52,8 @@ export function BeanForm({ open, listing = null, actsForFarmers, onClose }) {
       onClose={onClose}
       footer={
         <>
-          <Button variant="outline" onClick={onClose} className="min-h-[42px] py-0 font-semibold">Cancel</Button>
-          <Button type="submit" form={formId} disabled={over} pending={create.isPending || update.isPending} className="min-h-[42px] py-0">
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button type="submit" form={formId} disabled={over} loading={create.isPending || update.isPending}>
             {listing ? 'Save changes' : 'Send to Kaluppa'}
           </Button>
         </>
@@ -200,14 +200,13 @@ function PhotoPicker({ photos, onChange, error }) {
         {photos.map((p, i) => (
           <li key={p.publicId} className="relative aspect-square overflow-hidden rounded-md bg-photo">
             <img src={imageUrl(p.url, 120)} alt={`Photo ${i + 1}`} className="size-full object-cover" />
-            <button
-              type="button"
+            <Button variant="bare"
               aria-label={`Remove photo ${i + 1}`}
               onClick={() => onChange(photos.filter((x) => x.publicId !== p.publicId))}
               className="absolute right-1 top-1 grid size-6 place-items-center rounded-full bg-espresso/70 text-white focus-visible:outline-2 focus-visible:outline-white"
             >
               <IconX aria-hidden="true" className="size-3.5" strokeWidth={2.5} />
-            </button>
+            </Button>
           </li>
         ))}
         {photos.length < MAX_PHOTOS && (

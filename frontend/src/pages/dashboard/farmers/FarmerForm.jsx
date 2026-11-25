@@ -146,8 +146,8 @@ function FarmerFields({ formId, create, update, farmer, association, onClose, on
 export function FormFooter({ formId, onClose, pending, label }) {
   return (
     <>
-      <Button variant="outline" onClick={onClose} className="min-h-[42px] py-0 font-semibold">Cancel</Button>
-      <Button type="submit" form={formId} pending={pending} className="min-h-[42px] py-0">{label}</Button>
+      <Button variant="outline" onClick={onClose}>Cancel</Button>
+      <Button type="submit" form={formId} loading={pending}>{label}</Button>
     </>
   )
 }

@@ -80,7 +80,7 @@ function PhotoBand({ user }) {
             variant="outline"
             onClick={removePhoto}
             disabled={!user.avatar?.url || change.isPending}
-            pending={remove.isPending}
+            loading={remove.isPending}
             className="min-h-10 border-sand px-3.5 py-[9px] text-[13px] disabled:text-st-cancelled-dot disabled:opacity-100"
           >
             Remove
@@ -208,7 +208,7 @@ export function Profile({ embedded = false }) {
               <Button variant="outline" onClick={() => reset(toForm(user))} disabled={update.isPending} className="px-[18px]">
                 Discard
               </Button>
-              <Button type="submit" pending={update.isPending} className="px-5">
+              <Button type="submit" loading={update.isPending} className="px-5">
                 Save changes
               </Button>
             </div>

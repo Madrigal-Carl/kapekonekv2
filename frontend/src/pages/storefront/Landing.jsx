@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/Button'
 import { IconArrowRight, IconBell, IconChevronDown, IconClock, IconCoffee, IconMapPin, IconShoppingBag } from '@/components/ui/icons'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -134,8 +135,7 @@ function Faq() {
             return (
               <div key={q} className="rounded-card border border-sand bg-white">
                 <h3 className="m-0">
-                  <button
-                    type="button"
+                  <Button variant="bare"
                     id={`faq-${i}`}
                     aria-expanded={isOpen}
                     aria-controls={`faq-${i}-answer`}
@@ -144,7 +144,7 @@ function Faq() {
                   >
                     {q}
                     <IconChevronDown aria-hidden="true" className={cn('size-[18px] shrink-0 text-roast transition-transform', isOpen && 'rotate-180')} strokeWidth={2} />
-                  </button>
+                  </Button>
                 </h3>
                 {isOpen && <p id={`faq-${i}-answer`} role="region" aria-labelledby={`faq-${i}`} className="m-0 px-5 pb-[18px] text-sm leading-[1.65] text-ink-2">{a}</p>}
               </div>
@@ -220,9 +220,9 @@ export function Landing() {
           <div className="min-w-0 flex-[1_1_420px]">
             <SectionHeading onDark eyebrow="For farmers" title="Grow coffee? Sell your beans to Kaluppa." className="max-w-none" />
             <p className="mt-3.5 text-base leading-[1.65] text-white/82">Create a farmer account, join your group, and sell your harvest through KapeKonek. Fertilizer and seedlings are coming to your account soon.</p>
-            <Link to="/register" className="mt-7 inline-flex items-center gap-2 rounded-control bg-caramel px-[22px] py-[13px] text-sm font-semibold text-espresso no-underline hover:bg-caramel-light hover:text-espresso">
+            <Button as={Link} variant="caramel" size="lg" className="mt-7 px-[22px] text-sm" to="/register" >
               Sign up as a farmer
-            </Link>
+            </Button>
           </div>
           <ol className="m-0 flex min-w-0 flex-[1_1_420px] list-none flex-col gap-3 p-0">
             {SELL.map((x, i) => (
@@ -268,8 +268,8 @@ export function Landing() {
               <p className="mt-2.5 text-[15px] leading-[1.6] text-ink-2">Create a free buyer account, verify your email, and place your first order.</p>
             </div>
             <div className="flex flex-wrap gap-2.5">
-              <Link to="/register" className="inline-flex items-center rounded-control bg-roast px-[22px] py-[13px] text-sm font-semibold text-white no-underline hover:bg-roast-hover hover:text-white">Get started</Link>
-              <Link to="/products" className="inline-flex items-center rounded-control border border-sand bg-white px-[22px] py-[13px] text-sm font-medium text-ink no-underline hover:bg-cream hover:text-ink">Browse coffee</Link>
+              <Button as={Link} size="lg" className="px-[22px] text-sm" to="/register" >Get started</Button>
+              <Button as={Link} variant="outline" size="lg" className="border-sand px-[22px] text-sm font-medium" to="/products" >Browse coffee</Button>
             </div>
           </div>
         </div>

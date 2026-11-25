@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { IconTriangleAlert } from '@/components/ui/icons'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -27,9 +28,9 @@ export function ChartCard({ title, sub, children }) {
 }
 
 /** Header action link styled like the screens' 42px buttons, with an optional "+" icon. */
-export function HeaderAction({ to, variant = 'primary', plus, children }) {
+export function HeaderAction({ to, variant = 'solid', plus, children }) {
   return (
-    <Button to={to} variant={variant} className="min-h-[42px] py-0 font-semibold">
+    <Button as={Link} to={to} variant={variant}>
       {plus && <NavIcon name="plus" className="size-4" />}
       {children}
     </Button>

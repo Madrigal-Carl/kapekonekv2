@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { IconCheck } from '@/components/ui/icons'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -65,12 +66,12 @@ export function FarmerReview({ open, farmer, transfer, onClose }) {
   const footer = farmer && (rejecting ? (
     <>
       <Button variant="outline" onClick={() => setRejecting(false)} className="min-h-[42px] py-0 font-semibold">Back</Button>
-      <Button variant="danger" onClick={doReject} pending={reject.isPending || rejectMove.isPending} className="min-h-[42px] bg-logout py-0">Reject request</Button>
+      <Button variant="danger" onClick={doReject} loading={reject.isPending || rejectMove.isPending}>Reject request</Button>
     </>
   ) : (
     <>
       <Button variant="outline" onClick={() => setRejecting(true)} className="min-h-[42px] py-0 font-semibold text-logout">Reject</Button>
-      <Button onClick={doApprove} pending={approve.isPending || approveMove.isPending} className="min-h-[42px] bg-success py-0 hover:bg-success-ink">
+      <Button variant="success" onClick={doApprove} loading={approve.isPending || approveMove.isPending}>
         <IconCheck aria-hidden="true" className="size-4" strokeWidth={2.25} />
         {transfer ? 'Approve transfer' : 'Approve farmer'}
       </Button>
@@ -136,8 +137,8 @@ export function FarmerReview({ open, farmer, transfer, onClose }) {
 export function FarmerView({ open, farmer, canEdit, onEdit, onClose }) {
   const footer = farmer && (
     <>
-      <Button variant="outline" to="/dashboard/inbox" className="min-h-[42px] py-0 font-semibold">Message</Button>
-      {canEdit && <Button onClick={onEdit} className="min-h-[42px] py-0">Edit</Button>}
+      <Button as={Link} variant="outline" to="/dashboard/inbox">Message</Button>
+      {canEdit && <Button onClick={onEdit}>Edit</Button>}
     </>
   )
   return (

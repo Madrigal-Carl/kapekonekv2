@@ -62,16 +62,15 @@ function Gallery({ photos }) {
       {items.length > 1 && (
         <div className="mt-2 grid grid-cols-5 gap-2">
           {items.map((item, i) => (
-            <button
+            <Button variant="bare"
               key={item.url + i}
-              type="button"
               aria-label={`Show photo ${i + 1}`}
               aria-pressed={i === index}
               onClick={() => setIndex(i)}
               className={cn('relative aspect-square overflow-hidden rounded-md border-2 bg-photo focus-visible:outline-2 focus-visible:outline-roast', i === index ? 'border-roast' : 'border-sand')}
             >
               <MediaThumb item={item} />
-            </button>
+            </Button>
           ))}
         </div>
       )}
@@ -155,8 +154,8 @@ export function BeanView({ open, listing, meId, onCancel, onClose }) {
       onClose={onClose}
       footer={
         <>
-          {canCancel && <Button variant="outline" onClick={onCancel} className="min-h-[42px] py-0 font-semibold text-logout">Cancel listing</Button>}
-          <Button variant="outline" onClick={onClose} className="min-h-[42px] py-0 font-semibold">Close</Button>
+          {canCancel && <Button variant="danger-outline" onClick={onCancel}>Cancel listing</Button>}
+          <Button variant="outline" onClick={onClose}>Close</Button>
         </>
       }
     >
@@ -240,29 +239,29 @@ export function BeanReview({ open, listing, onCancelSale, onClose }) {
   // click would submit the weighing form before Kaluppa typed anything.
   const footer = !listing ? null : step === 'rejecting' ? (
     <>
-      <Button key="back-reject" variant="outline" onClick={() => setStep(null)} className="min-h-[42px] py-0 font-semibold">Back</Button>
-      <Button key="reject-listing" variant="danger" onClick={doReject} pending={reject.isPending} className="min-h-[42px] bg-logout py-0">Reject listing</Button>
+      <Button key="back-reject" variant="outline" onClick={() => setStep(null)} >Back</Button>
+      <Button key="reject-listing" variant="danger" onClick={doReject} loading={reject.isPending}>Reject listing</Button>
     </>
   ) : step === 'completing' ? (
     <>
-      <Button key="back-complete" variant="outline" onClick={() => setStep(null)} className="min-h-[42px] py-0 font-semibold">Back</Button>
-      <Button key="mark-completed" type="submit" form={formId} pending={complete.isPending} className="min-h-[42px] bg-success py-0 hover:bg-success-ink">Mark completed</Button>
+      <Button key="back-complete" variant="outline" onClick={() => setStep(null)} >Back</Button>
+      <Button variant="success" key="mark-completed" type="submit" form={formId} loading={complete.isPending}>Mark completed</Button>
     </>
   ) : s === 'pending' ? (
     <>
       <Button key="reject" variant="outline" onClick={() => setStep('rejecting')} className="min-h-[42px] py-0 font-semibold text-logout">Reject</Button>
-      <Button key="approve" onClick={doApprove} pending={approve.isPending} className="min-h-[42px] bg-success py-0 hover:bg-success-ink">
+      <Button variant="success" key="approve" onClick={doApprove} loading={approve.isPending}>
         <IconCheck aria-hidden="true" className="size-4" strokeWidth={2.25} />
         Approve
       </Button>
     </>
   ) : s === 'approved' ? (
     <>
-      <Button key="cancel-sale" variant="outline" onClick={onCancelSale} className="min-h-[42px] py-0 font-semibold text-logout">Cancel sale</Button>
+      <Button key="cancel-sale" variant="danger-outline" onClick={onCancelSale}>Cancel sale</Button>
       <Button key="arrived" onClick={() => setStep('completing')} className="min-h-[42px] py-0">Beans arrived</Button>
     </>
   ) : (
-    <Button variant="outline" onClick={close} className="min-h-[42px] py-0 font-semibold">Close</Button>
+    <Button variant="outline" onClick={close}>Close</Button>
   )
 
   const unapproved = listing?.countsTowardCap

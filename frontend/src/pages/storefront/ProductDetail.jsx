@@ -32,16 +32,15 @@ function Gallery({ images, name }) {
       {images.length > 1 && (
         <div role="group" aria-label="Product photos" className="mt-3 grid grid-cols-4 gap-3">
           {images.slice(0, 8).map((image, i) => (
-            <button
+            <Button variant="bare"
               key={image.url}
-              type="button"
               aria-label={`Show photo ${i + 1}`}
               aria-pressed={i === index}
               onClick={() => setIndex(i)}
               className={cn('aspect-square cursor-pointer overflow-hidden rounded-[6px] border-2 bg-photo p-0', i === index ? 'border-roast' : 'border-sand')}
             >
               <img src={imageUrl(image.url, 96)} alt="" loading="lazy" className="size-full object-cover" />
-            </button>
+            </Button>
           ))}
         </div>
       )}
@@ -145,7 +144,7 @@ export function ProductDetail() {
           tone={missing ? 'neutral' : 'error'}
           icon={IconCoffee}
           title={missing ? "We couldn't find that coffee" : "We couldn't load this coffee"}
-          action={missing ? <Button to="/products">Browse coffee</Button> : <Button variant="outline" onClick={() => refetch()}>Try again</Button>}
+          action={missing ? <Button as={Link} to="/products">Browse coffee</Button> : <Button variant="outline" onClick={() => refetch()}>Try again</Button>}
         >
           {missing ? 'It may have sold out for the season or moved.' : 'Check your connection and try again.'}
         </EmptyState>

@@ -1,10 +1,11 @@
+import { Button } from '@/components/ui/Button'
 import { IconBriefcase, IconHome, IconMapPin } from '@/components/ui/icons'
 import { addressArea, addressLabel } from '@/lib/address'
 import { cn } from '@/lib/cn'
 import { formatPhone } from '@/lib/format'
 
 const ICONS = { Home: IconHome, Work: IconBriefcase, Other: IconMapPin }
-const action = 'inline-flex min-h-10 cursor-pointer items-center rounded-control border-0 bg-transparent px-3 py-2 text-[13px] font-semibold hover:bg-crema'
+const action = 'h-10 px-3 text-[13px] hover:bg-crema'
 
 /** Saved address on /addresses (Addresses.dc.html): label, Default badge, recipient, street, area, pin status, actions. */
 export function AddressCard({ address, onEdit, onMakeDefault, onDelete, busy }) {
@@ -33,17 +34,17 @@ export function AddressCard({ address, onEdit, onMakeDefault, onDelete, busy }) 
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
-          <button type="button" onClick={onEdit} className={cn(action, 'text-roast')} aria-label={`Edit ${label} address`}>
+          <Button variant="ghost" onClick={onEdit} className={action} aria-label={`Edit ${label} address`}>
             Edit
-          </button>
+          </Button>
           {!address.isDefault && (
-            <button type="button" onClick={onMakeDefault} disabled={busy} className={cn(action, 'text-roast disabled:opacity-60')}>
+            <Button variant="ghost" onClick={onMakeDefault} disabled={busy} className={action}>
               Set as default
-            </button>
+            </Button>
           )}
-          <button type="button" onClick={onDelete} className={cn(action, 'text-danger-ink')} aria-label={`Delete ${label} address`}>
+          <Button variant="ghost" onClick={onDelete} className={cn(action, 'text-danger-ink hover:text-danger-ink')} aria-label={`Delete ${label} address`}>
             Delete
-          </button>
+          </Button>
         </div>
       </div>
     </li>
