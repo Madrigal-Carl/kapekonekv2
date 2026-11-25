@@ -69,7 +69,7 @@
   --color-tone-amber-bg: #FBF3E3; --color-tone-amber-ink: #6B4209; --color-tone-amber-dot: #C8913A;
   --color-tone-red-bg: #FDF0EE; --color-tone-red-ink: #8F2D22; --color-tone-red-dot: #C2554A;
   --color-tone-blue-bg: #E8F0FA; --color-tone-blue-ink: #1F4E86; --color-tone-blue-dot: #2A78D6;
-  --color-tone-blue-line: #C6D8EE; --color-tone-green-line: #BFDFC6; /* status banners in view drawers */
+  --color-tone-blue-line: #C6D8EE; --color-tone-green-line: #BFDFC6; --color-tone-roast-line: #E2CDB8; /* status banners in view drawers */
   --color-tone-gray-bg: #F1ECE6; --color-tone-gray-ink: #4A3A30; --color-tone-gray-dot: #8C7A66;
   --color-tone-roast-bg: #F3E6DA; --color-tone-roast-ink: #5A3218; --color-tone-roast-dot: #7B4A2A;
   /* chart series (DESIGN §8.3, validated order: don't reorder) */

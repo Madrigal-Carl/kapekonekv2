@@ -114,3 +114,31 @@ export function destinationLine({ fulfillment: f }) {
   if (f.method === 'delivery') return `Delivery · ${addressLabel(f.address)}, ${f.address.barangay}, ${f.address.municipality}`
   return `Pickup · ${f.pickup?.name ?? 'Kaluppa'}, ${(f.pickup?.address ?? '').replace(/, Marinduque$/, '')}`
 }
+
+/** Status pills in the dashboard tables and drawers (OrdersFarmer / OrdersKaluppa.dc.html). */
+export const DASH_ORDER_STATUS = {
+  pending: { label: 'To confirm', tone: 'amber' },
+  reserved: { label: 'Confirmed', tone: 'blue' },
+  processing: { label: 'Processing', tone: 'blue' },
+  out_for_delivery: { label: 'Out for delivery', tone: 'roast' },
+  ready_for_pickup: { label: 'Ready for pickup', tone: 'roast' },
+  sold: { label: 'Completed', tone: 'green' },
+  cancelled: { label: 'Cancelled', tone: 'gray' },
+  rejected: { label: 'Rejected', tone: 'red' },
+  expired: { label: 'Expired', tone: 'gray' },
+}
+
+/** The Status dropdown: the order groups, "All orders" first for farmers, last for Kaluppa (whose default is To confirm). */
+export const orderStatusFilter = (allFirst) => {
+  const groups = ORDER_GROUPS.map((g) => ({ value: g.key === 'all' ? '' : g.key, label: g.label }))
+  return { label: 'Status', options: allFirst ? groups : [...groups.slice(1), { value: 'all', label: 'All orders' }] }
+}
+
+/** The Payment pill: cash, a receipt still to check, verified, or the refund. */
+export function paymentPill(order) {
+  if (order.payment.method === 'cash') return { label: paymentLabel(order), tone: 'gray' }
+  if (order.refund?.status === 'pending') return { label: 'Refund pending', tone: 'red' }
+  if (order.refund?.status === 'refunded') return { label: 'Refunded', tone: 'gray' }
+  if (order.status === 'pending') return { label: `${order.payment.provider} · check receipt`, tone: 'amber' }
+  return { label: `${order.payment.provider} · verified`, tone: 'green' }
+}

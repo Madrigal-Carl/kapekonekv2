@@ -28,6 +28,26 @@ describe('ConfirmModal', () => {
     expect(onConfirm).toHaveBeenCalledWith('Too blurry')
   })
 
+  it('with reason options: confirm waits for a pick; "Other" also needs a written reason', () => {
+    const onConfirm = vi.fn()
+    const options = [{ value: 'change_items', label: 'Change items' }, { value: 'other', label: 'Other' }]
+    render(<ConfirmModal open variant="cancel_sale" title="Cancel this order?" confirmLabel="Cancel order" reasonOptions={options} onClose={() => {}} onConfirm={onConfirm} />)
+    const confirm = screen.getByRole('button', { name: 'Cancel order' })
+    expect(confirm.disabled).toBe(true)
+    expect(screen.queryByRole('textbox', { name: /Tell us more/ })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /Reason/ }))
+    fireEvent.click(screen.getByRole('option', { name: 'Change items' }))
+    expect(confirm.disabled).toBe(false)
+    fireEvent.click(confirm)
+    expect(onConfirm).toHaveBeenLastCalledWith(undefined, 'change_items')
+    fireEvent.click(screen.getByRole('button', { name: /Reason/ }))
+    fireEvent.click(screen.getByRole('option', { name: 'Other' }))
+    expect(confirm.disabled).toBe(true)
+    fireEvent.change(screen.getByRole('textbox', { name: /Tell us more/ }), { target: { value: 'Found it cheaper nearby' } })
+    fireEvent.click(confirm)
+    expect(onConfirm).toHaveBeenLastCalledWith('Found it cheaper nearby', 'other')
+  })
+
   it('temporary password: Copy writes it to the clipboard; Done closes', async () => {
     const writeText = vi.fn(async () => {})
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })

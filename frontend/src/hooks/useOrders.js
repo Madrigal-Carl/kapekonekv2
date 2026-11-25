@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import * as orderService from '@/services/order.service'
 import { cartKeys } from './useCart'
 
@@ -6,6 +6,7 @@ export const orderKeys = {
   all: ['orders'],
   list: (statuses) => ['orders', 'list', statuses ?? 'all'],
   counts: ['orders', 'counts'],
+  table: (params) => ['orders', 'table', params],
   detail: (id) => ['orders', 'detail', id],
 }
 
@@ -17,9 +18,13 @@ export const useOrders = (statuses) =>
     getNextPageParam: (last) => (last.meta.hasMore ? last.meta.nextCursor : undefined),
   })
 
+/** The farmer's Orders table (numbered pages). */
+export const useOrderTable = (params) =>
+  useQuery({ queryKey: orderKeys.table(params), queryFn: () => orderService.listOrderTable(params), placeholderData: keepPreviousData })
+
 export const useOrderCounts = () => useQuery({ queryKey: orderKeys.counts, queryFn: orderService.getOrderCounts })
 
-export const useOrder = (id) => useQuery({ queryKey: orderKeys.detail(id), queryFn: () => orderService.getOrder(id) })
+export const useOrder = (id) => useQuery({ queryKey: orderKeys.detail(id), queryFn: () => orderService.getOrder(id), enabled: Boolean(id) })
 
 export function usePlaceOrder() {
   const queryClient = useQueryClient()

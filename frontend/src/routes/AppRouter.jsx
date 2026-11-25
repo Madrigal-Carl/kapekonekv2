@@ -13,6 +13,7 @@ import { Associations } from '@/pages/dashboard/associations/Associations'
 import { Farmers } from '@/pages/dashboard/farmers/Farmers'
 import { GroupManagers } from '@/pages/dashboard/groupManagers/GroupManagers'
 import { Beans } from '@/pages/dashboard/beans/Beans'
+import { Orders as DashboardOrders } from '@/pages/dashboard/orders/Orders'
 import { Farms } from '@/pages/dashboard/records/Farms'
 import { Harvests } from '@/pages/dashboard/records/Harvests'
 import { Trees } from '@/pages/dashboard/records/Trees'
@@ -45,7 +46,6 @@ const Products = page(() => import('@/pages/storefront/Products'), 'Products')
 const DASHBOARD_PAGES = [
   ['inbox/*', 'inbox.use'],
   ['hub/*', 'dashboard.view'],
-  ['orders', 'dashboard.view'], // farmers' own orders, Kaluppa manages all
   ['farm-map', 'map.view'],
   ['inventory', 'inventory.manage'],
   ['reviews', 'reviews.moderate'],
@@ -61,7 +61,8 @@ const RECORD_PAGES = [
   ['farms', 'farms.manage', <Farms key="farms" />],
   ['trees', 'trees.manage', <Trees key="trees" />],
   ['harvests', 'harvests.manage', <Harvests key="harvests" />],
-  ['beans', 'beans.sell', <Beans key="beans" />], // farmers and Group Managers sell; Kaluppa passes every check and reviews
+  ['beans', 'beans.sell', <Beans key="beans" />],
+  ['orders', 'orders.view_own', <DashboardOrders key="orders" />], // farmers' own orders; Kaluppa manages all // farmers and Group Managers sell; Kaluppa passes every check and reviews
 ]
 
 export const router = createBrowserRouter([
@@ -75,9 +76,20 @@ export const router = createBrowserRouter([
             element: <StorefrontLayout />,
             children: [
               { path: '/', element: <Landing /> },
+              { path: '/posts/:id', element: <PostDetail /> },
+            ],
+          },
+        ],
+      },
+      {
+        // The Store sidebar item (PHASE-2-SPEC §3.7): farmers shop the categories they may buy.
+        element: <StorefrontRoute roles={['buyer', 'farmer']} />,
+        children: [
+          {
+            element: <StorefrontLayout />,
+            children: [
               { path: '/products', element: <Products /> },
               { path: '/products/:slug', element: <ProductDetail /> },
-              { path: '/posts/:id', element: <PostDetail /> },
             ],
           },
         ],

@@ -15,6 +15,7 @@ import { FieldHint, inputClasses, Label } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useAddresses } from '@/hooks/useAddresses'
+import { homeFor } from '@/constants/roles'
 import { useAuth } from '@/hooks/useAuth'
 import { useCart } from '@/hooks/useCart'
 import { usePointQuote } from '@/hooks/useGeo'
@@ -130,7 +131,8 @@ function CheckoutSkeleton() {
 
 /** /checkout (Checkout.dc.html): method, address or pickup, payment, note, and the live summary. */
 export function Checkout() {
-  const { user } = useAuth()
+  const { user, roles } = useAuth()
+  const addressesPath = homeFor(roles) === '/' ? '/addresses' : '/dashboard/account/addresses'
   const navigate = useNavigate()
   const showCart = useCartDrawer((s) => s.show)
   const cart = useCart()
@@ -203,7 +205,8 @@ export function Checkout() {
     place.mutate(body, {
       onSuccess: (order) => {
         toast.success(`Order ${order.orderNumber} placed`)
-        navigate(`/orders/${order._id}`, { replace: true })
+        // Farmers follow their orders in the dashboard (PHASE-2-SPEC §3.7).
+        navigate(homeFor(roles) === '/' ? `/orders/${order._id}` : `/dashboard/orders?open=${order._id}`, { replace: true })
       },
       onError: (error) => {
         setConfirming(false)
@@ -280,7 +283,7 @@ export function Checkout() {
                             {a.quote ? `${a.quote.distanceKm} km by road from Kaluppa · delivery ${formatPeso(a.quote.feeCentavos)}` : quoteErrorText(a.quoteError)}
                           </span>
                         </span>
-                        <Link to="/addresses" className="py-1 text-[12.5px] font-semibold no-underline">
+                        <Link to={addressesPath} className="py-1 text-[12.5px] font-semibold no-underline">
                           Edit
                         </Link>
                       </Choice>
@@ -290,7 +293,7 @@ export function Checkout() {
                 <FieldHint error={errors.addressId?.message} />
                 <p className="mt-3 text-[12.5px] text-ink-3">
                   Manage saved addresses in{' '}
-                  <Link to="/addresses" className="font-semibold no-underline">
+                  <Link to={addressesPath} className="font-semibold no-underline">
                     Addresses
                   </Link>
                   . We deliver anywhere in Marinduque.

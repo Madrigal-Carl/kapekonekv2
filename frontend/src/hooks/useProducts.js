@@ -4,6 +4,7 @@ import { useAuth } from './useAuth'
 
 export const productKeys = {
   all: ['products'],
+  categories: ['products', 'categories'],
   list: (filters) => ['products', 'list', filters],
   detail: (slug) => ['products', 'detail', slug],
   reviews: (id) => ['products', id, 'reviews'],
@@ -11,8 +12,14 @@ export const productKeys = {
   myReview: (id) => ['products', id, 'reviews', 'me'],
 }
 
+/** The categories this viewer shops (buyers Coffee, farmers Fertilizer and Seedlings). */
+export function useCategories() {
+  const { user } = useAuth()
+  return useQuery({ queryKey: [...productKeys.categories, user?._id ?? null], queryFn: catalog.listCategories, staleTime: 5 * 60_000 })
+}
+
 /** Infinite product list for the given filters (the session is part of the key: `purchasable` depends on it). */
-export function useProducts(filters) {
+export function useProducts(filters, { enabled = true } = {}) {
   const { user } = useAuth()
   return useInfiniteQuery({
     queryKey: [...productKeys.list(filters), user?._id ?? null],
@@ -20,6 +27,7 @@ export function useProducts(filters) {
     initialPageParam: undefined,
     getNextPageParam: (last) => (last.meta.hasMore ? last.meta.nextCursor : undefined),
     placeholderData: keepPreviousData,
+    enabled,
   })
 }
 

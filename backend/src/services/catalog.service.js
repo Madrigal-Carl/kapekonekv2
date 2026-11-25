@@ -27,10 +27,22 @@ export async function listVisibleCategories(viewer) {
   return visible;
 }
 
+/**
+ * Categories the shop lists for this viewer (PHASE-2-SPEC §3.7): signed-in users see only what they may buy
+ * (buyers Coffee, farmers Fertilizer and Seedlings); guests see the public ones. Product pages stay reachable by link.
+ * @param {object|undefined} viewer
+ */
+async function listShopCategories(viewer) {
+  if (!viewer) return (await listCategories()).filter((c) => c.isPublic);
+  const shop = [];
+  for (const category of await listCategories()) if (await isPurchasable(viewer, category)) shop.push(category);
+  return shop;
+}
+
 const publicCategory = ({ _id, name, slug, hasVariety, hasCoffeeType }) => ({ _id, name, slug, hasVariety, hasCoffeeType });
 
 /** @param {object|undefined} viewer */
-export const listCategoriesFor = async (viewer) => (await listVisibleCategories(viewer)).map(publicCategory);
+export const listCategoriesFor = async (viewer) => (await listShopCategories(viewer)).map(publicCategory);
 
 /** Add the viewer's `purchasable` flag and strip category internals. */
 async function present(viewer, product, cache = new Map()) {
@@ -46,7 +58,7 @@ async function present(viewer, product, cache = new Map()) {
  * @param {{ search?: string, category?: string, variety: string[], coffeeType: string[], minPrice?: number, maxPrice?: number, featured: boolean, sort: keyof PRODUCT_SORTS, cursor?: string, limit: number }} query
  */
 export async function listProducts(viewer, { search, category, variety, coffeeType, minPrice, maxPrice, featured, sort, cursor, limit }) {
-  const visible = await listVisibleCategories(viewer);
+  const visible = await listShopCategories(viewer);
   const categoryIds = visible.filter((c) => !category || c.slug === category).map((c) => c._id);
   const filter = { isActive: true, category: { $in: categoryIds } };
   if (variety.length) filter.variety = { $in: variety };

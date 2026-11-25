@@ -5,13 +5,13 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { LogoutDialog } from '@/components/auth/LogoutDialog'
 import { useAuth } from '@/hooks/useAuth'
-import { ACCOUNT_LINKS } from './accountLinks'
+import { accountLinksFor } from './accountLinks'
 
 const linkClasses = 'flex min-h-11 items-center gap-2.5 rounded-control px-3 text-[15px] text-ink no-underline hover:bg-crema hover:text-ink'
 
 /** Small-screen menu (≤720 px): main links plus log in, or the buyer's account pages. Esc closes it. */
 export function MobileMenu() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, roles } = useAuth()
   const location = useLocation()
   // Open only for the page it was opened on, so any navigation closes it.
   const [openOn, setOpenOn] = useState(null)
@@ -55,7 +55,7 @@ export function MobileMenu() {
           <div className="mx-1 my-2 h-px bg-sand-soft" />
           {isAuthenticated ? (
             <>
-              {ACCOUNT_LINKS.map(({ to, label, icon: Icon }) => (
+              {accountLinksFor(roles).map(({ to, label, icon: Icon }) => (
                 <Link key={to} to={to} className={linkClasses}>
                   <Icon aria-hidden="true" className="size-[17px] text-roast" strokeWidth={1.9} />
                   {label}

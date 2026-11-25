@@ -40,8 +40,8 @@ describe('GET /categories', () => {
     expect((await buyer.get('/api/categories')).body.data.map((c) => c.slug)).toEqual(['coffee']);
   });
 
-  it('shows farmers the farm-supply categories they may buy', async () => {
-    expect((await farmer.get('/api/categories')).body.data.map((c) => c.slug)).toEqual(['coffee', 'fertilizer', 'seedlings']);
+  it('shows farmers only the farm-supply categories they may buy (no Coffee)', async () => {
+    expect((await farmer.get('/api/categories')).body.data.map((c) => c.slug)).toEqual(['fertilizer', 'seedlings']);
   });
 });
 
@@ -57,6 +57,12 @@ describe('GET /products', () => {
   it('hides a category the viewer cannot see, even when asked for it', async () => {
     expect(slugs(await guest.get('/api/products?category=fertilizer'))).toEqual([]);
     expect(slugs(await farmer.get('/api/products?category=fertilizer'))).toEqual(['organic-fertilizer-25kg']);
+  });
+
+  it('lists only what a signed-in viewer may buy: farmers get farm supplies, buyers coffee', async () => {
+    expect(slugs(await farmer.get('/api/products')).sort()).toEqual(['liberica-seedling', 'organic-fertilizer-25kg']);
+    expect(slugs(await farmer.get('/api/products?category=coffee'))).toEqual([]);
+    expect(slugs(await buyer.get('/api/products')).sort()).toEqual(['arabica-light-roast', 'barako-medium-roast', 'liberica-green-beans', 'robusta-ground']);
   });
 
   it('filters by variety, coffee type, price (pesos), featured and search', async () => {

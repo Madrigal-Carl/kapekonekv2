@@ -3,7 +3,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it } from 'vitest'
 import { useAuthStore } from '@/stores/auth.store'
-import { ProtectedRoute } from './guards'
+import { ProtectedRoute, StorefrontRoute } from './guards'
 
 afterEach(cleanup)
 
@@ -43,5 +43,40 @@ describe('ProtectedRoute', () => {
     signIn(['group_manager'], { emailVerifiedAt: null })
     at('/dashboard/overview')
     expect(screen.getByText('Overview')).toBeTruthy()
+  })
+})
+
+const shop = (path) =>
+  render(
+    <MemoryRouter initialEntries={[path]}>
+      <Routes>
+        <Route element={<StorefrontRoute />}>
+          <Route path="/" element={<p>Landing</p>} />
+        </Route>
+        <Route element={<StorefrontRoute roles={['buyer', 'farmer']} />}>
+          <Route path="/products" element={<p>Products</p>} />
+        </Route>
+        <Route path="/dashboard/overview" element={<p>Dashboard</p>} />
+      </Routes>
+    </MemoryRouter>,
+  )
+
+describe('StorefrontRoute', () => {
+  it('lets a farmer into the store pages', () => {
+    signIn(['farmer'])
+    shop('/products')
+    expect(screen.getByText('Products')).toBeTruthy()
+  })
+
+  it('still sends a farmer from the landing page to the dashboard', () => {
+    signIn(['farmer'])
+    shop('/')
+    expect(screen.getByText('Dashboard')).toBeTruthy()
+  })
+
+  it('keeps Group Managers out of the store', () => {
+    signIn(['group_manager'])
+    shop('/products')
+    expect(screen.getByText('Dashboard')).toBeTruthy()
   })
 })

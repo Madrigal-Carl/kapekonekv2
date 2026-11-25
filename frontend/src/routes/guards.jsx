@@ -5,12 +5,15 @@ import { useAuth } from '@/hooks/useAuth'
 import { safeRedirect } from '@/lib/safeRedirect'
 import { Forbidden } from '@/pages/errors/Forbidden'
 
-/** Storefront pages: guests and buyers only; other roles go to their dashboard. */
-export function StorefrontRoute() {
+/**
+ * Storefront pages: guests and the given roles (buyers by default; farmers shop too, PHASE-2-SPEC §3.7); other roles go to their dashboard.
+ * @param {{ roles?: string[] }} props
+ */
+export function StorefrontRoute({ roles: allowed = ['buyer'] }) {
   const { isLoading, isAuthenticated, roles, mustChangePassword } = useAuth()
   if (isLoading) return <PageSpinner />
   if (mustChangePassword) return <Navigate to="/set-password" replace />
-  if (isAuthenticated && !roles.includes('buyer')) return <Navigate to="/dashboard/overview" replace />
+  if (isAuthenticated && !allowed.some((r) => roles.includes(r))) return <Navigate to="/dashboard/overview" replace />
   return <Outlet />
 }
 

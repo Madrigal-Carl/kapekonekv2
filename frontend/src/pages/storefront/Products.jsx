@@ -13,7 +13,7 @@ import { ProductCardSkeleton } from '@/components/ui/Skeleton'
 import { COFFEE_TYPES, PRODUCT_SORTS, VARIETIES } from '@/constants/catalog'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useInfiniteSentinel } from '@/hooks/useInfiniteSentinel'
-import { useProducts } from '@/hooks/useProducts'
+import { useCategories, useProducts } from '@/hooks/useProducts'
 import { cn } from '@/lib/cn'
 
 const list = (value) => (value ? value.split(',').filter(Boolean) : [])
@@ -39,7 +39,7 @@ function useDebouncedParam(params, setParam, key) {
   return [value, setValue]
 }
 
-/** `/products` — coffee list with URL-synced filters and infinite scroll (Products.dc.html). */
+/** `/products` — the viewer's categories (Coffee for buyers, farm supplies for farmers) with URL-synced filters and infinite scroll (Products.dc.html). */
 export function Products() {
   const [params, setParams] = useSearchParams()
   const setParam = (key, value) =>
@@ -57,9 +57,13 @@ export function Products() {
   const [minPrice, setMinPrice] = useDebouncedParam(params, setParam, 'minPrice')
   const [maxPrice, setMaxPrice] = useDebouncedParam(params, setParam, 'maxPrice')
 
+  const categories = useCategories().data
+  const category = categories?.find((c) => c.slug === params.get('category')) ?? categories?.[0]
+  const isCoffee = !category || category.slug === 'coffee'
+  const noun = isCoffee ? 'coffee' : category.name.toLowerCase()
   const toggle = (key, current, value) => setParam(key, current.includes(value) ? current.filter((x) => x !== value) : [...current, value])
   const filters = {
-    category: 'coffee',
+    category: category?.slug,
     search: params.get('search') || undefined,
     variety,
     coffeeType,
@@ -68,7 +72,7 @@ export function Products() {
     sort,
     limit: 9,
   }
-  const { data, isPending, isError, refetch, hasNextPage, fetchNextPage, isFetchingNextPage, isPlaceholderData } = useProducts(filters)
+  const { data, isPending, isError, refetch, hasNextPage, fetchNextPage, isFetchingNextPage, isPlaceholderData } = useProducts(filters, { enabled: Boolean(category) })
   const products = data?.pages.flatMap((p) => p.items) ?? []
   const total = data?.pages[0].meta.total ?? 0
 
@@ -88,12 +92,12 @@ export function Products() {
           <nav aria-label="Breadcrumb" className="text-[12.5px] text-ink-3">
             <Link to="/" className="text-ink-3 no-underline">Home</Link>
             <span aria-hidden="true" className="mx-2">/</span>
-            <span aria-current="page" className="text-ink">Coffee</span>
+            <span aria-current="page" className="text-ink">{category?.name ?? 'Coffee'}</span>
           </nav>
           <Eyebrow className="mt-[18px]">Shop</Eyebrow>
-          <h1 className="mt-3 text-[34px] font-medium leading-[1.1] tracking-[-0.02em] sm:text-[40px]">Coffee</h1>
+          <h1 className="mt-3 text-[34px] font-medium leading-[1.1] tracking-[-0.02em] sm:text-[40px]">{category?.name ?? 'Coffee'}</h1>
           <p className="mt-2.5 max-w-[640px] text-[15.5px] leading-[1.65] text-ink-2">
-            Green beans, roasts and grounds from Marinduque farms. Delivered anywhere in Marinduque in 3–5 business days, or pick up at Kaluppa.
+            {isCoffee ? 'Green beans, roasts and grounds from Marinduque farms.' : 'Fertilizer and seedlings for your farm, from Kaluppa.'} Delivered anywhere in Marinduque in 3–5 business days, or pick up at Kaluppa.
           </p>
         </div>
       </section>
@@ -104,9 +108,20 @@ export function Products() {
             <label htmlFor="search" className={cn(legend, 'block')}>Search</label>
             <div className="relative mt-2">
               <IconSearch aria-hidden="true" className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-4" strokeWidth={2} />
-              <input id="search" type="search" placeholder="Search coffee" value={search} onChange={(e) => setSearch(e.target.value)} maxLength={80} className={cn(inputClasses, 'pl-9')} />
+              <input id="search" type="search" placeholder={`Search ${noun}`} value={search} onChange={(e) => setSearch(e.target.value)} maxLength={80} className={cn(inputClasses, 'pl-9')} />
             </div>
           </div>
+          {categories?.length > 1 && (
+            <fieldset aria-label="Category" className="m-0 border-0 p-0">
+              <legend className={legend}>Category</legend>
+              <div className="mt-2.5 flex flex-wrap gap-2">
+                {categories.map((c) => (
+                  <ChipToggle key={c._id} pressed={c.slug === category?.slug} onClick={() => setParams({ category: c.slug }, { replace: true })}>{c.name}</ChipToggle>
+                ))}
+              </div>
+            </fieldset>
+          )}
+          {category?.hasVariety !== false && (
           <fieldset className="m-0 border-0 p-0">
             <legend className={legend}>Variety</legend>
             <div className="mt-2.5 flex flex-wrap gap-2">
@@ -115,6 +130,8 @@ export function Products() {
               ))}
             </div>
           </fieldset>
+          )}
+          {category?.hasCoffeeType !== false && (
           <fieldset className="m-0 border-0 p-0">
             <legend className={legend}>Coffee type</legend>
             <div className="mt-2.5 flex flex-col gap-1">
@@ -126,6 +143,7 @@ export function Products() {
               ))}
             </div>
           </fieldset>
+          )}
           <fieldset className="m-0 border-0 p-0">
             <legend className={legend}>Price (₱)</legend>
             <div className="mt-2.5 flex items-center gap-2">
@@ -142,7 +160,7 @@ export function Products() {
         <div className="min-w-0 flex-[999_1_560px]">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-sand pb-4">
             <p aria-live="polite" className="m-0 text-[13.5px] text-ink-2">
-              {isPending ? 'Loading coffee…' : <>Showing <strong className="font-semibold text-ink">{total}</strong> coffee {total === 1 ? 'product' : 'products'}</>}
+              {isPending ? `Loading ${noun}…` : <>Showing <strong className="font-semibold text-ink">{total}</strong> {noun} {total === 1 ? 'product' : 'products'}</>}
             </p>
             <div className="flex items-center gap-2.5">
               <span aria-hidden="true" className="whitespace-nowrap text-[13px] text-ink-2">Sort by</span>
@@ -161,12 +179,12 @@ export function Products() {
           </div>
 
           {isError && (
-            <EmptyState tone="error" icon={IconRefresh} title="We couldn't load the coffee" className="mt-10" action={<Button variant="outline" onClick={() => refetch()}>Try again</Button>}>
+            <EmptyState tone="error" icon={IconRefresh} title={`We couldn't load the ${noun}`} className="mt-10" action={<Button variant="outline" onClick={() => refetch()}>Try again</Button>}>
               Check your connection and try again.
             </EmptyState>
           )}
           {data && !products.length && (
-            <EmptyState icon={IconSearch} title="No coffee matches these filters" className="mt-10" action={<Button variant="outline" onClick={() => setParams({}, { replace: true })}>Clear all filters</Button>}>
+            <EmptyState icon={IconSearch} title={isCoffee ? 'No coffee matches these filters' : 'Nothing matches these filters'} className="mt-10" action={<Button variant="outline" onClick={() => setParams({}, { replace: true })}>Clear all filters</Button>}>
               Try another variety or clear your filters.
             </EmptyState>
           )}
@@ -176,7 +194,7 @@ export function Products() {
             {(isPending || isFetchingNextPage) && Array.from({ length: isPending ? 9 : 3 }, (_, i) => <ProductCardSkeleton key={i} />)}
           </div>
           <div ref={sentinel} aria-hidden="true" />
-          {isFetchingNextPage && <p aria-live="polite" className="mt-6 text-center text-[13px] text-ink-3">Loading more coffee…</p>}
+          {isFetchingNextPage && <p aria-live="polite" className="mt-6 text-center text-[13px] text-ink-3">Loading more {noun}…</p>}
         </div>
       </div>
     </main>

@@ -1,14 +1,15 @@
 import { env } from '../config/env.js';
 import { getValkey } from '../config/valkey.js';
-import { ORDER_STATUSES } from '../constants/orderStatus.js';
+import { ORDER_GROUPS, ORDER_STATUSES } from '../constants/orderStatus.js';
 import { EMAIL_JOBS } from '../queues/email.jobs.js';
 import { enqueueEmail } from '../queues/email.queue.js';
 import { clearCartItems } from '../repositories/cart.repository.js';
-import { countByStatusForBuyer, createOrder, findOrderById, listByBuyerCursor } from '../repositories/order.repository.js';
+import { countByStatusForBuyer, createOrder, findOrderById, listByBuyerCursor, listOrdersPage } from '../repositories/order.repository.js';
 import { updateContactNumber } from '../repositories/user.repository.js';
 import { realtime } from '../sockets/realtime.js';
 import { AppError } from '../utils/AppError.js';
 import { etaWindow } from '../utils/businessDays.js';
+import { escapeRegex } from '../utils/escapeRegex.js';
 import { withLock } from '../utils/lock.js';
 import { nextOrderNumber } from '../utils/orderNumber.js';
 import { getOwnAddress } from './address.service.js';
@@ -150,10 +151,32 @@ export async function placeOrder(user, body) {
 }
 
 /**
- * @param {{ _id: unknown }} user
- * @param {{ status: string[], cursor?: string, limit: number }} query
+ * A numbered page of orders for a dashboard table: `scope` limits whose orders (the farmer's own, or Kaluppa's filters),
+ * `group` is a Status dropdown group, `q` matches the order number, an item name, or any of `orIds` as the customer.
+ * @param {object} scope
+ * @param {{ group: string, q: string, page: number, limit: number }} query
+ * @param {unknown[]} [orIds] customers whose name matched `q`
  */
-export async function listMyOrders(user, { status, cursor, limit }) {
+export async function listOrderTable(scope, { group, q, page, limit }, orIds = []) {
+  const filter = { ...scope };
+  if (group !== 'all') filter.status = { $in: ORDER_GROUPS[group] };
+  if (q) {
+    const pattern = new RegExp(escapeRegex(q), 'i');
+    filter.$or = [{ orderNumber: pattern }, { 'items.name': pattern }, ...(orIds.length ? [{ buyer: { $in: orIds } }] : [])];
+  }
+  const result = await listOrdersPage(filter, { page, limit });
+  const etaDays = await getSetting('delivery.eta');
+  const now = new Date();
+  return { items: result.items.map((o) => withEta(o, etaDays, now)), meta: result.meta };
+}
+
+/**
+ * The user's own orders: by cursor (buyer pages), or numbered pages when `page` is sent (the farmer's dashboard table).
+ * @param {{ _id: unknown }} user
+ * @param {{ status: string[], cursor?: string, limit: number, page?: number, group: string, q: string }} query
+ */
+export async function listMyOrders(user, { status, cursor, limit, page: pageNumber, group, q }) {
+  if (pageNumber) return listOrderTable({ buyer: user._id }, { group, q, page: pageNumber, limit });
   const page = await listByBuyerCursor(user._id, { statuses: status, cursor, limit });
   const etaDays = await getSetting('delivery.eta');
   const now = new Date();

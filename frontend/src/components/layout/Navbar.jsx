@@ -9,6 +9,7 @@ import { useCart } from '@/hooks/useCart'
 import { useRequireAuthAction } from '@/hooks/useRequireAuthAction'
 import { cn } from '@/lib/cn'
 import { useCartDrawer } from '@/stores/cart.store'
+import { accountLinksFor } from './accountLinks'
 import { AvatarMenu } from './AvatarMenu'
 import { MobileMenu } from './MobileMenu'
 import { NotificationMenu } from './NotificationMenu'
@@ -17,7 +18,7 @@ const iconButton = 'relative size-11 text-ink-2 hover:bg-crema hover:text-ink-2'
 
 /** Storefront header for guests and buyers (Navbar.dc.html). */
 export function Navbar() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, roles } = useAuth()
   const requireAuth = useRequireAuthAction()
   const { pathname } = useLocation()
   const onProducts = pathname.startsWith('/products')
@@ -59,7 +60,7 @@ export function Navbar() {
             <>
               <NotificationMenu buttonClassName={iconButton} />
               <div className="max-[720px]:hidden">
-                <AvatarMenu />
+                <AvatarMenu links={accountLinksFor(roles)} />
               </div>
             </>
           ) : (

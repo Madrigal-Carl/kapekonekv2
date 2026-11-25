@@ -1,5 +1,6 @@
 import { FINAL_STATUSES } from '../constants/orderStatus.js';
 import { Order } from '../models/order.model.js';
+import { pageList } from '../utils/pageList.js';
 import { cursorFilter, cursorSort, pageResult } from '../utils/pagination.js';
 
 const NEWEST = { sortField: 'createdAt', direction: 'desc' };
@@ -40,6 +41,13 @@ export async function listByBuyerCursor(buyerId, { statuses, cursor, limit }) {
   const docs = await Order.find({ $and: [filter, cursorFilter({ ...NEWEST, cursor })] }).sort(cursorSort(NEWEST)).limit(limit + 1).lean();
   return pageResult(docs, limit, NEWEST.sortField);
 }
+
+/**
+ * One numbered page of orders, newest first (dashboard tables), with the customer's name and roles.
+ * @param {object} filter @param {{ page: number, limit: number }} paging
+ */
+export const listOrdersPage = (filter, paging) =>
+  pageList(Order.find(filter).sort({ createdAt: -1, _id: -1 }).populate('buyer', 'firstName lastName roles contactNumber avatar'), paging);
 
 /** @returns {Promise<Array<{ _id: string, n: number }>>} order count per status for one buyer */
 export const countByStatusForBuyer = (buyerId) => Order.aggregate([{ $match: { buyer: buyerId } }, { $group: { _id: '$status', n: { $sum: 1 } } }]);

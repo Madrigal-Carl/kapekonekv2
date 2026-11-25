@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EWALLET_PROVIDERS, FULFILLMENT_METHODS, ORDER_STATUSES, PAYMENT_METHODS } from '../constants/orderStatus.js';
+import { EWALLET_PROVIDERS, FULFILLMENT_METHODS, ORDER_GROUPS, ORDER_STATUSES, PAYMENT_METHODS } from '../constants/orderStatus.js';
 import { csvOf, objectIdRule, pageQuery } from './common.schema.js';
 import { phoneRule } from './rules.js';
 
@@ -27,7 +27,17 @@ export const placeOrderSchema = z
     if (body.paymentMethod === 'cash' && body.receipt) issue('receipt', 'Cash orders don’t need a receipt');
   });
 
-export const orderListQuery = pageQuery(20, 10).extend({ status: csvOf(ORDER_STATUSES, 'Unknown status') });
+/** Dashboard table filters: a status group and a search (order number, item, and for Kaluppa the customer). */
+export const orderTableFilters = z.object({
+  group: z.enum([...Object.keys(ORDER_GROUPS), 'all'], 'Unknown status').default('all'),
+  q: z.string().trim().max(80).default(''),
+});
+
+/** Buyer pages page by cursor; the farmer's dashboard table sends `page` for numbered pages. */
+export const orderListQuery = pageQuery(20, 10).extend({
+  status: csvOf(ORDER_STATUSES, 'Unknown status'),
+  page: z.coerce.number().int().min(1).optional(),
+}).extend(orderTableFilters.shape);
 
 /** Buyer cancel; the reason code list and "other" text are checked by the status service. */
 export const cancelOrderSchema = z.object({ reasonCode: z.string('Choose a reason').trim().min(1, 'Choose a reason').max(40), reason });

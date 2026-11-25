@@ -5,6 +5,7 @@ import { useId, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Drawer } from '@/components/dashboard/Drawer'
+import { BANNER_TONES } from '@/components/dashboard/bannerTones'
 import { DetailList, SectionTitle, TextField } from '@/components/dashboard/RecordParts'
 import { MediaStage, MediaThumb } from '@/components/post/Media'
 import { Button } from '@/components/ui/Button'
@@ -30,13 +31,6 @@ const HISTORY = {
   completed: ['Completed', 'bg-tone-green-dot'],
   cancelled: ['Cancelled', 'bg-tone-gray-dot'],
   expired: ['Expired', 'bg-tone-gray-dot'],
-}
-const BANNER_TONES = {
-  amber: 'border-notice-line bg-notice-bg text-notice-ink',
-  blue: 'border-tone-blue-line bg-tone-blue-bg text-tone-blue-ink',
-  green: 'border-tone-green-line bg-tone-green-bg text-tone-green-ink',
-  gray: 'border-sand bg-tone-gray-bg text-tone-gray-ink',
-  red: 'border-danger-line bg-danger-soft text-danger-text',
 }
 
 function Loading() {

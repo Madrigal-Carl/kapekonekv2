@@ -3,6 +3,14 @@ export const ORDER_STATUSES = [
   'pending', 'reserved', 'processing', 'out_for_delivery', 'ready_for_pickup',
   'sold', 'cancelled', 'rejected', 'expired',
 ];
+/** Dashboard Status dropdown groups (PHASE-2-SPEC §3.8). */
+export const ORDER_GROUPS = {
+  to_confirm: ['pending'],
+  preparing: ['reserved', 'processing'],
+  on_the_way: ['out_for_delivery', 'ready_for_pickup'],
+  completed: ['sold'],
+  closed: ['cancelled', 'rejected', 'expired'],
+};
 export const FINAL_STATUSES = ['sold', 'cancelled', 'rejected', 'expired'];
 export const FULFILLMENT_METHODS = ['delivery', 'pickup'];
 export const PAYMENT_METHODS = ['e_wallet', 'cash'];

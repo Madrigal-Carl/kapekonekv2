@@ -64,7 +64,7 @@ function updateText(order) {
     case 'processing': return 'Kaluppa is preparing your order.';
     case 'out_for_delivery': return f.rider?.name ? `Rider: ${f.rider.name} · ${f.rider.phone}.` : 'Your order is on its way.';
     case 'ready_for_pickup': return `Pick it up at ${f.pickup.name}, ${f.pickup.address}. ${f.pickup.hours}.`;
-    case 'sold': return 'Thanks for your order! You can now review your coffee.';
+    case 'sold': return 'Thanks for your order! You can now review what you bought.';
     case 'cancelled': return `${sentence(order.cancellation?.reason ?? 'The order was cancelled')}${refundNote}`;
     case 'rejected': return `${sentence(order.rejection?.reason ?? 'Kaluppa could not accept this order')}${refundNote}`;
     case 'expired': return `Kaluppa didn't confirm it within ${env.ORDER_EXPIRY_DAYS} days.${refundNote}`;
