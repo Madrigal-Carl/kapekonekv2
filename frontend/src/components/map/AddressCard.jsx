@@ -1,15 +1,15 @@
 import { Button } from '@/components/ui/Button'
-import { IconBriefcase, IconHome, IconMapPin } from '@/components/ui/icons'
+import { IconBriefcase, IconFarm, IconHome, IconMapPin } from '@/components/ui/icons'
 import { addressArea, addressLabel } from '@/lib/address'
 import { cn } from '@/lib/cn'
 import { formatPhone } from '@/lib/format'
 
-const ICONS = { Home: IconHome, Work: IconBriefcase, Other: IconMapPin }
+export const ADDRESS_ICONS = { Home: IconHome, Work: IconBriefcase, Farm: IconFarm, Other: IconMapPin }
 const action = 'h-10 px-3 text-[13px] hover:bg-crema'
 
 /** Saved address on /addresses (Addresses.dc.html): label, Default badge, recipient, street, area, pin status, actions. */
 export function AddressCard({ address, onEdit, onMakeDefault, onDelete, busy }) {
-  const Icon = ICONS[address.label]
+  const Icon = ADDRESS_ICONS[address.label]
   const label = addressLabel(address)
   return (
     <li className={cn('overflow-hidden rounded-card bg-white', address.isDefault ? 'border-2 border-roast' : 'border border-sand')}>

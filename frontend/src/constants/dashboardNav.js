@@ -50,15 +50,16 @@ export const TOPBAR_CART = new Set(['farmer'])
 export const ASSOCIATION_WINDOW = new Set(['farmer'])
 
 /** Account settings tabs (FarmerAssociation.dc.html). Role-keyed like the nav: Kaluppa passes every permission check. */
+// Account settings pill bar (ACCOUNT_NAV in FarmerAssociation.dc.html). `icon` keys NAV_ICONS-style names in AccountSettings.
 const BASE_TABS = [
-  { to: 'profile', label: 'Profile', description: 'Your name, photo and contact number.' },
-  { to: 'security', label: 'Security', description: 'Your email and password.' },
+  { to: 'profile', label: 'Profile', icon: 'profile', description: 'Your name, photo and contact number.' },
+  { to: 'security', label: 'Security', icon: 'security', description: 'Your email and password.' },
 ]
 export const ACCOUNT_TABS = {
   farmer: [
     ...BASE_TABS,
-    { to: 'association', label: 'Association', description: 'Your association, your documents and transfers.' },
-    { to: 'addresses', label: 'Addresses', description: 'Where we deliver your orders. We deliver anywhere in Marinduque.' },
+    { to: 'association', label: 'Association', icon: 'association', description: 'Your association, your Group Manager, your documents and transfers.' },
+    { to: 'addresses', label: 'Addresses', icon: 'addresses', description: 'Where Kaluppa delivers your fertilizer and seedlings. Your default address is picked first at checkout.' },
   ],
   group_manager: BASE_TABS,
   kaluppa: BASE_TABS,
@@ -69,7 +70,7 @@ const ACCOUNT_CRUMBS = { profile: 'Profile', security: 'Security', addresses: 'A
 /** Breadcrumb [section, page] for a dashboard path. */
 export function crumbsFor(role, pathname) {
   const [, , page, sub] = pathname.split('/')
-  if (page === 'account') return ['Account', ACCOUNT_CRUMBS[sub] ?? 'Settings']
+  if (page === 'account') return ['Account settings', ACCOUNT_CRUMBS[sub] ?? 'Profile']
   for (const [section, items] of NAV[role] ?? []) {
     const hit = items.find((i) => !i.external && i.to === `/dashboard/${page}`)
     if (hit) return [section, hit.label]

@@ -27,6 +27,15 @@ export async function capUsedKg(farmerId, { excludeId, session } = {}) {
   return row?.kg ?? 0;
 }
 
+/** Final kilograms of the farmer's completed sales since a date. */
+export async function soldKgSince(farmerId, since) {
+  const [row] = await BeanListing.aggregate([
+    { $match: { farmer: oid(farmerId), status: 'completed', 'completion.at': { $gte: since } } },
+    { $group: { _id: null, kg: { $sum: '$completion.finalWeightKg' } } },
+  ]);
+  return row?.kg ?? 0;
+}
+
 /** @returns {Promise<unknown>} the new listing's id */
 export const createListing = async (data, session) => (await BeanListing.create([data], { session }))[0]._id;
 

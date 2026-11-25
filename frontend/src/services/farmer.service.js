@@ -7,6 +7,8 @@ const page = (response) => ({ items: response.data.data, meta: response.data.met
 export const getMyFarmerProfile = () => api.get('/me/farmer-profile').then(data)
 /** @param {{ associationId: string, validId: { url: string, publicId: string }, landProof: { url: string, publicId: string } }} body */
 export const requestToJoin = (body) => api.post('/me/farmer-profile/request', body).then(data)
+export const withdrawRequest = () => api.delete('/me/farmer-profile/request').then(data)
+export const replaceDocuments = (body) => api.patch('/me/farmer-profile/documents', body).then(data)
 export const requestTransfer = (body) => api.post('/me/farmer-profile/transfer', body).then(data)
 export const withdrawTransfer = () => api.delete('/me/farmer-profile/transfer').then(data)
 

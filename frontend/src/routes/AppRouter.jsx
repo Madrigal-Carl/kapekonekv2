@@ -26,6 +26,7 @@ const ResetPassword = page(() => import('@/pages/auth/ResetPassword'), 'ResetPas
 const VerifyEmail = page(() => import('@/pages/auth/VerifyEmail'), 'VerifyEmail')
 const VerifyEmailConfirm = page(() => import('@/pages/auth/VerifyEmailConfirm'), 'VerifyEmailConfirm')
 const Addresses = page(() => import('@/pages/account/Addresses'), 'Addresses')
+const FarmerAddresses = page(() => import('@/pages/dashboard/account/FarmerAddresses'), 'FarmerAddresses')
 const Checkout = page(() => import('@/pages/account/Checkout'), 'Checkout')
 const OrderDetail = page(() => import('@/pages/account/OrderDetail'), 'OrderDetail')
 const Orders = page(() => import('@/pages/account/Orders'), 'Orders')
@@ -150,7 +151,7 @@ export const router = createBrowserRouter([
                       { path: 'profile', element: <Profile embedded /> },
                       { path: 'security', element: <Settings embedded /> },
                       { path: 'association', element: <DashboardAssociation /> },
-                      { path: 'addresses', element: <Addresses embedded /> },
+                      { path: 'addresses', element: <FarmerAddresses /> },
                       { path: '*', element: null },
                     ],
                   },

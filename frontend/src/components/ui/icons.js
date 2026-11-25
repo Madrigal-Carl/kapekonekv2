@@ -3,6 +3,9 @@
 // Icons are decorative: pass `aria-hidden` (or rely on the button's aria-label).
 // Substitutions: IconShow uses LuMessageSquareDot (no LuMessageSquareCheck in react-icons 5.7).
 import {
+  LuRoute,
+  LuMapPinOff,
+  LuShield,
   LuArchive,
   LuArrowDownUp,
   LuArrowRight,
@@ -155,6 +158,7 @@ export const IconLocate = LuLocateFixed
 export const IconLogOut = LuLogOut
 export const IconMail = LuMail
 export const IconMapPin = LuMapPin
+export const IconMapPinOff = LuMapPinOff
 export const IconMaximize = LuMaximize
 export const IconMenu = LuMenu
 export const IconMessage = LuMessageCircle
@@ -173,8 +177,10 @@ export const IconThumbsUp = LuThumbsUp
 export const IconTrash = LuTrash2
 export const IconTriangleAlert = LuTriangleAlert
 export const IconTruck = LuTruck
+export const IconRoute = LuRoute
 export const IconUpload = LuUpload
 export const IconUser = LuUser
+export const IconShield = LuShield
 export const IconUsers = LuUsersRound
 export const IconWallet = LuWallet
 export const IconX = LuX

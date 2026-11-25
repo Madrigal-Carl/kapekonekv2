@@ -113,7 +113,7 @@ function PurchasePanel({ product }) {
       <Button
         onClick={() => addToCart(product, quantity)}
         disabled={out || full}
-        pending={adding}
+        loading={adding}
         className={cn('w-full py-[15px] text-[15px]', !out && inCart > 0 ? 'mt-3.5' : 'mt-6')}
       >
         <IconShoppingBag aria-hidden="true" className="size-[18px]" strokeWidth={2} />

@@ -10,9 +10,15 @@ export const reasonSchema = z.object({ reason: cancelReasonRule });
 
 export const associationRequestSchema = z.object({
   associationId: objectIdRule,
-  validId: uploadRef('valid ID'),
-  landProof: uploadRef('proof of land ownership'),
+  // Optional when resending after a rejection: the documents already on file are reused.
+  validId: uploadRef('valid ID').optional(),
+  landProof: uploadRef('proof of land ownership').optional(),
 });
+
+/** Replace one or both documents on file (FarmerAssociation.dc.html "Replace"). */
+export const documentReplaceSchema = z
+  .object({ validId: uploadRef('valid ID').optional(), landProof: uploadRef('proof of land ownership').optional() })
+  .refine((d) => d.validId || d.landProof, { message: 'Upload a document', path: ['validId'] });
 
 export const transferRequestSchema = z.object({
   associationId: objectIdRule,

@@ -4,6 +4,7 @@ import {
 } from '../repositories/address.repository.js';
 import { AppError } from '../utils/AppError.js';
 import { quoteForAddress } from './deliveryQuote.service.js';
+import { userCan } from './permission.service.js';
 import { getLocations } from './location.service.js';
 
 export const MAX_ADDRESSES = 10;
@@ -42,8 +43,16 @@ export async function listAddresses(user) {
   return Promise.all((await listActiveByUser(user._id)).map(withQuote));
 }
 
+/** The Farm label is for people who keep farms (farmers), not buyers. */
+async function assertLabelAllowed(user, { label }) {
+  if (label === 'Farm' && !(await userCan(user, 'farms.manage'))) {
+    throw new AppError(400, 'Please check the highlighted fields.', { code: 'VALIDATION_ERROR', errors: { label: 'Choose Home, Work or Other' } });
+  }
+}
+
 /** @param {{ _id: unknown }} user */
 export async function createAddress(user, body) {
+  await assertLabelAllowed(user, body);
   const count = await countActiveByUser(user._id);
   if (count >= MAX_ADDRESSES) throw new AppError(409, `You can save up to ${MAX_ADDRESSES} addresses`);
   const address = await insertAddress({ ...toDoc(body), user: user._id, isDefault: count === 0 });
@@ -53,6 +62,7 @@ export async function createAddress(user, body) {
 
 /** @param {{ _id: unknown }} user */
 export async function updateAddress(user, id, body) {
+  await assertLabelAllowed(user, body);
   const address = await updateAddressForUser(id, user._id, toDoc(body));
   if (!address) throw notFound();
   if (body.isDefault && !address.isDefault) return presentAddress(await setDefaultForUser(id, user._id));

@@ -12,6 +12,14 @@ export const requestToJoin = asyncHandler(async (req, res) => {
   sendSuccess(res, { message: 'Request sent. We’ll let you know once it’s reviewed.', data: await myProfile.requestToJoin(req.user, req.body) });
 });
 
+export const withdrawRequest = asyncHandler(async (req, res) => {
+  sendSuccess(res, { message: 'Request withdrawn.', data: await myProfile.withdrawRequest(req.user) });
+});
+
+export const replaceDocuments = asyncHandler(async (req, res) => {
+  sendSuccess(res, { message: 'Document replaced.', data: await myProfile.replaceDocuments(req.user, req.body) });
+});
+
 export const requestTransfer = asyncHandler(async (req, res) => {
   sendSuccess(res, { message: 'Transfer requested.', data: await myProfile.requestTransfer(req.user, req.body) });
 });

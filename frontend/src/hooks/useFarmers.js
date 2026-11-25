@@ -26,6 +26,8 @@ function useMyProfileMutation(mutationFn) {
   })
 }
 export const useRequestToJoin = () => useMyProfileMutation(farmerService.requestToJoin)
+export const useWithdrawRequest = () => useMyProfileMutation(farmerService.withdrawRequest)
+export const useReplaceDocuments = () => useMyProfileMutation(farmerService.replaceDocuments)
 export const useRequestTransfer = () => useMyProfileMutation(farmerService.requestTransfer)
 export const useWithdrawTransfer = () => useMyProfileMutation(farmerService.withdrawTransfer)
 

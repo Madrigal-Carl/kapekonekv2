@@ -40,7 +40,9 @@ const areaLabel = ({ municipality, barangay, label }) =>
  *   focus: { municipality?: string|null, barangay?: string|null, fit?: boolean, label?: string },
  *   origin?: { lat: number, lng: number }, error?: string|null, busy?: boolean, note?: string|null,
  *   pinLabel?: string, ariaLabel?: string, searchable?: boolean, hints?: { empty: string, placed: string },
+ *   preview?: boolean,
  * }} props
+ * `preview`: a still thumbnail that fills its parent (address cards): no controls, no area label, not interactive.
  */
 export function MapPicker({
   value,
@@ -54,6 +56,7 @@ export function MapPicker({
   ariaLabel = 'Map. Click to drop your delivery pin.',
   searchable = true,
   hints,
+  preview = false,
 }) {
   const pickable = Boolean(onPick)
   const map = useRef(null)
@@ -117,7 +120,7 @@ export function MapPicker({
   const results = listOpen && query.trim().length >= 2 ? (search.data ?? []) : []
 
   return (
-    <div className="flex min-w-0 flex-[1_1_460px] flex-col gap-2.5">
+    <div className={cn('flex min-w-0 flex-col gap-2.5', preview ? 'h-full' : 'flex-[1_1_460px]')}>
       {searchable && pickable && (
         <div className="flex flex-wrap gap-2">
           <div className="relative min-w-[200px] flex-1" onKeyDown={(e) => e.key === 'Escape' && listOpen && (e.stopPropagation(), setListOpen(false))}>
@@ -162,7 +165,7 @@ export function MapPicker({
         </div>
       )}
 
-      <div className="relative aspect-[600/440] overflow-hidden rounded-card border border-sand bg-water">
+      <div className={cn('relative overflow-hidden bg-water', preview ? 'h-full' : 'aspect-[600/440] rounded-card border border-sand')}>
         {TOKEN ? (
           <MapGL
             ref={map}
@@ -170,6 +173,7 @@ export function MapPicker({
             initialViewState={value ? { latitude: value.lat, longitude: value.lng, zoom: 15 } : { bounds: ISLAND, fitBoundsOptions: FIT }}
             mapStyle="mapbox://styles/mapbox/streets-v12"
             cursor={pickable ? 'crosshair' : 'grab'}
+            interactive={!preview}
             logoPosition="bottom-right"
             onClick={pickable ? (e) => pick({ lat: e.lngLat.lat, lng: e.lngLat.lng }, 'map') : undefined}
             onDragStart={() => setOwnLabel(FREE)}
@@ -201,8 +205,8 @@ export function MapPicker({
             {value && (
               <Marker latitude={value.lat} longitude={value.lng} anchor="bottom" draggable={pickable} onDragEnd={(e) => pick({ lat: e.lngLat.lat, lng: e.lngLat.lng }, 'map')}>
                 <span className={cn('flex flex-col items-center', pickable && 'cursor-grab')}>
-                  <span className="mb-0.5 whitespace-nowrap rounded-[4px] bg-espresso px-2 py-[3px] text-[11px] font-semibold text-white">{pinLabel}</span>
-                  <IconMapPin aria-hidden="true" className="size-[34px] fill-roast text-white" strokeWidth={1.5} />
+                  {!preview && <span className="mb-0.5 whitespace-nowrap rounded-[4px] bg-espresso px-2 py-[3px] text-[11px] font-semibold text-white">{pinLabel}</span>}
+                  <IconMapPin aria-hidden="true" className={cn('fill-roast text-white', preview ? 'size-7' : 'size-[34px]')} strokeWidth={1.5} />
                 </span>
               </Marker>
             )}
@@ -210,7 +214,7 @@ export function MapPicker({
         ) : (
           <p className="grid h-full place-items-center p-6 text-center text-[13px] text-ink-2">The map isn’t available right now. Fill in the address fields instead.</p>
         )}
-        {TOKEN && (
+        {TOKEN && !preview && (
           <div className="absolute right-3 top-3 flex flex-col overflow-hidden rounded-[6px] border border-sand-strong bg-white shadow-[0_4px_12px_-6px_rgb(43_26_18/0.35)]">
             <Button variant="bare" aria-label="Zoom in" onClick={() => zoomBy(1)} className={cn(controlButton, 'border-b border-sand-soft')}>
               <IconPlus aria-hidden="true" className="size-4" strokeWidth={2} />
@@ -228,9 +232,9 @@ export function MapPicker({
             {error}
           </div>
         )}
-        <span aria-live="polite" className="pointer-events-none absolute bottom-3 left-3 rounded-[4px] bg-white/92 px-2 py-[3px] text-[11px] text-ink-2">
+        {!preview && <span aria-live="polite" className="pointer-events-none absolute bottom-3 left-3 rounded-[4px] bg-white/92 px-2 py-[3px] text-[11px] text-ink-2">
           {ownLabel ?? areaLabel(focus)}
-        </span>
+        </span>}
       </div>
 
       {pickable && (

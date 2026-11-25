@@ -10,6 +10,7 @@ import { Modal } from '@/components/ui/Modal'
 import { SearchSelect } from '@/components/ui/SearchSelect'
 import { Spinner } from '@/components/ui/Spinner'
 import { useCreateAddress, useUpdateAddress } from '@/hooks/useAddresses'
+import { useCan } from '@/hooks/useCan'
 import { useBarangayPoint, usePointQuote, useReverseGeocode } from '@/hooks/useGeo'
 import { useDeliveryInfo, useLocations } from '@/hooks/useSettings'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
@@ -78,6 +79,7 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
   // The highlighted area. Edit opens on the saved pin with its barangay highlighted; a new address shows the whole island.
   const [focus, setFocus] = useState(() => (address ? { municipality: address.municipality, barangay: address.barangay, fit: !address.location } : ISLAND_FOCUS))
 
+  const farmer = useCan('farms.manage') // the Farm label (server checks it too)
   const { register, control, handleSubmit, setValue, getValues, setError, getFieldState, formState: { errors } } = useForm({
     resolver: zodResolver(addressSchema),
     defaultValues: address
@@ -169,8 +171,8 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
         <form id={`${id}-form`} onSubmit={save} noValidate className="flex min-w-0 flex-[1_1_380px] flex-col gap-3.5">
           <fieldset className="m-0 border-0 p-0">
             <legend className="p-0 text-[10.5px] font-medium uppercase tracking-[0.16em] text-ink-2">Label</legend>
-            <div className="mt-2 flex gap-2">
-              {ADDRESS_LABELS.map((name) => (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {ADDRESS_LABELS.filter((name) => name !== 'Farm' || farmer || label === 'Farm').map((name) => (
                 <Button variant="bare"
                   key={name}
                   aria-pressed={label === name}

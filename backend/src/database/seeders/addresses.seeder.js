@@ -12,21 +12,33 @@ const JUANA = [
   { label: 'Other', customLabel: 'Mama’s house', recipientName: 'Lourdes Dela Cruz', phone: '09987654321', municipality: 'Boac', barangay: 'Caganhao', street: 'Blue gate beside the sari-sari store' },
 ];
 
+/** Rodel's addresses (FarmerAddresses.dc.html): a pinned Farm and Home, and an unpinned one. */
+const pinAt = (municipality, barangay) => {
+  const { lat, lng } = labelPoint(municipality, barangay);
+  return point(lat, lng);
+};
+const RODEL = [
+  { label: 'Farm', recipientName: 'Rodel Mendoza', phone: '09172221043', municipality: 'Santa Cruz', barangay: 'Pantayin', street: 'Sitio Ilaya, beside the chapel', location: pinAt('Santa Cruz', 'Pantayin'), isDefault: true },
+  { label: 'Home', recipientName: 'Rodel Mendoza', phone: '09172221043', municipality: 'Mogpog', barangay: 'Bocboc', street: 'Purok 2, near the elementary school', location: pinAt('Mogpog', 'Bocboc') },
+  { label: 'Other', customLabel: 'Mama’s house', recipientName: 'Lourdes Mendoza', phone: '09187773310', municipality: 'Boac', barangay: 'Tumagabok', street: 'Near the barangay hall' },
+];
+
 const withPostal = (address, i) => {
   const town = getLocations().find((m) => m.name === address.municipality);
   // Stagger createdAt so "newest" and list order are stable.
   return { province: 'Marinduque', postalCode: town.postalCode, isDefault: false, customLabel: null, createdAt: new Date(Date.UTC(2026, 9, 1 + i)), ...address };
 };
 
-/** Addresses for Juana (3) and each extra buyer (1, pinned inside its barangay). Users who already have addresses are skipped. */
+/** Addresses for Juana (3), Rodel the approved farmer (3) and each extra buyer (1, pinned inside its barangay). Users who already have addresses are skipped. */
 export async function seedAddresses() {
-  const users = await findUsersByUsernames(['buyer', ...Array.from({ length: 20 }, (_, i) => `buyer${String(i + 1).padStart(2, '0')}`)]);
+  const users = await findUsersByUsernames(['buyer', 'farmer.approved', ...Array.from({ length: 20 }, (_, i) => `buyer${String(i + 1).padStart(2, '0')}`)]);
   const towns = getLocations();
   const docs = [];
   for (const user of users) {
     if ((await countActiveByUser(user._id)) > 0) continue;
-    if (user.username === 'buyer') {
-      docs.push(...JUANA.map((a, i) => withPostal({ ...a, user: user._id }, i)));
+    const fixed = { buyer: JUANA, 'farmer.approved': RODEL }[user.username];
+    if (fixed) {
+      docs.push(...fixed.map((a, i) => withPostal({ ...a, user: user._id }, i)));
       continue;
     }
     const n = Number(user.username.slice(5, 7));

@@ -196,23 +196,39 @@ frontend/src/
 - **Account pages**: `AccountNav` pill bar; `/dashboard/account/{profile,security,association,addresses}`; addresses reuse Phase 1 `/addresses` endpoints; `ADDRESS_LABELS` gains `Farm`, allowed only when the user has the `farmer` role (service check).
 
 ### Task C05.A: Icons
-- [ ] `npm i react-icons`, `npm rm lucide-react`; `icons.js`; replace every `lucide-react` import and inline icon `<svg>`; icon-only buttons get `aria-label`.
-- [ ] Check: `grep -rn "<svg" frontend/src` lists only BeanMark, reaction badges, map pins (and chart data marks); `grep -rn "lucide-react" frontend` empty. Lint + tests green. Commit `Change 05A`.
+- [x] `npm i react-icons`, `npm rm lucide-react`; `icons.js`; replace every `lucide-react` import and inline icon `<svg>`; icon-only buttons get `aria-label`.
+- [x] Check: `grep -rn "<svg" frontend/src` lists only BeanMark, reaction badges, map pins (and chart data marks); `grep -rn "lucide-react" frontend` empty. Lint + tests green. Commit `Change 05A`.
 
 ### Task C05.B: Button
-- [ ] Vitest `Button.test.jsx`: each variant and size renders its classes; `loading` → disabled, spinner, loading label; `as={Link}` renders an `<a href>`; `iconOnly` without `aria-label` → `console.error`/warn in dev.
-- [ ] Rewrite Button; replace every raw `<button>` and button-styled link outside `components/ui/`; table row icon actions `iconOnly ghost sm`; ESLint guard. Lint + tests green. Commit `Change 05B`.
+- [x] Vitest `Button.test.jsx`: each variant and size renders its classes; `loading` → disabled, spinner, loading label; `as={Link}` renders an `<a href>`; `iconOnly` without `aria-label` → `console.error`/warn in dev.
+- [x] Rewrite Button; replace every raw `<button>` and button-styled link outside `components/ui/`; table row icon actions `iconOnly ghost sm`; ESLint guard. Lint + tests green. Commit `Change 05B`.
 
 ### Task C05.C: Area highlights
-- [ ] Build script + data files; tests `boundaries.test.js`: every name in `marinduque-locations.json` matches exactly one feature (218 + 6); endpoint shapes and headers (`Cache-Control`, `ETag`, 304 on `If-None-Match`); unknown municipality → 400; `reverse` of a Pantayin point → Santa Cruz / Pantayin without Mapbox naming it; a point in the sea inside the old box → outside.
-- [ ] MapPicker highlight + fit + label + pin to `label`; used by AddressFormModal, FarmForm, FarmView, branch settings; Farm Map filter/selection when M14 builds it (only `FarmMap` in screens today — note in log). Playwright: pick Boac → highlight layer drawn, then Mainit. README attribution. Commit `Change 05C`.
+- [x] Build script + data files; tests `boundaries.test.js`: every name in `marinduque-locations.json` matches exactly one feature (218 + 6); endpoint shapes and headers (`Cache-Control`, `ETag`, 304 on `If-None-Match`); unknown municipality → 400; `reverse` of a Pantayin point → Santa Cruz / Pantayin without Mapbox naming it; a point in the sea inside the old box → outside.
+- [x] MapPicker highlight + fit + label + pin to `label`; used by AddressFormModal, FarmForm, FarmView, branch settings; Farm Map filter/selection when M14 builds it (only `FarmMap` in screens today — note in log). Playwright: pick Boac → highlight layer drawn, then Mainit. README attribution. Commit `Change 05C`.
 
 ### Task C05.D: Username suggestions
-- [ ] Backend tests: create farmer / Group Manager with a taken username → 409 `USERNAME_TAKEN`; update to another user's username → 409; availability with `except` → available for own name.
-- [ ] `UsernameField` in Register, FarmerForm, GroupManagerForm (add + edit); Save disabled while taken/invalid. Playwright: taken → suggestion → save. Commit `Change 05D`.
+- [x] Backend tests: create farmer / Group Manager with a taken username → 409 `USERNAME_TAKEN`; update to another user's username → 409; availability with `except` → available for own name.
+- [x] `UsernameField` in Register, FarmerForm, GroupManagerForm (add + edit); Save disabled while taken/invalid. Playwright: taken → suggestion → save. Commit `Change 05D`.
 
 ### Task C05.E: Farmer account pages
-- [ ] `AccountNav`; Association page in 4 states (FarmerAssociation.dc.html) incl. Withdraw request (confirm) → `DELETE` pending request; Addresses page (FarmerAddresses.dc.html) with map previews, distance/fee, Farm label; avatar menu link. Tests: Farm label for buyer → 400; withdraw request → status none. Playwright: 4 states with seed farmers, Addresses page at 1440/390. Commit `Change 05E`, update this log, stop.
+- [x] `AccountNav`; Association page in 4 states (FarmerAssociation.dc.html) incl. Withdraw request (confirm) → `DELETE` pending request; Addresses page (FarmerAddresses.dc.html) with map previews, distance/fee, Farm label; avatar menu link. Tests: Farm label for buyer → 400; withdraw request → status none. Playwright: 4 states with seed farmers, Addresses page at 1440/390. Commit `Change 05E`, update this log, stop.
+
+### Change 05 — done (2026-11-25)
+
+- **A, icons**: `react-icons` (Lucide) through `components/ui/icons.js` only (ESLint `no-restricted-imports`); `IconContext` makes icons `aria-hidden`. Inline SVGs left: BeanMark, `Contours` decor, reaction badges, map pins, BarChart's data marks (ESLint `no-restricted-syntax` guard on `<svg>` outside those). `IconShow` = `LuMessageSquareDot` (no "message square check" in the set).
+- **B, Button**: one `<Button>` with the board's variants and sizes, `loading` that keeps its width, `as={Link}`, `iconOnly` warning; a guard forbids raw `<button>` outside `components/ui/`. Decision: clickables that aren't buttons on the board (menu rows, chips, tabs, thumbnails, map controls, steppers) use `variant="bare"` (reset only) rather than one primitive each.
+- **C, areas**: PSGC 2026-3q polygons (6 + 218, our spellings, `label` + `bbox` per feature, ≤ 300 KB each, no mapshaper pass); `GET /locations/boundaries` (week cache, ETag); reverse geocoding and the Marinduque check by point-in-polygon (200 m shore tolerance), Mapbox only for the street; MapPicker highlights + fits + names the area; seeds pinned inside their barangays. **Not built yet**: Farm Map filter highlight (M14) and branch settings (M11) — they'll use the same MapPicker `focus`.
+- **D, usernames**: `UsernameField` (sign-up's) in Register and the Add/Edit farmer and Group Manager drawers; suggestions follow the name; saving is blocked while taken or invalid; `409 USERNAME_TAKEN`. Decision: edit drawers treat the account's own username as fine on the client (`current`), so no `except` parameter was added to the availability endpoint.
+- **E, farmer account**: pill AccountNav (Profile · Security, plus Association · Addresses for farmers); Association in 4 states. The profile API now returns history with names, the Group Manager's email, the association's farm count, the cap and the farmer's own totals. New endpoints: `DELETE /me/farmer-profile/request` (withdraw, with a confirm) and `PATCH /me/farmer-profile/documents` (Replace, audited by name only). A rejected farmer's "Send it again" resends with the documents on file. The farmer's own mutations return the full profile. Addresses page with still MapPicker previews (`preview` prop), distance/fee, and a striped "No pin yet" panel; the `Farm` label is allowed by `farms.manage` (permission, not role; a buyer gets 400). Seeds: Rodel (`farmer.approved`) has 3 addresses like the screen.
+- **Deviations from the screens**:
+  - Rejected: both document chips say "Replace this", because the reason is free text and doesn't say which document. The "Fix" stat reads "Your documents".
+  - Group Manager card: no "Meets" row and no "replies within a day" line (no data). Phone shows "—" for the seed Group Managers, who have no number.
+  - Approved timeline: "Reviewed by" and "Approved" share the decision date.
+- **Verified**: backend 441, frontend 219 (+ `Association.test.jsx`), lint clean in both apps; `migrate:fresh -- --seed` ok. Playwright: `maps.spec.js` (Boac → Mainit in the address window at 1440/390 and the farm form, camera fit, boundaries cache), `dashboard.spec.js` (taken username → suggestion → save), `farmerAccount.spec.js` (Association for approved / pending / rejected / none at 1440/390, the Addresses page through the avatar menu at 1440/390, the buyer guard for the Farm label). Screenshots compared by hand with FarmerAssociation / FarmerAddresses / AddressModal. Full suite after the reseed: 58/60. The two failures (a11y guest pages, beans page-fit) passed on rerun; they were caused by network timeouts to Atlas and Valkey during the run. The beans spec's "3 of 5 kg" check only holds right after a reseed, because the spec changes `farmer.pending`'s listings. Found and fixed during verification: two leftover `pending=` props on `<Button>` from 05B (ConfirmModal confirm, product Add to cart), which had dropped their spinners.
+- **Risk**: every pinned address card is its own Mapbox map (WebGL context); 10 addresses = 10 maps on one page (Chrome allows ~16).
+
+---
 
 ## M11 — Store for farmers, Kaluppa orders, inventory, reviews, settings
 

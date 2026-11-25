@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Farm } from '../models/farm.model.js';
 import { pageList } from '../utils/pageList.js';
 
@@ -54,6 +55,14 @@ export const setManagedAssociation = (managerId, associationId) => Farm.updateMa
 /** Ids of the farms in a scope, archived ones included (their harvests stay visible). null scope = every farm. */
 export const findFarmIdsInScope = (scope, q) =>
   Farm.find({ ...scopeFilter(scope), ...(q && { $or: [{ propertyNumber: q }, { lotNumber: q }] }) }).distinct('_id');
+
+/** A farmer's active farms: how many and their total hectares. */
+export async function ownerTotals(ownerId) {
+  const [row] = await Farm.aggregate([{ $match: { owner: new mongoose.Types.ObjectId(String(ownerId)), archivedAt: null } }, { $group: { _id: null, farms: { $sum: 1 }, hectares: { $sum: '$sizeHa' } } }]);
+  return { farms: row?.farms ?? 0, hectares: row?.hectares ?? 0 };
+}
+
+export const countFarmsByAssociation = (associationId) => Farm.countDocuments({ association: associationId, archivedAt: null });
 
 /** Ids of the Kaluppa farms a Group Manager manages. */
 export const findManagedFarmIds = (managerId) => Farm.find({ managedBy: managerId }).distinct('_id');

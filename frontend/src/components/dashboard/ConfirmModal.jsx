@@ -103,7 +103,7 @@ export function ConfirmModal({
               <Button
                 onClick={() => onConfirm(needsReason ? reason.trim() : undefined)}
                 disabled={!reasonOk}
-                pending={pending}
+                loading={pending}
                 className={cn('min-h-[42px] py-0', tone.confirm)}
               >
                 {confirmLabel}

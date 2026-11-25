@@ -1,9 +1,13 @@
 import { env } from '../config/env.js';
 import { EMAIL_JOBS } from '../queues/email.jobs.js';
 import { enqueueEmail } from '../queues/email.queue.js';
+import { BEAN_CAP_KG } from '../constants/beans.js';
 import { findAssociationById } from '../repositories/association.repository.js';
+import { capUsedKg, soldKgSince } from '../repositories/bean.repository.js';
+import { countFarmsByAssociation, findFarmIdsInScope, ownerTotals } from '../repositories/farm.repository.js';
+import { yieldByVariety } from '../repositories/harvest.repository.js';
 import * as profiles from '../repositories/farmerProfile.repository.js';
-import { findActiveRecipientsByRole, findRecipient } from '../repositories/user.repository.js';
+import { findActiveRecipientsByRole, findNamesByIds, findRecipient } from '../repositories/user.repository.js';
 import { AppError } from '../utils/AppError.js';
 import { record } from './audit.service.js';
 import { ensureKaluppaChat } from './chat.service.js';
@@ -47,20 +51,37 @@ async function myProfile(user) {
   return profile;
 }
 
-/** The farmer's own view adds who runs the association, its size and who approved them (FarmerAssociation.dc.html). */
+/**
+ * The farmer's own view (FarmerAssociation.dc.html): who runs the association and its size, who approved them,
+ * the request history with names, the bean cap and their own record totals for the stats strip.
+ */
 export async function getMyProfile(user) {
   const profile = await myProfile(user);
   const dto = profileDto(profile);
   const association = profile.association;
-  if (!association) return dto;
-  const [manager, approver, counts] = await Promise.all([
-    association.groupManager ? findRecipient(association.groupManager) : null,
-    profile.approvedBy ? findRecipient(profile.approvedBy) : null,
-    profiles.countFarmersByAssociation([association._id]),
+  const yearStart = new Date(new Date().getFullYear(), 0, 1);
+  const history = profile.history ?? [];
+  const people = [...new Set([...history.map((h) => h.by), profile.approvedBy].filter(Boolean).map(String))];
+  const [manager, names, counts, farms, totals, usedKg, soldKg, harvests] = await Promise.all([
+    association?.groupManager ? findRecipient(association.groupManager) : null,
+    findNamesByIds(people),
+    association ? profiles.countFarmersByAssociation([association._id]) : null,
+    association ? countFarmsByAssociation(association._id) : 0,
+    ownerTotals(user._id),
+    capUsedKg(user._id),
+    soldKgSince(user._id, yearStart),
+    findFarmIdsInScope({ ownerId: user._id }).then((ids) => (ids.length ? yieldByVariety(ids, yearStart) : [])),
   ]);
-  dto.association.groupManager = manager ? { id: String(manager._id), name: fullName(manager), contactNumber: manager.contactNumber ?? null } : null;
-  dto.association.farmers = counts.get(String(association._id)).approved;
-  dto.approvedBy = approver ? { name: fullName(approver) } : null;
+  const nameOf = new Map(names.map((u) => [String(u._id), fullName(u)]));
+  if (association) {
+    dto.association.groupManager = manager ? { id: String(manager._id), name: fullName(manager), contactNumber: manager.contactNumber ?? null, email: manager.email ?? null } : null;
+    dto.association.farmers = counts.get(String(association._id)).approved;
+    dto.association.farms = farms;
+  }
+  dto.approvedBy = profile.approvedBy ? { name: nameOf.get(String(profile.approvedBy)) ?? null } : null;
+  dto.history = history.map((h) => ({ action: h.action, at: h.at, by: nameOf.get(String(h.by)) ?? null, note: h.note ?? null }));
+  dto.cap = { capKg: BEAN_CAP_KG, usedKg, leftKg: Math.max(0, BEAN_CAP_KG - usedKg) };
+  dto.records = { ...totals, harvestKgThisYear: harvests.reduce((sum, row) => sum + row.kg, 0), soldKgThisYear: soldKg };
   return dto;
 }
 
@@ -98,7 +119,13 @@ export async function requestToJoin(user, { associationId, validId, landProof })
   if (current.status === 'pending') throw new AppError(409, 'Your request is waiting for approval.');
   if (current.status === 'approved') throw new AppError(409, 'You’re already in an association. Ask for a transfer instead.');
   const association = await activeAssociation(associationId);
-  const documents = { validId: await storedDocument(user, validId, 'validId'), landProof: await storedDocument(user, landProof, 'landProof') };
+  // A resend after a rejection may keep the documents already on file.
+  const keep = (ref, field, label) => {
+    if (ref) return storedDocument(user, ref, field);
+    if (current.documents?.[field]) return current.documents[field];
+    throw fieldError(field, `Upload your ${label}`);
+  };
+  const documents = { validId: await keep(validId, 'validId', 'valid ID'), landProof: await keep(landProof, 'landProof', 'proof of land ownership') };
   const updated = await profiles.updateProfileWhen(user._id, { status: { $in: ['none', 'rejected'] } }, {
     $set: { status: 'pending', association: association._id, documents, requestedAt: new Date(), rejectionReason: null },
     $push: { history: { action: 'request', by: user._id, note: association.name } },
@@ -106,7 +133,32 @@ export async function requestToJoin(user, { associationId, validId, landProof })
   if (!updated) throw new AppError(409, 'Your request is waiting for approval.');
   await notifyDeciders(association, user, `${fullName(user)} wants to join ${association.name}`);
   await record({ actor: user, area: 'farmers', action: 'request', entity: farmerEntity(user), before: { status: current.status }, after: { status: 'pending', association: association.name }, fields: ['status', 'association'] });
-  return profileDto(updated);
+  return getMyProfile(user);
+}
+
+/** The farmer takes back a waiting request; they're back to no association (PHASE-2-SPEC §3.1). */
+export async function withdrawRequest(user) {
+  const current = await myProfile(user);
+  const updated = await profiles.updateProfileWhen(user._id, { status: 'pending' }, {
+    $set: { status: 'none', association: null, requestedAt: null },
+    $push: { history: { action: 'request_withdraw', by: user._id, note: current.association?.name } },
+  });
+  if (!updated) throw new AppError(409, 'You have no request waiting.');
+  await record({ actor: user, area: 'farmers', action: 'request_withdraw', entity: farmerEntity(user), before: { status: 'pending', association: current.association?.name }, after: { status: 'none' }, fields: ['status', 'association'] });
+  return getMyProfile(user);
+}
+
+/** Replace documents on file. Approval doesn't change, and a waiting request keeps waiting. */
+export async function replaceDocuments(user, refs) {
+  const current = await myProfile(user);
+  if (current.status === 'none') throw new AppError(409, 'Send a request to join an association first.');
+  const fields = ['validId', 'landProof'].filter((field) => refs[field]);
+  const set = {};
+  for (const field of fields) set[`documents.${field}`] = await storedDocument(user, refs[field], field);
+  await profiles.updateProfileWhen(user._id, {}, { $set: set, $push: { history: { action: 'documents', by: user._id, note: fields.join(',') } } });
+  // Which documents only: the audit log never stores the files.
+  await record({ actor: user, area: 'farmers', action: 'documents', entity: farmerEntity(user), after: { replaced: fields.join(', ') }, fields: ['replaced'] });
+  return getMyProfile(user);
 }
 
 /** An approved farmer asks to move; they stay in their association until the new Group Manager approves. */
@@ -123,7 +175,7 @@ export async function requestTransfer(user, { associationId, reason }) {
   if (!updated) throw new AppError(409, 'You already asked for a transfer. Withdraw it first.');
   await notifyDeciders(target, user, `${fullName(user)} wants to move to ${target.name}`);
   await record({ actor: user, area: 'farmers', action: 'transfer_request', entity: farmerEntity(user), after: { transferTo: target.name }, fields: ['transferTo'] });
-  return profileDto(updated);
+  return getMyProfile(user);
 }
 
 export async function withdrawTransfer(user) {
@@ -134,7 +186,7 @@ export async function withdrawTransfer(user) {
   });
   if (!updated) throw new AppError(409, 'You have no transfer request.');
   await record({ actor: user, area: 'farmers', action: 'transfer_withdraw', entity: farmerEntity(user), before: { transferTo: current.transferRequest?.association?.name }, fields: ['transferTo'] });
-  return profileDto(updated);
+  return getMyProfile(user);
 }
 
 /** In-app notification and email to the farmer about a decision. */

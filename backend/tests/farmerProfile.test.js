@@ -107,6 +107,45 @@ describe('association requests', () => {
   });
 });
 
+describe('the account page', () => {
+  it('shows the history with names, the cap and the farmer’s own totals', async () => {
+    const { agent, user } = await registerFarmer(app, User, 'gil');
+    await ask(agent, user, associations.santacruz).expect(200);
+    await santacruzManager.post(`/api/farmers/${user._id}/approve`).expect(200);
+    const { body } = await agent.get('/api/me/farmer-profile');
+    expect(body.data.history.map((h) => [h.action, h.by])).toEqual([['request', 'Gil Farmer'], ['approve', 'Liza Ramos']]);
+    expect(body.data.association).toMatchObject({ groupManager: { email: expect.stringContaining('@') }, farms: 0 });
+    expect(body.data.cap).toEqual({ capKg: 5, usedKg: 0, leftKg: 5 });
+    expect(body.data.records).toEqual({ farms: 0, hectares: 0, harvestKgThisYear: 0, soldKgThisYear: 0 });
+  });
+
+  it('a waiting request can be withdrawn, once', async () => {
+    const { agent, user } = await registerFarmer(app, User, 'hana');
+    await ask(agent, user, associations.santacruz).expect(200);
+    const res = await agent.delete('/api/me/farmer-profile/request').expect(200);
+    expect(res.body.data).toMatchObject({ status: 'none', association: null });
+    expect(res.body.data.history.at(-1)).toMatchObject({ action: 'request_withdraw', note: 'Santa Cruz Growers' });
+    expect((await agent.delete('/api/me/farmer-profile/request')).status).toBe(409);
+    expect(await AuditLog.exists({ action: 'request_withdraw', entityId: user._id })).toBeTruthy();
+  });
+
+  it('documents can be replaced without changing the status; a rejected farmer resends with the ones on file', async () => {
+    const { agent, user } = await registerFarmer(app, User, 'ivy');
+    expect((await agent.patch('/api/me/farmer-profile/documents').send({ landProof: documentsOf(user._id).landProof })).status).toBe(409);
+    await ask(agent, user, associations.boac).expect(200);
+    await boacManager.post(`/api/farmers/${user._id}/reject`).send({ reason: 'The land proof is blurry.' }).expect(200);
+    expect((await agent.patch('/api/me/farmer-profile/documents').send({})).body.code).toBe('VALIDATION_ERROR');
+    const { landProof } = documentsOf(user._id);
+    const fresh = { url: landProof.url.replace('/land.pdf', '/new-land.pdf'), publicId: landProof.publicId.replace(/land$/, 'new-land') };
+    const replaced = await agent.patch('/api/me/farmer-profile/documents').send({ landProof: fresh }).expect(200);
+    expect(replaced.body.data).toMatchObject({ status: 'rejected', documents: { landProof: { publicId: fresh.publicId, kind: 'pdf' } } });
+    const audit = await AuditLog.findOne({ action: 'documents', entityId: user._id }).lean();
+    expect(JSON.stringify(audit)).not.toContain(fresh.publicId);
+    const resent = await agent.post('/api/me/farmer-profile/request').send({ associationId: associations.boac.id }).expect(200);
+    expect(resent.body.data).toMatchObject({ status: 'pending', documents: { landProof: { publicId: fresh.publicId } } });
+  });
+});
+
 describe('transfers and removal', () => {
   let farmer;
   beforeAll(async () => {

@@ -114,6 +114,14 @@ describe('addresses', () => {
     expect(missingLabel.body.errors).toHaveProperty('customLabel');
   });
 
+  it('lets farmers, not buyers, label an address Farm', async () => {
+    const refused = await buyer.post('/api/addresses').send({ ...home, label: 'Farm' });
+    expect(refused.status).toBe(400);
+    expect(refused.body).toMatchObject({ code: 'VALIDATION_ERROR', errors: { label: 'Choose Home, Work or Other' } });
+    const farmer = await signedIn('kapekonek.farmer.approved@gmail.com');
+    expect((await farmer.post('/api/addresses').send({ ...home, label: 'Farm' })).body.data).toMatchObject({ label: 'Farm' });
+  });
+
   it('quotes a saved address through /delivery/quote?addressId', async () => {
     const mine = (await buyer.post('/api/addresses').send(home)).body.data;
     const res = await buyer.get(`/api/delivery/quote?addressId=${mine._id}`);

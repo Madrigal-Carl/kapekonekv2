@@ -6,7 +6,7 @@ import { validate } from '../middlewares/validate.js';
 import { verified } from '../middlewares/verified.middleware.js';
 import { idParams } from '../schemas/common.schema.js';
 import {
-  associationRequestSchema,
+  associationRequestSchema, documentReplaceSchema,
   farmerCreateSchema,
   farmerListQuery,
   farmerUpdateSchema,
@@ -19,6 +19,8 @@ const router = Router();
 router.use('/me/farmer-profile', authenticate, verified, can('association.request'));
 router.get('/me/farmer-profile', farmers.showMine);
 router.post('/me/farmer-profile/request', validate({ body: associationRequestSchema }), farmers.requestToJoin);
+router.delete('/me/farmer-profile/request', farmers.withdrawRequest);
+router.patch('/me/farmer-profile/documents', validate({ body: documentReplaceSchema }), farmers.replaceDocuments);
 router.post('/me/farmer-profile/transfer', validate({ body: transferRequestSchema }), farmers.requestTransfer);
 router.delete('/me/farmer-profile/transfer', farmers.withdrawTransfer);
 

@@ -9,7 +9,7 @@ const MUNICIPALITIES = getLocations().map((m) => m.name);
 /** Add/edit body. Province and postal code are derived on the server; a `location` of null removes the pin. */
 export const addressSchema = z
   .object({
-    label: z.enum(ADDRESS_LABELS, 'Choose Home, Work or Other'),
+    label: z.enum(ADDRESS_LABELS, 'Choose a label'),
     customLabel: customLabelRule.optional().nullable(),
     recipientName: recipientNameRule,
     phone: phoneRule,

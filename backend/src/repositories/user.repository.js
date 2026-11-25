@@ -111,6 +111,9 @@ export const findActiveRecipientsByRole = (role) =>
   User.find({ roles: role, status: 'active', email: { $ne: null } }, 'firstName email').lean();
 
 /** Recipient fields of one account. */
+/** First and last names of these users. */
+export const findNamesByIds = (ids) => User.find({ _id: { $in: ids } }, 'firstName lastName').lean();
+
 export const findRecipient = (id) => User.findById(id, 'firstName lastName email status contactNumber').lean();
 
 /**
