@@ -8,6 +8,8 @@ import { PageHeader } from '@/components/dashboard/PageHeader'
 import { NavIcon } from '@/components/dashboard/Sidebar'
 import { StageBar } from '@/components/dashboard/StageBar'
 import { SINGLE_SERIES, stageItems } from '@/constants/charts'
+import { DASH_ORDER_STATUS } from '@/constants/orderStatus'
+import { formatPesoShort } from '@/lib/format'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/cn'
 import { greeting, todayInManila } from '@/lib/date'
@@ -72,9 +74,22 @@ function Banner({ banner, onOpen }) {
 const kg = (n) => `${n.toLocaleString('en-PH', { maximumFractionDigits: 1 })} kg`
 
 /** Farmer overview (OverviewFarmer.dc.html). Farms, trees, harvests and beans fill in from M9/M10; until then the tiles read zero and the charts show their empty state. */
+/** "KK-… · Complete fertilizer 14-14-14" / "2 items · ₱2,690 · cash on delivery" (OverviewFarmer.dc.html). */
+const orderRow = (o) => ({
+  key: o.id,
+  title: `${o.orderNumber} · ${o.firstItem}`,
+  sub: [
+    `${o.itemCount} ${o.itemCount === 1 ? 'item' : 'items'}`,
+    formatPesoShort(o.totalCentavos),
+    o.paymentMethod === 'e_wallet' ? 'e-wallet' : o.fulfillmentMethod === 'delivery' ? 'cash on delivery' : 'cash on pickup',
+  ].join(' · '),
+  status: DASH_ORDER_STATUS[o.status].label,
+  tone: DASH_ORDER_STATUS[o.status].tone,
+})
+
 export function OverviewFarmer({ data }) {
   const { user } = useAuth()
-  const { farmer, cap, kpis, harvestByMonth, treesByStage } = data
+  const { farmer, cap, kpis, harvestByMonth, treesByStage, orders } = data
   const banner = bannerFor(farmer)
   const showWindow = useAssociationWindow((s) => s.show)
   const openWindow = () => showWindow(farmer.status === 'rejected' ? { reason: farmer.rejectionReason, by: farmer.groupManager?.name ?? null } : null)
@@ -112,7 +127,7 @@ export function OverviewFarmer({ data }) {
       </Row>
       <Row>
         <ListPanel title="Bean listings" link={{ to: '/dashboard/beans', label: 'All beans' }} rows={[]} empty="No bean listings yet." />
-        <ListPanel title="Store orders" link={{ to: '/dashboard/orders', label: 'All orders' }} rows={[]} empty="No store orders yet." />
+        <ListPanel title="Store orders" link={{ to: '/dashboard/orders', label: 'All orders' }} rows={orders.map(orderRow)} empty="No store orders yet." />
       </Row>
     </>
   )

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { EWALLET_PROVIDERS, FULFILLMENT_METHODS, ORDER_GROUPS, ORDER_STATUSES, PAYMENT_METHODS } from '../constants/orderStatus.js';
-import { csvOf, objectIdRule, pageQuery } from './common.schema.js';
+import { csvOf, objectIdRule, pageQuery, pageQuerySchema } from './common.schema.js';
 import { phoneRule } from './rules.js';
 
 const reasonCode = z.string().trim().max(40).optional();
@@ -32,6 +32,16 @@ export const orderTableFilters = z.object({
   group: z.enum([...Object.keys(ORDER_GROUPS), 'all'], 'Unknown status').default('all'),
   q: z.string().trim().max(80).default(''),
 });
+
+/** Kaluppa's Orders table (GET /admin/orders): Status group (To confirm by default), customer type, method, payment, search. */
+export const adminOrderFilters = z.object({
+  status: z.enum([...Object.keys(ORDER_GROUPS), 'all'], 'Unknown status').default('to_confirm'),
+  q: z.string().trim().max(80).default(''),
+  type: z.enum(['buyer', 'farmer'], 'Unknown customer type').optional(),
+  method: z.enum(FULFILLMENT_METHODS, 'Unknown delivery method').optional(),
+  payment: z.enum(PAYMENT_METHODS, 'Unknown payment').optional(),
+});
+export const adminOrderListQuery = adminOrderFilters.extend(pageQuerySchema.shape);
 
 /** Buyer pages page by cursor; the farmer's dashboard table sends `page` for numbered pages. */
 export const orderListQuery = pageQuery(20, 10).extend({

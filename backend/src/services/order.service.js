@@ -5,7 +5,7 @@ import { EMAIL_JOBS } from '../queues/email.jobs.js';
 import { enqueueEmail } from '../queues/email.queue.js';
 import { clearCartItems } from '../repositories/cart.repository.js';
 import { countByStatusForBuyer, createOrder, findOrderById, listByBuyerCursor, listOrdersPage } from '../repositories/order.repository.js';
-import { updateContactNumber } from '../repositories/user.repository.js';
+import { findCustomer, updateContactNumber } from '../repositories/user.repository.js';
 import { realtime } from '../sockets/realtime.js';
 import { AppError } from '../utils/AppError.js';
 import { etaWindow } from '../utils/businessDays.js';
@@ -150,6 +150,10 @@ export async function placeOrder(user, body) {
   return outcome.result;
 }
 
+/** The order's customer as the dashboard shows it (null for a deleted account). */
+const customerOf = (user) =>
+  user ? { id: user._id, name: fullName(user), role: user.roles.includes('farmer') ? 'farmer' : 'buyer', phone: user.contactNumber ?? null } : null;
+
 /**
  * A numbered page of orders for a dashboard table: `scope` limits whose orders (the farmer's own, or Kaluppa's filters),
  * `group` is a Status dropdown group, `q` matches the order number, an item name, or any of `orIds` as the customer.
@@ -167,7 +171,7 @@ export async function listOrderTable(scope, { group, q, page, limit }, orIds = [
   const result = await listOrdersPage(filter, { page, limit });
   const etaDays = await getSetting('delivery.eta');
   const now = new Date();
-  return { items: result.items.map((o) => withEta(o, etaDays, now)), meta: result.meta };
+  return { items: result.items.map((o) => withEta({ ...o, buyer: o.buyer?._id ?? null, customer: customerOf(o.buyer) }, etaDays, now)), meta: result.meta };
 }
 
 /**
@@ -198,4 +202,9 @@ export async function findOrderFor(user, id) {
   return order;
 }
 
-export const getOrderFor = async (user, id) => presentOrder(await findOrderFor(user, id));
+/** The order; Kaluppa (orders.manage) also gets the customer for the manage drawer. */
+export async function getOrderFor(user, id) {
+  const order = await presentOrder(await findOrderFor(user, id));
+  if (!(await userCan(user, 'orders.manage'))) return order;
+  return { ...order, customer: customerOf(await findCustomer(order.buyer)) };
+}

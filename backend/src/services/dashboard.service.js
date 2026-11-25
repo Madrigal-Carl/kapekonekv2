@@ -1,7 +1,7 @@
 import { countActiveAssociations, findAssociationById } from '../repositories/association.repository.js';
 import { capUsedKg, countPendingListings } from '../repositories/bean.repository.js';
 import { countFarmersByAssociation, countFarmersEverywhere, countWaiting, findProfileByUser, listWaiting } from '../repositories/farmerProfile.repository.js';
-import { countOrdersToConfirm, listOrdersToConfirm, sumSalesByMonth } from '../repositories/order.repository.js';
+import { countOrdersToConfirm, listOrdersPage, listOrdersToConfirm, sumSalesByMonth } from '../repositories/order.repository.js';
 import { findLowStock } from '../repositories/product.repository.js';
 import { findRecipient } from '../repositories/user.repository.js';
 import { userCan } from './permission.service.js';
@@ -79,7 +79,16 @@ async function farmerOverview(user) {
     harvestByMonth: emptySeries(12),
     treesByStage: [],
     beans: [],
-    orders: [], // the farmer store arrives in M11
+    orders: (await listOrdersPage({ buyer: user._id }, { page: 1, limit: 3 })).items.map((o) => ({
+      id: String(o._id),
+      orderNumber: o.orderNumber,
+      firstItem: o.items[0]?.name ?? '',
+      itemCount: o.items.length,
+      totalCentavos: o.totalCentavos,
+      paymentMethod: o.payment.method,
+      fulfillmentMethod: o.fulfillment.method,
+      status: o.status,
+    })),
   };
 }
 

@@ -8,6 +8,7 @@ import {
   LuShield,
   LuArchive,
   LuArrowDownUp,
+  LuDownload,
   LuArrowRight,
   LuArrowUpRight,
   LuBadgeCheck,
@@ -125,6 +126,7 @@ export const IconDelete = LuTrash2
 
 // General
 export const IconArrowDownUp = LuArrowDownUp
+export const IconDownload = LuDownload
 export const IconArrowRight = LuArrowRight
 export const IconArrowUpRight = LuArrowUpRight
 export const IconBadgeCheck = LuBadgeCheck

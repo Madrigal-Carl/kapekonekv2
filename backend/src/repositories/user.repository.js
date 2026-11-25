@@ -159,6 +159,12 @@ export function listGroupManagers({ words, orIds, status, assignedIds, page, lim
 export const setAccountStatus = (userId, status) =>
   User.findByIdAndUpdate(userId, { status, ...(status === 'suspended' && { $inc: { tokenVersion: 1 } }) }, { returnDocument: 'after' }).lean();
 
+/** Ids of every user with the role, archived or not (orders keep their customer). */
+export const findUserIdsWithRole = (role) => User.find({ roles: role }).distinct('_id');
+
+/** Name, roles and phone of an order's customer. */
+export const findCustomer = (id) => User.findById(id, 'firstName lastName roles contactNumber').lean();
+
 /**
  * Ids of users whose name or username matches every word (searching records by person).
  * @param {RegExp[]} words

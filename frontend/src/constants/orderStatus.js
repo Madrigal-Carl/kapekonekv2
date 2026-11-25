@@ -142,3 +142,12 @@ export function paymentPill(order) {
   if (order.status === 'pending') return { label: `${order.payment.provider} · check receipt`, tone: 'amber' }
   return { label: `${order.payment.provider} · verified`, tone: 'green' }
 }
+
+/** Kaluppa's reject reasons (OrdersKaluppa.dc.html), on the server's REJECT_REASONS codes. */
+export const REJECT_OPTIONS = [
+  { value: 'invalid_receipt', label: 'Invalid receipt' },
+  { value: 'amount_mismatch', label: 'Amount doesn’t match' },
+  { value: 'out_of_stock', label: 'Out of stock' },
+  { value: 'outside_delivery_area', label: 'Outside delivery area' },
+  { value: 'other', label: 'Other' },
+]

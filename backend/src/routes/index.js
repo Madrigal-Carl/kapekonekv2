@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import accountRoutes from './account.routes.js';
+import adminOrderRoutes from './adminOrder.routes.js';
 import associationRoutes from './association.routes.js';
 import dashboardRoutes from './dashboard.routes.js';
 import beanRoutes from './bean.routes.js';
@@ -30,6 +31,7 @@ router.use(geoRoutes);
 router.use(addressRoutes);
 router.use(cartRoutes);
 router.use(orderRoutes);
+router.use(adminOrderRoutes);
 router.use(notificationRoutes);
 router.use(accountRoutes);
 router.use(associationRoutes);

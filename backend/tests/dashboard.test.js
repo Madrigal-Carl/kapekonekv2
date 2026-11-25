@@ -22,10 +22,12 @@ const { User } = await import('../src/models/index.js');
 
 let associations;
 let waiting;
+let catalog;
 beforeAll(async () => {
   await startMemoryDb();
   await runSeeders({ only: ['roles', 'users'], log: () => {} });
   const { products } = await seedCatalogFixture();
+  catalog = products;
   associations = await setUpAssociations(app, User);
   for (const username of ['wanda', 'wes']) {
     const farmer = await registerFarmer(app, User, username);
@@ -82,6 +84,17 @@ describe('GET /dashboard/overview', () => {
       orders: [],
     });
     expect(data.harvestByMonth.labels).toHaveLength(12);
+  });
+
+  it('farmer: their three newest store orders', async () => {
+    const { Order } = await import('../src/models/index.js');
+    const email = (await User.findById(waiting.user._id).lean()).email;
+    const made = [];
+    for (let i = 0; i < 4; i += 1) made.push(await makeOrder(catalog, { email, items: [['organic-fertilizer-25kg', 2]], createdAt: new Date(Date.UTC(2026, 10, 10 + i)) }));
+    const { orders } = (await waiting.agent.get('/api/dashboard/overview')).body.data;
+    expect(orders.map((o) => o.orderNumber)).toEqual(made.slice(1).reverse().map((o) => o.orderNumber));
+    expect(orders[0]).toMatchObject({ id: expect.any(String), firstItem: 'Organic Fertilizer 25 kg', itemCount: 1, totalCentavos: expect.any(Number), paymentMethod: 'cash', fulfillmentMethod: 'delivery', status: 'pending' });
+    await Order.deleteMany({ _id: { $in: made.map((o) => o._id) } });
   });
 
   it('Group Manager: its association, counts and the approval queue', async () => {

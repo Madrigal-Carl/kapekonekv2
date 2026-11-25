@@ -13,3 +13,16 @@ export const getOrderCounts = () => api.get('/orders/counts').then(data)
 export const getOrder = (id) => api.get(`/orders/${id}`).then(data)
 export const placeOrder = (body) => api.post('/orders', body).then(data)
 export const cancelOrder = ({ id, reasonCode, reason }) => api.post(`/orders/${id}/cancel`, { reasonCode, reason }).then(data)
+
+const adminParams = ({ status, q, type, method, payment }) => ({ status: status || undefined, q: q || undefined, type: type || undefined, method: method || undefined, payment: payment || undefined })
+
+/** Kaluppa's Orders table: every buyer and farmer order (status group, customer type, method, payment, search). */
+export const listAdminOrders = ({ page, limit, ...filters }) =>
+  api.get('/admin/orders', { params: { ...adminParams(filters), page, limit } }).then((r) => ({ items: r.data.data, meta: r.data.meta }))
+
+/** The CSV download link for the same filters (the cookie session goes with the navigation). */
+export const adminOrdersCsvUrl = (filters) => api.getUri({ url: '/admin/orders/export.csv', params: adminParams(filters) })
+
+/** Kaluppa moves an order one step (Phase 1 transitions): `{ status, reasonCode?, reason?, rider? }`. */
+export const changeOrderStatus = ({ id, ...body }) => api.patch(`/orders/${id}/status`, body).then(data)
+export const markOrderRefunded = ({ id, referenceNumber }) => api.patch(`/orders/${id}/refund`, { referenceNumber }).then(data)

@@ -1,8 +1,8 @@
 import { useCan } from '@/hooks/useCan'
-import { ComingSoon } from '../ComingSoon'
 import { FarmerOrders } from './FarmerOrders'
+import { KaluppaOrders } from './KaluppaOrders'
 
 /** /dashboard/orders: Kaluppa manages every order; a farmer follows their own. */
 export function Orders() {
-  return useCan('orders.manage') ? <ComingSoon /> : <FarmerOrders />
+  return useCan('orders.manage') ? <KaluppaOrders /> : <FarmerOrders />
 }
