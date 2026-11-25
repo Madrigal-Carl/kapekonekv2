@@ -90,7 +90,7 @@ export const FERTILIZER = [
   { name: 'Muriate of Potash 0-0-60', slug: 'muriate-of-potash-0-0-60', unitLabel: '50 kg sack', priceCentavos: 190000, stock: 18, shortDescription: 'Potassium for cherry filling before harvest.' },
   { name: 'Organic Fertilizer', slug: 'organic-fertilizer', unitLabel: '25 kg sack', priceCentavos: 45000, stock: 60, shortDescription: 'Composted farm manure to build soil organic matter.' },
   { name: 'Vermicast', slug: 'vermicast', unitLabel: '10 kg bag', priceCentavos: 25000, stock: 4, shortDescription: 'Worm castings for nursery mixes and seedlings.' },
-].map((p) => ({ ...supply, ...p, media: ['fertilizer-granules'], description: `${p.shortDescription} Sold per ${p.unitLabel}.` }));
+].map((p) => ({ ...supply, unit: 'sack', ...p, media: ['fertilizer-granules'], description: `${p.shortDescription} Sold per ${p.unitLabel}.` }));
 
 export const SEEDLINGS = ['liberica', 'excelsa', 'arabica', 'robusta'].map((variety, i) => {
   const name = `${variety[0].toUpperCase()}${variety.slice(1)} Seedling`;

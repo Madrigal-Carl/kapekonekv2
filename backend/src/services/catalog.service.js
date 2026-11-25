@@ -60,7 +60,7 @@ async function present(viewer, product, cache = new Map()) {
 export async function listProducts(viewer, { search, category, variety, coffeeType, minPrice, maxPrice, featured, sort, cursor, limit }) {
   const visible = await listShopCategories(viewer);
   const categoryIds = visible.filter((c) => !category || c.slug === category).map((c) => c._id);
-  const filter = { isActive: true, category: { $in: categoryIds } };
+  const filter = { isActive: true, archivedAt: null, category: { $in: categoryIds } };
   if (variety.length) filter.variety = { $in: variety };
   if (coffeeType.length) filter.coffeeType = { $in: coffeeType };
   if (minPrice != null || maxPrice != null) {

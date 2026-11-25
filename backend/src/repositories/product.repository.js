@@ -1,4 +1,5 @@
 import { Product } from '../models/product.model.js';
+import { pageList } from '../utils/pageList.js';
 import { cursorFilter, cursorSort, pageResult } from '../utils/pagination.js';
 
 const CATEGORY_FIELDS = 'name slug purchasePermission isPublic';
@@ -21,10 +22,10 @@ export async function listProductsPage(filter, { sortField, direction, cursor, l
 export const countProducts = (filter) => Product.countDocuments(filter);
 
 /** An active product by slug, with its category. */
-export const findActiveBySlug = (slug) => Product.findOne({ slug, isActive: true }).populate('category', CATEGORY_FIELDS).lean();
+export const findActiveBySlug = (slug) => Product.findOne({ slug, isActive: true, archivedAt: null }).populate('category', CATEGORY_FIELDS).lean();
 
 /** An active product by id, with its category. */
-export const findActiveById = (id) => Product.findOne({ _id: id, isActive: true }).populate('category', CATEGORY_FIELDS).lean();
+export const findActiveById = (id) => Product.findOne({ _id: id, isActive: true, archivedAt: null }).populate('category', CATEGORY_FIELDS).lean();
 
 /** @param {{ average: number, count: number }} rating */
 export const setProductRating = (productId, { average, count }) =>
@@ -54,7 +55,25 @@ export const returnStock = (productId, quantity) => Product.updateOne({ _id: pro
 
 /** Active products below their low-stock line: 10, or 50 for seedlings (PHASE-2-SPEC §4). */
 export async function findLowStock(limit) {
-  const products = await Product.find({ isActive: true, stock: { $lt: 50 } })
+  const products = await Product.find({ isActive: true, archivedAt: null, stock: { $lt: 50 } })
     .sort({ stock: 1 }).populate('category', 'slug').select('name slug stock unit unitLabel category').lean();
   return products.filter((p) => p.stock < (p.category?.slug === 'seedlings' ? 50 : 10)).slice(0, limit);
 }
+
+/** Inventory: one numbered page of products, newest first, with their category. */
+export const listInventoryPage = (filter, paging) =>
+  pageList(Product.find(filter).sort({ createdAt: -1, _id: -1 }).populate('category', CATEGORY_FIELDS), paging);
+
+/** Any product by id (archived or not), with its category. */
+export const findProductById = (id) => Product.findById(id).populate('category', CATEGORY_FIELDS).lean();
+
+/** @param {string} slug @returns {Promise<boolean>} */
+export const slugTaken = async (slug) => Boolean(await Product.exists({ slug }));
+
+export const createProduct = async (fields) => findProductById((await Product.create(fields))._id);
+
+/** @returns {Promise<object|null>} the product after the change */
+export const updateProduct = async (id, set) => {
+  await Product.updateOne({ _id: id }, { $set: set });
+  return findProductById(id);
+};

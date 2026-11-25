@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { COFFEE_TYPES, UNITS, VARIETIES } from '../constants/catalog.js';
 
-const imageSchema = new mongoose.Schema({ url: { type: String, required: true }, publicId: String, alt: String }, { _id: false });
+const imageSchema = new mongoose.Schema({ url: { type: String, required: true }, publicId: String, alt: String, isThumbnail: { type: Boolean, default: false } }, { _id: false });
 
 const productSchema = new mongoose.Schema(
   {
@@ -19,6 +19,7 @@ const productSchema = new mongoose.Schema(
     stock: { type: Number, required: true, min: 0, default: 0 },
     isFeatured: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
+    archivedAt: { type: Date, default: null },
     ratingAverage: { type: Number, default: 0 },
     ratingCount: { type: Number, default: 0 },
     soldCount: { type: Number, default: 0 },

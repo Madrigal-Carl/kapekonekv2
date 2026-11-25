@@ -118,6 +118,7 @@ export const UPLOAD_PURPOSES = {
   receipt: ['image'],
   farmer_document: ['image', 'file'],
   bean_photo: ['image'],
+  product_photo: ['image'],
   post_media: ['image', 'video'],
 };
 
@@ -207,3 +208,35 @@ export const beanAmountRule = z
   .int('Use whole centavos')
   .min(100, 'Enter at least ₱1')
   .max(100_000_000, 'Enter ₱1,000,000 or less');
+
+// Inventory (PHASE-2-SPEC §4). Mirrored in the other app's rules.js.
+/** What each store category allows: its units, whether it has a variety / coffee type, and Featured (coffee only). */
+export const PRODUCT_CATEGORIES = {
+  coffee: { units: ['pack', 'kg'], variety: true, coffeeType: true, featured: true },
+  fertilizer: { units: ['sack', 'kg'] },
+  seedlings: { units: ['piece'], variety: true },
+};
+/** Price in centavos: ₱1 to ₱100,000. */
+export const productPriceRule = z
+  .number('Enter the price')
+  .int('Use whole centavos')
+  .min(100, 'Enter at least ₱1')
+  .max(10_000_000, 'Enter ₱100,000 or less');
+export const productStockRule = z.number('Enter the stock').min(0, 'Enter 0 or more').max(100_000, 'Enter 100,000 or less');
+/** Up to five photos; at most one marked as the thumbnail (none → the first). */
+export const productPhotosRule = z
+  .array(z.object({ url: z.url().max(500), publicId: z.string().min(1).max(300), isThumbnail: z.boolean().default(false) }), 'Add at least 1 photo')
+  .min(1, 'Add at least 1 photo')
+  .max(5, 'Add up to 5 photos')
+  .refine((photos) => photos.filter((p) => p.isThumbnail).length <= 1, 'Pick one thumbnail');
+/** The category-dependent checks of a product form (`superRefine`). */
+export function refineProductCategory(p, ctx) {
+  const rules = PRODUCT_CATEGORIES[p.category];
+  if (!rules) return;
+  const issue = (path, message) => ctx.addIssue({ code: 'custom', path: [path], message });
+  if (!rules.units.includes(p.unit)) issue('unit', `Choose ${rules.units.join(' or ')}`);
+  else if (!Number.isInteger(p.unit === 'kg' ? p.stock * 2 : p.stock)) issue('stock', p.unit === 'kg' ? 'Use steps of 0.5 kg' : 'Use whole numbers');
+  if (rules.variety && !p.variety) issue('variety', 'Choose a variety');
+  if (rules.coffeeType && !p.coffeeType) issue('coffeeType', 'Choose a coffee type');
+  if (p.isFeatured && !rules.featured) issue('isFeatured', 'Only coffee can be featured on the landing page');
+}
