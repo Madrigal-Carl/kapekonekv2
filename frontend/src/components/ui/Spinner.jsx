@@ -1,10 +1,10 @@
-import { LoaderCircle } from 'lucide-react'
+import { IconLoader } from '@/components/ui/icons'
 import { cn } from '@/lib/cn'
 
 export function Spinner({ className, label }) {
   return (
     <>
-      <LoaderCircle aria-hidden="true" className={cn('size-5 animate-spin', className)} />
+      <IconLoader aria-hidden="true" className={cn('size-5 animate-spin', className)} />
       {label && <span className="sr-only">{label}</span>}
     </>
   )

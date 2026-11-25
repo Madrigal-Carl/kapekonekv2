@@ -1,4 +1,4 @@
-import { Pencil, Plus, Trash2, X } from 'lucide-react'
+import { IconEdit, IconPlus, IconTrash, IconX } from '@/components/ui/icons'
 import { lazy, Suspense, useId, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -154,7 +154,7 @@ function Workers({ farm }) {
                   onClick={() => save(ids.filter((id) => id !== f.id), `${f.name} no longer works on this farm.`)}
                   className="grid size-6 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-ink-3 hover:bg-white"
                 >
-                  <X aria-hidden="true" className="size-3.5" strokeWidth={2} />
+                  <IconX aria-hidden="true" className="size-3.5" strokeWidth={2} />
                 </button>
               )}
             </li>
@@ -204,7 +204,7 @@ function Trees({ farm }) {
         <span className="text-[13px] text-ink-2">{`${farm.treeCount.toLocaleString('en-PH')} trees in ${farm.groupCount} ${farm.groupCount === 1 ? 'group' : 'groups'}`}</span>
         {canAdd && !editing && (
           <Button variant="outline" onClick={() => setEditing('new')} className="min-h-[38px] py-0 text-[13px] font-semibold">
-            <Plus aria-hidden="true" className="size-4" strokeWidth={2.2} />
+            <IconPlus aria-hidden="true" className="size-4" strokeWidth={2.2} />
             Add tree group
           </Button>
         )}
@@ -228,10 +228,10 @@ function Trees({ farm }) {
               {g.canEdit && canAdd && (
                 <>
                   <button type="button" aria-label="Edit tree group" onClick={() => setEditing(g)} className={cn(iconButton, 'text-ink-2')}>
-                    <Pencil aria-hidden="true" className="size-4" strokeWidth={1.9} />
+                    <IconEdit aria-hidden="true" className="size-4" strokeWidth={1.9} />
                   </button>
                   <button type="button" aria-label="Remove tree group" onClick={() => setRemoving(g)} className={cn(iconButton, 'text-logout')}>
-                    <Trash2 aria-hidden="true" className="size-4" strokeWidth={1.9} />
+                    <IconTrash aria-hidden="true" className="size-4" strokeWidth={1.9} />
                   </button>
                 </>
               )}

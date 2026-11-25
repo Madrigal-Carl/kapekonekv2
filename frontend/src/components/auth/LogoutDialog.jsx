@@ -1,4 +1,4 @@
-import { LogOut } from 'lucide-react'
+import { IconLogOut } from '@/components/ui/icons'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useLogout } from '@/hooks/useAuth'
 
@@ -11,7 +11,7 @@ export function LogoutDialog({ open, onClose }) {
       onClose={onClose}
       onConfirm={() => logout.mutate()}
       pending={logout.isPending}
-      icon={LogOut}
+      icon={IconLogOut}
       tone="warning"
       title="Log out of KapeKonek?"
       description="Your cart is saved to your account."

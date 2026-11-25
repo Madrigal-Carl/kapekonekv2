@@ -181,6 +181,39 @@ frontend/src/
 - **Not verified**: creating or editing a listing from the browser. The local Mongo is still standalone and these need transactions (a replica set). The API tests cover them on an in-memory replica set.
 - **Waiting on later milestones**: the other overview bean tiles and charts (M14.2); Kaluppa's live refresh of the bean table (the `team:kaluppa` room, M12).
 
+## Change 05 — react-icons, one Button, area highlights, username suggestions, farmer account pages
+
+**Spec:** `docs/prompts/CHANGE-05-ICONS-BUTTONS-AREAS-USERNAMES-ACCOUNT.md`, CLAUDE.md "Icons and buttons", DESIGN §8.2 (Button, Icons, Area highlight, UsernameField, AccountNav), PHASE-2-SPEC §3.6b, §3.7, §5 Account. Runs after M10, before M11. One commit per part (`Change 05A: …` … `Change 05E: …`).
+
+**Decisions (how, not whether):**
+- **Icons**: `react-icons@5` (Lucide set `react-icons/lu`) replaces `lucide-react`. `components/ui/icons.js` exports app names only (`IconFarm = LuSprout`, …); components import from it, never from `react-icons/*` directly. Kept SVGs: `BeanMark` (logo), reaction badges, map pins. `Contours.jsx` / `AuthLayout` decor lines and `BarChart` / `Sidebar` / `DataTable` / `ConfirmModal` icon SVGs are redrawn with icons or CSS; charts draw with divs/SVG only where they are data marks (`BarChart` stays an allowed file if its `<svg>` is the chart itself — listed in the guard's allow-list).
+- **Button**: rewrite `components/ui/Button.jsx` to the board (Buttons.dc.html): variants `solid` (#7B4A2A → hover #653B20), `outline` (#DCCBB5 border, white → #FBF8F4), `soft` (#F7EFE4 → #F1E2CF, ink #5A3218), `ghost` (transparent → #FBF6F0, roast), `danger` (#A1362B → #8A2C22), `danger-outline` (#E3B3AC border, white → #FDF0EE, #A1362B), `success` (#2E7D4F → #256B42), `link` (padding 0 2px, underline on hover), `light` (#F7EFE4 on dark, espresso), `glass` (white 10% bg, 35% border, white), `caramel` (#C8913A, espresso). Sizes `sm` 36/12px pad/13px, `md` 42/16/14, `lg` 48/20/15; `iconOnly` makes it square with 0 padding. Focus 2px roast ring offset 2, disabled 45 % opacity. New colours become `index.css` tokens. Old props map: `primary`→`solid`, `notice` stays as an extra variant (notice banners), `to`→`as={Link} to`, `pending`→`loading`. `loading` keeps width by stacking the label invisibly under the spinner+loading label in one grid cell.
+- **Guard**: ESLint `no-restricted-syntax` on `JSXOpeningElement[name.name='button']` for `src/**` except `src/components/ui/**`.
+- **Boundaries**: `faeldon/philippines-json-maps` v1.1.1 (**PSGC 2026-3q**, newer than the Dec 2023 named in the prompt; MIT, underlying data CC BY-IGO by NAMRIA and PSA via OCHA COD-AB — attribution in README and the map attribution control). Hi-res TopoJSON release (10 % vertices) decoded by `backend/scripts/build-boundaries.js` → municipalities ≈165 KB, barangays ≈290 KB, already ≤ 300 KB, so **no mapshaper pass** (coordinates rounded to 5 decimals). The script applies the alias map (`Isok II Pob.`→`Isok II Poblacion`, `Mataas Na Bayan`→`Mataas na Bayan`, `Pinggan`→`Pingan`, `Kinyaman`→`Kiñaman`, `Pag-Asa Pob.`→`Pag-asa Poblacion`, `* Pob.`→`* Poblacion`) so properties use our names `{psgc, municipality, barangay}`, and precomputes each feature's `label` `[lng,lat]` with **`polylabel`** (backend devDependency) — the client moves the pin there, no runtime polylabel or `/geo/search` call. The barangay geocoding fallback (`findBarangay`) is removed.
+- **API**: `GET /locations/boundaries?level=municipality|barangay[&municipality=]` (public, `Cache-Control: public, max-age=604800`, Express's ETag). `services/boundary.service.js` loads the files once; `pointInPolygon` (ray casting, ~10 lines, no turf) for `/geo/reverse` and the outside-Marinduque check (point in any municipality = the island union).
+- **MapPicker**: new props `municipality`, `barangay` (names); fetches boundaries via `useBoundaries(level, municipality)` (TanStack, `staleTime: Infinity`); `fill`+`line` layers per level filtered by name; `fitBounds` padding 40 (duration 0 under reduced motion); bottom-left label. A static `MapPreview` (read-only MapPicker) for address cards.
+- **Usernames**: the existing Phase 1 endpoints are `/auth/username-availability` and `/auth/username-suggestions` (the spec's `/users/username-*` names point at these; reuse, don't add new). Extract `components/auth/UsernameField.jsx` from Register; add `except` (current user id) so an edit drawer doesn't see its own username as taken. Farmer and Group Manager create/update services map a duplicate key to `409 USERNAME_TAKEN` (`errors.username`).
+- **Account pages**: `AccountNav` pill bar; `/dashboard/account/{profile,security,association,addresses}`; addresses reuse Phase 1 `/addresses` endpoints; `ADDRESS_LABELS` gains `Farm`, allowed only when the user has the `farmer` role (service check).
+
+### Task C05.A: Icons
+- [ ] `npm i react-icons`, `npm rm lucide-react`; `icons.js`; replace every `lucide-react` import and inline icon `<svg>`; icon-only buttons get `aria-label`.
+- [ ] Check: `grep -rn "<svg" frontend/src` lists only BeanMark, reaction badges, map pins (and chart data marks); `grep -rn "lucide-react" frontend` empty. Lint + tests green. Commit `Change 05A`.
+
+### Task C05.B: Button
+- [ ] Vitest `Button.test.jsx`: each variant and size renders its classes; `loading` → disabled, spinner, loading label; `as={Link}` renders an `<a href>`; `iconOnly` without `aria-label` → `console.error`/warn in dev.
+- [ ] Rewrite Button; replace every raw `<button>` and button-styled link outside `components/ui/`; table row icon actions `iconOnly ghost sm`; ESLint guard. Lint + tests green. Commit `Change 05B`.
+
+### Task C05.C: Area highlights
+- [ ] Build script + data files; tests `boundaries.test.js`: every name in `marinduque-locations.json` matches exactly one feature (218 + 6); endpoint shapes and headers (`Cache-Control`, `ETag`, 304 on `If-None-Match`); unknown municipality → 400; `reverse` of a Pantayin point → Santa Cruz / Pantayin without Mapbox naming it; a point in the sea inside the old box → outside.
+- [ ] MapPicker highlight + fit + label + pin to `label`; used by AddressFormModal, FarmForm, FarmView, branch settings; Farm Map filter/selection when M14 builds it (only `FarmMap` in screens today — note in log). Playwright: pick Boac → highlight layer drawn, then Mainit. README attribution. Commit `Change 05C`.
+
+### Task C05.D: Username suggestions
+- [ ] Backend tests: create farmer / Group Manager with a taken username → 409 `USERNAME_TAKEN`; update to another user's username → 409; availability with `except` → available for own name.
+- [ ] `UsernameField` in Register, FarmerForm, GroupManagerForm (add + edit); Save disabled while taken/invalid. Playwright: taken → suggestion → save. Commit `Change 05D`.
+
+### Task C05.E: Farmer account pages
+- [ ] `AccountNav`; Association page in 4 states (FarmerAssociation.dc.html) incl. Withdraw request (confirm) → `DELETE` pending request; Addresses page (FarmerAddresses.dc.html) with map previews, distance/fee, Farm label; avatar menu link. Tests: Farm label for buyer → 400; withdraw request → status none. Playwright: 4 states with seed farmers, Addresses page at 1440/390. Commit `Change 05E`, update this log, stop.
+
 ## M11 — Store for farmers, Kaluppa orders, inventory, reviews, settings
 
 ### Task 11.1: Farmers in the store and farmer orders

@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
-import { Banknote, CalendarDays, MapPin, Plus, ShoppingBag, TriangleAlert, Wallet } from 'lucide-react'
+import { IconBanknote, IconCalendar, IconMapPin, IconPlus, IconShoppingBag, IconTriangleAlert, IconWallet } from '@/components/ui/icons'
 import { QRCodeSVG } from 'qrcode.react'
 import { useEffect, useId, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
@@ -168,7 +168,7 @@ export function Checkout() {
   if (cart.isError || addresses.isError || delivery.isError) {
     return (
       <CheckoutShell>
-        <EmptyState icon={TriangleAlert} tone="error" title="We couldn’t load checkout" action={<Button variant="outline" onClick={() => window.location.reload()}>Try again</Button>} className="bg-white">
+        <EmptyState icon={IconTriangleAlert} tone="error" title="We couldn’t load checkout" action={<Button variant="outline" onClick={() => window.location.reload()}>Try again</Button>} className="bg-white">
           Check your connection and try again.
         </EmptyState>
       </CheckoutShell>
@@ -178,7 +178,7 @@ export function Checkout() {
   if (!lines.length) {
     return (
       <CheckoutShell>
-        <EmptyState icon={ShoppingBag} title="Your cart is empty" action={<Button to="/products">Browse coffee</Button>} className="bg-white">
+        <EmptyState icon={IconShoppingBag} title="Your cart is empty" action={<Button to="/products">Browse coffee</Button>} className="bg-white">
           Add coffee to your cart, then come back to check out.
         </EmptyState>
       </CheckoutShell>
@@ -251,7 +251,7 @@ export function Checkout() {
             action={
               isDelivery && list.length < 10 && (
                 <button type="button" onClick={() => setAddingAddress(true)} className="inline-flex min-h-10 cursor-pointer items-center gap-1.5 whitespace-nowrap border-0 bg-transparent text-[13.5px] font-semibold text-roast hover:text-roast-hover">
-                  <Plus aria-hidden="true" className="size-[15px]" strokeWidth={2} />
+                  <IconPlus aria-hidden="true" className="size-[15px]" strokeWidth={2} />
                   Add new address
                 </button>
               )
@@ -261,7 +261,7 @@ export function Checkout() {
               <fieldset className="m-0 border-0 px-[22px] py-5">
                 <legend className="sr-only">Choose a delivery address</legend>
                 {list.length === 0 ? (
-                  <EmptyState icon={MapPin} title="No saved addresses yet" action={<Button onClick={() => setAddingAddress(true)}>Add new address</Button>} className="py-10">
+                  <EmptyState icon={IconMapPin} title="No saved addresses yet" action={<Button onClick={() => setAddingAddress(true)}>Add new address</Button>} className="py-10">
                     Add where we should deliver. We deliver anywhere in Marinduque.
                   </EmptyState>
                 ) : (
@@ -277,7 +277,7 @@ export function Checkout() {
                           </span>
                           <span className="mt-1 block text-[13.5px] leading-[1.55] text-ink-2">{addressLine(a)}</span>
                           <span className={cn('mt-1.5 inline-flex items-center gap-1.5 text-xs', a.quoteError ? 'text-danger-ink' : 'text-ink-3')}>
-                            <MapPin aria-hidden="true" className="size-[13px] shrink-0" strokeWidth={2} />
+                            <IconMapPin aria-hidden="true" className="size-[13px] shrink-0" strokeWidth={2} />
                             {a.quote ? `${a.quote.distanceKm} km by road from Kaluppa · delivery ${formatPeso(a.quote.feeCentavos)}` : quoteErrorText(a.quoteError)}
                           </span>
                         </span>
@@ -301,7 +301,7 @@ export function Checkout() {
               <div className="flex flex-col gap-4 px-[22px] py-5">
                 <div className="flex items-start gap-3.5 rounded-card bg-crema p-4">
                   <span className="grid size-10 shrink-0 place-items-center rounded-card bg-white text-roast">
-                    <MapPin aria-hidden="true" className="size-[18px]" strokeWidth={1.9} />
+                    <IconMapPin aria-hidden="true" className="size-[18px]" strokeWidth={1.9} />
                   </span>
                   <div>
                     <span className="block text-[15px] font-semibold">{pickup.name}</span>
@@ -394,7 +394,7 @@ export function Checkout() {
                 </div>
               ) : (
                 <div className="flex items-start gap-3 rounded-card bg-crema px-4 py-3.5">
-                  <Banknote aria-hidden="true" className="mt-0.5 size-[18px] shrink-0 text-roast" strokeWidth={1.9} />
+                  <IconBanknote aria-hidden="true" className="mt-0.5 size-[18px] shrink-0 text-roast" strokeWidth={1.9} />
                   <p className="m-0 text-[13.5px] leading-[1.6] text-ink-2">
                     {isDelivery ? `Please prepare ${formatPeso(total)} in cash for the rider. No receipt upload needed.` : `Pay ${formatPeso(total)} in cash at Kaluppa when you pick up your order.`}
                   </p>
@@ -466,18 +466,18 @@ export function Checkout() {
               <span className="text-2xl font-semibold">{formatPeso(total)}</span>
             </div>
             <dl className="m-0 mt-4 flex flex-col gap-2.5 rounded-[6px] bg-crema px-3.5 py-3 text-[13px] text-ink-2">
-              <SummaryRow icon={MapPin} label="Destination">{destination}</SummaryRow>
-              <SummaryRow icon={CalendarDays} label="Estimated arrival">
+              <SummaryRow icon={IconMapPin} label="Destination">{destination}</SummaryRow>
+              <SummaryRow icon={IconCalendar} label="Estimated arrival">
                 <strong>{eta ? `${isDelivery ? 'Estimated delivery' : 'Ready for pickup'} ${etaText(eta)}` : isDelivery ? 'Estimated delivery' : 'Ready for pickup'}</strong>
                 <span className="block text-xs text-ink-3">
                   {delivery.data.eta.minBusinessDays}–{delivery.data.eta.maxBusinessDays} business days after Kaluppa confirms
                 </span>
               </SummaryRow>
-              <SummaryRow icon={Wallet} label="Payment">{ewallet ? `${provider} · receipt required` : cashLabel}</SummaryRow>
+              <SummaryRow icon={IconWallet} label="Payment">{ewallet ? `${provider} · receipt required` : cashLabel}</SummaryRow>
             </dl>
             {blockedReason && (
               <p role="alert" className="mt-4 flex items-start gap-2 rounded-control border border-notice-line bg-notice-bg px-2.5 py-2 text-[12.5px] text-caramel-badge">
-                <TriangleAlert aria-hidden="true" className="mt-px size-[15px] shrink-0" strokeWidth={2} />
+                <IconTriangleAlert aria-hidden="true" className="mt-px size-[15px] shrink-0" strokeWidth={2} />
                 <span>
                   {blockedReason}{' '}
                   {!canCheckout && (

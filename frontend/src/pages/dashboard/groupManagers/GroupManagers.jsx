@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus } from 'lucide-react'
+import { IconPlus } from '@/components/ui/icons'
 import { useId, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -94,7 +94,7 @@ export function GroupManagers() {
         description="Accounts that run each association. Only Kaluppa creates them."
         actions={
           <Button onClick={() => set({ open: 'new', mode: null })} className="min-h-[42px] py-0 font-semibold">
-            <Plus aria-hidden="true" className="size-4" strokeWidth={2} />
+            <IconPlus aria-hidden="true" className="size-4" strokeWidth={2} />
             Add Group Manager
           </Button>
         }

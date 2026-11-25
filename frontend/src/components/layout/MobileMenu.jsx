@@ -1,4 +1,5 @@
-import { LogOut, Menu, X } from 'lucide-react'
+import { IconLogOut, IconMenu, IconX } from '@/components/ui/icons'
+
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { LogoutDialog } from '@/components/auth/LogoutDialog'
@@ -43,7 +44,7 @@ export function MobileMenu() {
         onClick={() => setOpen((o) => !o)}
         className="grid size-11 cursor-pointer place-items-center rounded-control border border-sand bg-white text-ink hover:bg-crema"
       >
-        {open ? <X aria-hidden="true" className="size-[18px]" strokeWidth={2} /> : <Menu aria-hidden="true" className="size-[18px]" strokeWidth={2} />}
+        {open ? <IconX aria-hidden="true" className="size-[18px]" strokeWidth={2} /> : <IconMenu aria-hidden="true" className="size-[18px]" strokeWidth={2} />}
       </button>
       {open && (
         <nav ref={panel} id="mobile-menu" aria-label="Menu" className="absolute inset-x-0 top-16 z-40 border-b border-sand bg-white px-4 pb-4 pt-2 shadow-dropdown">
@@ -59,7 +60,7 @@ export function MobileMenu() {
                 </Link>
               ))}
               <button type="button" onClick={() => setConfirmLogout(true)} className={`${linkClasses} w-full cursor-pointer border-0 bg-transparent text-danger-ink hover:text-danger-ink`}>
-                <LogOut aria-hidden="true" className="size-[17px]" strokeWidth={1.9} />
+                <IconLogOut aria-hidden="true" className="size-[17px]" strokeWidth={1.9} />
                 Log out
               </button>
             </>

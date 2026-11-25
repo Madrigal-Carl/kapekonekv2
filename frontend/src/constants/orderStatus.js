@@ -1,5 +1,6 @@
 import { format } from 'date-fns'
-import { CircleCheck, CircleX, Clock, List, Package, Truck } from 'lucide-react'
+import { IconCircleCheck, IconCircleX, IconClock, IconList, IconPackage, IconTruck } from '@/components/ui/icons'
+
 import { addressLabel } from '@/lib/address'
 import { formatPhone } from '@/lib/format'
 
@@ -18,12 +19,12 @@ export const ORDER_STATUS = {
 
 /** The six group cards on /orders (DESIGN.md `OrderGroupTabs`). `statuses: null` means every order. */
 export const ORDER_GROUPS = [
-  { key: 'all', label: 'All orders', hint: 'Every order you’ve placed', statuses: null, icon: List },
-  { key: 'to_confirm', label: 'To confirm', hint: 'Waiting for Kaluppa', statuses: ['pending'], icon: Clock },
-  { key: 'preparing', label: 'Preparing', hint: 'Confirmed and being packed', statuses: ['reserved', 'processing'], icon: Package },
-  { key: 'on_the_way', label: 'On the way', hint: 'Out for delivery or ready to pick up', statuses: ['out_for_delivery', 'ready_for_pickup'], icon: Truck },
-  { key: 'completed', label: 'Completed', hint: 'Delivered or picked up', statuses: ['sold'], icon: CircleCheck },
-  { key: 'closed', label: 'Closed', hint: 'Cancelled, rejected or expired', statuses: ['cancelled', 'rejected', 'expired'], icon: CircleX },
+  { key: 'all', label: 'All orders', hint: 'Every order you’ve placed', statuses: null, icon: IconList },
+  { key: 'to_confirm', label: 'To confirm', hint: 'Waiting for Kaluppa', statuses: ['pending'], icon: IconClock },
+  { key: 'preparing', label: 'Preparing', hint: 'Confirmed and being packed', statuses: ['reserved', 'processing'], icon: IconPackage },
+  { key: 'on_the_way', label: 'On the way', hint: 'Out for delivery or ready to pick up', statuses: ['out_for_delivery', 'ready_for_pickup'], icon: IconTruck },
+  { key: 'completed', label: 'Completed', hint: 'Delivered or picked up', statuses: ['sold'], icon: IconCircleCheck },
+  { key: 'closed', label: 'Closed', hint: 'Cancelled, rejected or expired', statuses: ['cancelled', 'rejected', 'expired'], icon: IconCircleX },
 ]
 
 /** Sum of the counts for a group's statuses (`null` → all). */

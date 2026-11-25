@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Play } from 'lucide-react'
+import { IconChevronLeft, IconChevronRight, IconPlay } from '@/components/ui/icons'
 import { useState } from 'react'
 import { cn } from '@/lib/cn'
 import { MediaStage, MediaThumb } from './Media'
@@ -29,10 +29,10 @@ export function MediaViewer({ media }) {
           <>
             <span aria-live="polite" className="absolute right-3 top-3 rounded-full bg-black/50 px-[9px] py-[3px] text-xs text-white">{index + 1} / {media.length}</span>
             <button type="button" aria-label="Previous photo or video" onClick={() => go(-1)} className={cn(arrow, 'left-3')}>
-              <ChevronLeft aria-hidden="true" className="size-[18px]" strokeWidth={2} />
+              <IconChevronLeft aria-hidden="true" className="size-[18px]" strokeWidth={2} />
             </button>
             <button type="button" aria-label="Next photo or video" onClick={() => go(1)} className={cn(arrow, 'right-3')}>
-              <ChevronRight aria-hidden="true" className="size-[18px]" strokeWidth={2} />
+              <IconChevronRight aria-hidden="true" className="size-[18px]" strokeWidth={2} />
             </button>
           </>
         )}
@@ -59,7 +59,7 @@ export function MediaViewer({ media }) {
                 {isVideo && (
                   <>
                     <span aria-hidden="true" className="relative grid size-7 place-items-center rounded-full bg-white/92 text-ink">
-                      <Play className="size-[13px] fill-current" strokeWidth={0} />
+                      <IconPlay className="size-[13px] fill-current" strokeWidth={0} />
                     </span>
                     {item.durationSec && <span className="absolute bottom-1 right-1 rounded-[4px] bg-black/55 px-[5px] py-px text-[10px] text-white">{duration(item.durationSec)}</span>}
                   </>

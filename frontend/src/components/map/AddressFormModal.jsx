@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { MapPin, X } from 'lucide-react'
+import { IconMapPin, IconX } from '@/components/ui/icons'
+
 import { lazy, Suspense, useId, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -54,7 +55,7 @@ function FeePreview({ point }) {
   }
   return (
     <div aria-live="polite" className="flex items-start gap-2.5 rounded-[6px] bg-crema px-3.5 py-3 text-[13px] text-ink-2">
-      <MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-roast" strokeWidth={2} />
+      <IconMapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-roast" strokeWidth={2} />
       <span>{text}</span>
     </div>
   )
@@ -157,7 +158,7 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
           </h2>
         </div>
         <button type="button" aria-label="Close" onClick={onClose} className="grid size-10 cursor-pointer place-items-center rounded-control border-0 bg-transparent text-ink-3 hover:bg-crema">
-          <X aria-hidden="true" className="size-[18px]" strokeWidth={2} />
+          <IconX aria-hidden="true" className="size-[18px]" strokeWidth={2} />
         </button>
       </div>
 

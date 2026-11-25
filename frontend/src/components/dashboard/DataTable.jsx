@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
+import { IconApprove, IconArchive, IconChevronLeft, IconChevronRight, IconCircleX, IconEdit, IconHide, IconReject, IconReply, IconRestore, IconReview, IconSearch, IconShow, IconTree, IconView } from '@/components/ui/icons'
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { SearchSelect } from '@/components/ui/SearchSelect'
@@ -8,20 +8,21 @@ import { StatusPill } from './StatusPill'
 
 // Row action icons and labels (DataTable.dc.html).
 const ACTIONS = {
-  view: ['View', 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z'],
-  edit: ['Edit', 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z'],
-  archive: ['Archive', 'M3 3h18v5H3zM5 8v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8M10 12h4'],
-  restore: ['Restore', 'M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8M3 3v5h5'],
-  approve: ['Approve', 'M20 6 9 17l-5-5'],
-  reject: ['Reject', 'M18 6 6 18M6 6l12 12'],
-  review: ['Review', 'M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'],
-  manage: ['Manage', 'M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'],
-  trees: ['Trees', 'M12 22v-6M12 2 5 11h4l-5 5h16l-5-5h4z'],
-  cancel: ['Cancel', 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM15 9l-6 6M9 9l6 6'],
-  hide: ['Hide', 'M21 15V5a2 2 0 0 0-2-2H9M2 2l20 20M3.6 3.6A2 2 0 0 0 3 5v16l4-4h10'],
-  unhide: ['Show again', 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zM9 10l2 2 4-4'],
-  reply: ['Reply', 'M9 17 4 12l5-5M20 18v-2a4 4 0 0 0-4-4H4'],
+  view: ['View', IconView],
+  edit: ['Edit', IconEdit],
+  archive: ['Archive', IconArchive],
+  restore: ['Restore', IconRestore],
+  approve: ['Approve', IconApprove],
+  reject: ['Reject', IconReject],
+  review: ['Review', IconReview],
+  manage: ['Manage', IconReview],
+  trees: ['Trees', IconTree],
+  cancel: ['Cancel', IconCircleX],
+  hide: ['Hide', IconHide],
+  unhide: ['Show again', IconShow],
+  reply: ['Reply', IconReply],
 }
+const RowIcon = ({ icon: Icon }) => <Icon aria-hidden="true" className="size-[17px]" strokeWidth={1.9} />
 const DESTRUCTIVE = new Set(['archive', 'reject', 'cancel', 'hide'])
 
 /** Page buttons: all when ≤ 7, else first, last and the current ± 1 with gaps. */
@@ -107,7 +108,7 @@ export function DataTable({
     <section aria-label={ariaLabel} className="rounded-card border border-sand bg-white text-ink">
       <div className="flex flex-wrap items-center justify-between gap-3 p-4">
         <div className="relative max-w-[360px] flex-[1_1_260px]">
-          <Search aria-hidden="true" className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-4" strokeWidth={2} />
+          <IconSearch aria-hidden="true" className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-4" strokeWidth={2} />
           <input
             type="search"
             aria-label={searchPlaceholder}
@@ -208,9 +209,7 @@ export function DataTable({
                             DESTRUCTIVE.has(key) ? 'text-logout' : key === 'approve' ? 'text-success-ink' : 'text-ink-2',
                           )}
                         >
-                          <svg aria-hidden="true" viewBox="0 0 24 24" className="size-[17px]" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                            <path d={ACTIONS[key][1]} />
-                          </svg>
+                          <RowIcon icon={ACTIONS[key][1]} />
                         </button>
                       ))}
                     </td>
@@ -229,7 +228,7 @@ export function DataTable({
         {empty && (
           <div className="px-4 py-12 text-center">
             <span aria-hidden="true" className="mx-auto grid size-11 place-items-center rounded-card bg-crema text-roast">
-              <Search className="size-5" strokeWidth={1.9} />
+              <IconSearch className="size-5" strokeWidth={1.9} />
             </span>
             <p className="mt-3 text-sm font-semibold">{searching ? `Nothing matches “${params.q || 'these filters'}”` : emptyState.title}</p>
             <p className="mt-1 text-[13px] text-ink-3">{searching ? 'Try another search or clear the filters.' : emptyState.text}</p>
@@ -243,7 +242,7 @@ export function DataTable({
         </span>
         <nav aria-label="Pages" className="flex items-center gap-1">
           <button type="button" aria-label="Previous page" disabled={page <= 1} onClick={() => set({ page: page - 1 })} className="grid size-9 cursor-pointer place-items-center rounded-control border border-sand bg-white text-ink disabled:cursor-default disabled:text-sand-strong">
-            <ChevronLeft aria-hidden="true" className="size-[15px]" strokeWidth={2.2} />
+            <IconChevronLeft aria-hidden="true" className="size-[15px]" strokeWidth={2.2} />
           </button>
           {pageList(Math.min(page, pages), pages).map((n, i) =>
             n === '…' ? (
@@ -261,7 +260,7 @@ export function DataTable({
             ),
           )}
           <button type="button" aria-label="Next page" disabled={page >= pages} onClick={() => set({ page: page + 1 })} className="grid size-9 cursor-pointer place-items-center rounded-control border border-sand bg-white text-ink disabled:cursor-default disabled:text-sand-strong">
-            <ChevronRight aria-hidden="true" className="size-[15px]" strokeWidth={2.2} />
+            <IconChevronRight aria-hidden="true" className="size-[15px]" strokeWidth={2.2} />
           </button>
         </nav>
       </div>

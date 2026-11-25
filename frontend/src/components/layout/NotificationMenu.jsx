@@ -1,4 +1,5 @@
-import { Bell } from 'lucide-react'
+import { IconBell } from '@/components/ui/icons'
+
 import { useEffect, useId, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMarkAllNotificationsRead, useMarkNotificationRead, useNotifications, useUnreadCount } from '@/hooks/useNotifications'
@@ -61,7 +62,7 @@ export function NotificationMenu({ buttonClassName, badgeClassName = NAVBAR_BADG
         onClick={() => setOpen((o) => !o)}
         className={buttonClassName}
       >
-        <Bell aria-hidden="true" className="size-5" strokeWidth={1.75} />
+        <IconBell aria-hidden="true" className="size-5" strokeWidth={1.75} />
         {count > 0 && (
           <span aria-hidden="true" className={cn('absolute rounded-full text-center font-semibold text-white', badgeClassName)}>
             {count > 99 ? '99+' : count}

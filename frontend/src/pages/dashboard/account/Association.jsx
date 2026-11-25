@@ -1,4 +1,4 @@
-import { BadgeCheck, TriangleAlert } from 'lucide-react'
+import { IconBadgeCheck, IconTriangleAlert } from '@/components/ui/icons'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
@@ -33,7 +33,7 @@ export function Association() {
   }
   if (profile.isError) {
     return (
-      <EmptyState icon={TriangleAlert} tone="error" title="We couldn’t load your association" action={<Button variant="outline" onClick={() => profile.refetch()}>Try again</Button>} className="bg-white">
+      <EmptyState icon={IconTriangleAlert} tone="error" title="We couldn’t load your association" action={<Button variant="outline" onClick={() => profile.refetch()}>Try again</Button>} className="bg-white">
         Check your connection and try again.
       </EmptyState>
     )
@@ -60,7 +60,7 @@ function ApprovedCard({ profile: p }) {
           <p className="mt-0.5 text-[13px] text-ink-2">{a.municipality}, Marinduque · {a.farmers} farmer{a.farmers === 1 ? '' : 's'}</p>
         </div>
         <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-tone-green-bg px-2.5 py-1 text-xs font-semibold text-tone-green-ink">
-          <BadgeCheck aria-hidden="true" className="size-3.5" strokeWidth={2} />
+          <IconBadgeCheck aria-hidden="true" className="size-3.5" strokeWidth={2} />
           Approved farmer
         </span>
       </div>

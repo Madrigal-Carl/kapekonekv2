@@ -1,4 +1,4 @@
-import { Heart, MessageCircle, RotateCw } from 'lucide-react'
+import { IconHeart, IconMessage, IconRefresh } from '@/components/ui/icons'
 import { useState } from 'react'
 import { Avatar, RoleBadge } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
@@ -36,7 +36,7 @@ function Comment({ comment, defaultOpen }) {
             <time dateTime={comment.createdAt}>{timeAgo(comment.createdAt)}</time>
             {comment.reactionCount > 0 && (
               <span className="inline-flex items-center gap-1">
-                <Heart aria-hidden="true" className="size-3 fill-danger-strong text-danger-strong" strokeWidth={0} />
+                <IconHeart aria-hidden="true" className="size-3 fill-danger-strong text-danger-strong" strokeWidth={0} />
                 <span><span className="sr-only">Reactions: </span>{comment.reactionCount}</span>
               </span>
             )}
@@ -96,9 +96,9 @@ export function CommentThread({ postId, total }) {
         </div>
       )}
       {isError && (
-        <EmptyState tone="error" icon={RotateCw} title="We couldn't load the comments" className="mt-4 py-8" action={<Button variant="outline" onClick={() => refetch()}>Try again</Button>} />
+        <EmptyState tone="error" icon={IconRefresh} title="We couldn't load the comments" className="mt-4 py-8" action={<Button variant="outline" onClick={() => refetch()}>Try again</Button>} />
       )}
-      {data && !comments.length && <EmptyState icon={MessageCircle} title="No comments yet" className="mt-4 py-8" />}
+      {data && !comments.length && <EmptyState icon={IconMessage} title="No comments yet" className="mt-4 py-8" />}
       {comments.length > 0 && (
         <>
           <ol className="m-0 mt-4 flex list-none flex-col gap-[18px] p-0">

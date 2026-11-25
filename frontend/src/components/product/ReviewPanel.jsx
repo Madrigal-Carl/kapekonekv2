@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Pencil, Trash2 } from 'lucide-react'
+import { IconEdit, IconTrash } from '@/components/ui/icons'
 import { useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { Link } from 'react-router-dom'
@@ -112,11 +112,11 @@ function YourReview({ review, onEdit }) {
       ) : (
         <div className="mt-4 flex gap-2">
           <Button variant="outline" onClick={onEdit} className={smallButton}>
-            <Pencil aria-hidden="true" className="size-[15px] text-roast" strokeWidth={2} />
+            <IconEdit aria-hidden="true" className="size-[15px] text-roast" strokeWidth={2} />
             Edit
           </Button>
           <Button variant="outline" onClick={() => setConfirming(true)} className={cn(smallButton, 'text-danger-ink hover:text-danger-ink')}>
-            <Trash2 aria-hidden="true" className="size-[15px]" strokeWidth={2} />
+            <IconTrash aria-hidden="true" className="size-[15px]" strokeWidth={2} />
             Delete
           </Button>
         </div>

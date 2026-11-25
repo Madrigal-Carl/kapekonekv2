@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react'
+import { IconPlus } from '@/components/ui/icons'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { ConfirmModal } from '@/components/dashboard/ConfirmModal'
@@ -124,7 +124,7 @@ export function Farms() {
         description={description}
         actions={
           <Button onClick={() => set({ open: 'new', mode: null })} className="min-h-[42px] py-0 font-semibold">
-            <Plus aria-hidden="true" className="size-4" strokeWidth={2.2} />
+            <IconPlus aria-hidden="true" className="size-4" strokeWidth={2.2} />
             Add farm
           </Button>
         }

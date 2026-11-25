@@ -1,18 +1,15 @@
-import { ArrowUpRight } from 'lucide-react'
+import { IconArrowUpRight, IconAssociation, NAV_ICONS } from '@/components/ui/icons'
 import { Link, NavLink } from 'react-router-dom'
 import { BeanMark } from '@/components/ui/BeanMark'
-import { NAV, NAV_ICONS } from '@/constants/dashboardNav'
+import { NAV } from '@/constants/dashboardNav'
 import { ROLE_LABELS } from '@/constants/roles'
 import { useBadges, useOrgCard } from '@/hooks/useDashboard'
 import { cn } from '@/lib/cn'
 
-/** A 24×24 stroke icon from the Sidebar.dc.html path set. */
+/** The Sidebar.dc.html icon for a nav key (`NAV_ICONS` in components/ui/icons.js). */
 export function NavIcon({ name, className = 'size-[17px]' }) {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className={cn('shrink-0', className)} fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-      <path d={NAV_ICONS[name]} />
-    </svg>
-  )
+  const Icon = NAV_ICONS[name]
+  return <Icon aria-hidden="true" className={cn('shrink-0', className)} strokeWidth={1.9} />
 }
 
 /** The card's three lines and status color, per Sidebar.dc.html. Rejected farmers show the "none" card, like the screen. */
@@ -73,7 +70,7 @@ export function Sidebar({ role, onNavigate, className }) {
                     <NavIcon name={it.icon} />
                     <span className="flex-1">{it.label}</span>
                     {count > 0 && <Badge count={count} active={active} alert={it.alert} />}
-                    {it.external && <ArrowUpRight aria-hidden="true" className="size-[13px] opacity-70" strokeWidth={2} />}
+                    {it.external && <IconArrowUpRight aria-hidden="true" className="size-[13px] opacity-70" strokeWidth={2} />}
                   </>
                 )
                 const base = 'flex min-h-10 items-center gap-2.5 rounded-control px-3 py-2 text-sm no-underline'
@@ -103,9 +100,7 @@ export function Sidebar({ role, onNavigate, className }) {
       {org && (
         <div className="mt-auto flex items-start gap-2.5 rounded-card bg-crema p-3">
           <span aria-hidden="true" className="grid size-[30px] shrink-0 place-items-center rounded-md bg-white text-roast">
-            <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />
-            </svg>
+            <IconAssociation className="size-4" strokeWidth={1.9} />
           </span>
           <span className="flex min-w-0 flex-col">
             <span className="text-[11px] text-ink-3">{org[0]}</span>

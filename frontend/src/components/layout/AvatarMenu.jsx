@@ -1,4 +1,4 @@
-import { ChevronDown, LogOut } from 'lucide-react'
+import { IconChevronDown, IconLogOut } from '@/components/ui/icons'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { LogoutDialog } from '@/components/auth/LogoutDialog'
@@ -72,7 +72,7 @@ export function AvatarMenu({ links = ACCOUNT_LINKS, roleLabel, avatarClassName =
             <span className="text-[11.5px] text-ink-3">{roleLabel}</span>
           </span>
         )}
-        <ChevronDown aria-hidden="true" className={cn('transition-transform', dashboard ? 'size-[15px] text-ink-3' : 'size-4', open && 'rotate-180')} strokeWidth={2} />
+        <IconChevronDown aria-hidden="true" className={cn('transition-transform', dashboard ? 'size-[15px] text-ink-3' : 'size-4', open && 'rotate-180')} strokeWidth={2} />
       </button>
       {open && (
         <div role="menu" aria-label="Account" className="absolute right-0 top-[calc(100%+8px)] z-50 w-60 rounded-card border border-sand bg-white p-1.5 shadow-dropdown">
@@ -96,7 +96,7 @@ export function AvatarMenu({ links = ACCOUNT_LINKS, roleLabel, avatarClassName =
             }}
             className={cn(itemClasses, 'w-full cursor-pointer border-0 bg-transparent text-left', dashboard ? 'min-h-10 py-2 text-[13.5px] text-logout' : 'text-danger-ink')}
           >
-            {!dashboard && <LogOut aria-hidden="true" className="size-[17px]" strokeWidth={1.9} />}
+            {!dashboard && <IconLogOut aria-hidden="true" className="size-[17px]" strokeWidth={1.9} />}
             Log out
           </button>
         </div>

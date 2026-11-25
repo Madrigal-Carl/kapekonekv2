@@ -1,17 +1,18 @@
 import { useId, useRef, useState } from 'react'
 import { Button } from '@/components/ui/Button'
+import { IconApprove, IconArchive, IconCircleX, IconReject, IconRestore, IconTrash } from '@/components/ui/icons'
 import { Modal } from '@/components/ui/Modal'
 import { cn } from '@/lib/cn'
 import { cancelReasonRule } from '@/schemas/rules'
 
-// DashModals.dc.html: icon path and tone per variant; red = destructive, green = positive.
+// DashModals.dc.html: icon and tone per variant; red = destructive, green = positive.
 const VARIANTS = {
-  archive: { tone: 'red', icon: 'M3 3h18v5H3zM5 8v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8M10 12h4' },
-  restore: { tone: 'green', icon: 'M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8M3 3v5h5' },
-  reject: { tone: 'red', icon: 'M18 6 6 18M6 6l12 12', reason: true },
-  cancel_sale: { tone: 'red', icon: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM15 9l-6 6M9 9l6 6', reason: true },
-  remove_post: { tone: 'red', icon: 'M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2', reason: true },
-  temporary_password: { tone: 'green', icon: 'M20 6 9 17l-5-5' },
+  archive: { tone: 'red', icon: IconArchive },
+  restore: { tone: 'green', icon: IconRestore },
+  reject: { tone: 'red', icon: IconReject, reason: true },
+  cancel_sale: { tone: 'red', icon: IconCircleX, reason: true },
+  remove_post: { tone: 'red', icon: IconTrash, reason: true },
+  temporary_password: { tone: 'green', icon: IconApprove },
 }
 const TONES = {
   red: { tile: 'bg-danger-soft text-logout', confirm: 'bg-logout text-white hover:bg-danger-ink hover:text-white' },
@@ -72,9 +73,7 @@ export function ConfirmModal({
   return (
     <Modal open={open} onClose={close} labelledBy={`${id}-t`} describedBy={children ? `${id}-d` : undefined} initialFocus={safe} className="max-w-[440px] p-[22px]">
       <span aria-hidden="true" className={cn('grid size-[42px] place-items-center rounded-full', tone.tile)}>
-        <svg viewBox="0 0 24 24" className="size-[19px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d={v.icon} />
-        </svg>
+        <v.icon className="size-[19px]" />
       </span>
       <h2 id={`${id}-t`} className="mt-3 text-[17px] font-semibold">{title}</h2>
       {children && <p id={`${id}-d`} className="mt-1.5 text-[13.5px] leading-[1.6] text-ink-2">{children}</p>}

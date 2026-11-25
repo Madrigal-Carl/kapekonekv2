@@ -1,11 +1,11 @@
-import { Heart, Star, ThumbsUp } from 'lucide-react'
+import { IconHeart, IconStar, IconThumbsUp } from '@/components/ui/icons'
 import { useState } from 'react'
 import { cn } from '@/lib/cn'
 
 const TYPES = [
-  { key: 'like', label: 'Like', icon: ThumbsUp, tile: 'bg-roast text-white' },
-  { key: 'love', label: 'Love', icon: Heart, tile: 'bg-danger-strong text-white' },
-  { key: 'celebrate', label: 'Celebrate', icon: Star, tile: 'bg-caramel text-espresso' },
+  { key: 'like', label: 'Like', icon: IconThumbsUp, tile: 'bg-roast text-white' },
+  { key: 'love', label: 'Love', icon: IconHeart, tile: 'bg-danger-strong text-white' },
+  { key: 'celebrate', label: 'Celebrate', icon: IconStar, tile: 'bg-caramel text-espresso' },
 ]
 
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`

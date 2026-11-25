@@ -1,4 +1,4 @@
-import { Mail } from 'lucide-react'
+import { IconMail } from '@/components/ui/icons'
 import { useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { LogoutDialog } from '@/components/auth/LogoutDialog'
@@ -25,7 +25,7 @@ export function VerifyEmail() {
   return (
     <AuthLayout panel={PANEL} width="max-w-[420px]">
       <span className="grid size-[52px] place-items-center rounded-card bg-caramel-tint text-caramel-ink">
-        <Mail aria-hidden="true" className="size-6" strokeWidth={1.75} />
+        <IconMail aria-hidden="true" className="size-6" strokeWidth={1.75} />
       </span>
       <Eyebrow className="mt-[22px]">Verify email</Eyebrow>
       <h1 className="mt-3 text-[28px] font-medium leading-[1.15] tracking-[-0.02em]">Check your inbox</h1>

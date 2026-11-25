@@ -1,6 +1,6 @@
 import Autoplay from 'embla-carousel-autoplay'
 import useEmblaCarousel from 'embla-carousel-react'
-import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
+import { IconArrowRight, IconChevronLeft, IconChevronRight } from '@/components/ui/icons'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BeanMark } from '@/components/ui/BeanMark'
@@ -66,7 +66,7 @@ export function HeroCarousel({ slides }) {
                   <div className="mt-8 flex flex-wrap justify-center gap-3">
                     <Link to={slide.ctaHref} className="inline-flex items-center gap-2 rounded-control bg-crema px-[22px] py-[13px] text-sm font-semibold text-espresso no-underline hover:bg-white hover:text-espresso">
                       {slide.ctaLabel}
-                      <ArrowRight aria-hidden="true" className="size-4" strokeWidth={2} />
+                      <IconArrowRight aria-hidden="true" className="size-4" strokeWidth={2} />
                     </Link>
                     <a href="#how" className="inline-flex items-center gap-2 rounded-control border border-white/30 bg-white/10 px-[22px] py-[13px] text-sm font-medium text-white no-underline hover:bg-white/15 hover:text-white">
                       How ordering works
@@ -82,7 +82,7 @@ export function HeroCarousel({ slides }) {
       {list.length > 1 && (
         <div className="absolute inset-x-0 bottom-9 z-[2] flex items-center justify-center gap-[18px]">
           <button type="button" aria-label="Previous slide" onClick={() => embla?.scrollPrev()} className={roundButton}>
-            <ChevronLeft aria-hidden="true" className="size-[18px]" strokeWidth={2} />
+            <IconChevronLeft aria-hidden="true" className="size-[18px]" strokeWidth={2} />
           </button>
           <div className="flex items-center gap-2">
             {list.map((slide, i) => (
@@ -100,7 +100,7 @@ export function HeroCarousel({ slides }) {
           </div>
           <span aria-live="polite" className="text-xs tracking-[0.12em] text-white/75">{pad(index + 1)} / {pad(list.length)}</span>
           <button type="button" aria-label="Next slide" onClick={() => embla?.scrollNext()} className={roundButton}>
-            <ChevronRight aria-hidden="true" className="size-[18px]" strokeWidth={2} />
+            <IconChevronRight aria-hidden="true" className="size-[18px]" strokeWidth={2} />
           </button>
         </div>
       )}

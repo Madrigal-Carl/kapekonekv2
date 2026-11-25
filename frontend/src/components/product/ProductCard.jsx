@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react'
+import { IconPlus } from '@/components/ui/icons'
 import { Link } from 'react-router-dom'
 import { Star } from '@/components/ui/StarRating'
 import { COFFEE_TYPES, LOW_STOCK, VARIETIES } from '@/constants/catalog'
@@ -63,7 +63,7 @@ export function ProductCard({ product, featured = false }) {
               onClick={() => addToCart(product)}
               className="inline-flex min-h-10 cursor-pointer items-center gap-1.5 rounded-control bg-roast px-3 py-[9px] text-[13px] font-medium text-white hover:bg-roast-hover"
             >
-              <Plus aria-hidden="true" className="size-[15px]" strokeWidth={2} />
+              <IconPlus aria-hidden="true" className="size-[15px]" strokeWidth={2} />
               Add
             </button>
           )}

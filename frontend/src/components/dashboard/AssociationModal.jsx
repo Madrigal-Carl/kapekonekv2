@@ -1,4 +1,4 @@
-import { CheckCircle2, Info, UsersRound } from 'lucide-react'
+import { IconCircleCheck, IconInfo, IconUsers } from '@/components/ui/icons'
 import { useId, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
@@ -36,7 +36,7 @@ export function AssociationModal({ open, onClose, rejection = null }) {
       {sentTo ? (
         <div className="flex flex-col items-start px-[26px] py-7">
           <span aria-hidden="true" className="grid size-[46px] place-items-center rounded-card bg-success-bg text-success">
-            <CheckCircle2 className="size-6" strokeWidth={1.75} />
+            <IconCircleCheck className="size-6" strokeWidth={1.75} />
           </span>
           <h2 id={`${id}-t`} className="mt-3.5 text-[21px] font-semibold">Request sent</h2>
           <p className="mt-1.5 text-sm leading-relaxed text-ink-2">
@@ -48,7 +48,7 @@ export function AssociationModal({ open, onClose, rejection = null }) {
         <>
           <div className="px-[26px] pt-6">
             <span aria-hidden="true" className="grid size-[46px] place-items-center rounded-card bg-crema text-roast">
-              <UsersRound className="size-6" strokeWidth={1.75} />
+              <IconUsers className="size-6" strokeWidth={1.75} />
             </span>
             <h2 id={`${id}-t`} className="mt-3.5 text-[21px] font-semibold">Join your association</h2>
             <p className="mt-1.5 text-sm leading-relaxed text-ink-2">
@@ -73,7 +73,7 @@ export function AssociationModal({ open, onClose, rejection = null }) {
             />
             {chosen && (
               <p className="-mt-1.5 flex items-center gap-2 text-[12.5px] text-ink-2">
-                <Info aria-hidden="true" className="size-4 shrink-0 text-roast" strokeWidth={1.75} />
+                <IconInfo aria-hidden="true" className="size-4 shrink-0 text-roast" strokeWidth={1.75} />
                 {chosen.groupManager
                   ? `Group Manager: ${chosen.groupManager.name} · reviews within a few days`
                   : 'No Group Manager yet — Kaluppa will review your request'}

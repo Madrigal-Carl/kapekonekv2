@@ -1,4 +1,5 @@
-import { ArrowRight, ShoppingBag } from 'lucide-react'
+import { IconArrowRight, IconShoppingBag } from '@/components/ui/icons'
+
 import { Link, useLocation } from 'react-router-dom'
 import { CartDrawer } from '@/components/order/CartDrawer'
 import { BeanMark } from '@/components/ui/BeanMark'
@@ -48,7 +49,7 @@ export function Navbar() {
 
         <div className="flex items-center gap-1 sm:gap-1.5">
           <button type="button" aria-label={`Cart, ${cartCount} items`} onClick={() => requireAuth(showCart)} className={iconButton}>
-            <ShoppingBag aria-hidden="true" className="size-5" strokeWidth={1.75} />
+            <IconShoppingBag aria-hidden="true" className="size-5" strokeWidth={1.75} />
             {cartCount > 0 && (
               <span className="absolute right-1 top-1 h-[18px] min-w-[18px] rounded-full bg-roast px-[5px] text-center text-[10.5px] font-semibold leading-[18px] text-white">{cartCount}</span>
             )}
@@ -68,7 +69,7 @@ export function Navbar() {
                 className="inline-flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-control bg-roast px-3 sm:px-3.5 py-[9px] text-[13.5px] font-medium text-white no-underline hover:bg-roast-hover hover:text-white"
               >
                 Get started
-                <ArrowRight aria-hidden="true" className="size-3.5 max-[400px]:hidden" strokeWidth={2} />
+                <IconArrowRight aria-hidden="true" className="size-3.5 max-[400px]:hidden" strokeWidth={2} />
               </Link>
             </>
           )}

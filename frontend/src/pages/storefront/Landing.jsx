@@ -1,4 +1,4 @@
-import { ArrowRight, Bell, ChevronDown, Clock, Coffee, MapPin, ShoppingBag } from 'lucide-react'
+import { IconArrowRight, IconBell, IconChevronDown, IconClock, IconCoffee, IconMapPin, IconShoppingBag } from '@/components/ui/icons'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { HeroCarousel } from '@/components/product/HeroCarousel'
@@ -38,9 +38,9 @@ const SELL = [
 ]
 
 const FEATURES = [
-  { tag: 'Marketplace', title: 'Coffee straight from Kaluppa', text: 'Every product is sourced and sold by Kaluppa, labeled by variety and type.', icon: ShoppingBag },
-  { tag: 'Delivery', title: 'Delivered across Marinduque', text: 'Save your addresses with a map pin, see the fee upfront, and track every step.', icon: MapPin },
-  { tag: 'Updates', title: 'Know where your order is', text: 'Email and in-app notifications at every step, from confirmation to delivery.', icon: Bell },
+  { tag: 'Marketplace', title: 'Coffee straight from Kaluppa', text: 'Every product is sourced and sold by Kaluppa, labeled by variety and type.', icon: IconShoppingBag },
+  { tag: 'Delivery', title: 'Delivered across Marinduque', text: 'Save your addresses with a map pin, see the fee upfront, and track every step.', icon: IconMapPin },
+  { tag: 'Updates', title: 'Know where your order is', text: 'Email and in-app notifications at every step, from confirmation to delivery.', icon: IconBell },
 ]
 
 const FAQS = [
@@ -70,15 +70,15 @@ function Featured() {
           />
           <Link to="/products" className="inline-flex items-center gap-1.5 text-sm font-semibold text-roast no-underline">
             View all coffee
-            <ArrowRight aria-hidden="true" className="size-4" strokeWidth={2} />
+            <IconArrowRight aria-hidden="true" className="size-4" strokeWidth={2} />
           </Link>
         </div>
         <div className="mt-12 grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-6">
           {isPending && [1, 2, 3, 4].map((i) => <ProductCardSkeleton key={i} />)}
           {products.map((p) => <ProductCard key={p._id} product={p} featured />)}
         </div>
-        {isError && <EmptyState tone="error" icon={Coffee} title="We couldn't load the featured coffee" action={<Link to="/products">Browse all coffee</Link>} />}
-        {!isPending && !isError && !products.length && <EmptyState icon={Coffee} title="No featured coffee right now" action={<Link to="/products">Browse all coffee</Link>} />}
+        {isError && <EmptyState tone="error" icon={IconCoffee} title="We couldn't load the featured coffee" action={<Link to="/products">Browse all coffee</Link>} />}
+        {!isPending && !isError && !products.length && <EmptyState icon={IconCoffee} title="No featured coffee right now" action={<Link to="/products">Browse all coffee</Link>} />}
         {!isAuthenticated && <p className="mt-[18px] text-[12.5px] text-ink-4">Guests who tap “Add” are sent to sign in and brought back here.</p>}
       </div>
     </section>
@@ -143,7 +143,7 @@ function Faq() {
                     className="flex w-full cursor-pointer items-center justify-between gap-4 border-0 bg-transparent px-5 py-[18px] text-left text-[15px] font-semibold text-ink"
                   >
                     {q}
-                    <ChevronDown aria-hidden="true" className={cn('size-[18px] shrink-0 text-roast transition-transform', isOpen && 'rotate-180')} strokeWidth={2} />
+                    <IconChevronDown aria-hidden="true" className={cn('size-[18px] shrink-0 text-roast transition-transform', isOpen && 'rotate-180')} strokeWidth={2} />
                   </button>
                 </h3>
                 {isOpen && <p id={`faq-${i}-answer`} role="region" aria-labelledby={`faq-${i}`} className="m-0 px-5 pb-[18px] text-sm leading-[1.65] text-ink-2">{a}</p>}
@@ -206,7 +206,7 @@ export function Landing() {
             ))}
           </ol>
           <div className="mt-10 flex max-w-[760px] items-start gap-3 rounded-card border border-notice-line bg-notice-bg px-[18px] py-4">
-            <Clock aria-hidden="true" className="mt-0.5 size-[18px] shrink-0 text-caramel-ink" strokeWidth={2} />
+            <IconClock aria-hidden="true" className="mt-0.5 size-[18px] shrink-0 text-caramel-ink" strokeWidth={2} />
             <p className="m-0 text-[13.5px] leading-[1.6] text-notice-ink">Kaluppa confirms each order within 3 days. If it isn't confirmed in time, it expires, and any e-wallet payment is refunded.</p>
           </div>
         </div>

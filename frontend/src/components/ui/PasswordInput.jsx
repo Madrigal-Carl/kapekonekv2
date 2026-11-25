@@ -1,4 +1,5 @@
-import { Check, Eye, EyeOff } from 'lucide-react'
+import { IconCheck, IconEye, IconEyeOff } from '@/components/ui/icons'
+
 import { useState } from 'react'
 import { cn } from '@/lib/cn'
 import { PASSWORD_RULE, passwordRule } from '@/schemas/rules'
@@ -12,7 +13,7 @@ export function PasswordInput({ show: shownProp, onToggle, toggleLabel = ['Show 
   const [ownShow, setOwnShow] = useState(false)
   const show = shownProp ?? ownShow
   const toggle = onToggle ?? (() => setOwnShow((v) => !v))
-  const Icon = show ? EyeOff : Eye
+  const Icon = show ? IconEyeOff : IconEye
   return (
     <div className={cn('relative', className)}>
       <Input type={show ? 'text' : 'password'} className="pr-12" {...props} />
@@ -38,7 +39,7 @@ export function PasswordRule({ id, value, invalid = false }) {
       aria-live="polite"
       className={cn('mt-2 flex items-center gap-1.5 text-[12.5px]', ok ? 'font-semibold text-success-ink' : invalid ? 'text-danger-ink' : 'text-ink-3')}
     >
-      {ok && <Check aria-hidden="true" className="size-3.5 shrink-0" strokeWidth={2.5} />}
+      {ok && <IconCheck aria-hidden="true" className="size-3.5 shrink-0" strokeWidth={2.5} />}
       {PASSWORD_RULE}
     </p>
   )

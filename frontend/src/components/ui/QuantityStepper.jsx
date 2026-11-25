@@ -1,4 +1,5 @@
-import { Minus, Plus } from 'lucide-react'
+import { IconMinus, IconPlus } from '@/components/ui/icons'
+
 import { useId } from 'react'
 import { cn } from '@/lib/cn'
 import { clampQuantity, stepFor } from '@/lib/quantity'
@@ -19,11 +20,11 @@ export function QuantityStepper({ value, onChange, unit, max, label = 'Quantity'
       <span id={id} className="block text-[10.5px] font-medium uppercase tracking-[0.16em] text-ink-2">{label}</span>
       <div role="group" aria-labelledby={id} className="mt-2 inline-flex items-center overflow-hidden rounded-control border border-sand-strong">
         <button type="button" aria-label="Decrease quantity" onClick={() => set(value - step)} disabled={value <= step} className={cn(buttonClasses, 'disabled:opacity-40')}>
-          <Minus aria-hidden="true" className="size-4" strokeWidth={2} />
+          <IconMinus aria-hidden="true" className="size-4" strokeWidth={2} />
         </button>
         <output aria-live="polite" className="min-w-14 border-x border-sand text-center text-[15px] font-semibold leading-[44px]">{value}</output>
         <button type="button" aria-label="Increase quantity" onClick={() => set(value + step)} disabled={atCap} className={cn(buttonClasses, 'disabled:bg-cream disabled:text-stepper-off')}>
-          <Plus aria-hidden="true" className="size-4" strokeWidth={2} />
+          <IconPlus aria-hidden="true" className="size-4" strokeWidth={2} />
         </button>
       </div>
       {shownHint && (

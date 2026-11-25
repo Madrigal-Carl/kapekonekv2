@@ -1,4 +1,4 @@
-import { Upload } from 'lucide-react'
+import { IconUpload } from '@/components/ui/icons'
 import { useId, useState } from 'react'
 import { useUploadImage } from '@/hooks/useUploads'
 import { cn } from '@/lib/cn'
@@ -57,7 +57,7 @@ export function DocumentUpload({ label, short, value, onChange, compact = false,
             upload.isPending && 'pointer-events-none opacity-70',
           )}
         >
-          <Upload aria-hidden="true" className="size-5 text-roast" strokeWidth={1.75} />
+          <IconUpload aria-hidden="true" className="size-5 text-roast" strokeWidth={1.75} />
           {upload.isPending ? (
             <span aria-live="polite">Uploading… {upload.progress}%</span>
           ) : (

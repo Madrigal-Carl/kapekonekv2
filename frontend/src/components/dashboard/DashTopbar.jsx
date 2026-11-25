@@ -1,4 +1,4 @@
-import { Menu, ShoppingBag } from 'lucide-react'
+import { IconMenu, IconShoppingBag } from '@/components/ui/icons'
 import { Link } from 'react-router-dom'
 import { AvatarMenu } from '@/components/layout/AvatarMenu'
 import { NotificationMenu } from '@/components/layout/NotificationMenu'
@@ -40,7 +40,7 @@ export function DashTopbar({ role, crumbs, onMenu, menuOpen }) {
         onClick={onMenu}
         className="hidden size-10 cursor-pointer place-items-center rounded-control border border-sand bg-white text-ink max-[960px]:grid"
       >
-        <Menu aria-hidden="true" className="size-[18px]" strokeWidth={2} />
+        <IconMenu aria-hidden="true" className="size-[18px]" strokeWidth={2} />
       </button>
       <nav aria-label="Breadcrumb" className="min-w-0 flex-1 truncate text-[13px] text-ink-3">
         {crumbs[0]} <span aria-hidden="true" className="mx-1.5">/</span> <span aria-current="page" className="font-medium text-ink">{crumbs[1]}</span>
@@ -50,7 +50,7 @@ export function DashTopbar({ role, crumbs, onMenu, menuOpen }) {
           to="/products"
           className="inline-flex min-h-10 items-center gap-1.5 rounded-control border border-sand-strong px-3 text-[13px] font-medium text-ink no-underline hover:text-ink"
         >
-          <ShoppingBag aria-hidden="true" className="size-4 text-roast" strokeWidth={2} />
+          <IconShoppingBag aria-hidden="true" className="size-4 text-roast" strokeWidth={2} />
           Cart · {cartCount}
         </Link>
       )}

@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react'
+import { IconPlus } from '@/components/ui/icons'
 import { format } from 'date-fns'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -187,7 +187,7 @@ export function Beans() {
         actions={
           !isKaluppa && (
             <Button onClick={() => set({ open: 'new', mode: null })} className="min-h-[42px] py-0 font-semibold">
-              <Plus aria-hidden="true" className="size-4" strokeWidth={2.2} />
+              <IconPlus aria-hidden="true" className="size-4" strokeWidth={2.2} />
               Sell beans
             </Button>
           )

@@ -1,5 +1,6 @@
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { LocateFixed, MapPin, Maximize, Minus, Plus, Search } from 'lucide-react'
+import { IconLocate, IconMapPin, IconMaximize, IconMinus, IconPlus, IconSearch } from '@/components/ui/icons'
+
 import { useEffect, useRef, useState } from 'react'
 import MapGL, { Marker } from 'react-map-gl/mapbox'
 import { toast } from 'sonner'
@@ -96,7 +97,7 @@ export function MapPicker({
       {searchable && pickable && (
         <div className="flex flex-wrap gap-2">
           <div className="relative min-w-[200px] flex-1" onKeyDown={(e) => e.key === 'Escape' && listOpen && (e.stopPropagation(), setListOpen(false))}>
-            <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-4" strokeWidth={2} />
+            <IconSearch aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-4" strokeWidth={2} />
             <label htmlFor="place-search" className="sr-only">Search a place</label>
             <input
               id="place-search"
@@ -137,7 +138,7 @@ export function MapPicker({
             onClick={useMine}
             className="inline-flex min-h-[42px] cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-control border border-sand-strong bg-white px-3 text-[13px] font-medium text-ink hover:bg-cream"
           >
-            <LocateFixed aria-hidden="true" className="size-[15px]" strokeWidth={2} />
+            <IconLocate aria-hidden="true" className="size-[15px]" strokeWidth={2} />
             Use my location
           </button>
         </div>
@@ -171,7 +172,7 @@ export function MapPicker({
               <Marker latitude={value.lat} longitude={value.lng} anchor="bottom" draggable={pickable} onDragEnd={(e) => pick({ lat: e.lngLat.lat, lng: e.lngLat.lng }, 'map')}>
                 <span className={cn('flex flex-col items-center', pickable && 'cursor-grab')}>
                   <span className="mb-0.5 whitespace-nowrap rounded-[4px] bg-espresso px-2 py-[3px] text-[11px] font-semibold text-white">{pinLabel}</span>
-                  <MapPin aria-hidden="true" className="size-[34px] fill-roast text-white" strokeWidth={1.5} />
+                  <IconMapPin aria-hidden="true" className="size-[34px] fill-roast text-white" strokeWidth={1.5} />
                 </span>
               </Marker>
             )}
@@ -182,13 +183,13 @@ export function MapPicker({
         {TOKEN && (
           <div className="absolute right-3 top-3 flex flex-col overflow-hidden rounded-[6px] border border-sand-strong bg-white shadow-[0_4px_12px_-6px_rgb(43_26_18/0.35)]">
             <button type="button" aria-label="Zoom in" onClick={() => zoomBy(1)} className={cn(controlButton, 'border-b border-sand-soft')}>
-              <Plus aria-hidden="true" className="size-4" strokeWidth={2} />
+              <IconPlus aria-hidden="true" className="size-4" strokeWidth={2} />
             </button>
             <button type="button" aria-label="Zoom out" onClick={() => zoomBy(-1)} className={cn(controlButton, 'border-b border-sand-soft')}>
-              <Minus aria-hidden="true" className="size-4" strokeWidth={2} />
+              <IconMinus aria-hidden="true" className="size-4" strokeWidth={2} />
             </button>
             <button type="button" aria-label="Show all of Marinduque" onClick={fitIsland} className={cn(controlButton, 'text-roast')}>
-              <Maximize aria-hidden="true" className="size-4" strokeWidth={2} />
+              <IconMaximize aria-hidden="true" className="size-4" strokeWidth={2} />
             </button>
           </div>
         )}
@@ -204,7 +205,7 @@ export function MapPicker({
 
       {pickable && (
         <p aria-live="polite" className="m-0 flex items-center gap-2 text-[12.5px] text-ink-2">
-          <MapPin aria-hidden="true" className="size-3.5 shrink-0 text-roast" strokeWidth={2} />
+          <IconMapPin aria-hidden="true" className="size-3.5 shrink-0 text-roast" strokeWidth={2} />
           {busy
             ? 'Finding the address for your pin…'
             : (note ??

@@ -1,9 +1,9 @@
-import { Briefcase, House, MapPin } from 'lucide-react'
+import { IconBriefcase, IconHome, IconMapPin } from '@/components/ui/icons'
 import { addressArea, addressLabel } from '@/lib/address'
 import { cn } from '@/lib/cn'
 import { formatPhone } from '@/lib/format'
 
-const ICONS = { Home: House, Work: Briefcase, Other: MapPin }
+const ICONS = { Home: IconHome, Work: IconBriefcase, Other: IconMapPin }
 const action = 'inline-flex min-h-10 cursor-pointer items-center rounded-control border-0 bg-transparent px-3 py-2 text-[13px] font-semibold hover:bg-crema'
 
 /** Saved address on /addresses (Addresses.dc.html): label, Default badge, recipient, street, area, pin status, actions. */
@@ -28,7 +28,7 @@ export function AddressCard({ address, onEdit, onMakeDefault, onDelete, busy }) 
           <p className="mt-0.5 text-[13.5px] leading-[1.55] text-ink-2">{address.street}</p>
           <p className="text-[13.5px] leading-[1.55] text-ink-2">{addressArea(address)}</p>
           <p className={cn('mt-2 inline-flex items-center gap-1.5 text-xs', address.pinned ? 'text-success-ink' : 'text-caramel-badge')}>
-            <MapPin aria-hidden="true" className="size-[13px]" strokeWidth={2} />
+            <IconMapPin aria-hidden="true" className="size-[13px]" strokeWidth={2} />
             {address.pinned ? 'Pinned on map' : 'No pin yet · add one for a more accurate delivery fee'}
           </p>
         </div>

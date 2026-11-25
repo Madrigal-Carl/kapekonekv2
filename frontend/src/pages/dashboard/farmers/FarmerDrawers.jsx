@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react'
+import { IconCheck } from '@/components/ui/icons'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Drawer } from '@/components/dashboard/Drawer'
@@ -71,7 +71,7 @@ export function FarmerReview({ open, farmer, transfer, onClose }) {
     <>
       <Button variant="outline" onClick={() => setRejecting(true)} className="min-h-[42px] py-0 font-semibold text-logout">Reject</Button>
       <Button onClick={doApprove} pending={approve.isPending || approveMove.isPending} className="min-h-[42px] bg-success py-0 hover:bg-success-ink">
-        <Check aria-hidden="true" className="size-4" strokeWidth={2.25} />
+        <IconCheck aria-hidden="true" className="size-4" strokeWidth={2.25} />
         {transfer ? 'Approve transfer' : 'Approve farmer'}
       </Button>
     </>

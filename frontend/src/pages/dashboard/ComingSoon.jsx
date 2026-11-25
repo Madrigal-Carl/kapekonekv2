@@ -1,4 +1,4 @@
-import { Hourglass } from 'lucide-react'
+import { IconHourglass } from '@/components/ui/icons'
 import { useLocation } from 'react-router-dom'
 import { PageHeader } from '@/components/dashboard/PageHeader'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -14,7 +14,7 @@ export function ComingSoon() {
   return (
     <DashPage>
       <PageHeader eyebrow={section} title={page} />
-      <EmptyState icon={Hourglass} title={`${page} is on its way`}>
+      <EmptyState icon={IconHourglass} title={`${page} is on its way`}>
         This page arrives in a later update of the dashboard.
       </EmptyState>
     </DashPage>

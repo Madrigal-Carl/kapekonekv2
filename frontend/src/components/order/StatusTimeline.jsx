@@ -1,4 +1,5 @@
-import { Check } from 'lucide-react'
+import { IconCheck } from '@/components/ui/icons'
+
 import { cn } from '@/lib/cn'
 
 /**
@@ -20,7 +21,7 @@ export function StatusTimeline({ steps }) {
                   step.done && (step.current ? 'border-st-transit-dot bg-st-transit-dot' : 'border-roast bg-roast'),
                 )}
               >
-                {step.done && <Check aria-hidden="true" className="size-3.5" strokeWidth={3} />}
+                {step.done && <IconCheck aria-hidden="true" className="size-3.5" strokeWidth={3} />}
               </span>
               {next && <span aria-hidden="true" className={cn('min-h-[26px] w-0.5 flex-1', next.done ? 'bg-roast' : 'bg-sand')} />}
             </div>

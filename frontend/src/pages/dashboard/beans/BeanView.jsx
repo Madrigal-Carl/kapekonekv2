@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
-import { Check, Store } from 'lucide-react'
+import { IconCheck, IconStore } from '@/components/ui/icons'
 import { useId, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -171,7 +171,7 @@ export function BeanView({ open, listing, meId, onCancel, onClose }) {
           {listing.status === 'approved' && branch && (
             <div className="flex gap-3 rounded-lg border border-sand p-3.5">
               <span aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-lg bg-espresso text-caramel-light">
-                <Store className="size-5" strokeWidth={1.75} />
+                <IconStore className="size-5" strokeWidth={1.75} />
               </span>
               <div className="text-[13.5px] leading-[1.6]">
                 <strong>{branch.name} branch</strong>
@@ -252,7 +252,7 @@ export function BeanReview({ open, listing, onCancelSale, onClose }) {
     <>
       <Button key="reject" variant="outline" onClick={() => setStep('rejecting')} className="min-h-[42px] py-0 font-semibold text-logout">Reject</Button>
       <Button key="approve" onClick={doApprove} pending={approve.isPending} className="min-h-[42px] bg-success py-0 hover:bg-success-ink">
-        <Check aria-hidden="true" className="size-4" strokeWidth={2.25} />
+        <IconCheck aria-hidden="true" className="size-4" strokeWidth={2.25} />
         Approve
       </Button>
     </>

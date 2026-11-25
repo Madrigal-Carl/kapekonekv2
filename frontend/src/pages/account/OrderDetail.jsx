@@ -1,5 +1,5 @@
 import { format } from 'date-fns'
-import { Banknote, CircleCheck, CircleX, Clock, MapPin, Package, PackageCheck, Store, Truck, TriangleAlert, Wallet } from 'lucide-react'
+import { IconBanknote, IconCircleCheck, IconCircleX, IconClock, IconMapPin, IconPackage, IconPackageCheck, IconStore, IconTriangleAlert, IconTruck, IconWallet } from '@/components/ui/icons'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { LabelChip } from '@/components/map/AddressCard'
@@ -38,14 +38,14 @@ function banner(order) {
   const reason = (order.cancellation ?? order.rejection)?.reason
   switch (order.status) {
     case 'pending':
-      return { icon: Clock, title: 'Waiting for Kaluppa to confirm', text: `Kaluppa confirms within 3 days. If it doesn’t, the order expires${cash ? '' : ' and your payment is refunded'}.` }
+      return { icon: IconClock, title: 'Waiting for Kaluppa to confirm', text: `Kaluppa confirms within 3 days. If it doesn’t, the order expires${cash ? '' : ' and your payment is refunded'}.` }
     case 'reserved':
-      return { icon: PackageCheck, title: 'Kaluppa confirmed your order', text: 'Your coffee is set aside for you.' }
+      return { icon: IconPackageCheck, title: 'Kaluppa confirmed your order', text: 'Your coffee is set aside for you.' }
     case 'processing':
-      return { icon: Package, title: 'Your order is being prepared', text: delivery ? 'It leaves Kaluppa with a rider soon.' : 'We’ll let you know when it’s ready to pick up.' }
+      return { icon: IconPackage, title: 'Your order is being prepared', text: delivery ? 'It leaves Kaluppa with a rider soon.' : 'We’ll let you know when it’s ready to pick up.' }
     case 'out_for_delivery':
       return {
-        icon: Truck,
+        icon: IconTruck,
         title: 'Your order is on the way',
         text: (
           <>
@@ -61,7 +61,7 @@ function banner(order) {
       }
     case 'ready_for_pickup':
       return {
-        icon: Store,
+        icon: IconStore,
         title: `Ready for pickup at ${order.fulfillment.pickup?.name ?? 'Kaluppa'}`,
         text: (
           <>
@@ -75,13 +75,13 @@ function banner(order) {
         ),
       }
     case 'sold':
-      return { icon: CircleCheck, title: delivery ? 'Delivered' : 'Picked up', text: 'Thank you for your order. You can now review the coffee you bought.' }
+      return { icon: IconCircleCheck, title: delivery ? 'Delivered' : 'Picked up', text: 'Thank you for your order. You can now review the coffee you bought.' }
     case 'cancelled':
-      return { icon: CircleX, title: 'You cancelled this order', text: `${reason ? `Reason: ${reason}.` : ''}${refundText(order)}` }
+      return { icon: IconCircleX, title: 'You cancelled this order', text: `${reason ? `Reason: ${reason}.` : ''}${refundText(order)}` }
     case 'rejected':
-      return { icon: CircleX, title: 'Kaluppa couldn’t accept this order', text: `${reason ? `Reason: ${reason}.` : ''}${refundText(order)}` }
+      return { icon: IconCircleX, title: 'Kaluppa couldn’t accept this order', text: `${reason ? `Reason: ${reason}.` : ''}${refundText(order)}` }
     default:
-      return { icon: CircleX, title: 'This order expired', text: `Kaluppa didn’t confirm it within 3 days.${refundText(order)}` }
+      return { icon: IconCircleX, title: 'This order expired', text: `Kaluppa didn’t confirm it within 3 days.${refundText(order)}` }
   }
 }
 
@@ -136,7 +136,7 @@ function DestinationCard({ order }) {
       </p>
       <p className="mt-1 text-[13.5px] leading-[1.55] text-ink-2">{addressLine(a)}</p>
       <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-ink-3">
-        <MapPin aria-hidden="true" className="size-[13px]" strokeWidth={2} />
+        <IconMapPin aria-hidden="true" className="size-[13px]" strokeWidth={2} />
         {a.location ? 'Pinned on map' : 'No map pin'} · {f.distanceKm} km {f.distanceSource === 'mapbox' ? '' : 'estimated '}from Kaluppa
       </p>
     </section>
@@ -147,7 +147,7 @@ function PaymentCard({ order }) {
   const p = order.payment
   const cash = p.method === 'cash'
   const delivery = order.fulfillment.method === 'delivery'
-  const Icon = cash ? Banknote : Wallet
+  const Icon = cash ? IconBanknote : IconWallet
   let detail
   if (cash) detail = p.cashCollectedAt ? `Paid in cash on ${formatDate(p.cashCollectedAt)}.` : delivery ? 'Pay the rider when your order arrives.' : 'Pay at Kaluppa when you pick it up.'
   else detail = p.verifiedAt ? `Verified by Kaluppa on ${formatDate(p.verifiedAt)}.` : 'Kaluppa checks your receipt before confirming.'
@@ -204,7 +204,7 @@ export function OrderDetail() {
     return (
       <div className="mx-auto max-w-[1080px] px-4 py-12 sm:px-8">
         <EmptyState
-          icon={TriangleAlert}
+          icon={IconTriangleAlert}
           tone={missing ? 'neutral' : 'error'}
           title={missing ? 'We couldn’t find that order' : 'We couldn’t load this order'}
           action={missing ? <Button to="/orders">Back to my orders</Button> : <Button variant="outline" onClick={() => order.refetch()}>Try again</Button>}

@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus, X } from 'lucide-react'
+import { IconPlus, IconX } from '@/components/ui/icons'
 import { useEffect, useId, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -206,7 +206,7 @@ function PhotoPicker({ photos, onChange, error }) {
               onClick={() => onChange(photos.filter((x) => x.publicId !== p.publicId))}
               className="absolute right-1 top-1 grid size-6 place-items-center rounded-full bg-espresso/70 text-white focus-visible:outline-2 focus-visible:outline-white"
             >
-              <X aria-hidden="true" className="size-3.5" strokeWidth={2.5} />
+              <IconX aria-hidden="true" className="size-3.5" strokeWidth={2.5} />
             </button>
           </li>
         ))}
@@ -214,7 +214,7 @@ function PhotoPicker({ photos, onChange, error }) {
           <li className="aspect-square">
             <label className="grid size-full cursor-pointer place-items-center rounded-md border-[1.5px] border-dashed border-sand-strong bg-white text-roast hover:bg-cream focus-within:outline-2 focus-within:outline-roast">
               <span className="sr-only">Add photo</span>
-              {upload.isPending ? <span className="text-[11px] font-semibold">{upload.progress}%</span> : <Plus aria-hidden="true" className="size-5" strokeWidth={2} />}
+              {upload.isPending ? <span className="text-[11px] font-semibold">{upload.progress}%</span> : <IconPlus aria-hidden="true" className="size-5" strokeWidth={2} />}
               <input type="file" accept={IMAGE_TYPES} aria-describedby={`${id}-e`} disabled={upload.isPending} onChange={pick} className="sr-only" />
             </label>
           </li>

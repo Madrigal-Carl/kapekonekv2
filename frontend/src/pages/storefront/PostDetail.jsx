@@ -1,4 +1,4 @@
-import { Eye, FileQuestion, RotateCw } from 'lucide-react'
+import { IconEye, IconFileQuestion, IconRefresh } from '@/components/ui/icons'
 import { Link, useParams } from 'react-router-dom'
 import { CommentThread } from '@/components/post/CommentThread'
 import { MediaViewer } from '@/components/post/MediaViewer'
@@ -29,9 +29,9 @@ export function PostDetail() {
         {isPending && <Skeleton className="h-[520px] rounded-card" />}
         {isError && (
           error?.response?.status === 404 || error?.response?.status === 422 ? (
-            <EmptyState icon={FileQuestion} title="We couldn't find that post" action={<Button to="/">Back to home</Button>} className="bg-white">It may have been removed.</EmptyState>
+            <EmptyState icon={IconFileQuestion} title="We couldn't find that post" action={<Button to="/">Back to home</Button>} className="bg-white">It may have been removed.</EmptyState>
           ) : (
-            <EmptyState tone="error" icon={RotateCw} title="We couldn't load this post" action={<Button variant="outline" onClick={() => refetch()}>Try again</Button>} className="bg-white" />
+            <EmptyState tone="error" icon={IconRefresh} title="We couldn't load this post" action={<Button variant="outline" onClick={() => refetch()}>Try again</Button>} className="bg-white" />
           )
         )}
         {post && (
@@ -57,7 +57,7 @@ export function PostDetail() {
               <MediaViewer media={post.media} />
               <ReactionSummary counts={post.reactionCounts} commentCount={post.commentCount} />
               <div role="note" className="mx-5 mb-[18px] flex items-center gap-2.5 rounded-[6px] border border-notice-line bg-crema px-3.5 py-3 text-[13px] text-ink-2">
-                <Eye aria-hidden="true" className="size-[17px] shrink-0 text-roast" strokeWidth={1.9} />
+                <IconEye aria-hidden="true" className="size-[17px] shrink-0 text-roast" strokeWidth={1.9} />
                 You're viewing this post. Reacting and commenting are open to KapeKonek farmers, Group Managers and Kaluppa.
               </div>
             </article>

@@ -1,4 +1,5 @@
-import { RotateCw, Search } from 'lucide-react'
+import { IconRefresh, IconSearch } from '@/components/ui/icons'
+
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { ProductCard } from '@/components/product/ProductCard'
@@ -102,7 +103,7 @@ export function Products() {
           <div>
             <label htmlFor="search" className={cn(legend, 'block')}>Search</label>
             <div className="relative mt-2">
-              <Search aria-hidden="true" className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-4" strokeWidth={2} />
+              <IconSearch aria-hidden="true" className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-4" strokeWidth={2} />
               <input id="search" type="search" placeholder="Search coffee" value={search} onChange={(e) => setSearch(e.target.value)} maxLength={80} className={cn(inputClasses, 'pl-9')} />
             </div>
           </div>
@@ -160,12 +161,12 @@ export function Products() {
           </div>
 
           {isError && (
-            <EmptyState tone="error" icon={RotateCw} title="We couldn't load the coffee" className="mt-10" action={<Button variant="outline" onClick={() => refetch()}>Try again</Button>}>
+            <EmptyState tone="error" icon={IconRefresh} title="We couldn't load the coffee" className="mt-10" action={<Button variant="outline" onClick={() => refetch()}>Try again</Button>}>
               Check your connection and try again.
             </EmptyState>
           )}
           {data && !products.length && (
-            <EmptyState icon={Search} title="No coffee matches these filters" className="mt-10" action={<Button variant="outline" onClick={() => setParams({}, { replace: true })}>Clear all filters</Button>}>
+            <EmptyState icon={IconSearch} title="No coffee matches these filters" className="mt-10" action={<Button variant="outline" onClick={() => setParams({}, { replace: true })}>Clear all filters</Button>}>
               Try another variety or clear your filters.
             </EmptyState>
           )}

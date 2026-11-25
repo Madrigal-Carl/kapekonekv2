@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react'
+import { IconPlus } from '@/components/ui/icons'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -101,7 +101,7 @@ export function Trees() {
         description={DESCRIPTION[audience]}
         actions={
           <Button onClick={() => set({ open: 'new', mode: null })} className="min-h-[42px] py-0 font-semibold">
-            <Plus aria-hidden="true" className="size-4" strokeWidth={2.2} />
+            <IconPlus aria-hidden="true" className="size-4" strokeWidth={2.2} />
             Add tree group
           </Button>
         }

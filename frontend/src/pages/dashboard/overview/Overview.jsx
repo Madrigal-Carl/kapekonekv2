@@ -1,4 +1,4 @@
-import { AlertTriangle } from 'lucide-react'
+import { IconTriangleAlert } from '@/components/ui/icons'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -63,7 +63,7 @@ export function Overview() {
       {isPending ? (
         <OverviewSkeleton />
       ) : isError || !View ? (
-        <EmptyState icon={AlertTriangle} tone="error" title="We couldn't load your overview" action={<Button variant="outline" onClick={() => refetch()}>Try again</Button>}>
+        <EmptyState icon={IconTriangleAlert} tone="error" title="We couldn't load your overview" action={<Button variant="outline" onClick={() => refetch()}>Try again</Button>}>
           Check your connection and try again.
         </EmptyState>
       ) : (

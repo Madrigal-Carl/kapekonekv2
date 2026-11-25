@@ -1,5 +1,5 @@
 import { format } from 'date-fns'
-import { Plus } from 'lucide-react'
+import { IconPlus } from '@/components/ui/icons'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { ConfirmModal } from '@/components/dashboard/ConfirmModal'
@@ -107,7 +107,7 @@ export function Farmers() {
         description={association ? `Everyone in ${association.name}, plus requests waiting for you.` : noAssociation ? 'You’ll see farmers here once Kaluppa assigns you an association.' : 'Every farmer across Marinduque, plus requests waiting for a decision.'}
         actions={
           <Button onClick={() => set({ open: 'new', mode: null })} disabled={noAssociation || org.isPending} className="min-h-[42px] py-0 font-semibold">
-            <Plus aria-hidden="true" className="size-4" strokeWidth={2} />
+            <IconPlus aria-hidden="true" className="size-4" strokeWidth={2} />
             Add farmer
           </Button>
         }

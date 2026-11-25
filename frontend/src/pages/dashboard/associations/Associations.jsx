@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus } from 'lucide-react'
+import { IconPlus } from '@/components/ui/icons'
 import { useId, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
@@ -106,7 +106,7 @@ export function Associations() {
         description="Farmer groups across Marinduque. Each has one Group Manager and a group chat."
         actions={
           <Button onClick={() => set({ open: 'new', mode: null })} className="min-h-[42px] py-0 font-semibold">
-            <Plus aria-hidden="true" className="size-4" strokeWidth={2} />
+            <IconPlus aria-hidden="true" className="size-4" strokeWidth={2} />
             Add association
           </Button>
         }

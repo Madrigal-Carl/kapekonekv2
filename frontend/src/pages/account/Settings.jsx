@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Mail } from 'lucide-react'
+import { IconMail } from '@/components/ui/icons'
 import { useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -64,7 +64,7 @@ function ChangeEmailForm({ email }) {
         <FieldHint id="emailPassword-error" error={errors.currentPassword?.message} />
       </div>
       <div className="col-span-full flex items-start gap-2.5 rounded-[6px] border border-notice-line bg-notice-bg px-3.5 py-3 text-[13px] text-notice-ink">
-        <Mail aria-hidden="true" className="mt-0.5 size-4 shrink-0" strokeWidth={2} />
+        <IconMail aria-hidden="true" className="mt-0.5 size-4 shrink-0" strokeWidth={2} />
         <span>We'll send a verification link to the new address and take you to the verify page. You can't order until it's verified. Your old address gets a notice.</span>
       </div>
     </SettingsCard>

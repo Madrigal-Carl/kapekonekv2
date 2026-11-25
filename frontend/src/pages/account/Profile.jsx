@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Camera, Check } from 'lucide-react'
+import { IconCamera, IconCheck } from '@/components/ui/icons'
+
 import { useId, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { Link } from 'react-router-dom'
@@ -72,7 +73,7 @@ function PhotoBand({ user }) {
             describedBy={`${id}-hint ${id}-error`}
             className="inline-flex min-h-10 items-center gap-2 rounded-control bg-roast px-3.5 py-[9px] text-[13px] font-medium text-white hover:bg-roast-hover"
           >
-            <Camera aria-hidden="true" className="size-[15px]" strokeWidth={2} />
+            <IconCamera aria-hidden="true" className="size-[15px]" strokeWidth={2} />
             <span aria-live="polite">{change.isPending ? `Uploading… ${progress}%` : 'Upload photo'}</span>
           </FileDrop>
           <Button
@@ -165,7 +166,7 @@ export function Profile({ embedded = false }) {
                   aria-live="polite"
                   className={cn('mt-1.5 flex items-center gap-1.5 text-xs', { muted: 'text-ink-3', taken: 'text-danger-ink', available: 'text-success-ink' }[status.tone])}
                 >
-                  {status.tone === 'available' && <Check aria-hidden="true" className="size-[13px] shrink-0" strokeWidth={2.5} />}
+                  {status.tone === 'available' && <IconCheck aria-hidden="true" className="size-[13px] shrink-0" strokeWidth={2.5} />}
                   {status.message}
                 </p>
               </div>
@@ -190,7 +191,7 @@ export function Profile({ embedded = false }) {
                   <span className="truncate">{user.email}</span>
                   {user.emailVerifiedAt ? (
                     <span className="inline-flex shrink-0 items-center gap-1 text-[11px] font-semibold text-success-ink">
-                      <Check aria-hidden="true" className="size-3" strokeWidth={2.5} />
+                      <IconCheck aria-hidden="true" className="size-3" strokeWidth={2.5} />
                       Verified
                     </span>
                   ) : (

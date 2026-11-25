@@ -1,9 +1,10 @@
-import { ArrowDownUp, Check, ChevronDown, House, MapPin, Search, Tag, X } from 'lucide-react'
+import { IconArrowDownUp, IconCheck, IconChevronDown, IconHome, IconMapPin, IconSearch, IconTag, IconX } from '@/components/ui/icons'
+
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '@/lib/cn'
 
-const ICONS = { pin: MapPin, home: House, sort: ArrowDownUp, tag: Tag }
+const ICONS = { pin: IconMapPin, home: IconHome, sort: IconArrowDownUp, tag: IconTag }
 const POPOVER_MAX = 340 // search + 236px list + footer, used to decide whether to flip up
 
 const normalize = (options) => options.map((o) => (typeof o === 'string' ? { value: o, label: o } : o))
@@ -189,7 +190,7 @@ export function SearchSelect({
             open ? 'rotate-180 bg-roast text-white' : 'bg-foam text-roast',
           )}
         >
-          <ChevronDown className="size-3.5" strokeWidth={2.4} />
+          <IconChevronDown className="size-3.5" strokeWidth={2.4} />
         </span>
       </button>
       {name && <input type="hidden" name={name} value={value ?? ''} />}
@@ -209,7 +210,7 @@ export function SearchSelect({
           >
             {searchable && (
               <div className="relative border-b border-sand-soft p-2.5">
-                <Search aria-hidden="true" className="absolute left-[22px] top-1/2 size-[15px] -translate-y-1/2 text-ink-4" strokeWidth={2} />
+                <IconSearch aria-hidden="true" className="absolute left-[22px] top-1/2 size-[15px] -translate-y-1/2 text-ink-4" strokeWidth={2} />
                 <input
                   ref={searchRef}
                   type="text"
@@ -239,7 +240,7 @@ export function SearchSelect({
                     }}
                     className="absolute right-3.5 top-1/2 grid size-7 -translate-y-1/2 cursor-pointer place-items-center rounded border-0 bg-transparent text-ink-4"
                   >
-                    <X aria-hidden="true" className="size-3.5" strokeWidth={2} />
+                    <IconX aria-hidden="true" className="size-3.5" strokeWidth={2} />
                   </button>
                 )}
               </div>
@@ -267,7 +268,7 @@ export function SearchSelect({
                   <span className="min-w-0 flex-1">
                     <Highlight label={o.label} q={q} />
                   </span>
-                  {o.value === value && <Check aria-hidden="true" className="size-4 shrink-0 text-roast" strokeWidth={2.5} />}
+                  {o.value === value && <IconCheck aria-hidden="true" className="size-4 shrink-0 text-roast" strokeWidth={2.5} />}
                 </li>
               ))}
               {matches.length === 0 && (
