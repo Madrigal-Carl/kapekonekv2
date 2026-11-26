@@ -41,7 +41,7 @@ function Aside() {
   const top = useTopPosts()
   const tags = useTagCounts()
   return (
-    <aside className="flex max-w-[340px] flex-[1_1_280px] flex-col gap-3.5 max-[720px]:max-w-none">
+    <aside className="sticky top-7 flex max-w-[340px] flex-[1_1_280px] flex-col gap-3.5 self-start max-[720px]:static max-[720px]:max-w-none">
       <section className={card}>
         <h2 className="m-0 text-[15px] font-semibold">Most viewed this month</h2>
         <p className="mt-0.5 text-xs leading-[1.5] text-ink-3">These 3 appear on the landing page for everyone. Views count signed-in people once a day.</p>
