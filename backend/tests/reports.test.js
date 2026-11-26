@@ -83,6 +83,8 @@ describe('reports for Kaluppa', () => {
     expect(row('Boac Growers')).toMatchObject({ farmers: 1, farms: 1, trees: 30, harvestKg: 40, beansKg: 5, paidCentavos: 90_000 });
     expect(row('Gasan Growers')).toMatchObject({ farmers: 0, farms: 0, harvestKg: 0 });
     expect(row('Kaluppa farms')).toMatchObject({ farmers: null, farms: 2, trees: 100, harvestKg: 200, beansKg: null });
+    // Largest harvest first (Reports.dc.html), Kaluppa farms last.
+    expect(b.rows.map((x) => x.name)).toEqual(['Santa Cruz Growers', 'Boac Growers', 'Gasan Growers', 'Kaluppa farms']);
   });
 
   it('the association filter narrows every section', async () => {
@@ -101,23 +103,24 @@ describe('reports for Kaluppa', () => {
 });
 
 describe('reports for a Group Manager', () => {
-  it('are its association only (with the Kaluppa farm it manages), by farmer', async () => {
+  it('are its association’s farmers only (not the Kaluppa farm it manages), by farmer', async () => {
     const s = await get(r.manager, 'summary');
-    expect(s.harvest.kg).toBe(300);
+    expect(s.harvest.kg).toBe(100);
     expect(s.beans).toEqual({ kg: 12, paidCentavos: 216_000 });
-    expect(s.farms).toEqual({ count: 3, ha: 3.6 });
+    expect(s.farms).toEqual({ count: 2, ha: 2.4 });
+    expect((await get(r.manager, 'trees')).total).toBe(60);
+    expect(sum((await get(r.manager, 'harvest')).series.flatMap((x) => x.values))).toBe(100);
     expect(s.sales).toBeUndefined();
     const b = await get(r.manager, 'breakdown');
     expect(b.kind).toBe('farmer');
     expect(b.rows).toEqual([
       { name: 'Ana Farmer', farmers: null, farms: 2, trees: 60, harvestKg: 100, beansKg: 12, paidCentavos: 216_000 },
-      { name: 'Kaluppa farms', farmers: null, farms: 1, trees: 100, harvestKg: 200, beansKg: null, paidCentavos: null },
     ]);
   });
 
   it('can’t read another association: the filter is forced to its own', async () => {
     const s = await get(r.manager, `summary?association=${r.a.boac.id}`);
-    expect(s.harvest.kg).toBe(300);
+    expect(s.harvest.kg).toBe(100);
     expect((await get(r.manager, `breakdown?association=${r.a.boac.id}`)).rows.map((x) => x.name)).not.toContain('Ben Farmer');
   });
 

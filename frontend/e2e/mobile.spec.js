@@ -10,14 +10,14 @@ async function signIn(page, identifier, password = 'KapeKonek@123') {
   await page.waitForURL((url) => !url.pathname.startsWith('/login'))
 }
 
-const SHARED = ['/dashboard/overview', '/dashboard/farms', '/dashboard/trees', '/dashboard/harvests', '/dashboard/inbox', '/dashboard/account/profile', '/dashboard/account/security']
+const SHARED = ['/dashboard/overview', '/dashboard/farms', '/dashboard/trees', '/dashboard/harvests', '/dashboard/inbox', '/dashboard/account/profile', '/dashboard/account/security', '/dashboard/farm-map']
 const ROUTES = {
   'farmer.approved': [...SHARED, '/dashboard/beans', '/dashboard/orders', '/dashboard/account/association', '/dashboard/account/addresses'],
-  'manager.santacruz': [...SHARED, '/dashboard/farmers', '/dashboard/beans'],
-  kaluppa: [...SHARED, '/dashboard/group-managers', '/dashboard/associations', '/dashboard/beans', '/dashboard/orders', '/dashboard/inventory', '/dashboard/reviews', '/dashboard/settings', '/dashboard/settings?tab=delivery', '/dashboard/settings?tab=ewallet'],
+  'manager.santacruz': [...SHARED, '/dashboard/farmers', '/dashboard/beans', '/dashboard/reports'],
+  kaluppa: [...SHARED, '/dashboard/group-managers', '/dashboard/associations', '/dashboard/beans', '/dashboard/orders', '/dashboard/inventory', '/dashboard/reviews', '/dashboard/settings', '/dashboard/settings?tab=delivery', '/dashboard/settings?tab=ewallet', '/dashboard/reports', '/dashboard/audit-log'],
 }
 
-const TABLES = /\/dashboard\/(farms|trees|harvests|beans|orders|farmers|group-managers|associations|inventory|reviews)$/
+const TABLES = /\/dashboard\/(farms|trees|harvests|beans|orders|farmers|group-managers|associations|inventory|reviews|audit-log)$/
 const overflow = (page) => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
 
 for (const [who, routes] of Object.entries(ROUTES)) {

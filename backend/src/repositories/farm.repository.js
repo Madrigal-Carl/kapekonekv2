@@ -93,8 +93,8 @@ export const findKaluppaFarmIds = () => Farm.find({ ownerType: 'kaluppa' }).dist
  * Reports: active farms in scope per group, with hectares; Kaluppa farms group as "kaluppa".
  * @param {string|null|undefined} association @param {'association'|'owner'} field
  */
-export const farmReport = (association, field) =>
+export const farmReport = (association, field, exceptFarms) =>
   Farm.aggregate([
-    { $match: { ...associationMatch(association), archivedAt: null } },
+    { $match: { ...associationMatch(association, exceptFarms, '_id'), archivedAt: null } },
     { $group: { _id: { $cond: [{ $eq: ['$ownerType', 'kaluppa'] }, 'kaluppa', `$${field}`] }, farms: { $sum: 1 }, ha: { $sum: '$sizeHa' } } },
   ]);

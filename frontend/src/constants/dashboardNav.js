@@ -71,6 +71,8 @@ const ACCOUNT_CRUMBS = { profile: 'Profile', security: 'Security', addresses: 'A
 export function crumbsFor(role, pathname) {
   const [, , page, sub] = pathname.split('/')
   if (page === 'account') return ['Account settings', ACCOUNT_CRUMBS[sub] ?? 'Profile']
+  // Kaluppa lists Reports under System, but the page's crumb is Insights for everyone (Reports.dc.html).
+  if (page === 'reports') return ['Insights', 'Reports']
   for (const [section, items] of NAV[role] ?? []) {
     const hit = items.find((i) => !i.external && i.to === `/dashboard/${page}`)
     if (hit) return [section, hit.label]

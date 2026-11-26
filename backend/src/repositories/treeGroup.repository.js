@@ -77,9 +77,9 @@ export const setFarmsAssociation = (farmIds, associationId) => TreeGroup.updateM
 export const countActiveGroups = (farmIds) => TreeGroup.countDocuments({ archivedAt: null, ...(farmIds && { farm: { $in: farmIds } }) });
 
 /** Reports: active trees in scope per stage and per group (`$facet`). @param {string|null|undefined} association @param {object} group */
-export async function treeReport(association, group) {
+export async function treeReport(association, group, exceptFarms) {
   const [facets] = await TreeGroup.aggregate([
-    { $match: { ...associationMatch(association), archivedAt: null } },
+    { $match: { ...associationMatch(association, exceptFarms), archivedAt: null } },
     { $facet: { stages: [{ $group: { _id: '$stage', trees: { $sum: '$count' } } }], groups: [{ $group: { _id: group, trees: { $sum: '$count' } } }] } },
   ]);
   return facets;

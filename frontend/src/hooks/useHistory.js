@@ -21,4 +21,6 @@ export const useEntityHistory = (entityType, entityId) =>
 
 /** The audit log page (Kaluppa). */
 export const useAuditLog = (params) => useQuery({ queryKey: historyKeys.log(params), queryFn: () => auditLogService.listAuditLog(params), placeholderData: keepPreviousData })
-export const useAuditEntry = (id) => useQuery({ queryKey: historyKeys.entry(id), queryFn: () => auditLogService.getAuditEntry(id), enabled: Boolean(id), retry: false })
+/** One entry for the diff drawer; `initial` (the row already on the page) shows at once. */
+export const useAuditEntry = (id, initial) =>
+  useQuery({ queryKey: historyKeys.entry(id), queryFn: () => auditLogService.getAuditEntry(id), enabled: Boolean(id), retry: false, initialData: initial })

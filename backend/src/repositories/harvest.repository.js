@@ -64,10 +64,10 @@ export const harvestRows = (farmIds, from, to) =>
  * group, and the previous period's total — in one `$facet`.
  * @param {string|null|undefined} association @param {{ from: Date, to: Date, prevFrom: Date }} range @param {object} group `$group` key
  */
-export async function harvestReport(association, range, group) {
+export async function harvestReport(association, range, group, exceptFarms) {
   const inPeriod = { $match: { harvestedAt: { $gte: range.from } } };
   const [facets] = await Harvest.aggregate([
-    { $match: { ...associationMatch(association), archivedAt: null, harvestedAt: { $gte: range.prevFrom, $lt: range.to } } },
+    { $match: { ...associationMatch(association, exceptFarms), archivedAt: null, harvestedAt: { $gte: range.prevFrom, $lt: range.to } } },
     {
       $facet: {
         months: [inPeriod, { $group: { _id: { month: manilaMonth('$harvestedAt'), variety: '$variety' }, kg: { $sum: '$yieldKg' } } }],

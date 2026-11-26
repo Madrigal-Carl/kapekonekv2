@@ -28,7 +28,7 @@ const plural = (n, one) => `${count(n)} ${n === 1 ? one : `${one}s`}`
 
 /** "▲ 11% vs previous period" (Reports.dc.html). */
 function changeNote(figure) {
-  if (figure.pct == null) return { text: 'Nothing to compare with the previous period', tone: 'muted' }
+  if (figure.pct == null) return { text: 'No data from the previous period', tone: 'muted' }
   return { text: `${figure.pct >= 0 ? '▲' : '▼'} ${Math.abs(figure.pct)}% vs previous period`, tone: figure.pct >= 0 ? 'good' : 'muted' }
 }
 

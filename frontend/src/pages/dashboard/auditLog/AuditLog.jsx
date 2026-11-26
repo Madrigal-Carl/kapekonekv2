@@ -77,8 +77,8 @@ function toRow(e) {
 }
 
 /** The diff drawer (AuditLog.dc.html): who, when, the record, and each field before → after. */
-function EntryDrawer({ id, onClose }) {
-  const entry = useAuditEntry(id)
+function EntryDrawer({ id, initial, onClose }) {
+  const entry = useAuditEntry(id, initial)
   const e = entry.data
   return (
     <Drawer
@@ -202,7 +202,7 @@ export function AuditLog() {
         minWidth={1020}
         selectedId={params.open}
       />
-      <EntryDrawer id={params.open || null} onClose={close} />
+      <EntryDrawer id={params.open || null} initial={list.data?.items.find((e) => e.id === params.open)} onClose={close} />
     </DashPage>
   )
 }

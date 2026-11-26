@@ -26,7 +26,8 @@ const fullName = (u) => `${u.firstName} ${u.lastName}`;
 
 /**
  * Who and what a report covers. Kaluppa: every association, or the one it filters by. A Group Manager: always its own
- * association (null when it has none, which matches nothing), whatever the query says.
+ * association (null when it has none, which matches nothing), whatever the query says, and only its farmers' records:
+ * Kaluppa farms it manages stay in Kaluppa's reports (Reports.dc.html).
  * @param {object} actor @param {{ period?: string, association?: string }} query
  */
 async function contextFor(actor, { period = 'last_12_months', association }) {
@@ -36,6 +37,7 @@ async function contextFor(actor, { period = 'last_12_months', association }) {
     range: reportRange(period),
     scope: byAssociation ? association : actor.associationId ? String(actor.associationId) : null,
     byAssociation,
+    exceptFarms: byAssociation ? undefined : kaluppaFarmIds,
     // Breakdown rows: associations for Kaluppa, farmers for a Group Manager; Kaluppa farms are a row of their own.
     recordGroup: groupOrKaluppa(byAssociation ? 'association' : 'owner', kaluppaFarmIds),
     beanGroup: byAssociation ? '$association' : '$farmer',
@@ -62,9 +64,9 @@ const SECTIONS = {
   async summary(actor, ctx) {
     const { range, scope } = ctx;
     const [harvest, beans, farms, farmers, waiting, sales] = await Promise.all([
-      harvestReport(scope, range, null),
+      harvestReport(scope, range, null, ctx.exceptFarms),
       beanReport(scope, range, null),
-      farmReport(scope, ctx.farmField),
+      farmReport(scope, ctx.farmField, ctx.exceptFarms),
       listApprovedFarmers(scope),
       scope === undefined ? countFarmersEverywhere().then((c) => c.waiting) : scope ? countWaiting(scope) : 0,
       salesAllowed(actor).then((ok) => (ok ? soldRows(range.from, range.to) : null)),
@@ -79,8 +81,8 @@ const SECTIONS = {
     };
   },
 
-  async harvest(_actor, { range, scope }) {
-    const { months } = await harvestReport(scope, range, null);
+  async harvest(_actor, { range, scope, exceptFarms }) {
+    const { months } = await harvestReport(scope, range, null, exceptFarms);
     return {
       labels: range.labels,
       series: Object.keys(VARIETIES).map((variety) => ({ variety, values: monthly(range, months.filter((m) => m._id.variety === variety).map((m) => ({ _id: m._id.month, kg: m.kg }))) })),
@@ -98,8 +100,8 @@ const SECTIONS = {
     return { labels: range.labels, values: monthly(range, rows.map((o) => ({ _id: range.keyOf(o.soldAt), kg: o.totalCentavos }))), count: rows.length };
   },
 
-  async trees(_actor, { scope }) {
-    const { stages } = await treeReport(scope, null);
+  async trees(_actor, { scope, exceptFarms }) {
+    const { stages } = await treeReport(scope, null, exceptFarms);
     const counts = byKey(stages);
     return { total: total(stages, 'trees'), byStage: TREE_STAGES.map((stage) => ({ stage, count: counts.get(stage)?.trees ?? 0 })) };
   },
@@ -107,10 +109,10 @@ const SECTIONS = {
   async breakdown(_actor, ctx) {
     const { range, scope, byAssociation } = ctx;
     const [harvest, beans, trees, farms, farmers, associations] = await Promise.all([
-      harvestReport(scope, range, ctx.recordGroup),
+      harvestReport(scope, range, ctx.recordGroup, ctx.exceptFarms),
       beanReport(scope, range, ctx.beanGroup),
-      treeReport(scope, ctx.recordGroup),
-      farmReport(scope, ctx.farmField),
+      treeReport(scope, ctx.recordGroup, ctx.exceptFarms),
+      farmReport(scope, ctx.farmField, ctx.exceptFarms),
       listApprovedFarmers(scope),
       byAssociation ? listActiveOptions() : [],
     ]);
@@ -128,8 +130,9 @@ const SECTIONS = {
         .filter((a) => scope === undefined || String(a._id) === scope)
         .map((a) => ({ name: a.name, farmers: farmers.filter((p) => String(p.association) === String(a._id)).length, ...figures(String(a._id)) }))
       : farmers
-        .map((p) => ({ name: fullName(p.user), farmers: null, ...figures(String(p.user._id)) }))
-        .sort((x, y) => x.name.localeCompare(y.name));
+        .map((p) => ({ name: fullName(p.user), farmers: null, ...figures(String(p.user._id)) }));
+    // Largest harvest first, then by name (Reports.dc.html); the catch-all rows below go last.
+    rows.sort((x, y) => y.harvestKg - x.harvestKg || x.name.localeCompare(y.name));
     if (byAssociation && scope === undefined && hasData('null')) rows.push({ name: 'No association', farmers: null, ...figures('null') });
     if (hasData(KALUPPA)) rows.push({ name: 'Kaluppa farms', farmers: null, ...figures(KALUPPA, { sells: false }) });
     return { kind: byAssociation ? 'association' : 'farmer', rows };

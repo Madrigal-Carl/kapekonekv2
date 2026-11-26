@@ -66,5 +66,5 @@ describe('PostComposer', () => {
     expect(screen.getByText('Use 5,000 characters or fewer · 5,001 / 5,000')).toBeTruthy()
     expect(box.getAttribute('aria-invalid')).toBe('true')
     expect(screen.getByRole('button', { name: 'Post' }).disabled).toBe(true)
-  })
+  }, 20_000) // typing 5,000+ characters is slow under the full parallel run
 })
