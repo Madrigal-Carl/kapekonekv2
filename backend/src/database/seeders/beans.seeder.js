@@ -50,7 +50,8 @@ export async function seedBeans() {
       listingNumber: `BN-${manilaDateKey(createdAt).slice(2, 6)}-${String(await nextSequence(`bean:${manilaDateKey(createdAt).slice(2, 6)}`)).padStart(4, '0')}`,
       farmer: farmer._id, association: profile?.association?._id ?? null, recordedBy: recorder._id,
       variety, form, weightKg, pricePerKgCentavos: pesos * 100, note: x.note ?? '',
-      photos: PHOTOS[form].map((key) => ({ url: media[key].url, publicId: media[key].publicId ?? `seed/${key}` })),
+      // A photo whose URL didn't answer is skipped (like imagesFor), so a flaky network never stops the seed.
+      photos: PHOTOS[form].filter((key) => media[key]).map((key) => ({ url: media[key].url, publicId: media[key].publicId ?? `seed/${key}` })),
       status, countsTowardCap: profile?.status !== 'approved',
       approvedAt, approvedBy: approvedAt ? kaluppa : null, expiresAt: approvedAt ? new Date(approvedAt.getTime() + 7 * DAY) : null,
       createdAt, updatedAt: createdAt,
