@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { Farm } from '../models/farm.model.js';
 import { pageList } from '../utils/pageList.js';
+import { associationMatch } from '../utils/reportQuery.js';
 
 const PEOPLE = 'firstName lastName username';
 const POPULATE = [
@@ -83,4 +84,17 @@ export const farmCounts = (farmIds) =>
     { $match: { archivedAt: null, ...(farmIds && { _id: { $in: farmIds } }) } },
     { $group: { _id: { municipality: '$municipality', ownerType: '$ownerType' }, count: { $sum: 1 } } },
     { $sort: { count: -1, '_id.municipality': 1 } },
+  ]);
+
+/** Ids of every Kaluppa farm (Reports put their records in a "Kaluppa farms" row). */
+export const findKaluppaFarmIds = () => Farm.find({ ownerType: 'kaluppa' }).distinct('_id');
+
+/**
+ * Reports: active farms in scope per group, with hectares; Kaluppa farms group as "kaluppa".
+ * @param {string|null|undefined} association @param {'association'|'owner'} field
+ */
+export const farmReport = (association, field) =>
+  Farm.aggregate([
+    { $match: { ...associationMatch(association), archivedAt: null } },
+    { $group: { _id: { $cond: [{ $eq: ['$ownerType', 'kaluppa'] }, 'kaluppa', `$${field}`] }, farms: { $sum: 1 }, ha: { $sum: '$sizeHa' } } },
   ]);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bucketize, compare, periodRange } from '../src/utils/period.js';
+import { bucketize, compare, periodRange, reportRange } from '../src/utils/period.js';
 
 // Manila is UTC+8: 2026-11-27T01:00Z is Friday Nov 27, 9:00 AM in Manila.
 const NOW = new Date('2026-11-27T01:00:00Z');
@@ -57,5 +57,27 @@ describe('compare', () => {
     expect(compare(112, 100)).toEqual({ previous: 100, pct: 12 });
     expect(compare(90, 100)).toEqual({ previous: 100, pct: -10 });
     expect(compare(5, 0)).toEqual({ previous: 0, pct: null });
+  });
+});
+
+describe('reportRange (Reports periods, Manila months)', () => {
+  const now = new Date('2026-11-27T02:00:00Z'); // Nov 27, 10 AM in Manila
+  const manila = (d) => new Date(d.getTime() + 8 * 3600 * 1000).toISOString().slice(0, 10);
+
+  it('last 12 months: Dec 1 last year to Dec 1, compared with the 12 months before', () => {
+    const r = reportRange('last_12_months', now);
+    expect([manila(r.from), manila(r.to), manila(r.prevFrom), manila(r.prevTo)]).toEqual(['2025-12-01', '2026-12-01', '2024-12-01', '2025-12-01']);
+    expect(r.labels).toEqual(['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov']);
+    expect(r.keys[0]).toBe('2025-12');
+    expect(r.csvLabels.at(-1)).toBe('Nov 2026');
+  });
+
+  it('this year, last year and the last 30 days', () => {
+    expect(reportRange('this_year', now).keys).toHaveLength(12);
+    const last = reportRange('last_year', now);
+    expect([manila(last.from), manila(last.to), last.keys[0]]).toEqual(['2025-01-01', '2026-01-01', '2025-01']);
+    const days = reportRange('last_30_days', now);
+    expect([manila(days.from), manila(days.to), manila(days.prevFrom)]).toEqual(['2026-10-29', '2026-11-28', '2026-09-29']);
+    expect(days.labels).toEqual(['Oct', 'Nov']);
   });
 });

@@ -23,6 +23,7 @@ import { Hub, HubPost } from '@/pages/dashboard/hub/Hub'
 import { Harvests } from '@/pages/dashboard/records/Harvests'
 import { Trees } from '@/pages/dashboard/records/Trees'
 import { FarmMap } from '@/pages/dashboard/map/FarmMap'
+import { Reports } from '@/pages/dashboard/reports/Reports'
 
 // Each page is its own chunk, loaded on first visit (RootLayout's Suspense shows the spinner).
 const page = (load, name) => lazy(() => load().then((m) => ({ default: m[name] })))
@@ -71,6 +72,7 @@ const RECORD_PAGES = [
   ['hub', 'dashboard.view', <Hub key="hub" />],
   ['hub/posts/:id', 'dashboard.view', <HubPost key="hub-post" />],
   ['farm-map', 'map.view', <FarmMap key="farm-map" />],
+  ['reports', 'reports.view', <Reports key="reports" />],
 ]
 
 export const router = createBrowserRouter([

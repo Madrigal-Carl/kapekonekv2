@@ -1,3 +1,4 @@
+import { associationMatch, manilaMonth } from '../utils/reportQuery.js';
 import { Harvest } from '../models/harvest.model.js';
 import { pageList } from '../utils/pageList.js';
 import { oids, RECORD_POPULATE } from './treeGroup.repository.js';
@@ -57,3 +58,23 @@ export const insertHarvests = (docs) => Harvest.insertMany(docs);
 /** Active harvests in scope in [from, to): when, variety and kilograms (overview charts). */
 export const harvestRows = (farmIds, from, to) =>
   Harvest.find({ archivedAt: null, harvestedAt: { $gte: from, $lt: to }, ...inFarms(farmIds) }).select('harvestedAt variety yieldKg').lean();
+
+/**
+ * Reports (PHASE-2-SPEC §3.12): active harvests in scope — kg per Manila month and variety in [from, to), kg per
+ * group, and the previous period's total — in one `$facet`.
+ * @param {string|null|undefined} association @param {{ from: Date, to: Date, prevFrom: Date }} range @param {object} group `$group` key
+ */
+export async function harvestReport(association, range, group) {
+  const inPeriod = { $match: { harvestedAt: { $gte: range.from } } };
+  const [facets] = await Harvest.aggregate([
+    { $match: { ...associationMatch(association), archivedAt: null, harvestedAt: { $gte: range.prevFrom, $lt: range.to } } },
+    {
+      $facet: {
+        months: [inPeriod, { $group: { _id: { month: manilaMonth('$harvestedAt'), variety: '$variety' }, kg: { $sum: '$yieldKg' } } }],
+        groups: [inPeriod, { $group: { _id: group, kg: { $sum: '$yieldKg' } } }],
+        previous: [{ $match: { harvestedAt: { $lt: range.from } } }, { $group: { _id: null, kg: { $sum: '$yieldKg' } } }],
+      },
+    },
+  ]);
+  return facets;
+}

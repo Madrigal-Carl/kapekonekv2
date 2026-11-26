@@ -1,4 +1,5 @@
 import { FarmerProfile } from '../models/farmerProfile.model.js';
+import { associationMatch } from '../utils/reportQuery.js';
 
 const ASSOCIATIONS = [
   { path: 'association', select: 'name municipality groupManager groupChat archivedAt' },
@@ -89,3 +90,7 @@ export async function countFarmersEverywhere() {
  */
 export const lockForBeanCap = async (userId, session) =>
   (await FarmerProfile.findOneAndUpdate({ user: userId }, { $inc: { capLock: 1 } }, { session, upsert: true, returnDocument: 'after', projection: 'status' }).lean()).status;
+
+/** Reports: approved farmers in scope with their names, association and approval time. @param {string|null|undefined} association */
+export const listApprovedFarmers = (association) =>
+  FarmerProfile.find({ ...associationMatch(association), status: 'approved' }, 'user association approvedAt').populate('user', 'firstName lastName').lean();

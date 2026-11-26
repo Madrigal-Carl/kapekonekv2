@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { TreeGroup } from '../models/treeGroup.model.js';
 import { pageList } from '../utils/pageList.js';
+import { associationMatch } from '../utils/reportQuery.js';
 
 const PEOPLE = 'firstName lastName username';
 export const RECORD_POPULATE = [
@@ -74,3 +75,12 @@ export const setFarmsAssociation = (farmIds, associationId) => TreeGroup.updateM
 
 /** Active tree groups in scope. null = every farm. */
 export const countActiveGroups = (farmIds) => TreeGroup.countDocuments({ archivedAt: null, ...(farmIds && { farm: { $in: farmIds } }) });
+
+/** Reports: active trees in scope per stage and per group (`$facet`). @param {string|null|undefined} association @param {object} group */
+export async function treeReport(association, group) {
+  const [facets] = await TreeGroup.aggregate([
+    { $match: { ...associationMatch(association), archivedAt: null } },
+    { $facet: { stages: [{ $group: { _id: '$stage', trees: { $sum: '$count' } } }], groups: [{ $group: { _id: group, trees: { $sum: '$count' } } }] } },
+  ]);
+  return facets;
+}

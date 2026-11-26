@@ -22,6 +22,7 @@ import inboxRoutes from './inbox.routes.js';
 import notificationRoutes from './notification.routes.js';
 import orderRoutes from './order.routes.js';
 import postRoutes from './post.routes.js';
+import reportRoutes from './report.routes.js';
 import settingRoutes from './setting.routes.js';
 
 const router = Router();
@@ -50,5 +51,6 @@ router.use(beanRoutes);
 router.use(inboxRoutes);
 router.use(dashboardRoutes);
 router.use(auditLogRoutes);
+router.use(reportRoutes);
 
 export default router;

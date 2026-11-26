@@ -21,7 +21,7 @@ const short = (date) => `${MONTHS[wall(date).getUTCMonth()]} ${wall(date).getUTC
  * (Week 1 = days 1–7 …); year: months.
  * @param {'today'|'week'|'month'|'year'} period
  * @param {Date} [now]
- * @returns {{ period: string, from: Date, to: Date, prevFrom: Date, prevTo: Date, labels: string[],
+ * @returns {{ keyOf: (date: Date) => string, period: string, from: Date, to: Date, prevFrom: Date, prevTo: Date, labels: string[],
  *   bucketOf: (date: Date) => number, rangeText: string, prevLabel: string }}
  */
 export function periodRange(period, now = new Date()) {
@@ -82,3 +82,30 @@ export function bucketize(range, rows) {
  * @param {number} previous
  */
 export const compare = (current, previous) => ({ previous, pct: previous ? Math.round(((current - previous) / previous) * 100) : null });
+
+// Reports periods (PHASE-2-SPEC §3.12, Reports.dc.html): charts are per Manila calendar month.
+export const REPORT_PERIODS = ['last_12_months', 'this_year', 'last_year', 'last_30_days'];
+
+/**
+ * A Reports period and the one before it of the same length, with one bucket per Manila month it touches.
+ * @param {'last_12_months'|'this_year'|'last_year'|'last_30_days'} period
+ * @param {Date} [now]
+ * @returns {{ period: string, from: Date, to: Date, prevFrom: Date, prevTo: Date, keys: string[], labels: string[], csvLabels: string[] }}
+ *   `keys` are "YYYY-MM" (what Mongo's `$dateToString` gives in Asia/Manila), `labels` "Dec", `csvLabels` "Dec 2025".
+ */
+export function reportRange(period, now = new Date()) {
+  const w = wall(now);
+  const [y, m, d] = [w.getUTCFullYear(), w.getUTCMonth(), w.getUTCDate()];
+  const bounds = {
+    this_year: [at(y, 0, 1), at(y + 1, 0, 1), at(y - 1, 0, 1)],
+    last_year: [at(y - 1, 0, 1), at(y, 0, 1), at(y - 2, 0, 1)],
+    last_30_days: [at(y, m, d - 29), at(y, m, d + 1), at(y, m, d - 59)],
+  };
+  const [from, to, prevFrom] = bounds[period] ?? [at(y, m - 11, 1), at(y, m + 1, 1), at(y, m - 23, 1)];
+  const monthIndex = (date) => wall(date).getUTCFullYear() * 12 + wall(date).getUTCMonth();
+  const keys = [];
+  for (let i = monthIndex(from); i <= monthIndex(new Date(to - 1)); i += 1) keys.push(`${Math.floor(i / 12)}-${String((i % 12) + 1).padStart(2, '0')}`);
+  const name = (key) => MONTHS[Number(key.slice(5)) - 1];
+  const keyOf = (date) => `${wall(date).getUTCFullYear()}-${String(wall(date).getUTCMonth() + 1).padStart(2, '0')}`;
+  return { keyOf, period: bounds[period] ? period : 'last_12_months', from, to, prevFrom, prevTo: from, keys, labels: keys.map(name), csvLabels: keys.map((k) => `${name(k)} ${k.slice(0, 4)}`) };
+}

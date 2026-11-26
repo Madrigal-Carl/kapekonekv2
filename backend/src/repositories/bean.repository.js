@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { CAP_STATUSES } from '../constants/beans.js';
 import { BeanListing } from '../models/beanListing.model.js';
 import { pageList } from '../utils/pageList.js';
+import { associationMatch, manilaMonth } from '../utils/reportQuery.js';
 
 // aggregate() doesn't cast like find() does; ids from a request body or query arrive as strings.
 const oid = (id) => new mongoose.Types.ObjectId(String(id));
@@ -107,3 +108,20 @@ export async function pendingTotals(scope) {
 /** The newest listings in scope, optionally only some statuses. */
 export const recentListings = (scope, limit, statuses) =>
   BeanListing.find({ ...scope, ...(statuses && { status: { $in: statuses } }) }).sort({ createdAt: -1, _id: -1 }).limit(limit).populate(POPULATE).lean();
+
+/**
+ * Reports: completed sales in scope in [from, to) — kg per Manila month, and kg and pesos paid per group (`$facet`).
+ * @param {string|null|undefined} association @param {{ from: Date, to: Date }} range @param {'$association'|'$farmer'} group
+ */
+export async function beanReport(association, range, group) {
+  const [facets] = await BeanListing.aggregate([
+    { $match: { ...associationMatch(association), status: 'completed', 'completion.at': { $gte: range.from, $lt: range.to } } },
+    {
+      $facet: {
+        months: [{ $group: { _id: manilaMonth('$completion.at'), kg: { $sum: '$completion.finalWeightKg' } } }],
+        groups: [{ $group: { _id: group, kg: { $sum: '$completion.finalWeightKg' }, paid: { $sum: '$completion.finalAmountCentavos' } } }],
+      },
+    },
+  ]);
+  return facets;
+}
