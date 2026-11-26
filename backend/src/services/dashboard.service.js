@@ -1,39 +1,22 @@
+import { VARIETIES } from '../constants/catalog.js';
 import { countActiveAssociations, findAssociationById } from '../repositories/association.repository.js';
-import { capUsedKg, countPendingListings } from '../repositories/bean.repository.js';
+import { capUsedKg, completedRows, countPendingListings, pendingTotals, recentListings } from '../repositories/bean.repository.js';
+import { farmCounts } from '../repositories/farm.repository.js';
 import { countFarmersByAssociation, countFarmersEverywhere, countWaiting, findProfileByUser, listWaiting } from '../repositories/farmerProfile.repository.js';
-import { countOrdersToConfirm, listOrdersPage, listOrdersToConfirm, sumSalesByMonth } from '../repositories/order.repository.js';
+import { harvestRows } from '../repositories/harvest.repository.js';
+import { countOrdersToConfirm, listOrdersPage, listOrdersToConfirm, soldRows } from '../repositories/order.repository.js';
 import { findLowStock } from '../repositories/product.repository.js';
 import { countNeedingReply } from '../repositories/review.repository.js';
-import { countUnreadChats } from './inbox.service.js';
+import { countActiveGroups, stageTotals } from '../repositories/treeGroup.repository.js';
 import { findRecipient } from '../repositories/user.repository.js';
+import { bucketize, compare, periodRange } from '../utils/period.js';
+import { farmIdsFor } from './farm.service.js';
+import { countUnreadChats } from './inbox.service.js';
 import { userCan } from './permission.service.js';
 import { seesEveryAssociation } from './policy.service.js';
 
-const MANILA_OFFSET_MS = 8 * 3600 * 1000;
-const MONTH = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' });
 const fullName = (u) => `${u.firstName} ${u.lastName}`;
-
-/**
- * The last `n` calendar months in Manila, oldest first: `{ keys: ['2026-06', …], labels: ['Jun', …], since }`.
- * @param {number} n
- * @param {Date} [now]
- */
-export function lastMonths(n, now = new Date()) {
-  const manila = new Date(now.getTime() + MANILA_OFFSET_MS);
-  const [y, m] = [manila.getUTCFullYear(), manila.getUTCMonth()];
-  const starts = Array.from({ length: n }, (_, i) => new Date(Date.UTC(y, m - (n - 1 - i), 1)));
-  return {
-    keys: starts.map((d) => d.toISOString().slice(0, 7)),
-    labels: starts.map((d) => MONTH.format(d)),
-    since: new Date(starts[0].getTime() - MANILA_OFFSET_MS),
-  };
-}
-
-/** A chart with no data yet (farms, harvests and beans arrive in M9/M10). */
-const emptySeries = (n) => {
-  const { labels } = lastMonths(n);
-  return { labels, values: labels.map(() => 0) };
-};
+const total = (rows, value) => rows.reduce((sum, row) => sum + value(row), 0);
 
 /** The association a Group Manager acts for, from the session scope. */
 const managedAssociation = (user) => (seesEveryAssociation(user) ? null : user.associationId ?? null);
@@ -66,24 +49,95 @@ export async function orgCardFor(user) {
   return { kind: 'farmer', status: profile?.status ?? 'none', association: association ? { id: String(association._id), name: association.name } : null };
 }
 
-async function farmerOverview(user) {
-  const profile = await findProfileByUser(user._id);
+/** The period the overview shows ("Showing this month · Nov 1 – Nov 30, 2026") and the chart's bucket labels. */
+const periodView = (range) => ({ key: range.period, labels: range.labels, rangeText: range.rangeText, prevLabel: range.prevLabel });
+
+/**
+ * Harvest kilograms in the period, compared with the previous one, and the chart buckets:
+ * one series, or one per variety (Group Manager).
+ */
+async function harvestFigures(farmIds, range, byVariety = false) {
+  const [rows, before] = await Promise.all([harvestRows(farmIds, range.from, range.to), harvestRows(farmIds, range.prevFrom, range.prevTo)]);
+  const kg = total(rows, (r) => r.yieldKg);
+  const buckets = (list) => bucketize(range, list.map((r) => ({ at: r.harvestedAt, value: r.yieldKg })));
+  return {
+    kpi: { kg, count: rows.length, ...compare(kg, total(before, (r) => r.yieldKg)) },
+    series: byVariety ? Object.keys(VARIETIES).map((variety) => ({ variety, values: buckets(rows.filter((r) => r.variety === variety)) })) : [{ values: buckets(rows) }],
+  };
+}
+
+/** Beans Kaluppa bought (completed listings) in the period, compared, and the chart buckets. */
+async function beanFigures(scope, range) {
+  const [rows, before] = await Promise.all([completedRows(scope, range.from, range.to), completedRows(scope, range.prevFrom, range.prevTo)]);
+  const kg = total(rows, (r) => r.completion.finalWeightKg);
+  return {
+    kpi: { kg, count: rows.length, ...compare(kg, total(before, (r) => r.completion.finalWeightKg)) },
+    values: bucketize(range, rows.map((r) => ({ at: r.completion.at, value: r.completion.finalWeightKg }))),
+  };
+}
+
+/** Active farms and trees in scope, as of now (the period doesn't apply). */
+async function recordStock(farmIds) {
+  const [farms, stages, groups] = await Promise.all([farmCounts(farmIds), stageTotals(farmIds), countActiveGroups(farmIds)]);
+  const byPlace = new Map();
+  for (const row of farms) byPlace.set(row._id.municipality, (byPlace.get(row._id.municipality) ?? 0) + row.count);
+  return {
+    farms: {
+      count: total(farms, (r) => r.count),
+      kaluppa: total(farms.filter((r) => r._id.ownerType === 'kaluppa'), (r) => r.count),
+      byMunicipality: [...byPlace].map(([municipality, count]) => ({ municipality, count })),
+    },
+    trees: { count: Object.values(stages).reduce((a, b) => a + b, 0), groups },
+    treesByStage: Object.entries(stages).map(([stage, count]) => ({ stage, count })),
+  };
+}
+
+const beanRow = (l) => ({
+  id: String(l._id),
+  listingNumber: l.listingNumber,
+  farmerName: l.farmer ? fullName(l.farmer) : 'Deleted account',
+  association: l.association?.name ?? null,
+  variety: l.variety,
+  form: l.form,
+  weightKg: l.weightKg,
+  pricePerKgCentavos: l.pricePerKgCentavos,
+  status: l.status,
+  countsTowardCap: l.countsTowardCap,
+  createdAt: l.createdAt,
+  expiresAt: l.expiresAt ?? null,
+  completedAt: l.completion?.at ?? null,
+});
+
+async function farmerOverview(user, range) {
+  const scope = { farmer: user._id };
+  const farmIds = await farmIdsFor(user);
+  const [profile, stock, harvest, beans, pending, listings, usedKg, orders] = await Promise.all([
+    findProfileByUser(user._id),
+    recordStock(farmIds),
+    harvestFigures(farmIds, range),
+    beanFigures(scope, range),
+    pendingTotals(scope),
+    recentListings(scope, 3),
+    capUsedKg(user._id),
+    listOrdersPage({ buyer: user._id }, { page: 1, limit: 3 }),
+  ]);
   const association = profile?.association;
   const manager = association?.groupManager ? await findRecipient(association.groupManager) : null;
   return {
     view: 'farmer',
+    period: periodView(range),
     farmer: {
       status: profile?.status ?? 'none',
       association: association ? { id: String(association._id), name: association.name } : null,
       groupManager: manager ? { name: fullName(manager) } : null,
       rejectionReason: profile?.rejectionReason ?? null,
     },
-    cap: { usedKg: await capUsedKg(user._id), limitKg: 5 },
-    kpis: { farms: 0, trees: 0, harvestThisYearKg: 0, beansSoldKg: 0 },
-    harvestByMonth: emptySeries(12),
-    treesByStage: [],
-    beans: [],
-    orders: (await listOrdersPage({ buyer: user._id }, { page: 1, limit: 3 })).items.map((o) => ({
+    cap: { usedKg, limitKg: 5 },
+    kpis: { farms: stock.farms, trees: stock.trees, harvest: harvest.kpi, beansSold: { ...beans.kpi, waiting: pending.count } },
+    harvest: harvest.series[0].values,
+    treesByStage: stock.treesByStage,
+    beans: listings.map(beanRow),
+    orders: orders.items.map((o) => ({
       id: String(o._id),
       orderNumber: o.orderNumber,
       firstItem: o.items[0]?.name ?? '',
@@ -96,15 +150,34 @@ async function farmerOverview(user) {
   };
 }
 
-async function managerOverview(user) {
-  const associationId = user.associationId;
-  const [association, counts, waitingCount, waiting] = associationId
-    ? await Promise.all([findAssociationById(associationId), countFarmersByAssociation([associationId]), countWaiting(associationId), listWaiting(associationId, 4)])
-    : [null, new Map(), 0, []];
+async function managerOverview(user, range) {
+  const associationId = user.associationId ?? null;
+  // Without an association a Group Manager sees no listings (`association: null` would match unaffiliated farmers).
+  const scope = associationId ? { association: associationId } : { _id: null };
+  const farmIds = await farmIdsFor(user);
+  const [association, counts, waitingCount, waiting, stock, harvest, beans, pending, listings] = await Promise.all([
+    associationId ? findAssociationById(associationId) : null,
+    associationId ? countFarmersByAssociation([associationId]) : new Map(),
+    associationId ? countWaiting(associationId) : 0,
+    associationId ? listWaiting(associationId, 4) : [],
+    recordStock(farmIds),
+    harvestFigures(farmIds, range, true),
+    beanFigures(scope, range),
+    pendingTotals(scope),
+    recentListings(scope, 3),
+  ]);
   return {
     view: 'group_manager',
+    period: periodView(range),
     association: association ? { id: String(association._id), name: association.name } : null,
-    kpis: { farmers: counts.get(String(associationId))?.approved ?? 0, waiting: waitingCount, farms: 0, harvestThisYearKg: 0, beansKg: 0 },
+    kpis: {
+      farmers: counts.get(String(associationId))?.approved ?? 0,
+      waiting: waitingCount,
+      farms: stock.farms,
+      trees: stock.trees,
+      harvest: harvest.kpi,
+      beans: { ...beans.kpi, waitingKg: pending.kg },
+    },
     queue: waiting.map((p) => ({
       id: String(p.user._id),
       name: fullName(p.user),
@@ -113,38 +186,41 @@ async function managerOverview(user) {
       from: p.transferRequest?.association ? p.association?.name ?? null : null,
       requestedAt: p.transferRequest?.requestedAt ?? p.requestedAt,
     })),
-    harvestByMonth: { ...emptySeries(12), series: [] },
-    treesByStage: [],
-    beans: [],
+    harvest: harvest.series,
+    treesByStage: stock.treesByStage,
+    beans: listings.map(beanRow),
   };
 }
 
-async function kaluppaOverview() {
-  const months = lastMonths(6);
-  const [toConfirm, sales, farmers, associations, orders, lowStock, beansToReview] = await Promise.all([
+async function kaluppaOverview(range) {
+  const [toConfirm, sold, soldBefore, farmers, associations, orders, lowStock, pending, beans, listings] = await Promise.all([
     countOrdersToConfirm(),
-    sumSalesByMonth(months.since),
+    soldRows(range.from, range.to),
+    soldRows(range.prevFrom, range.prevTo),
     countFarmersEverywhere(),
     countActiveAssociations(),
     listOrdersToConfirm(4),
     findLowStock(4),
-    countPendingListings(),
+    pendingTotals({}),
+    beanFigures({}, range),
+    recentListings({}, 3, ['pending', 'approved']),
   ]);
-  const salesValues = months.keys.map((k) => sales.get(k) ?? 0);
+  const sales = total(sold, (o) => o.totalCentavos);
   return {
     view: 'kaluppa',
+    period: periodView(range),
     kpis: {
       ordersToConfirm: toConfirm.all,
       receiptsToCheck: toConfirm.receipts,
-      salesThisMonthCentavos: salesValues.at(-1),
-      salesLastMonthCentavos: salesValues.at(-2),
-      beanListingsToReview: beansToReview,
+      sales: { centavos: sales, count: sold.length, ...compare(sales, total(soldBefore, (o) => o.totalCentavos)) },
+      beanListingsToReview: pending.count,
+      beanKgOffered: pending.kg,
       farmers: farmers.approved,
       waitingFarmers: farmers.waiting,
       associations,
     },
-    salesByMonth: { labels: months.labels, values: salesValues },
-    beansByMonth: emptySeries(6),
+    sales: bucketize(range, sold.map((o) => ({ at: o.soldAt, value: o.totalCentavos }))),
+    beansBought: beans.values,
     orders: orders.map((o) => ({
       id: String(o._id),
       orderNumber: o.orderNumber,
@@ -157,14 +233,21 @@ async function kaluppaOverview() {
       status: o.status,
       createdAt: o.createdAt,
     })),
-    beans: [],
+    beans: listings.map(beanRow),
     lowStock: lowStock.map((p) => ({ id: String(p._id), name: p.name, slug: p.slug, category: p.category?.slug ?? null, stock: p.stock, unit: p.unit, unitLabel: p.unitLabel ?? null })),
   };
 }
 
-/** The overview of the user's dashboard (PHASE-2-SPEC q11), scoped by policy. */
-export async function overviewFor(user) {
-  if (seesEveryAssociation(user)) return kaluppaOverview();
-  if (await userCan(user, 'farmers.approve')) return managerOverview(user);
-  return farmerOverview(user);
+/**
+ * The user's dashboard overview for a calendar period (PHASE-2-SPEC §3.14), scoped by policy.
+ * Stock-like figures (farms, trees, orders to confirm, listings to review) are as of now.
+ * @param {object} user
+ * @param {{ period?: 'today'|'week'|'month'|'year' }} [query]
+ * @param {Date} [now]
+ */
+export async function overviewFor(user, { period = 'month' } = {}, now = new Date()) {
+  const range = periodRange(period, now);
+  if (seesEveryAssociation(user)) return kaluppaOverview(range);
+  if (await userCan(user, 'farmers.approve')) return managerOverview(user, range);
+  return farmerOverview(user, range);
 }

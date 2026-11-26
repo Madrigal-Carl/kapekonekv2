@@ -61,3 +61,6 @@ export const restoreByFarm = (farmId, at) => TreeGroup.updateMany({ farm: farmId
 
 export const setOwnerAssociation = (ownerId, associationId) => TreeGroup.updateMany({ owner: ownerId }, { association: associationId });
 export const setFarmsAssociation = (farmIds, associationId) => TreeGroup.updateMany({ farm: { $in: farmIds } }, { association: associationId });
+
+/** Active tree groups in scope. null = every farm. */
+export const countActiveGroups = (farmIds) => TreeGroup.countDocuments({ archivedAt: null, ...(farmIds && { farm: { $in: farmIds } }) });

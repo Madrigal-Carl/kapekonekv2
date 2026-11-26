@@ -53,3 +53,7 @@ export const setFarmsAssociation = (farmIds, associationId) => Harvest.updateMan
 
 /** Seeder only: a year of harvests in one write (the API path is `createHarvest`). */
 export const insertHarvests = (docs) => Harvest.insertMany(docs);
+
+/** Active harvests in scope in [from, to): when, variety and kilograms (overview charts). */
+export const harvestRows = (farmIds, from, to) =>
+  Harvest.find({ archivedAt: null, harvestedAt: { $gte: from, $lt: to }, ...inFarms(farmIds) }).select('harvestedAt variety yieldKg').lean();

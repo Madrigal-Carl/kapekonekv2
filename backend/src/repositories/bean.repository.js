@@ -93,3 +93,17 @@ export const anyListing = async () => Boolean(await BeanListing.exists({}));
 
 /** Seeds only: bulk insert (no audit entries, like the seeded harvests). */
 export const insertListings = (docs) => BeanListing.insertMany(docs);
+
+/** Completed sales in scope in [from, to): when and the final kilograms (overview charts). */
+export const completedRows = (scope, from, to) =>
+  BeanListing.find({ ...scope, status: 'completed', 'completion.at': { $gte: from, $lt: to } }).select('completion.at completion.finalWeightKg').lean();
+
+/** Listings waiting for review in scope: how many and their kilograms. */
+export async function pendingTotals(scope) {
+  const [row] = await BeanListing.aggregate([{ $match: { ...scope, status: 'pending' } }, { $group: { _id: null, count: { $sum: 1 }, kg: { $sum: '$weightKg' } } }]);
+  return { count: row?.count ?? 0, kg: row?.kg ?? 0 };
+}
+
+/** The newest listings in scope, optionally only some statuses. */
+export const recentListings = (scope, limit, statuses) =>
+  BeanListing.find({ ...scope, ...(statuses && { status: { $in: statuses } }) }).sort({ createdAt: -1, _id: -1 }).limit(limit).populate(POPULATE).lean();

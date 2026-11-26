@@ -82,15 +82,13 @@ export const listOrdersToConfirm = (limit) =>
     .populate('buyer', 'firstName lastName roles').lean();
 
 /**
- * Sold-order totals per month (Asia/Manila), keyed "YYYY-MM", for orders sold since `since`.
- * @returns {Promise<Map<string, number>>}
+ * Sold orders in [from, to): when they were sold (the last "sold" step) and their totals.
+ * @returns {Promise<Array<{ soldAt: Date, totalCentavos: number }>>}
  */
-export async function sumSalesByMonth(since) {
-  const rows = await Order.aggregate([
+export const soldRows = (from, to) =>
+  Order.aggregate([
     { $match: { status: 'sold' } },
     { $addFields: { soldAt: { $ifNull: [{ $max: { $map: { input: { $filter: { input: '$statusHistory', cond: { $eq: ['$$this.status', 'sold'] } } }, in: '$$this.at' } } }, '$updatedAt'] } } },
-    { $match: { soldAt: { $gte: since } } },
-    { $group: { _id: { $dateToString: { format: '%Y-%m', date: '$soldAt', timezone: 'Asia/Manila' } }, total: { $sum: '$totalCentavos' } } },
+    { $match: { soldAt: { $gte: from, $lt: to } } },
+    { $project: { _id: 0, soldAt: 1, totalCentavos: 1 } },
   ]);
-  return new Map(rows.map((r) => [r._id, r.total]));
-}

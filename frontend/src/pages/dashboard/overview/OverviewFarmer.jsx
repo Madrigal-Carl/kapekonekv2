@@ -9,11 +9,14 @@ import { NavIcon } from '@/components/dashboard/Sidebar'
 import { StageBar } from '@/components/dashboard/StageBar'
 import { SINGLE_SERIES, stageItems } from '@/constants/charts'
 import { DASH_ORDER_STATUS } from '@/constants/orderStatus'
-import { formatPesoShort } from '@/lib/format'
+import { formatKg, formatPesoShort } from '@/lib/format'
+import { BEAN_STATUS, formLabel, varietyLabel } from '@/constants/beans'
+import { format } from 'date-fns'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/cn'
 import { greeting, todayInManila } from '@/lib/date'
 import { useAssociationWindow } from '@/stores/associationWindow.store'
+import { periodNote, periodTitle } from '@/constants/periods'
 import { ChartCard, HeaderAction, KpiRow, Row } from './Overview'
 
 const ASSOCIATION_PAGE = '/dashboard/account/association'
@@ -71,9 +74,6 @@ function Banner({ banner, onOpen }) {
   )
 }
 
-const kg = (n) => `${n.toLocaleString('en-PH', { maximumFractionDigits: 1 })} kg`
-
-/** Farmer overview (OverviewFarmer.dc.html). Farms, trees, harvests and beans fill in from M9/M10; until then the tiles read zero and the charts show their empty state. */
 /** "KK-… · Complete fertilizer 14-14-14" / "2 items · ₱2,690 · cash on delivery" (OverviewFarmer.dc.html). */
 const orderRow = (o) => ({
   key: o.id,
@@ -87,14 +87,30 @@ const orderRow = (o) => ({
   tone: DASH_ORDER_STATUS[o.status].tone,
 })
 
-export function OverviewFarmer({ data }) {
+/** "BN-2611-0042 · Liberica, dried cherry" / "2 kg · ₱180/kg · listed Nov 21" (OverviewFarmer.dc.html). */
+const beanRow = (b) => {
+  const when = b.status === 'completed' && b.completedAt ? `completed ${format(new Date(b.completedAt), 'MMM d')}` : b.status === 'approved' && b.expiresAt ? `bring by ${format(new Date(b.expiresAt), 'MMM d')}` : `listed ${format(new Date(b.createdAt), 'MMM d')}`
+  return {
+    key: b.id,
+    title: `${b.listingNumber} · ${varietyLabel(b.variety)}, ${formLabel(b.form).toLowerCase()}`,
+    sub: [formatKg(b.weightKg), `${formatPesoShort(b.pricePerKgCentavos)}/kg`, when].join(' · '),
+    status: BEAN_STATUS[b.status].label.split(' · ')[0],
+    tone: BEAN_STATUS[b.status].tone,
+  }
+}
+
+const plural = (n, one, many = `${one}s`) => `${n.toLocaleString('en-PH')} ${n === 1 ? one : many}`
+
+/** Farmer overview (OverviewFarmer.dc.html) for the picked period; farms and trees are as of now. */
+export function OverviewFarmer({ data, periodBar }) {
   const { user } = useAuth()
-  const { farmer, cap, kpis, harvestByMonth, treesByStage, orders } = data
+  const { period, farmer, cap, kpis, harvest, treesByStage, beans, orders } = data
   const banner = bannerFor(farmer)
   const showWindow = useAssociationWindow((s) => s.show)
   const openWindow = () => showWindow(farmer.status === 'rejected' ? { reason: farmer.rejectionReason, by: farmer.groupManager?.name ?? null } : null)
   const stages = stageItems(treesByStage)
-  const trees = stages.reduce((s, i) => s + i.count, 0)
+  const harvestNote = periodNote(period, kpis.harvest, 'harvest', 'recorded')
+  const towns = kpis.farms.byMunicipality.map((m) => `${m.count} in ${m.municipality}`).join(' · ')
 
   return (
     <>
@@ -111,22 +127,30 @@ export function OverviewFarmer({ data }) {
       />
       {banner && <Banner banner={banner} onOpen={openWindow} />}
       {farmer.status !== 'approved' && <CapMeter usedKg={cap.usedKg} limitKg={cap.limitKg} />}
+      {periodBar}
       <KpiRow>
-        <KpiTile to="/dashboard/farms" label="Farms" icon="farm" value={kpis.farms} note={kpis.farms ? undefined : 'No farms recorded yet'} />
-        <KpiTile to="/dashboard/trees" label="Trees" icon="tree" value={kpis.trees.toLocaleString('en-PH')} note={kpis.trees ? undefined : 'No tree groups yet'} />
-        <KpiTile to="/dashboard/harvests" label="Harvest this year" icon="harvest" value={kg(kpis.harvestThisYearKg)} note={kpis.harvestThisYearKg ? undefined : 'Nothing recorded this year'} />
-        <KpiTile to="/dashboard/beans" label="Beans sold to Kaluppa" icon="beans" value={kg(kpis.beansSoldKg)} note={kpis.beansSoldKg ? undefined : 'No bean sales yet'} />
+        <KpiTile to="/dashboard/farms" label="Farms" icon="farm" value={kpis.farms.count} note={towns || 'No farms recorded yet'} />
+        <KpiTile to="/dashboard/trees" label="Trees" icon="tree" value={kpis.trees.count.toLocaleString('en-PH')} note={kpis.trees.groups ? `in ${plural(kpis.trees.groups, 'tree group')}` : 'No tree groups yet'} />
+        <KpiTile to="/dashboard/harvests" label="Harvest" icon="harvest" value={formatKg(kpis.harvest.kg)} note={harvestNote.text} tone={harvestNote.tone} />
+        <KpiTile
+          to="/dashboard/beans"
+          label="Beans sold to Kaluppa"
+          icon="beans"
+          value={formatKg(kpis.beansSold.kg)}
+          note={kpis.beansSold.waiting ? `${plural(kpis.beansSold.waiting, 'listing')} waiting for review` : 'No listings waiting for review'}
+          tone={kpis.beansSold.waiting ? 'waiting' : 'muted'}
+        />
       </KpiRow>
       <Row>
-        <ChartCard title="Harvest per month" sub={`Kilograms recorded across your ${kpis.farms === 1 ? 'farm' : 'farms'}, last 12 months`}>
-          <BarChart labels={harvestByMonth.labels} series={[{ name: 'Harvest', color: SINGLE_SERIES, values: harvestByMonth.values }]} suffix=" kg" aria="Harvest per month in kilograms" empty="No harvests recorded yet" />
+        <ChartCard title={periodTitle(period, ['Harvest today', 'Harvest this week', 'Harvest this month', 'Harvest per month this year'])} sub={`Kilograms recorded across your ${plural(kpis.farms.count, 'farm')}`}>
+          <BarChart labels={period.labels} series={[{ name: 'Harvest', color: SINGLE_SERIES, values: harvest }]} suffix=" kg" aria="Harvest in kilograms" empty="No harvests recorded in this period" />
         </ChartCard>
-        <ChartCard title="Trees by stage" sub={trees ? `${trees.toLocaleString('en-PH')} trees` : 'No trees recorded yet'}>
+        <ChartCard title="Trees by stage" sub={kpis.trees.count ? `${plural(kpis.trees.count, 'tree')} in ${plural(kpis.trees.groups, 'group')}` : 'No trees recorded yet'}>
           <StageBar items={stages} empty="Add a tree group to see your trees by stage." />
         </ChartCard>
       </Row>
       <Row>
-        <ListPanel title="Bean listings" link={{ to: '/dashboard/beans', label: 'All beans' }} rows={[]} empty="No bean listings yet." />
+        <ListPanel title="Bean listings" link={{ to: '/dashboard/beans', label: 'All beans' }} rows={beans.map(beanRow)} empty="No bean listings yet." />
         <ListPanel title="Store orders" link={{ to: '/dashboard/orders', label: 'All orders' }} rows={orders.map(orderRow)} empty="No store orders yet." />
       </Row>
     </>

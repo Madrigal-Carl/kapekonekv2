@@ -6,23 +6,44 @@ import { ListPanel } from '@/components/dashboard/ListPanel'
 import { PageHeader } from '@/components/dashboard/PageHeader'
 import { StageBar } from '@/components/dashboard/StageBar'
 import { stageItems, VARIETIES } from '@/constants/charts'
+import { BEAN_STATUS, formLabel, varietyLabel } from '@/constants/beans'
+import { formatKg, formatPesoShort } from '@/lib/format'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/cn'
 import { greeting } from '@/lib/date'
 import { format } from 'date-fns'
+import { periodNote, periodTitle } from '@/constants/periods'
 import { ChartCard, HeaderAction, KpiRow, Row } from './Overview'
 
 const AVATARS = ['bg-caramel-ink', 'bg-avatar-green', 'bg-roast', 'bg-ink-2']
-const kg = (n) => `${n.toLocaleString('en-PH', { maximumFractionDigits: 1 })} kg`
 const waitingLine = (n) => (n === 0 ? 'No farmers are waiting for your approval.' : `${n} ${n === 1 ? 'farmer is' : 'farmers are'} waiting for your approval.`)
 
-/** Group Manager overview (OverviewGM.dc.html). Farms, harvests and beans fill in from M9/M10. */
-export function OverviewGM({ data }) {
+/** "Joy Lacsamana · Liberica, dried cherry" / "4 kg · ₱175/kg · capped (unapproved)" (OverviewGM.dc.html). */
+const beanRow = (b) => ({
+  key: b.id,
+  title: `${b.farmerName} · ${varietyLabel(b.variety)}, ${formLabel(b.form).toLowerCase()}`,
+  sub: [
+    formatKg(b.weightKg),
+    `${formatPesoShort(b.pricePerKgCentavos)}/kg`,
+    b.status === 'completed' && b.completedAt
+      ? `completed ${format(new Date(b.completedAt), 'MMM d')}`
+      : b.status === 'approved' && b.expiresAt
+        ? `bring by ${format(new Date(b.expiresAt), 'MMM d')}`
+        : b.countsTowardCap
+          ? 'capped (unapproved)'
+          : `listed ${format(new Date(b.createdAt), 'MMM d')}`,
+  ].join(' · '),
+  status: BEAN_STATUS[b.status].label.split(' · ')[0],
+  tone: BEAN_STATUS[b.status].tone,
+})
+
+/** Group Manager overview (OverviewGM.dc.html) for the picked period; farmers, farms and trees are as of now. */
+export function OverviewGM({ data, periodBar }) {
   const { user } = useAuth()
-  const { association, kpis, queue, harvestByMonth, treesByStage } = data
+  const { period, association, kpis, queue, harvest, treesByStage, beans } = data
   const stages = stageItems(treesByStage)
-  const trees = stages.reduce((s, i) => s + i.count, 0)
-  const series = VARIETIES.map((v) => ({ name: v.label, color: v.color, values: harvestByMonth.series?.find((s) => s.variety === v.key)?.values ?? harvestByMonth.labels.map(() => 0) }))
+  const series = VARIETIES.map((v) => ({ name: v.label, color: v.color, values: harvest.find((s) => s.variety === v.key)?.values ?? period.labels.map(() => 0) }))
+  const harvestNote = periodNote(period, kpis.harvest, 'harvest', 'recorded')
 
   return (
     <>
@@ -32,11 +53,25 @@ export function OverviewGM({ data }) {
         description={waitingLine(kpis.waiting)}
         actions={association && <HeaderAction to="/dashboard/farmers?open=new" plus>Add farmer</HeaderAction>}
       />
+      {periodBar}
       <KpiRow>
         <KpiTile to="/dashboard/farmers" label="Farmers" icon="farmers" value={kpis.farmers} note={kpis.waiting ? `${kpis.waiting} waiting for approval` : 'No one waiting'} tone={kpis.waiting ? 'waiting' : 'muted'} />
-        <KpiTile to="/dashboard/farms" label="Farms" icon="farm" value={kpis.farms} note={kpis.farms ? undefined : 'No farms recorded yet'} />
-        <KpiTile to="/dashboard/harvests" label="Harvest this year" icon="harvest" value={kg(kpis.harvestThisYearKg)} note={kpis.harvestThisYearKg ? undefined : 'Nothing recorded this year'} />
-        <KpiTile to="/dashboard/beans" label="Beans to Kaluppa" icon="beans" value={kg(kpis.beansKg)} note={kpis.beansKg ? undefined : 'No bean sales yet'} />
+        <KpiTile
+          to="/dashboard/farms"
+          label="Farms"
+          icon="farm"
+          value={kpis.farms.count}
+          note={kpis.farms.kaluppa ? `${kpis.farms.kaluppa} Kaluppa ${kpis.farms.kaluppa === 1 ? 'farm' : 'farms'} you manage` : kpis.farms.count ? undefined : 'No farms recorded yet'}
+        />
+        <KpiTile to="/dashboard/harvests" label="Harvest" icon="harvest" value={formatKg(kpis.harvest.kg)} note={harvestNote.text} tone={harvestNote.tone} />
+        <KpiTile
+          to="/dashboard/beans"
+          label="Beans to Kaluppa"
+          icon="beans"
+          value={formatKg(kpis.beans.kg)}
+          note={kpis.beans.waitingKg ? `${formatKg(kpis.beans.waitingKg)} waiting for review` : 'Nothing waiting for review'}
+          tone={kpis.beans.waitingKg ? 'waiting' : 'muted'}
+        />
       </KpiRow>
       <Row>
         <ListPanel
@@ -66,15 +101,18 @@ export function OverviewGM({ data }) {
             ),
           }))}
         />
-        <ChartCard title="Association harvest per month" sub={`All ${kpis.farmers} ${kpis.farmers === 1 ? 'farmer' : 'farmers'}, last 12 months`}>
-          <BarChart labels={harvestByMonth.labels} series={series} suffix=" kg" aria="Association harvest per month by variety" empty="No harvests recorded yet" />
+        <ChartCard
+          title={periodTitle(period, ['Association harvest today', 'Association harvest this week', 'Association harvest this month', 'Association harvest per month'])}
+          sub={`All ${kpis.farmers} ${kpis.farmers === 1 ? 'farmer' : 'farmers'}, by variety`}
+        >
+          <BarChart labels={period.labels} series={series} suffix=" kg" aria="Association harvest by variety" empty="No harvests recorded in this period" />
         </ChartCard>
       </Row>
       <Row>
-        <ChartCard title="Trees by stage" sub={trees ? `${trees.toLocaleString('en-PH')} trees across ${kpis.farms} farms` : 'No trees recorded yet'}>
+        <ChartCard title="Trees by stage" sub={kpis.trees.count ? `${kpis.trees.count.toLocaleString('en-PH')} trees across ${kpis.farms.count} ${kpis.farms.count === 1 ? 'farm' : 'farms'}` : 'No trees recorded yet'}>
           <StageBar items={stages} empty="Your farmers' tree groups will show here." />
         </ChartCard>
-        <ListPanel title="Bean listings from your farmers" link={{ to: '/dashboard/beans', label: 'All beans' }} rows={[]} empty="No bean listings yet." />
+        <ListPanel title="Bean listings from your farmers" link={{ to: '/dashboard/beans', label: 'All beans' }} rows={beans.map(beanRow)} empty="No bean listings yet." />
       </Row>
     </>
   )

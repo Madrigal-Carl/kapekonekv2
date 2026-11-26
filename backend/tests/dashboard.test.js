@@ -77,13 +77,13 @@ describe('GET /dashboard/overview', () => {
       view: 'farmer',
       farmer: { status: 'pending', association: { name: 'Santa Cruz Growers' }, groupManager: { name: 'Liza Ramos' }, rejectionReason: null },
       cap: { usedKg: 3, limitKg: 5 },
-      kpis: { farms: 0, trees: 0, harvestThisYearKg: 0, beansSoldKg: 0 },
-      harvestByMonth: { labels: expect.any(Array), values: expect.any(Array) },
+      period: { key: 'month' },
+      kpis: { farms: { count: 0 }, trees: { count: 0, groups: 0 }, harvest: { kg: 0, pct: null }, beansSold: { kg: 0, waiting: 1 } },
       treesByStage: [],
-      beans: [],
       orders: [],
     });
-    expect(data.harvestByMonth.labels).toHaveLength(12);
+    expect(data.harvest).toHaveLength(data.period.labels.length);
+    expect(data.beans).toEqual([expect.objectContaining({ status: 'pending', weightKg: 3, variety: 'liberica', farmerName: 'Wes Farmer' })]);
   });
 
   it('farmer: their three newest store orders', async () => {
@@ -100,7 +100,7 @@ describe('GET /dashboard/overview', () => {
   it('Group Manager: its association, counts and the approval queue', async () => {
     const manager = await signedIn(app, 'manager.santacruz');
     const { data } = (await manager.get('/api/dashboard/overview')).body;
-    expect(data).toMatchObject({ view: 'group_manager', association: { name: 'Santa Cruz Growers' }, kpis: { farmers: 0, waiting: 2, farms: 0 } });
+    expect(data).toMatchObject({ view: 'group_manager', association: { name: 'Santa Cruz Growers' }, kpis: { farmers: 0, waiting: 2, farms: { count: 0 }, beans: { waitingKg: 3 } } });
     expect(data.queue.map((q) => q.name).sort()).toEqual(['Wanda Farmer', 'Wes Farmer']);
     expect(data.queue[0]).toMatchObject({ id: expect.any(String), initials: expect.any(String), requestedAt: expect.any(String) });
   });
@@ -112,8 +112,10 @@ describe('GET /dashboard/overview', () => {
       view: 'kaluppa',
       kpis: { ordersToConfirm: 2, receiptsToCheck: 1, farmers: 0, waitingFarmers: 3, associations: 3, beanListingsToReview: 1 },
     });
-    expect(data.kpis.salesThisMonthCentavos).toBeGreaterThan(0);
-    expect(data.salesByMonth.values.at(-1)).toBe(data.kpis.salesThisMonthCentavos);
+    expect(data.kpis.sales.centavos).toBeGreaterThan(0);
+    expect(data.sales.reduce((a, b) => a + b, 0)).toBe(data.kpis.sales.centavos);
+    expect(data.kpis.beanKgOffered).toBe(3);
+    expect(data.beans.map((b) => b.status)).toEqual(['pending']);
     expect(data.orders).toHaveLength(2);
     expect(data.orders[0]).toMatchObject({ id: expect.any(String), orderNumber: expect.stringMatching(/^KK-/), status: 'pending', buyerName: expect.any(String), buyerRole: 'buyer', paymentProvider: null });
     expect(Array.isArray(data.lowStock)).toBe(true);

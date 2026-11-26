@@ -6,5 +6,5 @@ const data = (response) => response.data.data
 export const getBadges = () => api.get('/dashboard/badges').then(data)
 /** @returns {Promise<object|null>} the sidebar association card (null for Kaluppa) */
 export const getOrgCard = () => api.get('/dashboard/org').then(data)
-/** @returns {Promise<{ view: 'farmer'|'group_manager'|'kaluppa' }>} the role's overview data */
-export const getOverview = () => api.get('/dashboard/overview').then(data)
+/** @param {'today'|'week'|'month'|'year'} period @returns {Promise<{ view: 'farmer'|'group_manager'|'kaluppa' }>} the role's overview for the period */
+export const getOverview = (period) => api.get('/dashboard/overview', { params: { period } }).then(data)

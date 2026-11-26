@@ -11,5 +11,5 @@ export const org = asyncHandler(async (req, res) => {
 });
 
 export const overview = asyncHandler(async (req, res) => {
-  sendSuccess(res, { data: await dashboard.overviewFor(req.user) });
+  sendSuccess(res, { data: await dashboard.overviewFor(req.user, req.query) });
 });

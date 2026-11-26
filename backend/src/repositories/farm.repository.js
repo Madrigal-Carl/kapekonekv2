@@ -66,3 +66,11 @@ export const countFarmsByAssociation = (associationId) => Farm.countDocuments({ 
 
 /** Ids of the Kaluppa farms a Group Manager manages. */
 export const findManagedFarmIds = (managerId) => Farm.find({ managedBy: managerId }).distinct('_id');
+
+/** Active farms in scope per municipality and owner type (overview notes). null = every farm. */
+export const farmCounts = (farmIds) =>
+  Farm.aggregate([
+    { $match: { archivedAt: null, ...(farmIds && { _id: { $in: farmIds } }) } },
+    { $group: { _id: { municipality: '$municipality', ownerType: '$ownerType' }, count: { $sum: 1 } } },
+    { $sort: { count: -1, '_id.municipality': 1 } },
+  ]);
