@@ -35,7 +35,7 @@ async function audit(page, paths) {
 }
 
 test('guest pages have no WCAG A/AA violations', async ({ page, request }) => {
-  const post = (await (await request.get(`${API}/posts/latest?limit=1`)).json()).data[0]
+  const post = (await (await request.get(`${API}/posts/top`)).json()).data[0]
   const problems = await audit(page, [
     '/',
     '/products',

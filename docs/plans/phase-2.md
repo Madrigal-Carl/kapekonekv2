@@ -324,15 +324,15 @@ frontend/src/
 
 ### Task 13.1: Hub API
 
-- [ ] `/hub/posts` per PHASE-2-SPEC §5: tags ≤ 3 from the list, media ≤ 10 (`post_media`: image 5 MB, video 50 MB), author edit/delete, Kaluppa remove with reason (`posts.moderate`), comments/replies/reactions on Phase 1 endpoints now open to `posts.comment`/`posts.react`. Notifications per §6. Tests: Group Manager can't remove others' posts; buyers still can't react or comment; a removed post disappears from the feed and its author is notified.
+- [x] `/hub/posts` per PHASE-2-SPEC §5: tags ≤ 3 from the list, media ≤ 10 (`post_media`: image 5 MB, video 50 MB), author edit/delete, Kaluppa remove with reason (`posts.moderate`), comments/replies/reactions on Phase 1 endpoints now open to `posts.comment`/`posts.react`. Notifications per §6. Tests: Group Manager can't remove others' posts; buyers still can't react or comment; a removed post disappears from the feed and its author is notified.
 
 ### Task 13.2: Views and top 3
 
-- [ ] `POST /hub/posts/:id/view` (signed-in, unique `{post,user,day}`), `posts:top3` hourly job (last 30 days) cached in Valkey `posts:top3`, `GET /posts/top`; landing section "Most viewed this month" (`Main.dc.html`) replaces latest posts; the public post page serves only the top 3 to guests/buyers, others ask to sign in. Tests: guest views not counted; same user twice a day = 1; job ranks correctly and is idempotent.
+- [x] `POST /hub/posts/:id/view` (signed-in, unique `{post,user,day}`), `posts:top3` hourly job (last 30 days) cached in Valkey `posts:top3`, `GET /posts/top`; landing section "Most viewed this month" (`Main.dc.html`) replaces latest posts; the public post page serves only the top 3 to guests/buyers, others ask to sign in. Tests: guest views not counted; same user twice a day = 1; job ranks correctly and is idempotent.
 
 ### Task 13.3: Hub UI
 
-- [ ] Copy `Hub` per role: composer expands on focus, tag chips (max 3, others disabled), tag filter chips, cursor feed, fixed 16:10 grid (1 / 2 / 1+2 / 2×2 "+N"), viewer (contain), reaction picker, comments with replies, post menu (author Edit/Delete; Kaluppa Remove with reason). Playwright: portrait photo never changes a card's height (grid and viewer) at 1440/390.
+- [x] Copy `Hub` per role: composer expands on focus, tag chips (max 3, others disabled), tag filter chips, cursor feed, fixed 16:10 grid (1 / 2 / 1+2 / 2×2 "+N"), viewer (contain), reaction picker, comments with replies, post menu (author Edit/Delete; Kaluppa Remove with reason). Playwright: portrait photo never changes a card's height (grid and viewer) at 1440/390.
 
 ---
 
@@ -398,3 +398,16 @@ frontend/src/
   - Playwright 68/68 (Phase 1 + M8–M11 + `inbox.spec.js`: two farmers live — typing, message, Seen — the 390 px list → chat → Back, and the buyer 403 guard);
   - screenshots for farmer, Group Manager and Kaluppa at 1440/390, compared with Inbox / InboxMobile.
 - **Not built** (see the ledger rulings): presence ("Active now"), the Chat details (i) panel, and an attachment preview tray.
+
+### M13 — done (2026-11-27)
+
+- **Hub API**: `/hub/posts` feed (tag filter, cursor), create / edit / delete by the author, Kaluppa's Remove with a reason (`posts.moderate`, the author is notified); comments with one level of replies, author edit/delete, Kaluppa's Remove for comments too; reactions on posts and comments (`posts.react` / `posts.comment`, buyers 403). `post_activity` and `post_removed` notifications link to `/dashboard/hub/posts/:id`. Post create/update/delete/remove and comment removal are audited. Media come from the author's own `post_media` folder and are re-checked on Cloudinary (video 50 MB, poster from the first frame).
+- **Views and the top 3**: `PostView {post, user, day}` (Manila day, signed-in and verified only), `posts:top3` hourly job ranking the last 30 days into Valkey (`posts:top3`, re-ranked at once when a listed post is deleted or removed), `GET /posts/top` replaces `/posts/latest`. Guests and buyers open only those 3 (`/posts/:id` answers 403 otherwise); Hub members opening `/posts/:id` are sent to the dashboard post page.
+- **UI**: `Hub` page (composer that expands on focus, tag chips max 3, Photo/Video uploads with a tray, URL-synced tag filter, infinite feed, fixed 16:10 `MediaGrid` 1 / 2 / 1+2 / 2×2 "+N", viewer modal with `contain`, reaction picker, comments with replies and Like, the ⋯ menu per role, success banner, aside with Most viewed this month and tag counts); `/dashboard/hub/posts/:id`; landing "Most viewed this month" (Main.dc.html); the public post page asks guests to sign in for any other post.
+- **Seeds**: 10 tagged posts (Kaluppa, Liza, Rodel, Nestor, Lorna) with the portrait photos and a video, 247 views; the top 3 is Kaluppa / Liza / Nestor as in the screens.
+- **Verified**:
+  - backend 559 tests (`hub.test.js`: tags/media rules, buyers can't react or comment, Group Manager can't remove, removal notifies and leaves the feed, edit/delete own only, reactions switch without double counting, comment counts, views once a day, top 3 ranks, is idempotent and drops a removed post) and frontend 272 tests, lint clean in both apps (two existing tests, `inboxRealtime` and the Farmers temporary-password test, fail only under the full parallel run and pass alone);
+  - `migrate:fresh -- --seed` ok;
+  - Playwright 87/90: `hub.spec.js` 5/5 (post → react → comment → tag filter → Kaluppa removes → farmer notified; grid and viewer heights fixed at 1440/390; landing top 3 and the guest sign-in prompt; buyer 403). The 3 failures predate M13 and are stale after Change 06: `orders.spec` looks for a "GCash or Maya" radio (GCash only since 06F), `store.spec` reads an `<img>` inside the thumbnail button (a star button since 06D), `storefront.spec` review test finds no "Write a review" panel for `buyer`;
+  - screenshots for farmer and Kaluppa at 1440 and Group Manager at 390, compared with Hub.dc.html by its markup values.
+- **Not built**: the association name in a Group Manager's post meta ("· Santa Cruz Coffee Growers"); graphify not re-run.

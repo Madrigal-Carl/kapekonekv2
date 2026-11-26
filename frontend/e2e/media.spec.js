@@ -6,7 +6,7 @@ const API = 'http://localhost:5100/api'
 for (const width of [1440, 390]) {
   test(`post media stage keeps one height for every item at ${width}px`, async ({ page, request }) => {
     await page.setViewportSize({ width, height: 900 })
-    const posts = (await (await request.get(`${API}/posts/latest?limit=6`)).json()).data
+    const posts = (await (await request.get(`${API}/posts/top`)).json()).data
     const post = posts.find((p) => p.body.startsWith('Fresh Liberica roasts are in!'))
     expect(post.media.length).toBeGreaterThanOrEqual(5)
 

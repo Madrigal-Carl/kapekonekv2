@@ -38,13 +38,16 @@ import {
   LuHistory,
   LuHourglass,
   LuHouse,
+  LuImage,
   LuImageUp,
+  LuVideo,
   LuInfo,
   LuKeyRound,
   LuLayoutDashboard,
   LuList,
   LuLoaderCircle,
   LuLocateFixed,
+  LuLock,
   LuLogOut,
   LuMail,
   LuMap,
@@ -156,12 +159,15 @@ export const IconFileText = LuFileText
 export const IconHeart = LuHeart
 export const IconHourglass = LuHourglass
 export const IconHome = LuHouse
+export const IconImage = LuImage
 export const IconImageUp = LuImageUp
+export const IconVideo = LuVideo
 export const IconInfo = LuInfo
 export const IconKey = LuKeyRound
 export const IconList = LuList
 export const IconLoader = LuLoaderCircle
 export const IconLocate = LuLocateFixed
+export const IconLock = LuLock
 export const IconLogOut = LuLogOut
 export const IconMail = LuMail
 export const IconMapPin = LuMapPin

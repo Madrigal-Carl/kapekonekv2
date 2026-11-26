@@ -13,7 +13,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { ProductCardSkeleton, Skeleton } from '@/components/ui/Skeleton'
 import { useAuth } from '@/hooks/useAuth'
-import { useLatestPosts } from '@/hooks/usePosts'
+import { useTopPosts } from '@/hooks/usePosts'
 import { useProducts } from '@/hooks/useProducts'
 import { useLanding } from '@/hooks/useSettings'
 import { cn } from '@/lib/cn'
@@ -88,13 +88,18 @@ function Featured() {
   )
 }
 
-function LatestPosts() {
-  const { data: posts, isPending, isError } = useLatestPosts(3)
+/** The Hub's 3 most-viewed posts of the last 30 days (Main.dc.html); the only posts guests and buyers can open. */
+function TopPosts() {
+  const { data: posts, isPending, isError } = useTopPosts()
   if (isError || (posts && !posts.length)) return null
   return (
     <section className={cn(section, 'bg-white')}>
       <div className={container}>
-        <SectionHeading eyebrow="From the community" title="Latest posts from farmers and Kaluppa" />
+        <SectionHeading
+          eyebrow="Most viewed this month"
+          title="What the coffee community is reading"
+          lead="The three most-viewed posts from the KapeKonek Hub this month. The rest of the Hub is for farmers, Group Managers and Kaluppa."
+        />
         <div className="mt-12 grid grid-cols-[repeat(auto-fill,minmax(min(320px,100%),1fr))] gap-6">
           {isPending && [1, 2, 3].map((i) => <Skeleton key={i} className="h-[380px] rounded-card" />)}
           {posts?.map((post) => {
@@ -108,7 +113,9 @@ function LatestPosts() {
                       <span className="text-sm font-semibold text-ink">{post.author.name}</span>
                       <RoleBadge person={post.author} className="px-[7px] py-0.5 text-[10.5px]" />
                     </div>
-                    <time dateTime={post.createdAt} className="text-xs text-ink-4">{timeAgo(post.createdAt)}</time>
+                    <span className="text-xs text-ink-4">
+                      <time dateTime={post.createdAt}>{timeAgo(post.createdAt)}</time> · {post.views.toLocaleString('en-PH')} views
+                    </span>
                   </div>
                 </div>
                 <p className="mx-4 mb-3.5 mt-0 line-clamp-3 text-sm leading-[1.6] text-ink-2">{post.body}</p>
@@ -212,7 +219,7 @@ export function Landing() {
         </div>
       </section>
 
-      <LatestPosts />
+      <TopPosts />
 
       <section className="relative overflow-hidden bg-espresso py-16 sm:py-[88px]">
         <Contours lines={3} className="h-[180px] text-crema/7" />

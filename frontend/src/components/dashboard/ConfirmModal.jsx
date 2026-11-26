@@ -13,6 +13,7 @@ const VARIANTS = {
   reject: { tone: 'red', icon: IconReject, reason: true },
   cancel_sale: { tone: 'red', icon: IconCircleX, reason: true },
   remove_post: { tone: 'red', icon: IconTrash, reason: true },
+  delete: { tone: 'red', icon: IconTrash },
   hide: { tone: 'red', icon: IconHide, reason: true },
   temporary_password: { tone: 'green', icon: IconApprove },
 }

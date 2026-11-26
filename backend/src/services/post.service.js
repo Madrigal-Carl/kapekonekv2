@@ -69,11 +69,11 @@ async function topEntries() {
 }
 const topIds = async () => new Set((await topEntries()).map((t) => t.id));
 
-/** `GET /posts/top`: the 3 posts on the landing page, each with its views over the last 30 days. */
+/** `GET /posts/top`: the 3 posts on the landing page (full names, as Main.dc.html), each with its views over the last 30 days. */
 export async function topPosts() {
   const entries = await topEntries();
   const posts = new Map((await repo.findPublishedByIds(entries.map((t) => t.id))).map((p) => [String(p._id), p]));
-  return entries.filter((t) => posts.has(t.id)).map((t) => ({ ...presentPost(posts.get(t.id)), views: t.views }));
+  return entries.filter((t) => posts.has(t.id)).map((t) => ({ ...presentPost(posts.get(t.id), { full: true }), views: t.views }));
 }
 
 /** Re-rank after a top post leaves the Hub, so the landing page doesn't keep a gap for an hour. */

@@ -7,9 +7,9 @@ import { MediaStage, MediaThumb } from './Media'
 const duration = (sec) => (sec ? `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}` : '')
 const arrow = 'absolute top-1/2 size-11 -translate-y-1/2 rounded-full border-0 bg-white/90 text-ink hover:bg-white hover:text-ink'
 
-/** Post photos and videos: one large item, arrows (and ←/→ keys), counter and a thumbnail strip (PostDetail.dc.html). */
-export function MediaViewer({ media }) {
-  const [index, setIndex] = useState(0)
+/** Post photos and videos: one large item, arrows (and ←/→ keys), counter and a thumbnail strip (PostDetail.dc.html). `start`: the first item shown. */
+export function MediaViewer({ media, start = 0 }) {
+  const [index, setIndex] = useState(start)
   if (!media?.length) return null
   const many = media.length > 1
   const go = (step) => setIndex((i) => (i + step + media.length) % media.length)

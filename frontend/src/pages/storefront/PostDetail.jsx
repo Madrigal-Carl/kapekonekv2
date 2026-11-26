@@ -1,5 +1,6 @@
-import { IconEye, IconFileQuestion, IconRefresh } from '@/components/ui/icons'
-import { Link, useParams } from 'react-router-dom'
+import { IconEye, IconFileQuestion, IconLock, IconRefresh } from '@/components/ui/icons'
+import { useEffect } from 'react'
+import { Link, Navigate, useLocation, useParams } from 'react-router-dom'
 import { CommentThread } from '@/components/post/CommentThread'
 import { MediaViewer } from '@/components/post/MediaViewer'
 import { ReactionSummary } from '@/components/post/ReactionSummary'
@@ -7,13 +8,26 @@ import { Avatar, RoleBadge } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { usePost } from '@/hooks/usePosts'
+import { useAuth } from '@/hooks/useAuth'
+import { useCan } from '@/hooks/useCan'
+import { usePost, useRecordView } from '@/hooks/usePosts'
 import { formatDateTime, timeAgo } from '@/lib/date'
 
-/** `/posts/:id` — read-only post for guests and buyers (PostDetail.dc.html). */
+/** `/posts/:id` — read-only post for guests and buyers (PostDetail.dc.html): only the landing page's top 3 open here. */
 export function PostDetail() {
   const { id } = useParams()
-  const { data: post, isPending, isError, error, refetch } = usePost(id)
+  const { pathname } = useLocation()
+  const { isAuthenticated, mustVerify } = useAuth()
+  const hubMember = useCan('dashboard.view')
+  const { data: post, isPending, isError, error, refetch } = usePost(hubMember ? null : id)
+  const { mutate: recordView } = useRecordView()
+  const status = error?.response?.status
+  // Signed-in, verified people count as a view (PHASE-2-SPEC §3.10); guests don't.
+  useEffect(() => {
+    if (post && isAuthenticated && !mustVerify) recordView(post._id)
+  }, [post, isAuthenticated, mustVerify, recordView])
+
+  if (hubMember) return <Navigate to={`/dashboard/hub/posts/${id}`} replace />
 
   return (
     <div className="bg-foam">
@@ -28,7 +42,16 @@ export function PostDetail() {
       <main className="mx-auto flex max-w-[800px] flex-col gap-5 px-4 pb-20 pt-4 sm:px-6">
         {isPending && <Skeleton className="h-[520px] rounded-card" />}
         {isError && (
-          error?.response?.status === 404 || error?.response?.status === 422 ? (
+          status === 403 ? (
+            <EmptyState
+              icon={IconLock}
+              title={isAuthenticated ? 'This post is in the KapeKonek Hub' : 'Sign in to see this post'}
+              action={isAuthenticated ? <Button as={Link} to="/">Back to home</Button> : <Button as={Link} to={`/login?redirect=${encodeURIComponent(pathname)}`}>Sign in</Button>}
+              className="bg-white"
+            >
+              The Hub is for KapeKonek farmers, Group Managers and Kaluppa. The landing page shows this month’s three most-viewed posts.
+            </EmptyState>
+          ) : status === 404 || status === 422 ? (
             <EmptyState icon={IconFileQuestion} title="We couldn't find that post" action={<Button as={Link} to="/">Back to home</Button>} className="bg-white">It may have been removed.</EmptyState>
           ) : (
             <EmptyState tone="error" icon={IconRefresh} title="We couldn't load this post" action={<Button variant="outline" onClick={() => refetch()}>Try again</Button>} className="bg-white" />

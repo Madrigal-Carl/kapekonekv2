@@ -58,7 +58,7 @@ describe('posts', () => {
     expect(res.status).toBe(200);
     expect(res.body.data.map((p) => [p.body, p.views])).toEqual([['Fresh Liberica roasts are in!', 3], ['Picking season', 2], ['Group news', 1]]);
     expect(res.body.data[0].author).toEqual({ _id: expect.any(String), name: 'Kaluppa', initials: 'KP', role: 'kaluppa', roleLabel: 'Kaluppa', avatarUrl: null });
-    expect(res.body.data[1].author).toMatchObject({ name: 'Rodel M.', initials: 'RM', roleLabel: 'Farmer' });
+    expect(res.body.data[1].author).toMatchObject({ name: 'Rodel Mendoza', initials: 'RM', roleLabel: 'Farmer' });
     expect(res.body.data[0]).not.toHaveProperty('removalReason');
   });
 

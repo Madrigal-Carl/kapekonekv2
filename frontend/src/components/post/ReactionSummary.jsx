@@ -1,20 +1,15 @@
 import { Button } from '@/components/ui/Button'
-import { IconHeart, IconStar, IconThumbsUp } from '@/components/ui/icons'
 import { useState } from 'react'
 import { cn } from '@/lib/cn'
+import { REACTIONS } from './reactions'
 
-const TYPES = [
-  { key: 'like', label: 'Like', icon: IconThumbsUp, tile: 'bg-roast text-white' },
-  { key: 'love', label: 'Love', icon: IconHeart, tile: 'bg-danger-strong text-white' },
-  { key: 'celebrate', label: 'Celebrate', icon: IconStar, tile: 'bg-caramel text-espresso' },
-]
 
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`
 
 /** Stacked reaction icons, "N reactions" (expands to a breakdown) and the comment count. */
 export function ReactionSummary({ counts = {}, commentCount = 0 }) {
   const [open, setOpen] = useState(false)
-  const present = TYPES.filter((t) => counts[t.key] > 0)
+  const present = REACTIONS.filter((t) => counts[t.key] > 0)
   const total = present.reduce((sum, t) => sum + counts[t.key], 0)
 
   return (
