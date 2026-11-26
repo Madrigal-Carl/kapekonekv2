@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
@@ -36,6 +36,30 @@ function usePopover(open, onClose) {
     }
   }, [open, onClose])
   return ref
+}
+
+/** Feed posts stop at 6 lines with "See more"; `clipped` is measured, so it follows the card's width. */
+function PostBody({ body, full }) {
+  const ref = useRef(null)
+  const [expanded, setExpanded] = useState(full)
+  const [clipped, setClipped] = useState(false)
+  useLayoutEffect(() => {
+    const node = ref.current
+    if (!node || expanded) return undefined
+    const measure = () => setClipped(node.scrollHeight > node.clientHeight + 1)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [body, expanded])
+  return (
+    <div className="mx-[18px] mt-3">
+      <p ref={ref} className={cn('m-0 whitespace-pre-line text-[14.5px] leading-[1.65] wrap-anywhere', !expanded && 'line-clamp-6')}>{body}</p>
+      {!expanded && clipped && (
+        <Button variant="bare" onClick={() => setExpanded(true)} className="border-0 bg-transparent p-0 text-[14px] font-semibold text-ink-2 hover:underline">See more</Button>
+      )}
+    </div>
+  )
 }
 
 /** Seen when half the card is on screen (PostView: signed-in, once a day). */
@@ -144,7 +168,7 @@ export function PostCard({ post, onOpenMedia, onAsk, onTag, onToast, commentsOpe
         <PostComposer post={post} onCancel={() => setEditing(false)} onDone={(message) => { setEditing(false); onToast(message) }} />
       ) : (
         <>
-          <p className="mx-[18px] mb-0 mt-3 whitespace-pre-line text-[14.5px] leading-[1.65] wrap-anywhere">{post.body}</p>
+          <PostBody body={post.body} full={commentsOpen} />
           {post.tags.length > 0 && (
             <p className="mx-[18px] mb-0 mt-1.5 flex flex-wrap gap-2">
               {post.tags.map((tag) => (

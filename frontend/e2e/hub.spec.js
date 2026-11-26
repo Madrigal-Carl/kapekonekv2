@@ -119,3 +119,32 @@ test('guard: a buyer can’t open the Hub', async ({ page }) => {
   await expect(page.getByText('Error 403')).toBeVisible()
   await expect(page.getByLabel('Share an update')).toHaveCount(0)
 })
+
+test('a long post stops at 6 lines with See more; short posts and the post page show it whole', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 900 })
+  await signIn(page, 'kapekonek.farmer.approved@gmail.com')
+  await page.goto('/dashboard/hub')
+  const text = Array.from({ length: 12 }, (_, i) => `Line ${i + 1} of my drying notes ${Date.now()}`).join('\n')
+  await page.getByLabel('Share an update').fill(text)
+  await page.getByRole('button', { name: 'Post', exact: true }).click()
+  const mine = card(page, 'Line 1 of my drying notes')
+  const body = mine.locator('p').first()
+  const lineHeight = 14.5 * 1.65
+  expect((await body.boundingBox()).height).toBeLessThan(lineHeight * 6.5)
+  await expect(card(page, 'Delivery now reaches every town').getByRole('button', { name: 'See more' })).toHaveCount(0)
+  await mine.getByRole('button', { name: 'See more' }).click()
+  await expect(mine.getByRole('button', { name: 'See more' })).toHaveCount(0)
+  expect((await body.boundingBox()).height).toBeGreaterThan(lineHeight * 11.5)
+
+  const id = (await mine.getAttribute('aria-labelledby')).slice(2)
+  await page.goto(`/dashboard/hub/posts/${id}`)
+  const whole = card(page, 'Line 1 of my drying notes')
+  await expect(whole.getByRole('button', { name: 'See more' })).toHaveCount(0)
+  expect((await whole.locator('p').first().boundingBox()).height).toBeGreaterThan(lineHeight * 11.5)
+  const post = whole
+
+  await post.getByRole('button', { name: 'Post options' }).click()
+  await page.getByRole('menuitem', { name: 'Delete post' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: /Delete/ }).click()
+  await expect(page).toHaveURL(/\/dashboard\/hub$/)
+})
