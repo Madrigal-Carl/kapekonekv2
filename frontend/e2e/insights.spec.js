@@ -54,6 +54,17 @@ test('Kaluppa exports the Reports CSV', async ({ page }) => {
   for (const title of ['Harvest by variety', 'Beans bought by Kaluppa', 'Store sales', 'Trees by stage', 'By association']) expect(csv).toContain(title)
 })
 
+test('Reports charts stay 2 × 2 on a wide screen (Reports.dc.html)', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1100 })
+  await signIn(page, 'kaluppa')
+  await page.goto('/dashboard/reports')
+  await expect(page.getByRole('heading', { name: 'Trees by stage' })).toBeVisible()
+  const tops = await page.locator('section:has(> h2)').evaluateAll((els) => els.slice(0, 4).map((e) => Math.round(e.getBoundingClientRect().top)))
+  expect(tops[0]).toBe(tops[1])
+  expect(tops[2]).toBe(tops[3])
+  expect(tops[2]).toBeGreaterThan(tops[1])
+})
+
 test('a Group Manager’s reports are its association’s, without store sales', async ({ page }) => {
   await signIn(page, 'manager.santacruz')
   await page.goto('/dashboard/reports')

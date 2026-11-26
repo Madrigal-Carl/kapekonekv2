@@ -162,7 +162,8 @@ export function Reports() {
         ))}
       </div>
       <Kpis summary={summary} isKaluppa={isKaluppa} />
-      <Row min={420}>
+      {/* 2 × 2 like Reports.dc.html, whose 1240px page never fits a third column. */}
+      <Row min={420} maxCols={2}>
         <ChartCard title="Harvest by variety" sub="Kilograms per month, stacked">
           <Loaded query={harvest}>
             {(d) => (
