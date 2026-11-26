@@ -1,4 +1,6 @@
 import { Button } from '@/components/ui/Button'
+import { fillPayments } from '@/lib/payments'
+import { usePaymentProviders } from '@/hooks/useSettings'
 import Autoplay from 'embla-carousel-autoplay'
 import useEmblaCarousel from 'embla-carousel-react'
 import { IconArrowRight, IconChevronLeft, IconChevronRight } from '@/components/ui/icons'
@@ -12,7 +14,7 @@ import { imageSrcSet, imageUrl } from '@/lib/image'
 /** Shown while the slides load or if Kaluppa has none (the screen's first slide). */
 const FALLBACK = [{
   title: 'Marinduque coffee, delivered to your door.',
-  subtitle: 'Green beans, fresh roasts and grounds from local farms. Order online, pay by GCash, Maya or cash on delivery, and get it anywhere in Marinduque in 3–5 business days.',
+  subtitle: 'Green beans, fresh roasts and grounds from local farms. Order online, pay by {payments}, and get it anywhere in Marinduque in 3–5 business days.',
   ctaLabel: 'Browse coffee',
   ctaHref: '/products',
   image: null,
@@ -25,6 +27,7 @@ const roundButton = 'size-11 rounded-full border-white/30 bg-white/8 hover:bg-wh
 
 /** Landing hero: slides from settings, arrows, dots, "01 / 03", autoplay that pauses on hover and focus. */
 export function HeroCarousel({ slides }) {
+  const providers = usePaymentProviders()
   const list = slides?.length ? slides : FALLBACK
   const [viewportRef, embla] = useEmblaCarousel({ loop: true }, reducedMotion() ? [] : [Autoplay({ delay: 6000, stopOnMouseEnter: true, stopOnInteraction: false, stopOnFocusIn: true })])
   const [index, setIndex] = useState(0)
@@ -63,7 +66,7 @@ export function HeroCarousel({ slides }) {
                     Marinduque coffee · Sourced by Kaluppa
                   </span>
                   {i === 0 ? <h1 className={titleClasses}>{slide.title}</h1> : <h2 className={titleClasses}>{slide.title}</h2>}
-                  <p className="mx-auto mt-5 max-w-[620px] text-base leading-[1.65] text-white/85 sm:text-[17px]">{slide.subtitle}</p>
+                  <p className="mx-auto mt-5 max-w-[620px] text-base leading-[1.65] text-white/85 sm:text-[17px]">{fillPayments(slide.subtitle, providers)}</p>
                   <div className="mt-8 flex flex-wrap justify-center gap-3">
                     <Button as={Link} variant="light" size="lg" className="px-[22px] text-sm" to={slide.ctaHref} >
                       {slide.ctaLabel}

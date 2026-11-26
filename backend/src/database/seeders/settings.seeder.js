@@ -5,7 +5,7 @@ import { imagesFor, seedMedia } from './media.js';
 const SLIDES = [
   {
     title: 'Marinduque coffee, delivered to your door.',
-    subtitle: 'Green beans, fresh roasts and grounds from local farms. Order online, pay by GCash, Maya or cash on delivery, and get it anywhere in Marinduque in 3–5 business days.',
+    subtitle: 'Green beans, fresh roasts and grounds from local farms. Order online, pay by {payments}, and get it anywhere in Marinduque in 3–5 business days.',
     media: 'roasted-roaster-arm',
     ctaLabel: 'Browse coffee',
     ctaHref: '/products',

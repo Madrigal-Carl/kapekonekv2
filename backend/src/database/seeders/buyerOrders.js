@@ -11,7 +11,7 @@ const DAY = 86_400_000;
 const RIDER = { name: 'Jun R.', phone: '09175550102' };
 
 /**
- * [days ago, status, method ('home'|'work'|'mama'|'pickup'), payment ('cash'|'GCash'|'Maya'), items [slug, qty][], extra].
+ * [days ago, status, method ('home'|'work'|'mama'|'pickup'), payment ('cash'|'GCash'; Maya is off at checkout, so no seeded order uses it), items [slug, qty][], extra].
  * Pending orders stay younger than 2 days so the expiry sweep leaves them alone after seeding.
  */
 const PLAN = [
@@ -20,15 +20,15 @@ const PLAN = [
   [2.5, 'reserved', 'home', 'GCash', [['robusta-green-beans', 2]]],
   [3, 'out_for_delivery', 'home', 'cash', [['arabica-light-roast', 2]]],
   [4, 'ready_for_pickup', 'pickup', 'cash', [['robusta-dark-roast', 2]]],
-  [5, 'processing', 'work', 'Maya', [['robusta-dark-roast', 3]]],
+  [5, 'processing', 'work', 'GCash', [['robusta-dark-roast', 3]]],
   [9, 'cancelled', 'work', 'GCash', [['arabica-ground', 1]], { reasonCode: 'wrong_receipt' }],
   [12, 'rejected', 'home', 'cash', [['excelsa-medium-roast', 2]], { reasonCode: 'out_of_stock' }],
   [14, 'sold', 'work', 'cash', [['barako-medium-roast', 3]]],
   [18, 'expired', 'home', 'GCash', [['excelsa-ground', 2]]],
   [20, 'sold', 'pickup', 'GCash', [['arabica-green-beans', 1]]],
-  [21, 'rejected', 'pickup', 'Maya', [['arabica-ground', 1]], { reasonCode: 'invalid_receipt', refundRef: '7023118842' }],
+  [21, 'rejected', 'pickup', 'GCash', [['arabica-ground', 1]], { reasonCode: 'invalid_receipt', refundRef: '7023118842' }],
   [25, 'cancelled', 'home', 'cash', [['robusta-dark-roast', 2]], { reasonCode: 'ordered_by_mistake' }],
-  [30, 'sold', 'home', 'Maya', [['liberica-green-beans', 2]]],
+  [30, 'sold', 'home', 'GCash', [['liberica-green-beans', 2]]],
   [45, 'sold', 'mama', 'cash', [['robusta-ground', 2], ['barako-medium-roast', 1]]],
 ];
 

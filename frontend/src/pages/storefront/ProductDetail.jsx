@@ -1,4 +1,6 @@
 import { IconClock, IconCoffee, IconMapPin, IconShoppingBag, IconWallet } from '@/components/ui/icons'
+import { paymentPhrase } from '@/lib/payments'
+import { usePaymentProviders } from '@/hooks/useSettings'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ReviewPanel } from '@/components/product/ReviewPanel'
@@ -126,6 +128,7 @@ function PurchasePanel({ product }) {
 /** `/products/:slug` (ProductDetail.dc.html). */
 export function ProductDetail() {
   const { slug } = useParams()
+  const providers = usePaymentProviders()
   const { data: product, isPending, isError, error, refetch } = useProduct(slug)
 
   if (isPending) {
@@ -202,7 +205,7 @@ export function ProductDetail() {
 
           <ul className="m-0 mt-6 flex list-none flex-col gap-2.5 rounded-card bg-crema px-[18px] py-4 text-[13.5px] text-ink-2">
             <li className="flex items-start gap-2.5"><IconMapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-roast" strokeWidth={2} />Delivered anywhere in Marinduque, or pick up at Kaluppa in Pantayin, Santa Cruz.</li>
-            <li className="flex items-start gap-2.5"><IconWallet aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-roast" strokeWidth={2} />Pay by GCash, Maya or cash on delivery.</li>
+            <li className="flex items-start gap-2.5"><IconWallet aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-roast" strokeWidth={2} />Pay by {paymentPhrase(providers)}.</li>
             <li className="flex items-start gap-2.5"><IconClock aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-roast" strokeWidth={2} />Arrives in 3–5 business days after Kaluppa confirms your order.</li>
           </ul>
         </div>

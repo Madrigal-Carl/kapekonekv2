@@ -313,9 +313,10 @@ frontend/src/
 - [x] Inbox: panel 760px/radius 10, list 340px, list header, 5px-corner search and composer, chips, rows, thread header, bubbles, composer, avatars with photos everywhere (seed a few avatars), "…" menu directly below its button, flips up only without room, pressed state while open.
 
 ### Task C06.F: Copy and payments
-- [ ] Landing: remove the "How ordering works" note. Payment copy from the enabled providers (`paymentPhrase(providers)`): hero (`{payments}` token in seeded slides), step 3, FAQ, product notes, cart drawer, checkout (tabs hidden with one provider), Settings note. Emails already use the order's provider.
-- [ ] Providers: `showAtCheckout` replaces `enabled` (old values read through); seed GCash on, Maya saved but off. Public `GET /delivery/info` carries `payment.providers`.
-- [ ] Test: turning Maya on makes it appear in the copy with no code change.
+- [x] Landing: remove the "How ordering works" note. Payment copy from the enabled providers (`paymentPhrase(providers)`): hero (`{payments}` token in seeded slides), step 3, FAQ, product notes, cart drawer, checkout (tabs hidden with one provider), Settings note. Emails already use the order's provider.
+- [x] Providers: `showAtCheckout` replaces `enabled` (old values read through); seed GCash on, Maya saved but off. Public `GET /delivery/info` carries `payment.providers`.
+- [x] Test: turning Maya on makes it appear in the copy with no code change.
+  - Done as: `lib/payments.js` (`orList`, `paymentPhrase`, `fillPayments`) + `usePaymentProviders()` reading `/delivery/info`; Settings → E-wallet note and "Shown / Hidden at checkout" badges built from the saved accounts. Seeded orders use GCash only, so Maya appears nowhere while it's off. Tests: backend (`adminSettings.test.js`) turns Maya on and sees it in `/delivery/info` and `/settings/payment`; frontend phrase and note tests.
 
 ---
 

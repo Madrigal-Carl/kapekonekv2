@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { orList } from '@/lib/payments'
 import { format } from 'date-fns'
 import { IconBanknote, IconCalendar, IconMapPin, IconPlus, IconShoppingBag, IconTriangleAlert, IconWallet } from '@/components/ui/icons'
 import { QRCodeSVG } from 'qrcode.react'
@@ -145,7 +146,7 @@ export function Checkout() {
 
   const { register, control, handleSubmit, setValue, setError, formState: { errors } } = useForm({
     resolver: zodResolver(checkoutSchema),
-    defaultValues: { method: 'delivery', addressId: '', contactPhone: formatPhone(user?.contactNumber ?? ''), paymentMethod: 'e_wallet', provider: 'GCash', receipt: null, note: '' },
+    defaultValues: { method: 'delivery', addressId: '', contactPhone: formatPhone(user?.contactNumber ?? ''), paymentMethod: 'e_wallet', provider: '', receipt: null, note: '' },
   })
   const [method, addressId, paymentMethod, provider, receipt] = useWatch({ control, name: ['method', 'addressId', 'paymentMethod', 'provider', 'receipt'] })
 
@@ -156,7 +157,7 @@ export function Checkout() {
   }, [addressId, addresses.data, setValue])
   const list = addresses.data ?? []
   // Kaluppa may hide a provider in Settings → E-wallet: fall back to the first one shown.
-  const providers = payment.data?.providers ?? ['GCash', 'Maya']
+  const providers = payment.data?.providers ?? []
   useEffect(() => {
     const shown = payment.data?.providers
     if (shown?.length && !shown.includes(provider)) setValue('provider', shown[0])
@@ -345,7 +346,7 @@ export function Checkout() {
                 <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-3">
                   <Choice name="paymentMethod" value="e_wallet" checked={ewallet} onChange={() => setValue('paymentMethod', 'e_wallet')}>
                     <span>
-                      <span className="block text-[15px] font-semibold">GCash or Maya</span>
+                      <span className="block text-[15px] font-semibold">{orList(providers) || 'E-wallet'}</span>
                       <span className="mt-0.5 block text-[12.5px] text-ink-3">Pay now and upload your receipt.</span>
                     </span>
                   </Choice>
@@ -361,6 +362,8 @@ export function Checkout() {
               {ewallet ? (
                 <div className="flex flex-wrap gap-7 pt-1">
                   <div className="flex flex-none flex-col items-center gap-2.5 max-sm:w-full">
+                    {/* One provider shown: no tabs (Change 06F). */}
+                    {providers.length > 1 && (
                     <div role="tablist" aria-label="E-wallet" className="inline-flex rounded-[6px] bg-foam p-[3px]">
                       {providers.map((name) => (
                         <Button variant="bare"
@@ -374,6 +377,7 @@ export function Checkout() {
                         </Button>
                       ))}
                     </div>
+                    )}
                     <div className="relative size-[200px] rounded-card border border-sand bg-white p-3.5">
                       {account?.qrImageUrl ? (
                         <img src={imageUrl(account.qrImageUrl, 240)} alt={`${provider} QR code for Kaluppa`} className="size-full object-contain" />

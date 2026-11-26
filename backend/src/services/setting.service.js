@@ -1,4 +1,5 @@
 import { SETTING_DEFAULTS } from '../constants/settings.js';
+import { EWALLET_PROVIDERS } from '../schemas/rules.js';
 import { findSettingValue } from '../repositories/setting.repository.js';
 
 /**
@@ -41,32 +42,41 @@ export async function getPickup() {
   return { name: branch.name, address: branchAddress(branch), hours: formatHours(branch.hours), phone, location: branch.location };
 }
 
-/** Public delivery facts for the storefront: pickup, fee rules (without the origin pin) and ETA days. */
+/**
+ * Public storefront facts: pickup, fee rules (without the origin pin), ETA days, and the e-wallets shown at checkout
+ * (every payment line in the storefront is built from `payment.providers`).
+ */
 export async function getDeliveryInfo() {
-  const [fee, eta, pickup] = await Promise.all([getSetting('delivery.fee'), getSetting('delivery.eta'), getPickup()]);
+  const [fee, eta, pickup, payment] = await Promise.all([getSetting('delivery.fee'), getSetting('delivery.eta'), getPickup(), getPaymentSettings()]);
   const { baseFeeCentavos, baseKm, perKmCentavos, roundUpToCentavos, maxKm } = fee;
   return {
     pickup,
     fee: { baseFeeCentavos, baseKm, perKmCentavos, roundUpToCentavos, maxKm },
     eta: { minBusinessDays: eta.minBusinessDays, maxBusinessDays: eta.maxBusinessDays },
+    payment: { providers: payment.providers },
   };
 }
 
 export const getLanding = async () => ({ heroSlides: await getSetting('landing.heroSlides') });
 
-/** The e-wallet accounts; a value saved before Phase 2 (one account for both providers) reads as two. */
+/**
+ * The e-wallet accounts. A value saved before Phase 2 (one account for both providers) reads as two, and one saved
+ * before Change 06 reads its `enabled` flag as `showAtCheckout`.
+ */
 export async function getEwallet() {
   const value = await getSetting('payment.ewallet');
-  if (value.accounts) return value;
-  const { providers = ['GCash', 'Maya'], accountName, accountNumber, qrImageUrl, qrPayload, isSample } = value;
+  if (value.accounts) {
+    return { ...value, accounts: value.accounts.map(({ enabled, ...a }) => ({ ...a, showAtCheckout: a.showAtCheckout ?? enabled ?? true })) };
+  }
+  const { providers = EWALLET_PROVIDERS, accountName, accountNumber, qrImageUrl, qrPayload, isSample } = value;
   const qr = qrImageUrl ? { url: qrImageUrl, publicId: null } : null;
-  return { accounts: providers.map((provider) => ({ provider, accountName, accountNumber, enabled: true, qr })), qrPayload, isSample };
+  return { accounts: providers.map((provider) => ({ provider, accountName, accountNumber, showAtCheckout: true, qr })), qrPayload, isSample };
 }
 
 /** What checkout shows: the providers Kaluppa shows, each with its account and QR. */
 export async function getPaymentSettings() {
   const { accounts, qrPayload, isSample } = await getEwallet();
-  const shown = accounts.filter((a) => a.enabled);
+  const shown = accounts.filter((a) => a.showAtCheckout);
   return {
     providers: shown.map((a) => a.provider),
     accounts: Object.fromEntries(shown.map((a) => [a.provider, { accountName: a.accountName, accountNumber: a.accountNumber, qrImageUrl: a.qr?.url ?? null }])),

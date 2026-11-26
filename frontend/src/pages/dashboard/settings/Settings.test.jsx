@@ -14,7 +14,7 @@ const HOURS = [...Array(6).fill({ open: true, from: '08:00', to: '17:00' }), { o
 const DATA = {
   branch: { name: 'Kaluppa', phone: '09178001122', street: '', barangay: 'Pantayin', municipality: 'Santa Cruz', location: { lat: 13.467, lng: 122.044 }, hours: HOURS },
   delivery: { baseFeeCentavos: 5000, baseKm: 3, perKmCentavos: 1000, roundUpToCentavos: 500, maxKm: 60, roadFactorFallback: 1.35, minBusinessDays: 3, maxBusinessDays: 5 },
-  ewallet: { accounts: ['GCash', 'Maya'].map((provider) => ({ provider, accountName: 'Kaluppa Coffee', accountNumber: '0917 000 0000', enabled: true, qr: null })) },
+  ewallet: { accounts: ['GCash', 'Maya'].map((provider) => ({ provider, accountName: 'Kaluppa Coffee', accountNumber: '0917 000 0000', showAtCheckout: true, qr: null })) },
 }
 const saveAdminSetting = vi.hoisted(() => vi.fn(async ({ body }) => body))
 vi.mock('@/services/adminSetting.service', () => ({ getAdminSetting: vi.fn(async (section) => DATA[section]), saveAdminSetting }))
@@ -84,9 +84,12 @@ describe('Settings', () => {
   it('hides a provider at checkout from the E-wallet tab', async () => {
     renderAt('/dashboard/settings?tab=ewallet')
     const maya = await screen.findByRole('region', { name: 'Maya' })
+    // Both shown: the note and badges name what is on, from the saved accounts.
+    expect(screen.getByRole('note').textContent).toContain('GCash and Maya are on.')
+    expect(within(maya).getByText('Shown at checkout')).toBeTruthy()
     fireEvent.click(within(maya).getByRole('checkbox', { name: 'Show at checkout' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Save changes' }))
     await vi.waitFor(() => expect(saveAdminSetting).toHaveBeenCalled())
-    expect(saveAdminSetting.mock.calls[0][0].body.accounts.map((a) => a.enabled)).toEqual([true, false])
+    expect(saveAdminSetting.mock.calls[0][0].body.accounts.map((a) => a.showAtCheckout)).toEqual([true, false])
   })
 })

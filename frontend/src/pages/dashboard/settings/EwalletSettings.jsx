@@ -9,6 +9,7 @@ import { useUploadImage } from '@/hooks/useUploads'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
 import { cn } from '@/lib/cn'
 import { imageUrl } from '@/lib/image'
+import { orList } from '@/lib/payments'
 import { ewalletFormSchema } from '@/schemas/setting.schema'
 import { SaveBar } from './SettingsParts'
 
@@ -50,6 +51,19 @@ function QrField({ provider, value, onChange, error }) {
   )
 }
 
+/** What the note says, from the saved accounts (never hard-coded provider names). */
+function ProvidersNote({ accounts }) {
+  const on = accounts.filter((a) => a.showAtCheckout).map((a) => a.provider)
+  const off = accounts.filter((a) => !a.showAtCheckout).map((a) => a.provider)
+  return (
+    <p role="note" className="rounded-card bg-crema px-3.5 py-3 text-[13px] leading-[1.6] text-ink-2">
+      Checkout, the landing page, the FAQ and emails only mention wallets that are shown at checkout.{' '}
+      <strong>{`${off.length ? 'For now only ' : ''}${orList(on, 'and')} ${on.length > 1 ? 'are' : 'is'} on.`}</strong>
+      {off.length > 0 && ` ${orList(off, 'and')} ${off.length > 1 ? 'stay' : 'stays'} saved here so you can switch ${off.length > 1 ? 'them' : 'it'} back on any time.`}
+    </p>
+  )
+}
+
 /** Settings → E-wallet: one card per provider with its account, QR and "Show at checkout". */
 export function EwalletSettings({ ewallet, onSaved }) {
   const save = useSaveAdminSetting()
@@ -75,17 +89,23 @@ export function EwalletSettings({ ewallet, onSaved }) {
   return (
     <form id={FORM_ID} noValidate onSubmit={submit} className="flex flex-col gap-4">
       {errors.accounts?.root?.message || errors.accounts?.message ? <Alert tone="danger">{errors.accounts.root?.message ?? errors.accounts.message}</Alert> : null}
+      <ProvidersNote accounts={ewallet.accounts} />
       <div className="grid gap-4 md:grid-cols-[repeat(auto-fit,minmax(380px,1fr))]">
-        {ewallet.accounts.map(({ provider }, i) => {
+        {ewallet.accounts.map(({ provider, showAtCheckout }, i) => {
           const fieldErrors = errors.accounts?.[i] ?? {}
           return (
             <section key={provider} aria-label={provider} className="flex flex-wrap gap-[18px] rounded-card border border-sand bg-white p-[22px]">
               <div className="flex min-w-0 flex-[1_1_200px] flex-col gap-3">
-                <h2 className="text-base font-semibold">{provider}</h2>
+                <h2 className="flex items-center gap-2 text-base font-semibold">
+                  {provider}
+                  <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-semibold', showAtCheckout ? 'bg-tone-green-bg text-tone-green-ink' : 'bg-tone-gray-bg text-tone-gray-ink')}>
+                    {showAtCheckout ? 'Shown at checkout' : 'Hidden at checkout'}
+                  </span>
+                </h2>
                 <TextField id={`wallet-${i}-name`} label="Account name" maxLength={80} error={fieldErrors.accountName?.message} {...register(`accounts.${i}.accountName`)} />
                 <TextField id={`wallet-${i}-number`} label="Account number" inputMode="tel" maxLength={30} error={fieldErrors.accountNumber?.message} {...register(`accounts.${i}.accountNumber`)} />
                 <label className="flex cursor-pointer items-center gap-2 text-[13.5px]">
-                  <input type="checkbox" className="size-[18px] accent-roast" {...register(`accounts.${i}.enabled`)} />
+                  <input type="checkbox" className="size-[18px] accent-roast" {...register(`accounts.${i}.showAtCheckout`)} />
                   Show at checkout
                 </label>
               </div>

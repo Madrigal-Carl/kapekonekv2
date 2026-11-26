@@ -22,7 +22,8 @@ export const SETTING_DEFAULTS = {
   },
   // One account per provider. Sample until Kaluppa saves its own in Settings → E-wallet.
   'payment.ewallet': {
-    accounts: ['GCash', 'Maya'].map((provider) => ({ provider, accountName: 'Kaluppa Coffee (sample)', accountNumber: '0917 000 0000', enabled: true, qr: null })),
+    // GCash only for now: Maya stays saved, off at checkout (Change 06F). Kaluppa switches providers in Settings → E-wallet.
+    accounts: ['GCash', 'Maya'].map((provider) => ({ provider, accountName: 'Kaluppa Coffee (sample)', accountNumber: '0917 000 0000', showAtCheckout: provider === 'GCash', qr: null })),
     qrPayload: 'KAPEKONEK-SAMPLE-EWALLET-QR',
     isSample: true,
   },

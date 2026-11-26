@@ -13,7 +13,7 @@ export const placeOrderSchema = z
     addressId: objectIdRule.optional(),
     contactPhone: phoneRule.optional(),
     paymentMethod: z.enum(PAYMENT_METHODS, 'Choose how you’ll pay'),
-    provider: z.enum(EWALLET_PROVIDERS, 'Choose GCash or Maya').optional(),
+    provider: z.enum(EWALLET_PROVIDERS, 'Choose an e-wallet').optional(),
     receipt: z.object({ url: z.url().max(500), publicId: z.string().min(1).max(300) }).optional(),
     note: z.string().trim().max(500, 'Use 500 characters or fewer').optional(),
   })
@@ -21,7 +21,7 @@ export const placeOrderSchema = z
     const issue = (path, message) => ctx.addIssue({ code: 'custom', path: [path], message });
     if (body.method === 'delivery' && !body.addressId) issue('addressId', 'Choose a delivery address');
     if (body.paymentMethod === 'e_wallet') {
-      if (!body.provider) issue('provider', 'Choose GCash or Maya');
+      if (!body.provider) issue('provider', 'Choose an e-wallet');
       if (!body.receipt) issue('receipt', 'Upload your payment receipt');
     }
     if (body.paymentMethod === 'cash' && body.receipt) issue('receipt', 'Cash orders don’t need a receipt');

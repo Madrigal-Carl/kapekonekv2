@@ -35,5 +35,5 @@ export const deliverySettingSchema = z
   })
   .refine((v) => v.maxBusinessDays >= v.minBusinessDays, { path: ['maxBusinessDays'], message: 'End on or after the first day' });
 
-/** Settings → E-wallet: GCash and Maya accounts, their QR codes and whether checkout shows them. */
+/** Settings → E-wallet: one account per provider, its QR code and whether checkout shows it. */
 export const ewalletSettingSchema = z.object({ accounts: walletAccountsRule });

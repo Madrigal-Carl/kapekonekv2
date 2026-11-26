@@ -1,5 +1,7 @@
 import { Button } from '@/components/ui/Button'
-import { IconArrowRight, IconBell, IconChevronDown, IconClock, IconCoffee, IconMapPin, IconShoppingBag } from '@/components/ui/icons'
+import { orList } from '@/lib/payments'
+import { usePaymentProviders } from '@/hooks/useSettings'
+import { IconArrowRight, IconBell, IconChevronDown, IconCoffee, IconMapPin, IconShoppingBag } from '@/components/ui/icons'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { HeroCarousel } from '@/components/product/HeroCarousel'
@@ -25,10 +27,10 @@ const VARIETY_CARDS = [
   { slug: 'robusta', name: 'Robusta', text: 'Strong and earthy with more caffeine. Built for espresso and milk drinks.' },
 ]
 
-const STEPS = [
+const steps = (providers) => [
   { title: 'Add coffee to your cart', text: 'Filter by variety and type, then choose your quantity.' },
   { title: 'Choose delivery or pickup', text: 'Pick a saved address or add one with a map pin, or collect at Kaluppa.' },
-  { title: 'Pay your way', text: 'GCash or Maya with a receipt upload, or cash on delivery.' },
+  { title: 'Pay your way', text: providers.length ? `${orList(providers)} with a receipt upload, or cash on delivery.` : 'Cash on delivery or at pickup.' },
   { title: 'Get it in 3–5 business days', text: 'Kaluppa confirms, prepares and ships it. We notify you at every step.' },
 ]
 
@@ -44,9 +46,9 @@ const FEATURES = [
   { tag: 'Updates', title: 'Know where your order is', text: 'Email and in-app notifications at every step, from confirmation to delivery.', icon: IconBell },
 ]
 
-const FAQS = [
+const faqs = (providers) => [
   { q: 'How does delivery work?', a: 'Kaluppa delivers anywhere in Marinduque. Add your address (drop a pin or type it in), and the delivery fee is calculated from the road distance to Kaluppa in Pantayin, Santa Cruz.' },
-  { q: 'How do I pay?', a: 'By GCash or Maya (scan the QR at checkout and upload your receipt), or cash on delivery. Pickup orders can pay by e-wallet or in cash at Kaluppa.' },
+  { q: 'How do I pay?', a: `By ${providers.length ? `${orList(providers)} (scan the QR at checkout and upload your receipt), or ` : ''}cash on delivery. Pickup orders can pay by e-wallet or in cash at Kaluppa.` },
   { q: 'When will my order arrive?', a: 'Usually 3–5 business days after Kaluppa confirms it. You’ll get an email and an in-app notification when it’s out for delivery.' },
   { q: 'What if Kaluppa doesn’t confirm my order?', a: 'Orders that aren’t confirmed within 3 days expire automatically. If you paid by e-wallet, your payment is marked for refund.' },
   { q: 'Can I cancel?', a: 'Yes, while your order is still pending. Pick a reason. E-wallet payments are refunded by Kaluppa.' },
@@ -124,13 +126,14 @@ function LatestPosts() {
 }
 
 function Faq() {
+  const providers = usePaymentProviders()
   const [open, setOpen] = useState(0)
   return (
     <section id="faq" className={cn(section, 'scroll-mt-16 bg-crema')}>
       <div className="mx-auto max-w-[880px] px-4 sm:px-8">
         <SectionHeading eyebrow="FAQ" title="Questions before you order" />
         <div className="mt-9 flex flex-col gap-2.5">
-          {FAQS.map(({ q, a }, i) => {
+          {faqs(providers).map(({ q, a }, i) => {
             const isOpen = open === i
             return (
               <div key={q} className="rounded-card border border-sand bg-white">
@@ -160,6 +163,7 @@ function Faq() {
 export function Landing() {
   const { isAuthenticated } = useAuth()
   const { data: landing } = useLanding()
+  const providers = usePaymentProviders()
   return (
     <main>
       <HeroCarousel slides={landing?.heroSlides} />
@@ -194,7 +198,7 @@ export function Landing() {
         <div className={container}>
           <SectionHeading eyebrow="How ordering works" title="Order online, delivered in 3–5 business days" />
           <ol className="m-0 mt-14 grid list-none grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-7 p-0">
-            {STEPS.map((s, i) => (
+            {steps(providers).map((s, i) => (
               <li key={s.title}>
                 <div className="flex items-center gap-3">
                   <span className="grid size-11 shrink-0 place-items-center rounded-full bg-roast text-sm font-semibold text-white shadow-[0_0_0_5px_rgb(123_74_42/0.14)]">{i + 1}</span>
@@ -205,10 +209,6 @@ export function Landing() {
               </li>
             ))}
           </ol>
-          <div className="mt-10 flex max-w-[760px] items-start gap-3 rounded-card border border-notice-line bg-notice-bg px-[18px] py-4">
-            <IconClock aria-hidden="true" className="mt-0.5 size-[18px] shrink-0 text-caramel-ink" strokeWidth={2} />
-            <p className="m-0 text-[13.5px] leading-[1.6] text-notice-ink">Kaluppa confirms each order within 3 days. If it isn't confirmed in time, it expires, and any e-wallet payment is refunded.</p>
-          </div>
         </div>
       </section>
 

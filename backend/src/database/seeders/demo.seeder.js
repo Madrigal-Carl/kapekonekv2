@@ -104,7 +104,7 @@ export async function seedDemo() {
           etaFrom: new Date(placedAt.getTime() + 3 * DAY), etaTo: new Date(placedAt.getTime() + 5 * DAY),
         }
         : { method, contactName, contactPhone: buyer.contactNumber, pickup },
-      payment: i % 2 ? { method: 'e_wallet', provider: i % 4 === 1 ? 'GCash' : 'Maya', submittedAt: placedAt, verifiedAt: new Date(placedAt.getTime() + DAY / 4) } : { method: 'cash', cashCollectedAt: soldAt },
+      payment: i % 2 ? { method: 'e_wallet', provider: 'GCash', submittedAt: placedAt, verifiedAt: new Date(placedAt.getTime() + DAY / 4) } : { method: 'cash', cashCollectedAt: soldAt },
       status: 'sold',
       statusHistory: historyFor(method, placedAt, soldAt),
       createdAt: placedAt,

@@ -51,6 +51,7 @@ describe('GET /delivery/info', () => {
       pickup: { name: 'Kaluppa', address: 'Pantayin, Santa Cruz, Marinduque', hours: expect.any(String), phone: '0917 800 1122', location: { lat: expect.any(Number), lng: expect.any(Number) } },
       fee: { baseFeeCentavos: 5000, baseKm: 3, perKmCentavos: 1000, roundUpToCentavos: 500, maxKm: 60 },
       eta: { minBusinessDays: 3, maxBusinessDays: 5 },
+      payment: { providers: ['GCash'] }, // Maya is saved but off at checkout
     });
     expect(JSON.stringify(res.body.data)).not.toMatch(/origin|roadFactor/);
   });
@@ -75,6 +76,7 @@ describe('settings', () => {
     expect((await unverified.get('/api/settings/payment')).body.code).toBe('EMAIL_NOT_VERIFIED');
     const res = await (await signedIn('kapekonek.buyer@gmail.com')).get('/api/settings/payment');
     expect(res.status).toBe(200);
-    expect(res.body.data).toMatchObject({ providers: ['GCash', 'Maya'], isSample: true, accounts: { GCash: { accountName: expect.any(String), accountNumber: expect.any(String) }, Maya: expect.any(Object) } });
+    expect(res.body.data).toMatchObject({ providers: ['GCash'], isSample: true, accounts: { GCash: { accountName: expect.any(String), accountNumber: expect.any(String) } } });
+    expect(res.body.data.accounts.Maya).toBeUndefined(); // saved, off at checkout
   });
 });

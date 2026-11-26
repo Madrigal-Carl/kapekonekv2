@@ -255,19 +255,19 @@ export const openingHoursRule = z
     }),
   );
 export const EWALLET_PROVIDERS = ['GCash', 'Maya'];
-/** One account per provider (GCash, then Maya); at least one shown at checkout. */
+/** One account per supported provider, in this order; at least one shown at checkout. */
 export const walletAccountsRule = z
   .array(
     z.object({
       provider: z.enum(EWALLET_PROVIDERS),
       accountName: z.string('Enter the account name').trim().min(2, 'Enter the account name').max(80, 'Use 80 characters or fewer'),
       accountNumber: z.string('Enter the account number').trim().min(4, 'Enter the account number').max(30, 'Use 30 characters or fewer'),
-      enabled: z.boolean(),
+      showAtCheckout: z.boolean(),
       qr: z.object({ url: z.url().max(500), publicId: z.string().min(1).max(300) }).nullable(),
     }),
   )
-  .refine((a) => a.map((x) => x.provider).join() === EWALLET_PROVIDERS.join(), 'Set up GCash and Maya')
-  .refine((a) => a.some((x) => x.enabled), 'Show at least one e-wallet at checkout');
+  .refine((a) => a.map((x) => x.provider).join() === EWALLET_PROVIDERS.join(), `Set up ${EWALLET_PROVIDERS.join(' and ')}`)
+  .refine((a) => a.some((x) => x.showAtCheckout), 'Show at least one e-wallet at checkout');
 
 // Inbox (PHASE-2-SPEC §3.9): a message is up to 2,000 characters.
 export const MESSAGE_MAX = 2000;

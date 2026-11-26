@@ -96,8 +96,8 @@ describe('E-wallet', () => {
   it('saves both accounts with their QR; checkout only offers the ones shown', async () => {
     expect((await kaluppa.get('/api/admin/settings/ewallet')).body.data.accounts.map((a) => a.provider)).toEqual(['GCash', 'Maya']);
     const accounts = [
-      { provider: 'GCash', accountName: 'Kaluppa Coffee', accountNumber: '0917 555 0101', enabled: true, qr: qr(1) },
-      { provider: 'Maya', accountName: 'Kaluppa Coffee', accountNumber: '0918 555 0202', enabled: false, qr: null },
+      { provider: 'GCash', accountName: 'Kaluppa Coffee', accountNumber: '0917 555 0101', showAtCheckout: true, qr: qr(1) },
+      { provider: 'Maya', accountName: 'Kaluppa Coffee', accountNumber: '0918 555 0202', showAtCheckout: false, qr: null },
     ];
     const res = await kaluppa.patch('/api/admin/settings/ewallet').send({ accounts });
     expect(res.status).toBe(200);
@@ -106,12 +106,27 @@ describe('E-wallet', () => {
     expect(pay.accounts.Maya).toBeUndefined();
   });
 
+  it('Maya is saved but off by default; turning it on puts it in the public providers with no code change', async () => {
+    const providers = async () => (await request(app).get('/api/delivery/info').expect(200)).body.data.payment.providers;
+    await kaluppa.patch('/api/admin/settings/ewallet').send({
+      accounts: [
+        { provider: 'GCash', accountName: 'Kaluppa Coffee', accountNumber: '0917 555 0101', showAtCheckout: true, qr: null },
+        { provider: 'Maya', accountName: 'Kaluppa Coffee', accountNumber: '0918 555 0202', showAtCheckout: false, qr: null },
+      ],
+    }).expect(200);
+    expect(await providers()).toEqual(['GCash']);
+    const { accounts } = (await kaluppa.get('/api/admin/settings/ewallet')).body.data;
+    await kaluppa.patch('/api/admin/settings/ewallet').send({ accounts: accounts.map((a) => ({ ...a, showAtCheckout: true })) }).expect(200);
+    expect(await providers()).toEqual(['GCash', 'Maya']);
+    expect((await buyer.get('/api/settings/payment')).body.data.providers).toEqual(['GCash', 'Maya']);
+  });
+
   it('refuses a QR from someone else’s folder and hiding both', async () => {
     const foreign = { url: 'https://res.cloudinary.com/test/image/upload/v1/kapekonek/wallet-qr/x/q.png', publicId: 'kapekonek/wallet-qr/x/q' };
     const base = { accountName: 'Kaluppa Coffee', accountNumber: '0917 555 0101' };
-    const bad = await kaluppa.patch('/api/admin/settings/ewallet').send({ accounts: [{ ...base, provider: 'GCash', enabled: true, qr: foreign }, { ...base, provider: 'Maya', enabled: true, qr: null }] });
+    const bad = await kaluppa.patch('/api/admin/settings/ewallet').send({ accounts: [{ ...base, provider: 'GCash', showAtCheckout: true, qr: foreign }, { ...base, provider: 'Maya', showAtCheckout: true, qr: null }] });
     expect(bad.status).toBe(400);
-    const none = await kaluppa.patch('/api/admin/settings/ewallet').send({ accounts: [{ ...base, provider: 'GCash', enabled: false, qr: null }, { ...base, provider: 'Maya', enabled: false, qr: null }] });
+    const none = await kaluppa.patch('/api/admin/settings/ewallet').send({ accounts: [{ ...base, provider: 'GCash', showAtCheckout: false, qr: null }, { ...base, provider: 'Maya', showAtCheckout: false, qr: null }] });
     expect(none.body.errors.accounts).toBe('Show at least one e-wallet at checkout');
   });
 });

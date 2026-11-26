@@ -37,7 +37,7 @@ export async function saveDeliverySetting(actor, { minBusinessDays, maxBusinessD
 export const getEwalletSetting = async () => ({ accounts: (await getEwallet()).accounts });
 
 const accountLines = (accounts) =>
-  accounts.map((a) => `${a.provider}: ${a.accountName} · ${a.accountNumber}${a.enabled ? '' : ' (hidden)'}${a.qr ? ' · QR' : ''}`);
+  accounts.map((a) => `${a.provider}: ${a.accountName} · ${a.accountNumber}${a.showAtCheckout ? '' : ' (hidden)'}${a.qr ? ' · QR' : ''}`);
 
 /** New QR images must be the actor's own `wallet_qr` uploads (re-checked on Cloudinary); unchanged ones stay. */
 export async function saveEwalletSetting(actor, { accounts }) {

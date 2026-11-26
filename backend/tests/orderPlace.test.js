@@ -116,7 +116,10 @@ describe('placing an order', () => {
     expect(pdf.body.code).toBe('FILE_TYPE_NOT_ALLOWED');
     getUploadedAsset.mockResolvedValueOnce(null);
     expect((await place({ method: 'delivery', addressId, paymentMethod: 'e_wallet', provider: 'GCash', receipt: receiptFor(buyerId, 'gone') })).status).toBe(400);
-    // A provider Kaluppa hides at checkout (Settings → E-wallet) is refused.
+    // A provider Kaluppa hides at checkout (Settings → E-wallet) is refused: Maya is off by default…
+    const off = await place({ method: 'delivery', addressId, paymentMethod: 'e_wallet', provider: 'Maya', receipt: receiptFor(buyerId) });
+    expect(off.body.errors.provider).toBe('Maya isn’t available right now. Choose another way to pay.');
+    // …and a value saved before Change 06 still reads its old `enabled` flag.
     const { Setting } = await import('../src/models/index.js');
     const { SETTING_DEFAULTS } = await import('../src/constants/settings.js');
     const ewallet = SETTING_DEFAULTS['payment.ewallet'];
@@ -153,7 +156,7 @@ describe('placing an order', () => {
     expect((await User.findOne({ email: 'kapekonek.buyer03@gmail.com' })).contactNumber).toBe('09182223333');
 
     await fillCart(pickupBuyer);
-    const fromProfile = await place({ method: 'pickup', paymentMethod: 'e_wallet', provider: 'Maya', receipt: receiptFor(res.body.data.buyer) }, pickupBuyer);
+    const fromProfile = await place({ method: 'pickup', paymentMethod: 'e_wallet', provider: 'GCash', receipt: receiptFor(res.body.data.buyer) }, pickupBuyer);
     expect(fromProfile.status).toBe(201);
     expect(fromProfile.body.data.fulfillment.contactPhone).toBe('09182223333');
   });

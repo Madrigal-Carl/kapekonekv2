@@ -1,4 +1,6 @@
 import { IconArrowRight, IconMinus, IconPlus, IconShoppingBag, IconTrash, IconTriangleAlert, IconX } from '@/components/ui/icons'
+import { orList } from '@/lib/payments'
+import { usePaymentProviders } from '@/hooks/useSettings'
 
 import { useId, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
@@ -93,6 +95,7 @@ function CartLine({ line, onRemove }) {
 /** Right drawer with the buyer's cart (CartDrawer.dc.html). Remove, clear and checkout each confirm first. */
 export function CartDrawer() {
   const id = useId()
+  const providers = usePaymentProviders()
   const { open, hide } = useCartDrawer()
   const navigate = useNavigate()
   const cart = useCart()
@@ -163,7 +166,7 @@ export function CartDrawer() {
                 <span className="text-sm text-ink-2">Subtotal</span>
                 <span className="text-[22px] font-semibold">{formatPeso(cart.data.subtotalCentavos)}</span>
               </div>
-              <p className="mt-1.5 text-[12.5px] text-ink-3">Choose delivery or pickup and how to pay (GCash, Maya or cash) at checkout.</p>
+              <p className="mt-1.5 text-[12.5px] text-ink-3">Choose delivery or pickup and how to pay ({orList([...providers, 'cash'])}) at checkout.</p>
               <div className="mt-4 flex flex-col gap-2.5">
                 {cart.data.canCheckout ? (
                   <Button size="lg" fullWidth onClick={() => setConfirm('checkout')} rightIcon={<IconArrowRight aria-hidden="true" className="size-4" strokeWidth={2} />}>
