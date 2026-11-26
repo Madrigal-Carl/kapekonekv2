@@ -33,3 +33,6 @@ export const isAssignedManager = (user, farm) => isKaluppaFarm(farm) && same(use
 
 /** Group Managers act for the farmers of their association (and the Kaluppa farm they manage). */
 export const isGroupManager = (user) => user.roles.includes(ROLES.GROUP_MANAGER);
+
+/** Kaluppa accounts share the `team:kaluppa` side of every Kaluppa chat (PHASE-2-SPEC §3.9). */
+export const isKaluppaTeam = (user) => user.roles.includes(ROLES.KALUPPA);

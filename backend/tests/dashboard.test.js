@@ -47,16 +47,16 @@ afterAll(stopMemoryDb);
 describe('GET /dashboard/badges', () => {
   it('gives a Group Manager the farmers waiting in its own association only', async () => {
     const manager = await signedIn(app, 'manager.santacruz');
-    expect((await manager.get('/api/dashboard/badges')).body.data).toEqual({ farmers: 2 });
+    expect((await manager.get('/api/dashboard/badges')).body.data).toEqual({ farmers: 2, inbox: 0 });
   });
 
   it('gives Kaluppa the orders to confirm and the bean listings to review', async () => {
     const kaluppa = await signedIn(app, 'kaluppa');
-    expect((await kaluppa.get('/api/dashboard/badges')).body.data).toEqual({ orders: 2, beans: 1, reviews: 0 });
+    expect((await kaluppa.get('/api/dashboard/badges')).body.data).toEqual({ orders: 2, beans: 1, reviews: 0, inbox: 0 });
   });
 
-  it('has nothing for a farmer yet, and is closed to buyers', async () => {
-    expect((await waiting.agent.get('/api/dashboard/badges')).body.data).toEqual({});
+  it('gives a farmer only the inbox count, and is closed to buyers', async () => {
+    expect((await waiting.agent.get('/api/dashboard/badges')).body.data).toEqual({ inbox: 0 });
     expect((await (await signedIn(app, 'buyer')).get('/api/dashboard/badges')).status).toBe(403);
   });
 });

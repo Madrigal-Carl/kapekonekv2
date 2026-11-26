@@ -120,6 +120,7 @@ export const UPLOAD_PURPOSES = {
   bean_photo: ['image'],
   product_photo: ['image'],
   wallet_qr: ['image'],
+  message_attachment: ['image', 'file'],
   post_media: ['image', 'video'],
 };
 
@@ -267,3 +268,7 @@ export const walletAccountsRule = z
   )
   .refine((a) => a.map((x) => x.provider).join() === EWALLET_PROVIDERS.join(), 'Set up GCash and Maya')
   .refine((a) => a.some((x) => x.enabled), 'Show at least one e-wallet at checkout');
+
+// Inbox (PHASE-2-SPEC §3.9): a message is up to 2,000 characters.
+export const MESSAGE_MAX = 2000;
+export const messageBodyRule = z.string().trim().max(MESSAGE_MAX, 'Use 2,000 characters or fewer');

@@ -10,6 +10,7 @@ export * from './conversationMember.model.js';
 export * from './farm.model.js';
 export * from './farmerProfile.model.js';
 export * from './harvest.model.js';
+export * from './message.model.js';
 export * from './treeGroup.model.js';
 export * from './counter.model.js';
 export * from './notification.model.js';

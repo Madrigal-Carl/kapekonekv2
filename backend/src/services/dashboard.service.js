@@ -4,6 +4,7 @@ import { countFarmersByAssociation, countFarmersEverywhere, countWaiting, findPr
 import { countOrdersToConfirm, listOrdersPage, listOrdersToConfirm, sumSalesByMonth } from '../repositories/order.repository.js';
 import { findLowStock } from '../repositories/product.repository.js';
 import { countNeedingReply } from '../repositories/review.repository.js';
+import { countUnreadChats } from './inbox.service.js';
 import { findRecipient } from '../repositories/user.repository.js';
 import { userCan } from './permission.service.js';
 import { seesEveryAssociation } from './policy.service.js';
@@ -48,6 +49,7 @@ export async function badgesFor(user) {
   if (await userCan(user, 'orders.manage')) badges.orders = (await countOrdersToConfirm()).all;
   if (await userCan(user, 'beans.review')) badges.beans = await countPendingListings();
   if (await userCan(user, 'reviews.moderate')) badges.reviews = await countNeedingReply();
+  if (await userCan(user, 'inbox.use')) badges.inbox = await countUnreadChats(user);
   return badges;
 }
 

@@ -17,6 +17,7 @@ import catalogRoutes from './catalog.routes.js';
 import cronRoutes from './cron.routes.js';
 import geoRoutes from './geo.routes.js';
 import healthRoutes from './health.routes.js';
+import inboxRoutes from './inbox.routes.js';
 import notificationRoutes from './notification.routes.js';
 import orderRoutes from './order.routes.js';
 import postRoutes from './post.routes.js';
@@ -45,6 +46,7 @@ router.use(farmerRoutes);
 router.use(farmRoutes);
 router.use(recordRoutes);
 router.use(beanRoutes);
+router.use(inboxRoutes);
 router.use(dashboardRoutes);
 
 export default router;

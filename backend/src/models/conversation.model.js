@@ -8,7 +8,7 @@ const conversationSchema = new mongoose.Schema(
     association: { type: mongoose.Schema.Types.ObjectId, ref: 'Association', default: null },
     // One key per chat, so it can't be created twice: `kaluppa:<userId>`, `group:<associationId>`, `direct:<a>:<b>` (sorted ids).
     pairKey: { type: String, required: true, unique: true },
-    lastMessage: { text: String, sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, at: Date },
+    lastMessage: { message: { type: mongoose.Schema.Types.ObjectId, ref: 'Message' }, text: String, sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, at: Date },
   },
   { timestamps: true },
 );

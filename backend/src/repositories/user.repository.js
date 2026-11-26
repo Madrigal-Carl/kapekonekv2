@@ -171,3 +171,19 @@ export const findCustomer = (id) => User.findById(id, 'firstName lastName roles 
  */
 export const findUserIdsByName = (words) =>
   User.find({ $and: words.map((w) => ({ $or: [{ firstName: w }, { lastName: w }, { username: w }] })) }).distinct('_id');
+
+/**
+ * Active farmers and Group Managers for the Inbox's people search, by name or username, A–Z.
+ * @param {{ ids: unknown[]|null, words: RegExp[], limit: number }} q `ids` null = anyone
+ */
+export const findInboxContacts = ({ ids, words, limit }) =>
+  User.find({
+    roles: { $in: ['farmer', 'group_manager'] },
+    status: 'active',
+    ...(ids && { _id: { $in: ids } }),
+    ...(words.length && { $and: words.map((w) => ({ $or: [{ firstName: w }, { lastName: w }, { username: w }] })) }),
+  })
+    .select('firstName lastName roles')
+    .sort({ firstName: 1, lastName: 1 })
+    .limit(limit)
+    .lean();

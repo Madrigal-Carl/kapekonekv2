@@ -86,9 +86,9 @@ describe('notifications', () => {
     expect(res.body.code).toBe('EMAIL_NOT_VERIFIED');
   });
 
-  it('there is no chat: no chat.* permissions and no conversation routes', async () => {
+  it('there is no order chat: no chat.* permissions, and buyers have no inbox (M12)', async () => {
     const me = await buyer.get('/api/auth/me').expect(200);
     expect(me.body.data.permissions.filter((slug) => slug.startsWith('chat.'))).toEqual([]);
-    await buyer.get('/api/conversations/x/messages').expect(404);
+    await buyer.get('/api/conversations/x/messages').expect(403);
   });
 });
