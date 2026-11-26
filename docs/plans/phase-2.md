@@ -340,15 +340,15 @@ frontend/src/
 
 ### Task 14.1: Farm Map
 
-- [ ] `GET /map/farms` scoped by role with popover fields (§3.11); copy `FarmMap` per role (filters, side list fly-to, Kaluppa farms darker, "Open farm" → farm view drawer). Tests: scope per role; variety filter.
+- [x] `GET /map/farms` scoped by role with popover fields (§3.11); copy `FarmMap` per role (filters, side list fly-to, Kaluppa farms darker, "Open farm" → farm view drawer). Tests: scope per role; variety filter.
 
 ### Task 14.2: Overviews and reports
 
-- [ ] Finish every overview tile and chart; `/reports/*` with `$facet` aggregates, period and association filters (Group Manager forced to its own), `/reports/export.csv?section=` + Export all (`utils/csv.js`, escapes `"`, `,`, newlines, leading `=+-@`). Copy `Reports` per role. Tests: totals match fixtures; Group Manager can't read another association; CSV escaping and formula-injection guard.
+- [x] Finish every overview tile and chart; `/reports/*` with `$facet` aggregates, period and association filters (Group Manager forced to its own), `/reports/export.csv?section=` + Export all (`utils/csv.js`, escapes `"`, `,`, newlines, leading `=+-@`). Copy `Reports` per role. Tests: totals match fixtures; Group Manager can't read another association; CSV escaping and formula-injection guard.
 
 ### Task 14.3: Audit log
 
-- [ ] `/audit-logs` list/detail/CSV with filters (area, role, period, search); copy `AuditLog` (diff drawer). Coverage test: run each Phase 2 mutation once and assert one audit entry per call with no denied fields.
+- [x] `/audit-logs` list/detail/CSV with filters (area, role, period, search); copy `AuditLog` (diff drawer). Coverage test: run each Phase 2 mutation once and assert one audit entry per call with no denied fields.
 
 ---
 
@@ -412,3 +412,15 @@ frontend/src/
   - screenshots for farmer and Kaluppa at 1440 and Group Manager at 390, compared with Hub.dc.html by its markup values.
 - **After review**: the Hub fills the page width (no 1240px page or 680px feed cap; the aside stays 340px on the right), like the Inbox; the aside (Most viewed + Tags) is sticky 28px from the top beside the feed, static on phones.
 - **Not built**: the association name in a Group Manager's post meta ("· Santa Cruz Coffee Growers"); graphify not re-run.
+
+### M14 — done (2026-11-27)
+
+- **Farm Map**: `GET /map/farms` scoped like Farms (farmer: own; Group Manager: its association plus the Kaluppa farms it manages; Kaluppa: all), filters association (Kaluppa only), municipality and variety; popover with owner, association, size, trees, top two stages and last harvest. `FarmMap` reuses `MapPicker` (pins, selected pin, fly-to, popover; Kaluppa farms darker; Kaluppa marked on the map), side list flies to a farm, "Open farm" → `/dashboard/farms?open=<id>`.
+- **Reports**: `/reports/:section` (summary, harvest, beans, sales, trees, breakdown) with `$facet` aggregates over Manila months, periods (last 12 months, this year, last year, last 30 days) and the association filter (Kaluppa only; a Group Manager is always its own association and its own farmers, without the Kaluppa farms it manages); store sales only with `orders.manage`. `/reports/export.csv?section=` and Export all (titled sections). Breakdown rows largest harvest first, then "No association" and "Kaluppa farms". Overviews were already live from Change 06B.
+- **Audit log**: `GET /audit-logs` (area, role, from/to, entity, search; page-numbered), `/audit-logs/:id`, `/audit-logs/export.csv` (10,000 newest), `audit.view` only. `AuditLog` page: DataTable (When, Who, Area, What, Record, Changed; Area / Role / Period filters), diff drawer (Before struck through, After), `?entity=` from History's "Open in audit log". The Coming soon placeholder is gone.
+- **Verified**:
+  - backend 602/602 (`auditLog.test.js` runs 25 Phase 2 mutations once each and checks exactly one entry with no denied fields, plus list/detail/CSV/guards; `reports.test.js`, `farmMap.test.js`) and frontend 284/284, lint clean in both apps; backend vitest now runs 6 workers (12 timed out the shared replica set's hooks);
+  - `migrate:fresh -- --seed` ok;
+  - Playwright 94/97 on the full run; `insights.spec.js` 6/6 (Kaluppa filters the map by association → popover → Open farm; farmer sees own farms only; Reports Export all CSV; Group Manager's reports; audit entry diff; Group Manager / farmer guards) and the 390/768 pass now covers Farm Map, Reports and Audit log. Failures: `orders.spec` and `store.spec` (stale since Change 06, as in M13) and one inbox sign-in timeout that passes on rerun;
+  - screenshots for Kaluppa, Group Manager and farmer at 1440/390, compared with FarmMap / Reports / AuditLog by their markup values. After review: Reports rows by harvest, Group Manager totals without Kaluppa farms, Insights crumb.
+- **Not built**: report data before the seeded months (charts are sparse until M15 seeds); graphify ran code-only.
