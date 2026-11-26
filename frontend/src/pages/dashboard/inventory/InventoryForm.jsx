@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { History } from '@/components/dashboard/History'
 import { useId, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -68,6 +69,7 @@ export function InventoryForm({ open, product = null, onClose }) {
       }
     >
       {open && <ProductFields key={product?._id ?? 'new'} formId={formId} product={product} create={create} update={update} onClose={onClose} />}
+      {open && product && <History entityType="product" entityId={product._id} />}
     </Drawer>
   )
 }

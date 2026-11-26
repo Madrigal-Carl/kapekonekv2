@@ -1,4 +1,5 @@
 import { format } from 'date-fns'
+import { History } from '@/components/dashboard/History'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Drawer } from '@/components/dashboard/Drawer'
@@ -197,8 +198,9 @@ export function OrderManage({ open, order, onClose }) {
               <TextField id="refund-ref" label="Refund reference number" placeholder="e.g. 5011 2290 774" value={reference} maxLength={40} onChange={(e) => setReference(e.target.value)} />
             </div>
           )}
-          <SectionTitle>Timeline</SectionTitle>
+          <SectionTitle>Status</SectionTitle>
           <OrderTimeline order={order} />
+          <History entityType="order" entityId={order._id} />
         </>
       )}
     </Drawer>

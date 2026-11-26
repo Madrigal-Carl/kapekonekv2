@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { History } from '@/components/dashboard/History'
 import { lazy, Suspense, useId, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -59,6 +60,7 @@ export function FarmForm({ open, farm = null, actsForFarmers, isKaluppa, onClose
       footer={<FormFooter formId={formId} onClose={onClose} pending={create.isPending || update.isPending} label={farm ? 'Save changes' : 'Save farm'} />}
     >
       {open && <FarmFields key={farm?.id ?? 'new'} formId={formId} farm={farm} create={create} update={update} actsForFarmers={actsForFarmers} isKaluppa={isKaluppa} onClose={onClose} />}
+      {open && farm && <History entityType="farm" entityId={farm.id} />}
     </Drawer>
   )
 }

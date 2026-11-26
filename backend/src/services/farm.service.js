@@ -11,7 +11,7 @@ import { manilaDateKey } from '../utils/manilaDate.js';
 import { record } from './audit.service.js';
 import { isAssignedManager, isAssociationManager, isGroupManager, isKaluppaFarm, isOwner, seesEveryAssociation } from './policy.service.js';
 
-const AUDITED = ['lotNumber', 'sizeHa', 'municipality', 'barangay', 'street', 'managedBy'];
+const AUDITED = ['lotNumber', 'sizeHa', 'municipality', 'barangay', 'street', 'location', 'managedBy'];
 const notFound = () => new AppError(404, 'Farm not found.');
 const lotTaken = (message) => new AppError(409, message, { errors: { lotNumber: 'You already have a farm with this lot number' } });
 const fullName = (user) => (user ? `${user.firstName} ${user.lastName}` : null);
@@ -87,7 +87,8 @@ async function withStats(farms, actor) {
 const oneWithStats = async (farm, actor) => (await withStats([farm], actor))[0];
 
 const entity = (farm) => ({ type: 'farm', id: farm._id, label: `${farm.propertyNumber} · ${farm.lotNumber}` });
-const auditView = (farm) => ({ ...Object.fromEntries(AUDITED.map((k) => [k, farm[k] ?? null])), managedBy: fullName(farm.managedBy) });
+const pin = (location) => (location?.coordinates ? `${location.coordinates[1].toFixed(5)}, ${location.coordinates[0].toFixed(5)}` : null);
+const auditView = (farm) => ({ ...Object.fromEntries(AUDITED.map((k) => [k, farm[k] ?? null])), location: pin(farm.location), managedBy: fullName(farm.managedBy) });
 const toDoc = ({ location, ...fields }) => ({ ...fields, location: { type: 'Point', coordinates: [location.lng, location.lat] } });
 
 /** `TCT-<year>-<NNNN>`, one sequence per Manila calendar year. */

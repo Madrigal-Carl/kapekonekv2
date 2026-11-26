@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { History } from '@/components/dashboard/History'
 import { IconCheck } from '@/components/ui/icons'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -124,6 +125,7 @@ export function FarmerReview({ open, farmer, transfer, onClose }) {
               </span>
             </div>
           )}
+          <History entityType="farmer" entityId={farmer.id} />
         </>
       )}
     </Drawer>
@@ -160,6 +162,7 @@ export function FarmerView({ open, farmer, canEdit, onEdit, onClose }) {
           <SectionTitle>Farms</SectionTitle>
           {/* shortcut: farms arrive with M9 (farms, trees, harvests); this list fills in then. */}
           <p className="text-[13px] text-ink-3">No farms recorded yet.</p>
+          <History entityType="farmer" entityId={farmer.id} />
         </>
       )}
     </Drawer>

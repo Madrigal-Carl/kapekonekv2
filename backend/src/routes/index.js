@@ -5,6 +5,7 @@ import inventoryRoutes from './inventory.routes.js';
 import reviewModerationRoutes from './reviewModeration.routes.js';
 import adminSettingRoutes from './adminSetting.routes.js';
 import associationRoutes from './association.routes.js';
+import auditLogRoutes from './auditLog.routes.js';
 import dashboardRoutes from './dashboard.routes.js';
 import beanRoutes from './bean.routes.js';
 import farmRoutes from './farm.routes.js';
@@ -48,5 +49,6 @@ router.use(recordRoutes);
 router.use(beanRoutes);
 router.use(inboxRoutes);
 router.use(dashboardRoutes);
+router.use(auditLogRoutes);
 
 export default router;

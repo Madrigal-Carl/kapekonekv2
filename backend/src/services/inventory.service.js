@@ -7,7 +7,7 @@ import { record } from './audit.service.js';
 import { fieldError } from './farmerProfile.service.js';
 import { assertUploadAllowed, isOwnUpload } from './upload.service.js';
 
-const AUDITED = ['name', 'category', 'variety', 'coffeeType', 'unit', 'priceCentavos', 'stock', 'description', 'photos', 'isFeatured', 'isActive'];
+const AUDITED = ['name', 'category', 'variety', 'coffeeType', 'unit', 'priceCentavos', 'stock', 'description', 'photos', 'thumbnail', 'isFeatured', 'isActive'];
 const notFound = () => new AppError(404, 'Product not found.');
 /** Low-stock line: 10, or 50 for seedlings (PHASE-2-SPEC §4). */
 const lowLine = (categorySlug) => (categorySlug === 'seedlings' ? 50 : 10);
@@ -33,7 +33,7 @@ const present = (p) => ({
   archivedAt: p.archivedAt ?? null,
   createdAt: p.createdAt,
 });
-const auditView = (p) => ({ ...Object.fromEntries(AUDITED.map((k) => [k, p[k] ?? null])), category: p.category?.slug ?? null, photos: p.photos.map((x) => x.publicId) });
+const auditView = (p) => ({ ...Object.fromEntries(AUDITED.map((k) => [k, p[k] ?? null])), category: p.category?.slug ?? null, photos: p.photos.map((x) => x.publicId), thumbnail: `photo ${p.photos.findIndex((x) => x.isThumbnail) + 1}` });
 const entity = (p) => ({ type: 'product', id: p._id, label: p.name });
 
 /** Mongo filter for one stock state; the low line differs for seedlings. */

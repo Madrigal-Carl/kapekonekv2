@@ -16,5 +16,6 @@ const auditLogSchema = new mongoose.Schema(
 );
 auditLogSchema.index({ at: -1 });
 auditLogSchema.index({ area: 1, at: -1 });
+auditLogSchema.index({ entityType: 1, entityId: 1, at: -1 }); // History in drawers
 
 export const AuditLog = mongoose.models.AuditLog ?? mongoose.model('AuditLog', auditLogSchema);

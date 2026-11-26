@@ -13,6 +13,7 @@ import { escapeRegex } from '../utils/escapeRegex.js';
 import { withLock } from '../utils/lock.js';
 import { nextOrderNumber } from '../utils/orderNumber.js';
 import { getOwnAddress } from './address.service.js';
+import { record } from './audit.service.js';
 import { getCart } from './cart.service.js';
 import { quoteForAddress } from './deliveryQuote.service.js';
 import { notifyKaluppa, notifyUsers } from './notification.service.js';
@@ -135,6 +136,7 @@ async function createFromCart(user, body) {
     statusHistory: [{ status: 'pending', at: now, by: user._id, byRole: 'buyer' }],
   });
   await clearCartItems(user._id);
+  await record({ actor: user, area: 'orders', action: 'place', entity: { type: 'order', id: order._id, label: order.orderNumber }, after: { status: 'pending' }, fields: ['status'] });
   await announcePlaced(user, order);
   return presentOrder(order, now);
 }

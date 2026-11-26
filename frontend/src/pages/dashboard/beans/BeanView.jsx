@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { History } from '@/components/dashboard/History'
 import { format } from 'date-fns'
 import { IconCheck, IconStore } from '@/components/ui/icons'
 import { useId, useState } from 'react'
@@ -6,7 +7,7 @@ import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Drawer } from '@/components/dashboard/Drawer'
 import { BANNER_TONES } from '@/components/dashboard/bannerTones'
-import { DetailList, SectionTitle, TextField } from '@/components/dashboard/RecordParts'
+import { DetailList, TextField } from '@/components/dashboard/RecordParts'
 import { MediaStage, MediaThumb } from '@/components/post/Media'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -21,17 +22,7 @@ import { beanCompleteFormSchema } from '@/schemas/beans.schema'
 import { cancelReasonRule } from '@/schemas/rules'
 
 const day = (value) => format(new Date(value), 'MMM d')
-const stamp = (value) => format(new Date(value), 'MMM d, h:mm a')
 const first = (name = '') => name.split(' ')[0]
-const ROLE = { kaluppa: 'Kaluppa', group_manager: 'Group Manager' }
-const HISTORY = {
-  listed: ['Listed', 'bg-tone-amber-dot'],
-  approved: ['Approved', 'bg-tone-blue-dot'],
-  rejected: ['Rejected', 'bg-tone-red-dot'],
-  completed: ['Completed', 'bg-tone-green-dot'],
-  cancelled: ['Cancelled', 'bg-tone-gray-dot'],
-  expired: ['Expired', 'bg-tone-gray-dot'],
-}
 
 function Loading() {
   return (
@@ -69,30 +60,6 @@ function Gallery({ photos }) {
         </div>
       )}
     </div>
-  )
-}
-
-function History({ listing, meId }) {
-  return (
-    <>
-      <SectionTitle>History</SectionTitle>
-      <ol className="m-0 flex list-none flex-col gap-2.5 p-0">
-        {listing.history.map((h, i) => {
-          const [title, dot] = HISTORY[h.action] ?? [h.action, 'bg-tone-gray-dot']
-          const who = !h.by ? 'automatically' : `by ${h.by.id === meId ? 'you' : h.by.name}${ROLE[h.byRole] ? ` (${ROLE[h.byRole]})` : ''}`
-          const extra = h.action === 'completed' && listing.completion ? ` · final ${formatKg(listing.completion.finalWeightKg)}, ${formatPesoShort(listing.completion.finalAmountCentavos)}` : ''
-          return (
-            <li key={`${h.action}-${i}`} className="flex gap-2.5 text-[13px]">
-              <span aria-hidden="true" className={cn('mt-[5px] size-2.5 shrink-0 rounded-full', dot)} />
-              <span>
-                <strong>{title}</strong>
-                <span className="block text-ink-3">{`${stamp(h.at)} ${who}${extra}`}</span>
-              </span>
-            </li>
-          )
-        })}
-      </ol>
-    </>
   )
 }
 
@@ -186,7 +153,7 @@ export function BeanView({ open, listing, meId, onCancel, onClose }) {
               listing.recordedBy && listing.recordedBy.id !== listing.farmer.id && { k: 'Listed by', v: `${listing.recordedBy.name} (Group Manager)` },
             ]}
           />
-          <History listing={listing} meId={meId} />
+          <History entityType="bean_listing" entityId={listing.id} />
         </>
       )}
     </Drawer>
@@ -321,6 +288,7 @@ export function BeanReview({ open, listing, onCancelSale, onClose }) {
             </div>
           )}
           {step === 'completing' && <CompleteForm formId={formId} listing={listing} onSubmit={doComplete} />}
+          <History entityType="bean_listing" entityId={listing.id} />
         </>
       )}
     </Drawer>

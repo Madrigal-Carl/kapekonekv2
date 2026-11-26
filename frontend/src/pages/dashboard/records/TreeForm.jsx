@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { History } from '@/components/dashboard/History'
 import { useId, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -22,7 +23,7 @@ const ownerOf = (farm) => (farm ? (farm.ownerType === 'kaluppa' ? KALUPPA : farm
 
 /**
  * Farmer (Group Managers only, to narrow the list) then Farm (Trees.dc.html, Harvests.dc.html).
- * `current` keeps an edited record's farm listed even when it's past the first page.
+ * `current` keeps an edited record's farm listed even when it's past the first page (with the record's owner: `recordFarm` has none).
  */
 export function FarmPicker({ farms = [], current, actsForFarmers, value, onChange, error, fieldRef }) {
   const all = current && !farms.some((f) => f.id === current.id) ? [current, ...farms] : farms
@@ -129,7 +130,7 @@ export function TreeGroupFields({ formId, group = null, farm, farms, actsForFarm
           name="farmId"
           control={control}
           render={({ field }) => (
-            <FarmPicker farms={farms} current={group?.farm} actsForFarmers={actsForFarmers} value={field.value} onChange={field.onChange} fieldRef={field.ref} error={errors.farmId?.message} />
+            <FarmPicker farms={farms} current={group && { ...group.farm, owner: group.owner }} actsForFarmers={actsForFarmers} value={field.value} onChange={field.onChange} fieldRef={field.ref} error={errors.farmId?.message} />
           )}
         />
       )}
@@ -206,6 +207,7 @@ export function TreeForm({ open, group = null, actsForFarmers, onClose }) {
       footer={<FormFooter formId={formId} onClose={onClose} pending={create.isPending || update.isPending} label={group ? 'Save changes' : 'Add trees'} />}
     >
       {open && farms.data && <TreeGroupFields key={group?.id ?? 'new'} formId={formId} group={group} farms={farms.data} actsForFarmers={actsForFarmers} onSaved={onClose} create={create} update={update} />}
+      {open && group && <History entityType="tree_group" entityId={group.id} />}
     </Drawer>
   )
 }

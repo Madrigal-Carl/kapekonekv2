@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { History } from '@/components/dashboard/History'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ConfirmModal } from '@/components/dashboard/ConfirmModal'
@@ -71,8 +72,9 @@ function OrderView({ open, order, onCancel, onClose }) {
             <InfoBox title={dest.title}>{dest.text}</InfoBox>
             <InfoBox title={pay.title}>{pay.text}</InfoBox>
           </div>
-          <SectionTitle>Timeline</SectionTitle>
+          <SectionTitle>Status</SectionTitle>
           <OrderTimeline order={order} />
+          <History entityType="order" entityId={order._id} />
         </>
       )}
     </Drawer>

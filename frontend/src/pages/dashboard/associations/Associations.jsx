@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { History } from '@/components/dashboard/History'
 import { IconPlus } from '@/components/ui/icons'
 import { useId, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
@@ -204,6 +205,7 @@ function AssociationView({ open, association: a, onEdit, onClose }) {
               <Link to="/dashboard/farmers" className="text-[13px] font-semibold no-underline">See all {total} farmers</Link>
             </>
           )}
+          <History entityType="association" entityId={a.id} />
         </>
       )}
     </Drawer>
@@ -225,6 +227,7 @@ function AssociationForm({ open, association, onClose }) {
       footer={<FormFooter formId={formId} onClose={onClose} pending={create.isPending || update.isPending} label={association ? 'Save changes' : 'Create association'} />}
     >
       {open && <AssociationFields key={association?.id ?? 'new'} formId={formId} association={association} create={create} update={update} onClose={onClose} />}
+      {open && association && <History entityType="association" entityId={association.id} />}
     </Drawer>
   )
 }

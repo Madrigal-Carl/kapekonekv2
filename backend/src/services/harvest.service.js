@@ -53,7 +53,7 @@ async function assertVariety(farm, variety) {
   throw new AppError(400, message, { code: 'VALIDATION_ERROR', errors: { variety: message } });
 }
 
-async function loadHarvest(actor, id) {
+export async function loadHarvest(actor, id) {
   const harvest = await repo.findHarvestById(id);
   if (!harvest || !canSee(actor, harvest.farm)) throw notFound();
   return harvest;

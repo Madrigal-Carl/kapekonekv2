@@ -1,4 +1,5 @@
 import { format } from 'date-fns'
+import { History } from '@/components/dashboard/History'
 import { useId, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -149,6 +150,7 @@ export function ReviewView({ open, review, onHide, onUnhide, unhiding, onClose }
           )}
           <h3 className="-mb-2 mt-2 border-t border-skeleton pt-[18px] text-xs font-semibold uppercase tracking-[0.12em] text-ink-3">Reply from Kaluppa</h3>
           <ReplyBox key={`${review.id}:${review.reply?.body ?? ''}`} review={review} />
+          <History entityType="review" entityId={review.id} />
         </>
       )}
     </Drawer>

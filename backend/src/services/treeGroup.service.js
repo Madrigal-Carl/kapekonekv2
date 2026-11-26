@@ -30,7 +30,7 @@ const entity = (group) => ({ type: 'tree_group', id: group._id, label: `${group.
 const auditView = (group) => ({ ...Object.fromEntries(AUDITED.map((k) => [k, group[k] ?? null])), farm: group.farm.propertyNumber, plantedAt: day(group.plantedAt) });
 
 /** A tree group on a farm the actor can see; 404 otherwise. */
-async function loadGroup(actor, id) {
+export async function loadGroup(actor, id) {
   const group = await repo.findTreeGroupById(id);
   if (!group || !canSee(actor, group.farm)) throw notFound();
   return group;

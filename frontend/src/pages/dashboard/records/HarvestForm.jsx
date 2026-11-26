@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { History } from '@/components/dashboard/History'
 import { useId } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -45,6 +46,7 @@ export function HarvestForm({ open, harvest = null, actsForFarmers, onClose }) {
       {open && farms.data && (
         <HarvestFields key={harvest?.id ?? 'new'} formId={formId} harvest={harvest} farms={farms.data} actsForFarmers={actsForFarmers} create={create} update={update} onClose={onClose} />
       )}
+      {open && harvest && <History entityType="harvest" entityId={harvest.id} />}
     </Drawer>
   )
 }
@@ -81,7 +83,7 @@ function HarvestFields({ formId, harvest, farms, actsForFarmers, create, update,
         render={({ field }) => (
           <FarmPicker
             farms={farms}
-            current={harvest?.farm}
+            current={harvest && { ...harvest.farm, owner: harvest.owner }}
             actsForFarmers={actsForFarmers}
             value={field.value}
             onChange={(next) => {

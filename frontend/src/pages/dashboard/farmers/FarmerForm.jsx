@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { History } from '@/components/dashboard/History'
 import { useId, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -45,6 +46,7 @@ export function FarmerForm({ open, farmer = null, association, onClose, onCreate
     >
       {/* Keyed so a reopened form never shows the last farmer's values. */}
       {open && <FarmerFields key={farmer?.id ?? 'new'} formId={formId} create={create} update={update} farmer={farmer} association={association} onClose={onClose} onCreated={onCreated} />}
+      {open && farmer && <History entityType="farmer" entityId={farmer.id} />}
     </Drawer>
   )
 }

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { History } from '@/components/dashboard/History'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { IconPlus } from '@/components/ui/icons'
 import { useId, useState } from 'react'
@@ -164,6 +165,7 @@ function GroupManagerView({ open, gm, onEdit, onClose }) {
           />
           {/* shortcut: Farms shows — until M9 records farms. */}
           <StatTiles items={[{ k: 'Farmers', v: gm.association?.farmerCount ?? 0 }, { k: 'Waiting', v: gm.association?.waitingCount ?? 0 }, { k: 'Farms', v: '—' }]} />
+          <History entityType="user" entityId={gm.id} />
         </>
       )}
     </Drawer>
@@ -193,6 +195,7 @@ function GroupManagerForm({ open, gm, onClose }) {
       footer={<FormFooter formId={formId} onClose={onClose} pending={create.isPending || update.isPending} label={gm ? 'Save changes' : 'Create account'} />}
     >
       {open && <GroupManagerFields key={gm?.id ?? 'new'} formId={formId} gm={gm} create={create} update={update} onClose={onClose} />}
+      {open && gm && <History entityType="user" entityId={gm.id} />}
     </Drawer>
   )
 }

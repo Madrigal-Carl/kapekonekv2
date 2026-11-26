@@ -11,7 +11,9 @@ import {
 } from '../repositories/user.repository.js';
 import { AppError } from '../utils/AppError.js';
 import { verifyRefreshToken } from '../utils/tokens.js';
+import { record } from './audit.service.js';
 import { buildSession, publicUser, sendVerificationEmail } from './auth.service.js';
+import { farmerEntity } from './farmerProfile.service.js';
 import { assertUploadAllowed, isOwnUpload } from './upload.service.js';
 
 const fieldError = (field, message) => new AppError(400, 'Please check the highlighted fields.', { errors: { [field]: message } });
@@ -30,7 +32,14 @@ export const getProfile = (user) => publicUser(user);
  * Update name, username and phone. Someone else's username → 409 (duplicate key).
  * @param {{ firstName: string, middleName: string|null, lastName: string, username: string, contactNumber: string|null }} fields
  */
-export const updateProfile = async (user, fields) => publicUser(await updateProfileFields(user._id, fields));
+export async function updateProfile(user, fields) {
+  const after = await updateProfileFields(user._id, fields);
+  // A farmer's contact number shows in their Group Manager's History (PHASE-2-SPEC §3.15); the farmer record is the user.
+  if (user.roles.includes('farmer') && (user.contactNumber ?? null) !== (after.contactNumber ?? null)) {
+    await record({ actor: user, area: 'farmers', action: 'contact', entity: farmerEntity(after), before: { contactNumber: user.contactNumber ?? null }, after: { contactNumber: after.contactNumber ?? null }, fields: ['contactNumber'] });
+  }
+  return publicUser(after);
+}
 
 /**
  * Point the avatar at a fresh upload from the user's own folder, then delete the old image.

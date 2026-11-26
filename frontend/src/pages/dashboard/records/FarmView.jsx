@@ -1,4 +1,5 @@
 import { IconEdit, IconPlus, IconTrash, IconX } from '@/components/ui/icons'
+import { History } from '@/components/dashboard/History'
 import { lazy, Suspense, useId, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -23,6 +24,7 @@ const TABS = [
   ['details', 'Details'],
   ['trees', 'Trees'],
   ['harvests', 'Harvests'],
+  ['history', 'History'],
 ]
 const variety = (key) => VARIETIES.find((v) => v.key === key)?.label ?? key
 const stageOf = (key) => TREE_STAGES.find((s) => s.key === key)
@@ -95,6 +97,7 @@ function FarmSections({ farm }) {
         {tab === 'details' && <Details farm={farm} />}
         {tab === 'trees' && <Trees farm={farm} />}
         {tab === 'harvests' && <Harvests farm={farm} />}
+        {tab === 'history' && <History entityType="farm" entityId={farm.id} divider={false} />}
       </div>
     </>
   )
