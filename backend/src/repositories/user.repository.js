@@ -75,7 +75,7 @@ export const upsertSeedUser = ({ username, ...data }) =>
 
 /** Users with any of the given usernames (seeders: seed usernames are their handles). */
 export const findUsersByUsernames = (usernames) =>
-  User.find({ username: { $in: usernames } }).select('username email firstName lastName contactNumber roles').lean();
+  User.find({ username: { $in: usernames } }).select('username email firstName lastName contactNumber roles avatar').lean();
 
 /** Whether an address belongs to a seeded account (the mail worker skips those). */
 export const isSeedEmail = async (email) => Boolean(await User.exists({ email: email?.toLowerCase(), isSeed: true }));
@@ -183,7 +183,7 @@ export const findInboxContacts = ({ ids, words, limit }) =>
     ...(ids && { _id: { $in: ids } }),
     ...(words.length && { $and: words.map((w) => ({ $or: [{ firstName: w }, { lastName: w }, { username: w }] })) }),
   })
-    .select('firstName lastName roles')
+    .select('firstName lastName roles avatar')
     .sort({ firstName: 1, lastName: 1 })
     .limit(limit)
     .lean();

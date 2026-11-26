@@ -121,9 +121,9 @@ export function Composer({ chat, replyTo, editing, onDone }) {
             }
           }}
           placeholder={editing ? 'Edit your message' : 'Write a message'}
-          className="max-h-[120px] min-h-[42px] flex-1 resize-none rounded-[21px] border border-sand-strong px-4 py-2.5 text-[13.5px] leading-[1.45] outline-none focus:border-roast focus:ring-[3px] focus:ring-roast/20"
+          className="max-h-[120px] min-h-[42px] flex-1 resize-none rounded-control border border-sand-strong px-[13px] py-2.5 text-[13.5px] leading-[1.45] outline-none focus:border-roast focus:ring-[3px] focus:ring-roast/20"
         />
-        <Button iconOnly aria-label={editing ? 'Save edit' : 'Send'} loading={busy} onClick={submit} className="size-[42px] rounded-full">
+        <Button iconOnly aria-label={editing ? 'Save edit' : 'Send'} loading={busy} onClick={submit} className="size-[42px] rounded-control">
           {editing ? <IconCheck aria-hidden="true" className="size-[18px]" strokeWidth={2} /> : <IconSend aria-hidden="true" className="size-[18px]" strokeWidth={2} />}
         </Button>
       </div>

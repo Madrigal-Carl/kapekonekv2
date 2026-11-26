@@ -33,8 +33,8 @@ function TryIt({ control }) {
   const extraKm = Math.round(Math.max(0, km - baseKm) * 10) / 10
   return (
     <SettingsCard title="Try it" className="flex-[1_1_320px] gap-0">
-      <Label htmlFor="try-km" className="mt-3.5">Road distance (km)</Label>
-      <Input id="try-km" type="number" min="0" step="0.1" value={Number.isFinite(km) ? km : ''} onChange={(e) => setKm(e.target.valueAsNumber)} className="mt-2 min-h-11" />
+      <Label htmlFor="try-km" className="mt-3">Road distance (km)</Label>
+      <Input id="try-km" type="number" min="0" step="0.1" value={Number.isFinite(km) ? km : ''} onChange={(e) => setKm(e.target.valueAsNumber)} className="mt-1.5 min-h-[42px] px-3 py-[9px]" />
       <div className="mt-3.5 rounded-card bg-crema p-3.5" aria-live="polite">
         <span className="block text-[12.5px] text-ink-2">Delivery fee</span>
         <span className="block text-[26px] font-semibold">{!ready ? '—' : outside ? 'Outside the area' : formatPesoShort(feeForDistance(km, rules))}</span>

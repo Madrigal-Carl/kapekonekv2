@@ -2,7 +2,8 @@ import { Button } from '@/components/ui/Button'
 import { IconCompose, IconSearch } from '@/components/ui/icons'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { cn } from '@/lib/cn'
-import { avatarColor, avatarShape, chatAvatarId, listTime, previewLine } from './chatText'
+import { listTime, previewLine } from './chatText'
+import { ChatAvatar } from './InboxAvatar'
 
 const FILTERS = [
   ['all', 'All'],
@@ -34,7 +35,7 @@ export function ChatList({ query, activeId, filter, onFilter, q, onQ, onOpen, on
             onChange={(e) => onQ(e.target.value)}
             aria-label="Search co-farmers, your Group Manager or Kaluppa"
             placeholder="Search co-farmers, Group Manager, Kaluppa"
-            className="min-h-10 w-full rounded-full border border-sand-strong bg-cream py-2 pl-[34px] pr-3.5 text-[13px] outline-none focus:border-roast focus:ring-[3px] focus:ring-roast/20"
+            className="min-h-10 w-full rounded-control border border-sand-strong bg-white py-2 pl-[34px] pr-3 text-[13.5px] outline-none focus:border-roast focus:ring-[3px] focus:ring-roast/20"
           />
         </div>
         <div role="group" aria-label="Filter chats" className="flex gap-1.5">
@@ -92,9 +93,7 @@ export function ChatList({ query, activeId, filter, onFilter, q, onQ, onOpen, on
                   onClick={() => onOpen(chat.id)}
                   className={cn('flex w-full items-center gap-3 border-l-[3px] px-3.5 py-[11px] text-left text-ink', on ? 'border-roast bg-highlight' : 'border-transparent bg-white hover:bg-cream')}
                 >
-                  <span aria-hidden="true" className={cn('grid size-11 shrink-0 place-items-center text-[13.5px] font-semibold text-white', avatarShape(chat), avatarColor(chatAvatarId(chat)))}>
-                    {chat.initials}
-                  </span>
+                  <ChatAvatar chat={chat} px={44} className="size-11 text-[13.5px]" />
                   <span className="min-w-0 flex-1">
                     <span className="flex justify-between gap-2">
                       <span className={cn('truncate text-sm', unread ? 'font-bold' : 'font-semibold')}>{chat.name}</span>

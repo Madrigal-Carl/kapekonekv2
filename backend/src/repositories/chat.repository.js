@@ -35,7 +35,7 @@ export async function closeMemberships(conversationIds, users = null) {
 
 // ── Inbox (M12) ────────────────────────────────────────────────────────────
 
-const PERSON = 'firstName lastName roles';
+const PERSON = 'firstName lastName roles avatar';
 const CONVERSATION = [{ path: 'association', select: 'name groupManager' }, { path: 'lastMessage.sender', select: PERSON }];
 const MESSAGE = [{ path: 'sender', select: PERSON }, { path: 'replyTo', populate: { path: 'sender', select: PERSON } }];
 const NEWEST = { sortField: 'createdAt', direction: 'desc' };

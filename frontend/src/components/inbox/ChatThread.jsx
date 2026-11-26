@@ -9,7 +9,8 @@ import { useInfiniteSentinel } from '@/hooks/useInfiniteSentinel'
 import { errorMessage } from '@/lib/applyServerErrors'
 import { cn } from '@/lib/cn'
 import { useTypingStore } from '@/stores/typing.store'
-import { avatarColor, avatarShape, chatAvatarId, dayLabel, readOnlyNote, typingLine } from './chatText'
+import { dayLabel, readOnlyNote, typingLine } from './chatText'
+import { ChatAvatar } from './InboxAvatar'
 import { Composer } from './Composer'
 import { MessageBubble } from './MessageBubble'
 
@@ -71,9 +72,7 @@ export function ChatThread({ chat, myId, onBack }) {
         <Button variant="bare" aria-label="Back to chats" onClick={onBack} className="hidden size-10 place-items-center rounded-full text-ink max-[960px]:grid">
           <IconChevronLeft aria-hidden="true" className="size-5" strokeWidth={2.2} />
         </Button>
-        <span aria-hidden="true" className={cn('grid size-10 shrink-0 place-items-center text-[13px] font-semibold text-white', avatarShape(chat), avatarColor(chatAvatarId(chat)))}>
-          {chat.initials}
-        </span>
+        <ChatAvatar chat={chat} px={40} className="size-10 text-[13px]" />
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-[15px] font-semibold">{chat.name}</h2>
           <span className="block truncate text-xs text-ink-3">{chat.sub}</span>

@@ -1,6 +1,6 @@
 import { findAssociationBySlug } from '../../repositories/association.repository.js';
 import { anyMessage, insertSeedMessage, setLastMessage, setMemberState } from '../../repositories/chat.repository.js';
-import { findUsersByUsernames } from '../../repositories/user.repository.js';
+import { findUsersByUsernames, updateAvatar } from '../../repositories/user.repository.js';
 import { slugify } from '../../services/association.service.js';
 import { ensureDirectChat, ensureKaluppaChat, joinGroup } from '../../services/chat.service.js';
 import { seedMedia } from './media.js';
@@ -9,12 +9,24 @@ const MIN = 60_000;
 const DAY = 24 * 60;
 const ago = (minutes) => new Date(Date.now() - minutes * MIN);
 
+/** A few profile photos so the Inbox shows photos beside initials (Change 06 Part E). Leaves anyone with a photo alone. */
+const AVATARS = { 'manager.santacruz': 'avatar-liza', 'nestor.perez': 'avatar-nestor', 'lorna.ilagan': 'avatar-lorna' };
+async function seedAvatars() {
+  const media = await seedMedia();
+  const users = await findUsersByUsernames(Object.keys(AVATARS));
+  for (const user of users) {
+    const photo = media[AVATARS[user.username]];
+    if (!user.avatar?.url && photo?.publicId) await updateAvatar(user._id, { url: photo.url, publicId: photo.publicId });
+  }
+}
+
 /**
  * PHASE-2-SPEC §8 Inbox, around Rodel (farmer.approved), as in Inbox.dc.html: his Kaluppa chat (one unread),
  * the Santa Cruz group (Seen by 3, an edited and a deleted-for-everyone message, two unread), direct chats with
  * Liza (Delivered), Nestor (Sent) and Lorna (a photo), and the Boac group he left (read-only). Runs once.
  */
 export async function seedInbox() {
+  await seedAvatars();
   if (await anyMessage()) return 'already seeded';
   const handles = ['kaluppa', 'farmer.approved', 'manager.santacruz', 'manager.boac', 'nestor.perez', 'lorna.ilagan'];
   const u = Object.fromEntries((await findUsersByUsernames(handles)).map((x) => [x.username, x._id]));

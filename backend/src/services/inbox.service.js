@@ -80,7 +80,7 @@ async function peopleSubs(users) {
   );
 }
 
-const personOf = (u) => ({ id: String(u._id), name: fullName(u), initials: initialsOf(fullName(u)) });
+const personOf = (u) => ({ id: String(u._id), name: fullName(u), initials: initialsOf(fullName(u)), avatarUrl: u.avatar?.url ?? null });
 // Staff sign as 'Ana · Kaluppa'; the shared team account is just 'Kaluppa'.
 const authorOf = (sender) => (isKaluppaTeam(sender) ? (sender.firstName === 'Kaluppa' ? 'Kaluppa' : `${sender.firstName} · Kaluppa`) : fullName(sender));
 const previewOf = (m) => (m.deletedForEveryoneAt ? DELETED : m.body || (m.attachments[0]?.kind === 'image' ? 'Photo' : 'File'));
@@ -154,6 +154,8 @@ async function describe(user, memberships, conversations) {
       type: conversation.type,
       name,
       initials: conversation.type === 'kaluppa' && !member.team ? KALUPPA.initials : initialsOf(name),
+      // A direct chat shows the other person's photo; groups and the Kaluppa chat keep their initials tile.
+      avatarUrl: conversation.type === 'direct' || (conversation.type === 'kaluppa' && member.team) ? (other?.user?.avatar?.url ?? null) : null,
       sub,
       canPost: member.canPost && !member.leftAt,
       leftAt: member.leftAt,

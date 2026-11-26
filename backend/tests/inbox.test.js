@@ -128,6 +128,19 @@ describe('conversations', () => {
     await ana.agent.post('/api/conversations/direct').send({ userId: ids.ben }).expect(403);
   });
 
+  it('a direct chat and its messages carry the person’s profile photo; groups keep their initials tile', async () => {
+    const url = 'https://res.cloudinary.com/test/image/upload/v1/kapekonek/avatars/cora.jpg';
+    await User.updateOne({ _id: ids.cora }, { avatar: { url, publicId: 'kapekonek/avatars/cora' } });
+    const direct = (await ana.agent.post('/api/conversations/direct').send({ userId: ids.cora }).expect(200)).body.data;
+    await send(cora.agent, direct.id, 'Hello Ana').expect(201);
+    const list = await conversations(ana.agent);
+    expect(list.find((c) => c.id === direct.id).avatarUrl).toBe(url);
+    expect(list.find((c) => c.type === 'group').avatarUrl).toBeNull();
+    expect((await messages(ana.agent, direct.id)).data[0].sender.avatarUrl).toBe(url);
+    await ana.agent.post(`/api/conversations/${direct.id}/read`).expect((res) => expect(res.status).toBeLessThan(300));
+    await User.updateOne({ _id: ids.cora }, { $unset: { avatar: 1 } });
+  });
+
   it('messaging Kaluppa opens the farmer’s Kaluppa team chat, from either side', async () => {
     const mine = (await dan.agent.post('/api/conversations/direct').send({ userId: 'kaluppa' }).expect(200)).body.data;
     expect(mine).toMatchObject({ type: 'kaluppa', name: 'Kaluppa' });
