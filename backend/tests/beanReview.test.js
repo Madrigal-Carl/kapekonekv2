@@ -12,7 +12,9 @@ vi.mock('../src/config/valkey.js', async () => {
 });
 vi.mock('../src/queues/email.queue.js', () => ({ enqueueEmail: vi.fn(async (job, data) => { mail.push({ job, data }); }) }));
 vi.mock('../src/clients/cloudinary.client.js', async () => (await import('./helpers/beans.js')).cloudinaryMock());
-vi.mock('../src/sockets/realtime.js', () => ({ realtime: { toUser: (userId, event, payload) => pushed.push({ userId: String(userId), event, payload }) } }));
+vi.mock('../src/sockets/realtime.js', () => ({
+  realtime: { toUser: (userId, event, payload) => pushed.push({ userId: String(userId), event, payload }), toConversation: () => {}, joinConversation: () => {}, leaveConversation: () => {} },
+}));
 
 const { default: app } = await import('../src/app.js');
 const { runSeeders } = await import('../src/database/seeders/index.js');

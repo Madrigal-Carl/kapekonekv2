@@ -6,7 +6,8 @@ import { findInboxContacts, findUserById } from '../repositories/user.repository
 import { AppError } from '../utils/AppError.js';
 import { containsPattern } from '../utils/escapeRegex.js';
 import { loadScope } from './auth.service.js';
-import { directKey, ensureKaluppaChat } from './chat.service.js';
+import { realtime } from '../sockets/realtime.js';
+import { ensureDirectChat, ensureKaluppaChat } from './chat.service.js';
 import { isKaluppaTeam } from './policy.service.js';
 import { assertUploadAllowed, isOwnUpload } from './upload.service.js';
 
@@ -186,7 +187,11 @@ export async function listConversations(user, { filter, q }) {
   const now = new Date();
   const lastAt = new Map(conversations.map((c) => [String(c._id), c.lastMessage?.at]));
   const undelivered = memberships.filter((m) => !m.leftAt && lastAt.get(String(m.conversation)) > (m.lastDeliveredAt ?? 0));
-  if (undelivered.length) await repo.markDelivered(undelivered.map((m) => m._id), now);
+  if (undelivered.length) {
+    await repo.markDelivered(undelivered.map((m) => m._id), now);
+    const byId = new Map(conversations.map((c) => [String(c._id), c]));
+    for (const m of undelivered) realtime.toConversation(byId.get(String(m.conversation)), 'conversation:delivered', { conversationId: String(m.conversation), at: now });
+  }
 
   const pattern = q && containsPattern(q);
   const cards = (await describe(user, memberships, conversations)).filter(
@@ -222,10 +227,7 @@ export async function openDirect(user, { userId }) {
     if (!canMessage(user, other)) throw new AppError(403, 'You can’t message this person.');
     if (isKaluppaTeam(user)) conversation = await ensureKaluppaChat(other._id);
     else if (isKaluppaTeam(other)) conversation = await ensureKaluppaChat(user._id);
-    else {
-      conversation = await repo.upsertConversation(directKey(user._id, other._id), { type: 'direct' });
-      await Promise.all([repo.upsertMember(conversation._id, { user: user._id }), repo.upsertMember(conversation._id, { user: other._id })]);
-    }
+    else conversation = await ensureDirectChat(user._id, other._id);
   }
   return getConversation(user, conversation._id);
 }
@@ -272,6 +274,8 @@ export async function sendMessage(user, conversationId, { body, attachments, rep
   const files = await checkedAttachments(user, attachments);
   const created = await repo.createMessage({ conversation: conversation._id, sender: user._id, body, attachments: files, replyTo: replyTo ?? null });
   await repo.recordSent(conversation._id, member._id, { message: created._id, text: previewOf(created), sender: user._id, at: created.createdAt });
+  // Ids only: each member refetches its own view (`mine`, "Delete for me").
+  realtime.toConversation(conversation, 'message:new', { conversationId: String(conversation._id), messageId: String(created._id) });
   return toMessage(user, await repo.findMessageWithPeople(created._id));
 }
 
@@ -284,34 +288,68 @@ async function messageInChat(user, messageId) {
 
 /** Edit your own message, within 15 minutes of sending it. */
 export async function editMessage(user, messageId, { body }) {
-  const { message, member } = await messageInChat(user, messageId);
+  const { message, member, conversation } = await messageInChat(user, messageId);
   if (!same(message.sender, user._id) || message.deletedForEveryoneAt) throw new AppError(403, 'You can only edit your own messages.');
   if (!member.canPost || member.leftAt) throw readOnly();
   if (Date.now() - new Date(message.createdAt).getTime() > EDIT_WINDOW_MS) throw new AppError(403, 'Messages can be edited for 15 minutes after sending.');
   const updated = await repo.updateMessage(messageId, { body, editedAt: new Date() });
   await repo.setLastMessageText(message.conversation, message._id, previewOf(updated));
+  realtime.toConversation(conversation, 'message:updated', { conversationId: String(conversation._id), messageId });
   return toMessage(user, updated);
 }
 
 /** Delete for everyone (your own messages, any time; a tombstone stays) or for me (hidden for you only). */
 export async function deleteMessage(user, messageId, { for: scope }) {
-  const { message } = await messageInChat(user, messageId);
+  const { message, conversation } = await messageInChat(user, messageId);
+  const payload = { conversationId: String(conversation._id), messageId };
   if (scope === 'me') {
     await repo.hideMessageFor(messageId, user._id);
+    realtime.toUser(user._id, 'message:deleted', payload); // the user's other tabs
     return { id: messageId, for: 'me' };
   }
   if (!same(message.sender, user._id)) throw new AppError(403, 'You can only delete your own messages for everyone.');
   await repo.updateMessage(messageId, { deletedForEveryoneAt: new Date(), body: '', attachments: [] });
   await repo.setLastMessageText(message.conversation, message._id, DELETED);
+  realtime.toConversation(conversation, 'message:deleted', payload);
   return { id: messageId, for: 'everyone' };
 }
 
 /** Opening a chat: everything in it is seen. */
 export async function markConversationRead(user, conversationId) {
-  const { member } = await membershipOr404(user, conversationId);
+  const { conversation, member } = await membershipOr404(user, conversationId);
   const updated = await repo.markRead(member._id, new Date());
-  return { conversationId: String(member.conversation), lastReadAt: updated.lastReadAt };
+  realtime.toConversation(conversation, 'conversation:read', { conversationId: String(conversation._id), at: updated.lastReadAt });
+  return { conversationId: String(conversation._id), lastReadAt: updated.lastReadAt };
 }
 
 /** Chats with unread messages (sidebar badge `inbox`). */
 export const countUnreadChats = (user) => repo.countUnreadChats(ownerOf(user));
+
+// ── Socket side (sockets/index.js) ─────────────────────────────────────────
+
+const TYPING_EXPIRY_MS = 5000;
+
+/** Rooms a socket joins at the handshake: its open chats, and `team:kaluppa` for Kaluppa accounts. */
+export async function roomsFor(user) {
+  if (isKaluppaTeam(user)) return ['team:kaluppa'];
+  const memberships = await repo.findMembershipsOf(ownerOf(user));
+  return memberships.filter((m) => !m.leftAt).map((m) => `conversation:${m.conversation}`);
+}
+
+/** Where a `typing` event from this user goes, or null when they can't post in the chat. */
+export async function typingIn(user, conversationId) {
+  const conversation = await repo.findConversationById(conversationId).catch(() => null);
+  const member = conversation && (await repo.findMember(conversation._id, ownerIn(user, conversation)));
+  if (!member?.canPost || member.leftAt) return null;
+  return { rooms: realtime.roomsOf(conversation), payload: { conversationId: String(conversation._id), user: { id: String(user._id), name: user.firstName }, expiresInMs: TYPING_EXPIRY_MS } };
+}
+
+/** A recipient's socket received the chat's messages: move its delivered cursor and tell the members. */
+export async function acknowledgeDelivered(user, conversationId) {
+  const conversation = await repo.findConversationById(conversationId).catch(() => null);
+  const member = conversation && (await repo.findMember(conversation._id, ownerIn(user, conversation)));
+  if (!member || member.leftAt) return;
+  const now = new Date();
+  await repo.markDelivered([member._id], now);
+  realtime.toConversation(conversation, 'conversation:delivered', { conversationId: String(conversation._id), at: now });
+}

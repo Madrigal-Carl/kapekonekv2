@@ -22,12 +22,16 @@ export const upsertMember = (conversationId, who) =>
 export const findConversationIdsByKeys = async (pairKeys) =>
   (await Conversation.find({ pairKey: { $in: pairKeys } }, '_id').lean()).map((c) => c._id);
 
-/** Make memberships read-only; the history stays. `users` null = every member of those conversations. */
-export const closeMemberships = (conversationIds, users = null) =>
-  ConversationMember.updateMany(
-    { conversation: { $in: conversationIds }, leftAt: null, ...(users && { user: { $in: users } }) },
-    { $set: { canPost: false, leftAt: new Date() } },
-  );
+/**
+ * Make memberships read-only; the history stays. `users` null = every member of those conversations.
+ * @returns {Promise<{ conversation: unknown, user: unknown }[]>} the memberships that were open
+ */
+export async function closeMemberships(conversationIds, users = null) {
+  const filter = { conversation: { $in: conversationIds }, leftAt: null, ...(users && { user: { $in: users } }) };
+  const open = await ConversationMember.find(filter, 'conversation user').lean();
+  await ConversationMember.updateMany({ _id: { $in: open.map((m) => m._id) } }, { $set: { canPost: false, leftAt: new Date() } });
+  return open;
+}
 
 // ── Inbox (M12) ────────────────────────────────────────────────────────────
 

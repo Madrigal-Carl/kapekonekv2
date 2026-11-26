@@ -10,7 +10,7 @@ vi.mock('../src/config/valkey.js', async () => {
   return { getValkey: () => redis };
 });
 vi.mock('../src/queues/email.queue.js', () => ({ enqueueEmail: vi.fn(async () => {}) }));
-vi.mock('../src/sockets/realtime.js', () => ({ realtime: { toUser: vi.fn() } }));
+vi.mock('../src/sockets/realtime.js', () => ({ realtime: { toUser: vi.fn(), toConversation: vi.fn(), joinConversation: vi.fn(), leaveConversation: vi.fn() } }));
 
 const { realtime } = await import('../src/sockets/realtime.js');
 const { default: app } = await import('../src/app.js');
