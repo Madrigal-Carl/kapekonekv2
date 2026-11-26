@@ -118,7 +118,7 @@ function TopPosts() {
                     </span>
                   </div>
                 </div>
-                <p className="mx-4 mb-3.5 mt-0 line-clamp-3 text-sm leading-[1.6] text-ink-2">{post.body}</p>
+                <p className="mx-4 mb-3.5 mt-0 line-clamp-3 text-sm leading-[1.6] text-ink-2 wrap-anywhere">{post.body}</p>
                 {cover && <MediaStage item={cover} cover />}
                 <Link to={`/posts/${post._id}`} className="mt-auto block px-4 py-3.5 text-[13px] font-semibold text-roast no-underline">
                   View post →<span className="sr-only"> by {post.author.name}</span>

@@ -74,7 +74,7 @@ export function PostDetail() {
               </header>
               <div className="px-5 pb-[18px] text-[15px] leading-[1.7] text-ink">
                 {post.body.split(/\n{2,}/).map((para, i) => (
-                  <p key={i} className={i ? 'mb-0 mt-3 whitespace-pre-line' : 'm-0 whitespace-pre-line'}>{para}</p>
+                  <p key={i} className={i ? 'mb-0 mt-3 whitespace-pre-line wrap-anywhere' : 'm-0 whitespace-pre-line wrap-anywhere'}>{para}</p>
                 ))}
               </div>
               <MediaViewer media={post.media} />

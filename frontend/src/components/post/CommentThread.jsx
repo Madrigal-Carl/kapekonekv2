@@ -15,7 +15,7 @@ function Bubble({ comment, small = false }) {
         <span className={cn('font-semibold', small ? 'text-[13px]' : 'text-[13.5px]')}>{comment.author.name}</span>
         <RoleBadge person={comment.author} />
       </div>
-      <p className={cn('mb-0 whitespace-pre-line leading-[1.6] text-ink', small ? 'mt-[3px] text-[13.5px]' : 'mt-1 text-sm')}>{comment.body}</p>
+      <p className={cn('mb-0 whitespace-pre-line leading-[1.6] text-ink wrap-anywhere', small ? 'mt-[3px] text-[13.5px]' : 'mt-1 text-sm')}>{comment.body}</p>
     </div>
   )
 }

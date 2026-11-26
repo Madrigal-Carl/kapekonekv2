@@ -9,7 +9,8 @@ import { useUploadImage } from '@/hooks/useUploads'
 import { errorMessage } from '@/lib/applyServerErrors'
 import { cn } from '@/lib/cn'
 import { squareUrl } from '@/lib/image'
-import { POST_MEDIA_MAX, POST_TAGS, postBodyRule } from '@/schemas/rules'
+import { POST_MAX, POST_MEDIA_MAX, POST_TAGS, postBodyRule } from '@/schemas/rules'
+import { LengthHint } from './LengthHint'
 import { useMe } from '@/hooks/useMe'
 
 /** `#tag` pill: picked = roast, the rest disable once 3 are picked (Hub.dc.html). */
@@ -54,6 +55,8 @@ export function PostComposer({ post, onDone, onCancel }) {
   const update = useUpdatePost()
   const saving = create.isPending || update.isPending
   const composing = open || Boolean(draft)
+  const tooLong = draft.trim().length > POST_MAX
+  const hintId = `len-${post?._id ?? 'new'}`
 
   async function onPick(e) {
     const files = [...(e.target.files ?? [])].slice(0, POST_MEDIA_MAX - media.length)
@@ -141,7 +144,7 @@ export function PostComposer({ post, onDone, onCancel }) {
         </div>
         <div className="flex gap-2">
           {editing && <Button variant="outline" onClick={onCancel} className="h-10">Cancel</Button>}
-          <Button onClick={submit} disabled={!draft.trim() || uploading > 0} loading={saving} className="h-10 px-[18px]">{editing ? 'Save changes' : 'Post'}</Button>
+          <Button onClick={submit} disabled={!draft.trim() || tooLong || uploading > 0} loading={saving} className="h-10 px-[18px]">{editing ? 'Save changes' : 'Post'}</Button>
         </div>
       </div>
     </div>
@@ -155,11 +158,13 @@ export function PostComposer({ post, onDone, onCancel }) {
           id={`edit-${post._id}`}
           rows={4}
           value={draft}
-          maxLength={5000}
+          aria-invalid={tooLong}
+          aria-describedby={hintId}
           autoFocus
           onChange={(e) => setDraft(e.target.value)}
-          className="w-full resize-y rounded-[10px] border border-sand-strong bg-cream px-3.5 py-[11px] text-sm focus:border-roast focus:outline-none focus:ring-[3px] focus:ring-roast/20"
+          className="w-full resize-y rounded-[10px] border border-sand-strong bg-cream px-3.5 py-[11px] text-sm focus:border-roast focus:outline-none focus:ring-[3px] focus:ring-roast/20 aria-invalid:border-logout"
         />
+        <LengthHint id={hintId} value={draft} max={POST_MAX} />
         {fields}
       </div>
     )
@@ -170,16 +175,20 @@ export function PostComposer({ post, onDone, onCancel }) {
       <div className="flex gap-3">
         <Avatar person={me} className="size-[42px] text-[13px]" />
         <label htmlFor="newpost" className="sr-only">Share an update</label>
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
         <textarea
           id="newpost"
           rows={composing ? 3 : 1}
           value={draft}
-          maxLength={5000}
+          aria-invalid={tooLong}
+          aria-describedby={hintId}
           onFocus={() => setOpen(true)}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Share an update, tip or question with the community…"
-          className="min-w-0 flex-1 resize-y rounded-[10px] border border-sand-strong bg-cream px-3.5 py-[11px] text-sm focus:border-roast focus:outline-none focus:ring-[3px] focus:ring-roast/20"
+          className="w-full resize-y rounded-[10px] border border-sand-strong bg-cream px-3.5 py-[11px] text-sm focus:border-roast focus:outline-none focus:ring-[3px] focus:ring-roast/20 aria-invalid:border-logout"
         />
+        <LengthHint id={hintId} value={draft} max={POST_MAX} />
+        </div>
       </div>
       {composing && fields}
     </section>

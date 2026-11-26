@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { toast } from 'sonner'
 import { ConfirmModal } from '@/components/dashboard/ConfirmModal'
 import { Avatar } from '@/components/ui/Avatar'
@@ -11,7 +11,8 @@ import { useAddComment, useComments, useDeleteComment, useEditComment, useMoreRe
 import { errorMessage } from '@/lib/applyServerErrors'
 import { cn } from '@/lib/cn'
 import { timeAgo } from '@/lib/date'
-import { commentBodyRule } from '@/schemas/rules'
+import { COMMENT_MAX, commentBodyRule } from '@/schemas/rules'
+import { LengthHint } from './LengthHint'
 
 const metaButton = 'h-auto border-0 bg-transparent p-0 text-xs font-semibold text-ink-2 hover:text-ink'
 const pill = 'min-w-0 flex-1 rounded-full border border-sand-strong bg-white px-3.5 py-1.5 focus:border-roast focus:outline-none focus:ring-[3px] focus:ring-roast/20'
@@ -20,30 +21,36 @@ const onError = (error) => toast.error(errorMessage(error))
 /** One-line input with a submit button: a new comment, a reply or an edit. Enter submits. */
 function LineInput({ label, placeholder, initial = '', submitLabel, onSubmit, onCancel, pending, className, autoFocus }) {
   const [text, setText] = useState(initial)
+  const hintId = useId()
+  const tooLong = text.trim().length > COMMENT_MAX
   const submit = () => {
     const parsed = commentBodyRule.safeParse(text)
     if (!parsed.success) return toast.error(parsed.error.issues[0].message)
     return onSubmit(parsed.data, () => setText(''))
   }
   return (
-    <div className={cn('flex items-center gap-2', className)}>
+    <div className={cn('flex flex-col gap-1', className)}>
+    <div className="flex items-center gap-2">
       <input
         aria-label={label}
         placeholder={placeholder}
         value={text}
-        maxLength={1000}
+        aria-invalid={tooLong}
+        aria-describedby={hintId}
         autoFocus={autoFocus}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') submit()
+          if (e.key === 'Enter' && !tooLong) submit()
           if (e.key === 'Escape' && onCancel) onCancel()
         }}
-        className={cn(pill, 'min-h-[38px] text-[13px]')}
+        className={cn(pill, 'min-h-[38px] text-[13px] aria-invalid:border-logout')}
       />
       {onCancel && <Button variant="link" onClick={onCancel} className="h-auto text-[13px]">Cancel</Button>}
       {submitLabel && (
-        <Button onClick={submit} loading={pending} disabled={!text.trim()} className="h-[38px] rounded-full px-3.5 text-[13px]">{submitLabel}</Button>
+        <Button onClick={submit} loading={pending} disabled={!text.trim() || tooLong} className="h-[38px] rounded-full px-3.5 text-[13px]">{submitLabel}</Button>
       )}
+    </div>
+    <LengthHint id={hintId} value={text} max={COMMENT_MAX} />
     </div>
   )
 }
@@ -76,7 +83,7 @@ function CommentItem({ comment, postId, small = false, onReply, onAsk }) {
             <span className="block text-[13px] font-semibold">
               {comment.author.name} <span className="text-[11.5px] font-medium text-ink-3">{comment.author.roleLabel}</span>
             </span>
-            <span className="block whitespace-pre-line text-[13.5px] leading-[1.5]">{comment.body}</span>
+            <span className="block whitespace-pre-line text-[13.5px] leading-[1.5] wrap-anywhere">{comment.body}</span>
           </div>
         )}
         <span className="flex flex-wrap items-center gap-3 px-3 pt-[3px] text-xs text-ink-3">

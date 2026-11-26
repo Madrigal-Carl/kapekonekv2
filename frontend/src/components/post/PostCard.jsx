@@ -144,7 +144,7 @@ export function PostCard({ post, onOpenMedia, onAsk, onTag, onToast, commentsOpe
         <PostComposer post={post} onCancel={() => setEditing(false)} onDone={(message) => { setEditing(false); onToast(message) }} />
       ) : (
         <>
-          <p className="mx-[18px] mb-0 mt-3 whitespace-pre-line text-[14.5px] leading-[1.65]">{post.body}</p>
+          <p className="mx-[18px] mb-0 mt-3 whitespace-pre-line text-[14.5px] leading-[1.65] wrap-anywhere">{post.body}</p>
           {post.tags.length > 0 && (
             <p className="mx-[18px] mb-0 mt-1.5 flex flex-wrap gap-2">
               {post.tags.map((tag) => (

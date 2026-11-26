@@ -51,7 +51,7 @@ function Aside() {
           {top.data?.map((post, i) => (
             <li key={post._id} className="flex gap-2.5">
               <span aria-hidden="true" className="grid size-6 shrink-0 place-items-center rounded-full bg-crema text-xs font-bold text-roast">{i + 1}</span>
-              <span className="text-[13px] leading-[1.45]">
+              <span className="min-w-0 text-[13px] leading-[1.45] wrap-anywhere">
                 <Link to={`/dashboard/hub/posts/${post._id}`} className="font-semibold text-ink no-underline hover:underline">{firstSentence(post.body)}</Link>
                 <span className="block text-xs text-ink-3">{post.author.name} · {post.views.toLocaleString('en-PH')} views</span>
               </span>

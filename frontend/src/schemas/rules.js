@@ -276,8 +276,10 @@ export const messageBodyRule = z.string().trim().max(MESSAGE_MAX, 'Use 2,000 cha
 // Hub (PHASE-2-SPEC §3.10, §7): post ≤ 5,000 characters, comment ≤ 1,000, up to 3 tags from the list, up to 10 photos or videos.
 export const POST_TAGS = ['pruning', 'harvesting', 'processing', 'soil', 'advisory', 'announcement'];
 export const POST_MEDIA_MAX = 10;
-export const postBodyRule = z.string('Write something to post').trim().min(1, 'Write something to post').max(5000, 'Use 5,000 characters or fewer');
-export const commentBodyRule = z.string('Write a comment').trim().min(1, 'Write a comment').max(1000, 'Use 1,000 characters or fewer');
+export const POST_MAX = 5000;
+export const COMMENT_MAX = 1000;
+export const postBodyRule = z.string('Write something to post').trim().min(1, 'Write something to post').max(POST_MAX, 'Use 5,000 characters or fewer');
+export const commentBodyRule = z.string('Write a comment').trim().min(1, 'Write a comment').max(COMMENT_MAX, 'Use 1,000 characters or fewer');
 export const postTagsRule = z
   .array(z.enum(POST_TAGS, 'Pick tags from the list'))
   .max(3, 'Pick up to 3 tags')
