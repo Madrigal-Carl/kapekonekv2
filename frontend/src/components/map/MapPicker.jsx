@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/Button'
+import { FarmPin } from '@/components/ui/FarmPin'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { IconLocate, IconMapPin, IconMaximize, IconMinus, IconPlus, IconSearch } from '@/components/ui/icons'
 
@@ -43,6 +44,8 @@ const areaLabel = ({ municipality, barangay, label }) =>
  *   preview?: boolean,
  * }} props
  * `preview`: a still thumbnail that fills its parent (address cards): no controls, no area label, not interactive.
+ * Farm Map (MiniMap.dc.html pins): `pins` draws one pin per farm (`tone` farmer roast / kaluppa espresso), the selected one
+ * larger with a caramel ring and `popup` above it; `onPin(id)` reports a pin click; a new `flyTo` object flies there.
  */
 export function MapPicker({
   value,
@@ -57,6 +60,11 @@ export function MapPicker({
   searchable = true,
   hints,
   preview = false,
+  pins,
+  selectedId,
+  onPin,
+  popup,
+  flyTo,
 }) {
   const pickable = Boolean(onPick)
   const map = useRef(null)
@@ -92,6 +100,11 @@ export function MapPicker({
     const [w, s, e, n] = area.properties.bbox
     map.current?.fitBounds([[w, s], [e, n]], { padding: AREA_PADDING, duration: reducedMotion() ? 0 : 900 })
   }, [focus, loaded, area])
+
+  useEffect(() => {
+    if (flyTo && loaded) move(flyTo, flyTo.zoom ?? 14)
+  }, [flyTo, loaded])
+  const selectedPin = pins?.find((p) => p.id === selectedId)
 
   const pick = (point, source) => {
     if (source !== 'map') {
@@ -186,8 +199,11 @@ export function MapPicker({
             aria-label={ariaLabel}
           >
             {origin && (
-              <Marker latitude={origin.lat} longitude={origin.lng} anchor="top">
-                <span className="pointer-events-none whitespace-nowrap rounded-[4px] bg-white/90 px-1.5 py-px text-[10.5px] font-semibold text-ink">Kaluppa</span>
+              <Marker latitude={origin.lat} longitude={origin.lng} anchor="top" offset={[0, -5]}>
+                <span className="pointer-events-none flex flex-col items-center gap-0.5">
+                  <span aria-hidden="true" className="size-2.5 rounded-[2px] bg-espresso" />
+                  <span className="whitespace-nowrap rounded-[4px] bg-white/90 px-1.5 py-px text-[10.5px] font-semibold text-ink">Kaluppa</span>
+                </span>
               </Marker>
             )}
             {towns.data && (
@@ -201,6 +217,30 @@ export function MapPicker({
                 <Layer id="kk-barangay-fill" type="fill" filter={byName('barangay', focus.barangay)} paint={{ 'fill-color': colors.barangay, 'fill-opacity': 0.24 }} />
                 <Layer id="kk-barangay-line" type="line" filter={byName('barangay', focus.barangay)} paint={{ 'line-color': colors.barangay, 'line-width': 2 }} />
               </Source>
+            )}
+            {pins?.map((p) => {
+              const on = p.id === selectedId
+              return (
+                <Marker key={p.id} latitude={p.lat} longitude={p.lng} anchor="bottom" style={{ zIndex: on ? 3 : 1 }}>
+                  <Button
+                    variant="bare"
+                    aria-label={p.label}
+                    aria-pressed={on}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onPin?.(p.id)
+                    }}
+                    className={cn('block h-9 w-[30px] origin-bottom cursor-pointer border-0 bg-transparent p-0 transition-transform duration-700', on && 'scale-[1.15]')}
+                  >
+                    <FarmPin tone={p.tone} selected={on} />
+                  </Button>
+                </Marker>
+              )
+            })}
+            {selectedPin && popup && (
+              <Marker latitude={selectedPin.lat} longitude={selectedPin.lng} anchor="bottom" offset={[0, -46]} style={{ zIndex: 5 }}>
+                {popup}
+              </Marker>
             )}
             {value && (
               <Marker latitude={value.lat} longitude={value.lng} anchor="bottom" draggable={pickable} onDragEnd={(e) => pick({ lat: e.lngLat.lat, lng: e.lngLat.lng }, 'map')}>

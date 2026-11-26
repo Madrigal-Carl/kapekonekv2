@@ -23,3 +23,6 @@ export const createHarvest = (body) => api.post('/harvests', body).then(data)
 export const updateHarvest = ({ id, ...body }) => api.patch(`/harvests/${id}`, body).then(data)
 export const archiveHarvest = (id) => api.post(`/harvests/${id}/archive`).then(data)
 export const restoreHarvest = (id) => api.post(`/harvests/${id}/restore`).then(data)
+
+/** The Farm Map's pins in the user's scope (PHASE-2-SPEC §3.11): `{ farms, branch }`. */
+export const getMapFarms = (params) => api.get('/map/farms', { params }).then(data)

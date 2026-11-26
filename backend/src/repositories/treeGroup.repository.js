@@ -52,6 +52,16 @@ export async function statsByFarms(farmIds) {
   return new Map(rows.map((r) => [String(r._id), { trees: r.trees, groups: r.groups, varieties: r.varieties.sort() }]));
 }
 
+/** Ids of farms with active trees of a variety (Farm Map filter). */
+export const farmIdsWithVariety = (variety) => TreeGroup.distinct('farm', { variety, archivedAt: null });
+
+/** Active trees per farm, variety and stage (Farm Map popover). @returns {Promise<Array<{ _id: { farm, variety, stage }, trees: number }>>} */
+export const treeMixByFarms = (farmIds) =>
+  TreeGroup.aggregate([
+    { $match: { farm: { $in: oids(farmIds) }, archivedAt: null } },
+    { $group: { _id: { farm: '$farm', variety: '$variety', stage: '$stage' }, trees: { $sum: '$count' } } },
+  ]);
+
 /** Varieties a farm has active tree groups of (a harvest must be one of them). */
 export const activeVarieties = async (farmId) => (await TreeGroup.distinct('variety', { farm: farmId, archivedAt: null })).sort();
 

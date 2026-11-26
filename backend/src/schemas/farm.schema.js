@@ -1,3 +1,4 @@
+import { VARIETIES } from '../constants/catalog.js';
 import { z } from 'zod';
 import { insideMarinduque } from '../services/boundary.service.js';
 import { getLocations, isValidBarangay } from '../services/location.service.js';
@@ -36,6 +37,13 @@ export const farmListQuery = pageQuerySchema.extend({
   municipality: municipalityRule.optional(),
   ownerType: z.enum(['farmer', 'kaluppa']).optional(),
   farmerId: objectIdRule.optional(),
+});
+
+/** GET /map/farms (PHASE-2-SPEC §3.11). */
+export const mapFarmsQuery = z.object({
+  association: objectIdRule.optional(),
+  municipality: municipalityRule.optional(),
+  variety: z.enum(Object.keys(VARIETIES), 'Unknown variety').optional(),
 });
 
 export const assignedFarmersSchema = z.object({ farmerIds: z.array(objectIdRule).max(200, 'Assign at most 200 farmers') });

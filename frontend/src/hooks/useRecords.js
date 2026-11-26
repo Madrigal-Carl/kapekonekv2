@@ -9,6 +9,7 @@ export const recordKeys = {
   farm: (id) => ['records', 'farm', id],
   treeGroups: (params) => ['records', 'tree-groups', params],
   harvests: (params) => ['records', 'harvests', params],
+  map: (params) => ['records', 'map', params],
 }
 
 export const useFarms = (params, options = {}) =>
@@ -16,6 +17,7 @@ export const useFarms = (params, options = {}) =>
 export const useFarm = (id) => useQuery({ queryKey: recordKeys.farm(id), queryFn: () => records.getFarm(id), enabled: Boolean(id), retry: false })
 export const useTreeGroups = (params, options = {}) =>
   useQuery({ queryKey: recordKeys.treeGroups(params), queryFn: () => records.listTreeGroups(params), placeholderData: keepPreviousData, ...options })
+export const useMapFarms = (params) => useQuery({ queryKey: recordKeys.map(params), queryFn: () => records.getMapFarms(params), placeholderData: keepPreviousData })
 export const useHarvests = (params, options = {}) =>
   useQuery({ queryKey: recordKeys.harvests(params), queryFn: () => records.listHarvests(params), placeholderData: keepPreviousData, ...options })
 

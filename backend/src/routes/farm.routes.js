@@ -5,7 +5,7 @@ import { can } from '../middlewares/permission.middleware.js';
 import { validate } from '../middlewares/validate.js';
 import { verified } from '../middlewares/verified.middleware.js';
 import { idParams } from '../schemas/common.schema.js';
-import { assignedFarmersSchema, farmListQuery, farmSchema } from '../schemas/farm.schema.js';
+import { assignedFarmersSchema, farmListQuery, farmSchema, mapFarmsQuery } from '../schemas/farm.schema.js';
 
 const router = Router();
 
@@ -18,5 +18,8 @@ router.patch('/farms/:id', validate({ params: idParams, body: farmSchema }), far
 router.post('/farms/:id/archive', validate({ params: idParams }), farms.archive);
 router.post('/farms/:id/restore', validate({ params: idParams }), farms.restore);
 router.put('/farms/:id/assigned-farmers', validate({ params: idParams, body: assignedFarmersSchema }), farms.assignFarmers);
+
+// The Farm Map: every role with map.view, scoped by the same policy as /farms.
+router.get('/map/farms', authenticate, verified, can('map.view'), validate({ query: mapFarmsQuery }), farms.map);
 
 export default router;

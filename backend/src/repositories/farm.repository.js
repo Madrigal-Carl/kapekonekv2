@@ -64,6 +64,16 @@ export async function ownerTotals(ownerId) {
 
 export const countFarmsByAssociation = (associationId) => Farm.countDocuments({ association: associationId, archivedAt: null });
 
+/**
+ * Active farms in a scope for the Farm Map, by property number.
+ * @param {object} scope see `scopeFilter` @param {{ association?: string, municipality?: string, farmIds?: unknown[] }} filters
+ */
+export const listMapFarms = (scope, { association, municipality, farmIds }) =>
+  populated(
+    Farm.find({ ...scopeFilter(scope), archivedAt: null, ...(association && { association }), ...(municipality && { municipality }), ...(farmIds && { _id: { $in: farmIds } }) })
+      .sort({ propertyNumber: 1 }),
+  );
+
 /** Ids of the Kaluppa farms a Group Manager manages. */
 export const findManagedFarmIds = (managerId) => Farm.find({ managedBy: managerId }).distinct('_id');
 

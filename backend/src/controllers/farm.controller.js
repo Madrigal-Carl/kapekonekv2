@@ -1,4 +1,5 @@
 import * as farms from '../services/farm.service.js';
+import { mapFarms } from '../services/farmMap.service.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { sendSuccess } from '../utils/response.js';
 
@@ -32,4 +33,8 @@ export const restore = asyncHandler(async (req, res) => {
 
 export const assignFarmers = asyncHandler(async (req, res) => {
   sendSuccess(res, { message: 'Farmers updated.', data: await farms.setAssignedFarmers(req.user, req.params.id, req.body) });
+});
+
+export const map = asyncHandler(async (req, res) => {
+  sendSuccess(res, { data: await mapFarms(req.user, req.query) });
 });

@@ -22,6 +22,7 @@ import { Inbox } from '@/pages/dashboard/inbox/Inbox'
 import { Hub, HubPost } from '@/pages/dashboard/hub/Hub'
 import { Harvests } from '@/pages/dashboard/records/Harvests'
 import { Trees } from '@/pages/dashboard/records/Trees'
+import { FarmMap } from '@/pages/dashboard/map/FarmMap'
 
 // Each page is its own chunk, loaded on first visit (RootLayout's Suspense shows the spinner).
 const page = (load, name) => lazy(() => load().then((m) => ({ default: m[name] })))
@@ -49,7 +50,6 @@ const Products = page(() => import('@/pages/storefront/Products'), 'Products')
 
 /** Dashboard pages from later milestones: [path, permission]. Each milestone swaps its placeholder for the real page. */
 const DASHBOARD_PAGES = [
-  ['farm-map', 'map.view'],
   ['reports', 'reports.view'],
   ['audit-log', 'audit.view'],
 ]
@@ -70,6 +70,7 @@ const RECORD_PAGES = [
   ['inbox/:conversationId', 'inbox.use', <Inbox key="inbox-chat" />],
   ['hub', 'dashboard.view', <Hub key="hub" />],
   ['hub/posts/:id', 'dashboard.view', <HubPost key="hub-post" />],
+  ['farm-map', 'map.view', <FarmMap key="farm-map" />],
 ]
 
 export const router = createBrowserRouter([

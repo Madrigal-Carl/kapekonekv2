@@ -39,7 +39,7 @@ export function canEditFarm(actor, farm) {
 export const canManageRecords = (actor, farm) => canEditFarm(actor, farm) || isAssignedManager(actor, refs(farm));
 
 /** The scope of `GET /farms` for this actor (see farm.repository `scopeFilter`). */
-const scopeOf = (actor) => {
+export const scopeOf = (actor) => {
   if (seesEveryAssociation(actor)) return {};
   if (isGroupManager(actor)) return { associationId: actor.associationId ?? null, managerId: actor._id };
   return { ownerId: actor._id };

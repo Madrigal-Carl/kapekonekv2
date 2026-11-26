@@ -34,7 +34,7 @@ export default defineConfig([
     },
   },
   // Every button is <Button> (components/ui/Button.jsx); raw <button> only inside components/ui/.
-  // Allowed custom SVGs: the logo (BeanMark), decor art (Contours) and the bar chart's marks.
+  // Allowed custom SVGs: the logo (BeanMark), decor art (Contours), map pins (FarmPin) and the bar chart's marks.
   {
     files: ['src/**/*.jsx'],
     ignores: ['src/components/ui/**', 'src/**/*.test.jsx', 'src/components/dashboard/BarChart.jsx'],
@@ -43,7 +43,7 @@ export default defineConfig([
   { files: ['src/components/dashboard/BarChart.jsx'], rules: { 'no-restricted-syntax': ['error', BUTTON_RULE] } },
   {
     files: ['src/components/ui/**/*.jsx'],
-    ignores: ['src/components/ui/BeanMark.jsx', 'src/components/ui/Contours.jsx'],
+    ignores: ['src/components/ui/BeanMark.jsx', 'src/components/ui/Contours.jsx', 'src/components/ui/FarmPin.jsx'],
     rules: { 'no-restricted-syntax': ['error', SVG_RULE] },
   },
 ])
