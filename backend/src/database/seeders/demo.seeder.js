@@ -3,7 +3,7 @@ import { ROLES } from '../../constants/permissions.js';
 import { listActiveByUser } from '../../repositories/address.repository.js';
 import { insertNotifications } from '../../repositories/notification.repository.js';
 import { getPickup, getSetting } from '../../services/setting.service.js';
-import { buildBuyerOrders, noticesFor } from './buyerOrders.js';
+import { buildBuyerOrders, FARMER_PLAN, noticesFor } from './buyerOrders.js';
 import { countOrders, insertOrders } from '../../repositories/order.repository.js';
 import { addSoldCount, listProductsByCategoryIds, reserveStock } from '../../repositories/product.repository.js';
 import { insertReviews } from '../../repositories/review.repository.js';
@@ -131,19 +131,23 @@ export async function seedDemo() {
   for (const [productId, quantity] of sold) await addSoldCount(productId, quantity);
   for (const productId of new Set(reviews.map((r) => r.product))) await recomputeRating(productId);
 
-  const juana = await seedJuanaOrders(users.buyer, products);
-  return `${orders.length} sold orders, ${reviews.length} reviews, ${juana} orders for buyer in every status`;
+  const juana = await seedStatusOrders(users.buyer, products, { keys: ADDRESS_KEYS });
+  const [rodel] = await findUsersByUsernames(['farmer.approved']);
+  const supplies = Object.fromEntries((await listProductsByCategoryIds([ids.fertilizer, ids.seedlings])).map((p) => [p.slug, p]));
+  const farmer = await seedStatusOrders(rodel, supplies, { keys: FARMER_ADDRESS_KEYS, plan: FARMER_PLAN, role: 'farmer' });
+  return `${orders.length} sold orders, ${reviews.length} reviews, ${juana} orders for buyer in every status, ${farmer} farm-supply orders for farmer.approved`;
 }
 
 const ADDRESS_KEYS = { Home: 'home', Work: 'work', Other: 'mama' };
+const FARMER_ADDRESS_KEYS = { Farm: 'farm', Home: 'home', Other: 'mama' };
 
-/** Juana's orders across all statuses, with notifications; reserved stock and sales are applied to the products. */
-async function seedJuanaOrders(buyer, products) {
-  const addresses = Object.fromEntries((await listActiveByUser(buyer._id)).map((a) => [ADDRESS_KEYS[a.label], a]));
-  if (!addresses.home || !addresses.work || !addresses.mama) throw new Error('Run the addresses seeder first.');
+/** A user's orders across statuses (Juana's by default plan), with notifications; reserved stock and sales are applied to the products. */
+async function seedStatusOrders(buyer, products, { keys, plan, role }) {
+  const addresses = Object.fromEntries((await listActiveByUser(buyer._id)).map((a) => [keys[a.label], a]));
+  if (Object.values(keys).some((k) => !addresses[k])) throw new Error('Run the addresses seeder first.');
   const [kaluppaId] = await findUserIdsByRole(ROLES.KALUPPA);
   const [fee, eta, pickup] = await Promise.all([getSetting('delivery.fee'), getSetting('delivery.eta'), getPickup()]);
-  const { orders, reserved, sold } = await buildBuyerOrders({ buyer, kaluppaId, addresses, products, fee, eta, pickup });
+  const { orders, reserved, sold } = await buildBuyerOrders({ buyer, kaluppaId, addresses, products, fee, eta, pickup, plan, role });
   const inserted = (await insertOrders(orders)).map((o) => o.toObject());
   const kaluppaNotices = inserted.filter((o) => o.status === 'pending').map((o) => ({
     user: kaluppaId, type: 'order_new', title: `New order ${o.orderNumber}`, body: `${buyer.firstName} ${buyer.lastName}`, link: `/orders/${o._id}`,

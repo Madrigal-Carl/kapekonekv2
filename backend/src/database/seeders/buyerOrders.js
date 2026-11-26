@@ -32,6 +32,16 @@ const PLAN = [
   [45, 'sold', 'mama', 'cash', [['robusta-ground', 2], ['barako-medium-roast', 1]]],
 ];
 
+/** Rodel's (`farmer.approved`) farm-supply orders (PHASE-2-SPEC §8: farmer store orders in several statuses). Addresses: farm, home, mama. */
+export const FARMER_PLAN = [
+  [0.3, 'pending', 'farm', 'GCash', [['complete-fertilizer-14-14-14', 2]]],
+  [2, 'processing', 'farm', 'cash', [['liberica-seedling', 50]]],
+  [3, 'ready_for_pickup', 'pickup', 'cash', [['organic-fertilizer', 4]]],
+  [10, 'cancelled', 'home', 'cash', [['excelsa-seedling', 20]], { reasonCode: 'ordered_by_mistake' }],
+  [16, 'sold', 'farm', 'GCash', [['urea-46-0-0', 1], ['robusta-seedling', 30]]],
+  [35, 'sold', 'pickup', 'cash', [['vermicast', 2]]],
+];
+
 const PATH = {
   delivery: ['pending', 'reserved', 'processing', 'out_for_delivery', 'sold'],
   pickup: ['pending', 'reserved', 'processing', 'ready_for_pickup', 'sold'],
@@ -50,17 +60,17 @@ async function quoteFor(address, origin, rules) {
 }
 
 /**
- * @param {{ buyer: object, kaluppaId: unknown, addresses: Record<'home'|'work'|'mama', object>, products: Record<string, object>, fee: object, eta: object, pickup: object, now?: number }} input
+ * @param {{ buyer: object, kaluppaId: unknown, addresses: Record<string, object>, products: Record<string, object>, fee: object, eta: object, pickup: object, now?: number, plan?: Array, role?: 'buyer'|'farmer' }} input
  * @returns {Promise<{ orders: object[], notices: Array<(order: object) => object>, reserved: Array<[unknown, number]>, sold: Array<[unknown, number]> }>}
  */
-export async function buildBuyerOrders({ buyer, kaluppaId, addresses, products, fee, eta, pickup, now = Date.now() }) {
+export async function buildBuyerOrders({ buyer, kaluppaId, addresses, products, fee, eta, pickup, now = Date.now(), plan = PLAN, role = 'buyer' }) {
   const quotes = {};
   for (const key of Object.keys(addresses)) quotes[key] = await quoteFor(addresses[key], pickup.location, fee);
   const orders = [];
   const reserved = [];
   const sold = [];
 
-  for (const [daysAgo, status, where, pay, lines, extra = {}] of PLAN) {
+  for (const [daysAgo, status, where, pay, lines, extra = {}] of plan) {
     const placedAt = new Date(now - daysAgo * DAY);
     const at = (step) => new Date(placedAt.getTime() + STEP_AFTER[step] * DAY);
     const method = where === 'pickup' ? 'pickup' : 'delivery';
@@ -83,7 +93,7 @@ export async function buildBuyerOrders({ buyer, kaluppaId, addresses, products, 
       status: step,
       at: step === 'pending' ? placedAt : at(step),
       by: step === 'pending' || step === 'cancelled' ? buyer._id : step === 'expired' ? null : kaluppaId,
-      byRole: step === 'pending' || step === 'cancelled' ? 'buyer' : step === 'expired' ? 'system' : 'kaluppa',
+      byRole: step === 'pending' || step === 'cancelled' ? role : step === 'expired' ? 'system' : 'kaluppa',
       ...(['cancelled', 'rejected'].includes(step) && reason),
       ...(step === 'out_for_delivery' && { note: `Rider: ${RIDER.name} · ${RIDER.phone}` }),
     }));

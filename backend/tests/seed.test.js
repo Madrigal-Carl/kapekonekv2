@@ -187,6 +187,15 @@ describe('catalog, settings, posts and demo seeders', () => {
     expect(await Notification.countDocuments({ user: juana._id })).toBeGreaterThanOrEqual(mine.length - 1);
     expect(await Notification.countDocuments({ title: /undefined/ })).toBe(0);
 
+    // Farmer store orders in several statuses (PHASE-2-SPEC §8): Rodel buys fertilizer and seedlings only.
+    const rodel = await User.findOne({ username: 'farmer.approved' });
+    const farmerOrders = await Order.find({ buyer: rodel._id }).populate('items.product', 'category').lean();
+    expect(new Set(farmerOrders.map((o) => o.status)).size).toBeGreaterThanOrEqual(4);
+    const coffeeId = String(coffee._id);
+    expect(farmerOrders.flatMap((o) => o.items).every((it) => String(it.product.category) !== coffeeId)).toBe(true);
+    expect(farmerOrders.every((o) => o.statusHistory[0].byRole === 'farmer')).toBe(true);
+    expect(farmerOrders.some((o) => o.fulfillment.address?.label === 'Farm')).toBe(true);
+
     await runSeeders({ log });
     expect(await allCounts()).toEqual(first);
   }, 60_000); // every seeder, twice, on a shared mongod while other files run
