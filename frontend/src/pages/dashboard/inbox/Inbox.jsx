@@ -71,7 +71,7 @@ export function Inbox() {
   const typingIn = (id) => Object.keys(typing[id] ?? {}).some((who) => who !== user?.id)
 
   return (
-    <main className="flex w-full max-w-[1240px] flex-col gap-5 px-8 pb-14 pt-7 max-[960px]:p-0">
+    <main className="flex w-full flex-col gap-5 px-8 pb-14 pt-7 max-[960px]:p-0">
       <div className="max-[960px]:hidden">
         <PageHeader eyebrow="Community" title="Inbox" />
       </div>
