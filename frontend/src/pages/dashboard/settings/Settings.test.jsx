@@ -47,7 +47,7 @@ describe('Settings', () => {
     const { section, body } = saveAdminSetting.mock.calls[0][0]
     expect(section).toBe('branch')
     expect(body.hours[6]).toEqual({ open: true, from: '08:00', to: '17:00' })
-  })
+  }, 15_000) // a loaded full run takes ~7 s: several form fields and a save round-trip
 
   it('refuses a day that closes before it opens', async () => {
     renderAt('/dashboard/settings')
