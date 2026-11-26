@@ -18,8 +18,9 @@ vi.mock('../src/database/seeders/media.js', async (importOriginal) => {
 const { runSeeders } = await import('../src/database/seeders/index.js');
 const { seedEmail } = await import('../src/database/seeders/users.seeder.js');
 const { assertCanDropDatabase } = await import('../src/database/commands/migrateFresh.js');
-const { User, Role, Permission, Category, Product, Setting, Post, PostComment, Reaction, Order, Review, Address, Notification } = await import('../src/models/index.js');
+const { User, Role, Permission, Category, Product, Setting, Post, PostComment, PostView, Reaction, Order, Review, Address, Notification } = await import('../src/models/index.js');
 const { ORDER_STATUSES } = await import('../src/constants/orderStatus.js');
+const { refreshTopPosts } = await import('../src/services/post.service.js');
 
 beforeAll(startMemoryDb);
 afterAll(stopMemoryDb);
@@ -118,7 +119,7 @@ describe('catalog, settings, posts and demo seeders', () => {
   it('seeds the catalog, settings, posts and demo activity once', async () => {
     await runSeeders({ log });
     const first = await allCounts();
-    expect(first).toMatchObject({ Category: 3, Product: 21, Setting: 5, Post: 8 });
+    expect(first).toMatchObject({ Category: 3, Product: 21, Setting: 5, Post: 10 });
     expect(first.Order).toBeGreaterThanOrEqual(20);
 
     const bySlug = async (slug) => (await Category.findOne({ slug })).toObject();
@@ -146,7 +147,12 @@ describe('catalog, settings, posts and demo seeders', () => {
       expect(post.commentCount).toBe(await PostComment.countDocuments({ post: post._id }));
       const reactions = await Reaction.countDocuments({ targetType: 'post', target: post._id });
       expect(Object.values(post.reactionCounts).reduce((a, b) => a + b, 0)).toBe(reactions);
+      expect(post.tags.length).toBeGreaterThanOrEqual(1);
+      expect(post.viewCount).toBe(await PostView.countDocuments({ post: post._id }));
     }
+    // The landing page's top 3 (Main.dc.html): Kaluppa's roast, Liza's leaf rust advisory, Nestor's drying beds.
+    const top = (await refreshTopPosts()).map((t) => posts.find((p) => String(p._id) === t.id).body.slice(0, 20));
+    expect(top).toEqual(['Fresh Liberica roast', 'Leaf rust is showing', 'How we sort and dry ']);
 
     const reviewed = await Product.find({ ratingCount: { $gte: 12 } }).lean();
     expect(reviewed.length).toBeGreaterThanOrEqual(2);

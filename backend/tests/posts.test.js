@@ -10,7 +10,9 @@ vi.mock('../src/config/valkey.js', async () => {
 
 const { default: app } = await import('../src/app.js');
 const { runSeeders } = await import('../src/database/seeders/index.js');
-const { Post, PostComment, User } = await import('../src/models/index.js');
+const { Post, PostComment, PostView, User } = await import('../src/models/index.js');
+const { manilaDateKey } = await import('../src/utils/manilaDate.js');
+const { signedIn } = await import('./helpers/farmers.js');
 
 const at = (minutes) => new Date(Date.UTC(2026, 10, 21, 0, minutes));
 let post;
@@ -35,17 +37,43 @@ beforeAll(async () => {
     { post: post._id, author: farmer._id, body: 'Third', createdAt: at(22) },
   ], { timestamps: false });
   firstComment = comments[0];
+  // Views today, so the top 3 is Liberica (3), Picking season (2), Group news (1); the hidden posts' views don't count.
+  const today = manilaDateKey();
+  const byBody = Object.fromEntries(posts.map((p) => [p.body, p._id]));
+  const viewers = [kaluppa, farmer, manager];
+  await PostView.insertMany([
+    ...viewers.map((u) => ({ post: byBody['Fresh Liberica roasts are in!'], user: u._id, day: today })),
+    ...viewers.slice(0, 2).map((u) => ({ post: byBody['Picking season'], user: u._id, day: today })),
+    { post: byBody['Group news'], user: farmer._id, day: today },
+    ...viewers.map((u) => ({ post: byBody.Removed, user: u._id, day: today })),
+    ...viewers.map((u) => ({ post: byBody.Drafted, user: u._id, day: today })),
+  ]);
   await PostComment.insertMany([1, 2, 3].map((i) => ({ post: post._id, author: kaluppa._id, parent: firstComment._id, body: `Reply ${i}`, createdAt: at(30 + i) })), { timestamps: false });
 });
 afterAll(stopMemoryDb);
 
 describe('posts', () => {
-  it('GET /posts/latest returns the newest published, undeleted posts with author cards', async () => {
-    const res = await request(app).get('/api/posts/latest?limit=3');
+  it('GET /posts/top returns the 3 most-viewed visible posts with author cards and their views', async () => {
+    const res = await request(app).get('/api/posts/top');
     expect(res.status).toBe(200);
-    expect(res.body.data.map((p) => p.body)).toEqual(['Fresh Liberica roasts are in!', 'Picking season', 'Group news']);
+    expect(res.body.data.map((p) => [p.body, p.views])).toEqual([['Fresh Liberica roasts are in!', 3], ['Picking season', 2], ['Group news', 1]]);
     expect(res.body.data[0].author).toEqual({ _id: expect.any(String), name: 'Kaluppa', initials: 'KP', role: 'kaluppa', roleLabel: 'Kaluppa', avatarUrl: null });
     expect(res.body.data[1].author).toMatchObject({ name: 'Rodel M.', initials: 'RM', roleLabel: 'Farmer' });
+    expect(res.body.data[0]).not.toHaveProperty('removalReason');
+  });
+
+  it('guests and buyers open only the top 3; Hub members open any post', async () => {
+    const oldest = await Post.findOne({ body: 'Oldest' });
+    const guest = await request(app).get(`/api/posts/${oldest._id}`);
+    expect(guest.status).toBe(403);
+    expect(guest.body.code).toBe('FORBIDDEN');
+    expect((await request(app).get(`/api/posts/${oldest._id}/comments`)).status).toBe(403);
+    const buyer = await signedIn(app, 'buyer');
+    expect((await buyer.get(`/api/posts/${oldest._id}`)).status).toBe(403);
+    expect((await buyer.get(`/api/posts/${post._id}`)).status).toBe(200);
+    const farmer = await signedIn(app, 'farmer.approved');
+    const res = await farmer.get(`/api/posts/${oldest._id}`).expect(200);
+    expect(res.body.data).toMatchObject({ body: 'Oldest', myReaction: null, isTop: false, author: { name: 'Rodel Mendoza' } });
   });
 
   it('GET /posts/:id returns the post with media and counts; hidden posts 404', async () => {
@@ -75,13 +103,5 @@ describe('posts', () => {
     const res = await request(app).get(`/api/comments/${firstComment._id}/replies?cursor=${first.repliesNextCursor}`);
     expect(res.body.data.map((r) => r.body)).toEqual(['Reply 3']);
     expect(res.body.meta.hasMore).toBe(false);
-  });
-
-  it('has no write endpoints in Phase 1', async () => {
-    const agent = request.agent(app);
-    await agent.post('/api/auth/login').send({ identifier: 'kapekonek.kaluppa@gmail.com', password: 'KapeKonek@123' });
-    expect((await agent.post('/api/posts').send({ body: 'x' })).status).toBe(404);
-    expect((await agent.post(`/api/posts/${post._id}/comments`).send({ body: 'x' })).status).toBe(404);
-    expect((await agent.post(`/api/posts/${post._id}/reactions`).send({ type: 'like' })).status).toBe(404);
   });
 });

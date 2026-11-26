@@ -1,18 +1,23 @@
 import mongoose from 'mongoose';
-import { countPosts, insertComments, insertPosts, insertReactions } from '../../repositories/post.repository.js';
-import { findUsersByUsernames } from '../../repositories/user.repository.js';
+import { ROLES } from '../../constants/permissions.js';
+import { countPosts, insertComments, insertPosts, insertReactions, insertViews } from '../../repositories/post.repository.js';
+import { findUserIdsByRole, findUsersByUsernames } from '../../repositories/user.repository.js';
+import { refreshTopPosts } from '../../services/post.service.js';
+import { manilaDateKey } from '../../utils/manilaDate.js';
 import { seedMedia } from './media.js';
 
 const HOUR = 60;
 const DAY = 24 * HOUR;
 const REACTIONS = ['like', 'love', 'celebrate'];
 
-// author: account handle (= username); ago: minutes before seeding; comments: [author, text, minutesAfterPost, replies[]]
+// author: account handle (= username); ago: minutes before seeding; tags: PHASE-2-SPEC §3.10;
+// views: (viewer count) => distinct people-days of views, so the top 3 are Kaluppa, Liza and Nestor (Hub.dc.html, Main.dc.html);
+// comments: [author, text, minutesAfterPost, replies[]]
 const POSTS = [
   {
-    author: 'kaluppa', ago: 2 * HOUR,
+    author: 'kaluppa', ago: 2 * DAY, tags: ['announcement'], views: (n) => 3 * n,
     body: 'Fresh Liberica roasts are in! This batch came from three farmer groups in Mogpog and Santa Cruz, roasted medium for that classic barako body.\n\nOrders for this batch are open until stock runs out, with delivery anywhere in Marinduque. Thank you to everyone who sorted and dried these cherries.',
-    // Keep the portrait photos (roasted-cooling-tray, coffee-bag-hand): the e2e media check steps through them (Change 04).
+    // Keep the portrait photos (roasted-cooling-tray, coffee-bag-hand): the e2e media checks step through them (Change 04, M13).
     media: ['roasted-roaster-arm', 'roasted-cooling-tray', 'video-roasted-beans', 'roasted-pouring', 'coffee-bag-hand', 'coffee-pouches'],
     comments: [
       ['farmer.approved', 'Our group’s Liberica went into this batch! Salamat, Kaluppa.', 20, [
@@ -22,49 +27,66 @@ const POSTS = [
       ['manager.santacruz', 'Our Mogpog group can deliver more cherries next week.', 30, [
         ['kaluppa', 'Thanks, Liza! We’ll schedule the pickup at your farm.', 35],
       ]],
-      ['farmer.unverified', 'Will there be Excelsa in the next batch?', 60, [
+      ['lorna.ilagan', 'Will there be Excelsa in the next batch?', 60, [
         ['kaluppa', 'Yes, Excelsa roasting is planned for early December.', 68],
       ]],
     ],
   },
   {
-    author: 'farmer.approved', ago: 1 * DAY,
-    body: 'First picking of the season done in our group’s farm. Cherries are drying now.',
-    media: ['cherries-branch', 'green-beans-drying'],
-    comments: [['kaluppa', 'Looking good, Rodel! Send us word when they’re ready for sorting.', 45, [['farmer.approved', 'Will do. About two weeks of drying left.', 90]]]],
+    author: 'manager.santacruz', ago: 5 * HOUR, tags: ['advisory', 'soil'], views: (n) => n,
+    body: 'Leaf rust is showing up after the October rains. Check the underside of older leaves for orange powder. Remove infected leaves, burn them away from the farm, and open the canopy so air moves through. Lime the soil if the pH is below 5.5.',
+    media: ['cherries-dark', 'seedling-hand', 'fertilizer-granules'],
+    comments: [
+      ['farmer.approved', 'Does a copper fungicide help, or is pruning enough?', 50, [
+        ['manager.santacruz', 'Start with pruning and spacing. Use copper only on heavily infected rows, after asking me first.', 80],
+      ]],
+      ['lorna.ilagan', 'Same problem in Matalaba. Thanks for this!', 150, []],
+    ],
   },
   {
-    author: 'kaluppa', ago: 3 * DAY,
+    author: 'farmer.approved', ago: 1 * DAY, tags: ['pruning'], views: () => 6,
+    body: 'First pruning of the Lot 7 trees is done. Took out the suckers and the branches touching the ground. Before and after below.',
+    media: ['cherries-branch', 'seedling-sprout'],
+    comments: [['kaluppa', 'Looking good, Rodel! Open canopies dry faster after the rains.', 45, [['farmer.approved', 'Thanks! Lot 8 is next week.', 90]]]],
+  },
+  {
+    author: 'kaluppa', ago: 3 * DAY, tags: ['announcement'], views: () => 8,
     body: 'Delivery now reaches every town in Marinduque. Add your address at checkout and you’ll see the delivery fee before you order.',
     media: ['parcels-stack'],
     comments: [],
   },
   {
-    author: 'manager.santacruz', ago: 4 * DAY,
+    author: 'manager.santacruz', ago: 4 * DAY, tags: ['announcement', 'pruning'], views: () => 5,
     body: 'Group meeting this Saturday at the Balanacan barangay hall, 9 AM. We’ll talk about pruning schedules and the next delivery to Kaluppa.',
     media: [],
-    comments: [['farmer.unverified', 'I’ll be there. Can we also talk about the nursery seedlings?', 120, [['manager.santacruz', 'Yes, I’ll add it to the agenda.', 150]]]],
+    comments: [['nestor.perez', 'I’ll be there. Can we also talk about the nursery seedlings?', 120, [['manager.santacruz', 'Yes, I’ll add it to the agenda.', 150]]]],
   },
   {
-    author: 'farmer.unverified', ago: 6 * DAY,
-    body: 'Our Excelsa trees are flowering early this year. Hoping for a good harvest.',
-    media: ['cherries-ripe'],
-    comments: [['manager.santacruz', 'Great news, Nora. Keep an eye out for berry borer after the rains.', 200, []]],
+    author: 'farmer.approved', ago: 6 * DAY, tags: ['harvesting'], views: () => 4,
+    body: 'First picking of the season done in our group’s farm. Cherries are drying now.',
+    media: ['cherries-ripe', 'cherries-red'],
+    comments: [['manager.santacruz', 'Great news, Rodel. Keep an eye out for berry borer after the rains.', 200, []]],
   },
   {
-    author: 'kaluppa', ago: 8 * DAY,
+    author: 'nestor.perez', ago: 8 * DAY, tags: ['harvesting', 'processing'], views: (n) => n - 2,
+    body: 'How we sort and dry Excelsa cherries on raised beds. 12 days in the sun, turned four times a day.',
+    media: ['green-beans-drying', 'green-beans-heap'],
+    comments: [['kaluppa', 'Raised beds make all the difference. These were some of the cleanest beans we received this month.', 300, []]],
+  },
+  {
+    author: 'kaluppa', ago: 10 * DAY, tags: ['processing'], views: () => 7,
     body: 'A quick look at this morning’s roast. Robusta, dark, for the espresso crowd.',
     media: ['video-roasted-beans'],
     comments: [],
   },
   {
-    author: 'farmer.approved', ago: 10 * DAY,
+    author: 'lorna.ilagan', ago: 12 * DAY, tags: ['processing'], views: () => 6,
     body: 'Sorting green beans by hand before they go to Kaluppa. Slow work, but it shows in the cup.',
-    media: ['green-beans-washing', 'green-beans-heap', 'green-beans-bowls'],
-    comments: [['kaluppa', 'It really does. These were some of the cleanest beans we received this month.', 300, []]],
+    media: ['green-beans-washing', 'green-beans-bowls', 'ground-spoon', 'ground-jar', 'brew-cup-table'],
+    comments: [],
   },
   {
-    author: 'kaluppa', ago: 12 * DAY,
+    author: 'kaluppa', ago: 14 * DAY, tags: ['advisory'], views: () => 3,
     body: 'Tip: keep roasted beans in a sealed bag away from sunlight, and grind just before brewing. Your coffee stays fresh for weeks.',
     media: [],
     comments: [],
@@ -74,19 +96,30 @@ const POSTS = [
 const minutesBefore = (now, m) => new Date(now.getTime() - m * 60_000);
 const plus = (date, m) => new Date(date.getTime() + m * 60_000);
 
-/** ~8 posts with comments, replies and reactions from farmers, the Group Manager and Kaluppa. Skipped when posts exist. */
+/** `count` distinct people-days of views: every viewer once a day, today first, never before the post's day. */
+function viewsFor(post, createdAt, count, viewers, now) {
+  const first = manilaDateKey(createdAt);
+  const days = [];
+  for (let t = now; manilaDateKey(t) >= first && days.length * viewers.length < count; t = minutesBefore(t, DAY)) days.push(manilaDateKey(t));
+  return days.flatMap((day) => viewers.map((user) => ({ post, user, day, createdAt: now }))).slice(0, Math.max(0, count));
+}
+
+/** 10 tagged posts with comments, replies, reactions and views (filling the top 3). Skipped when posts exist. */
 export async function seedPosts() {
   if ((await countPosts()) > 0) return 'skipped (posts exist)';
-  const [media, users] = await Promise.all([
+  const [media, users, viewerLists] = await Promise.all([
     seedMedia(),
-    findUsersByUsernames(['kaluppa', 'manager.santacruz', 'farmer.approved', 'farmer.unverified']),
+    findUsersByUsernames(['kaluppa', 'manager.santacruz', 'farmer.approved', 'nestor.perez', 'lorna.ilagan']),
+    Promise.all([ROLES.FARMER, ROLES.GROUP_MANAGER, ROLES.KALUPPA, ROLES.BUYER].map(findUserIdsByRole)),
   ]);
   const user = Object.fromEntries(users.map((u) => [u.username, u._id]));
   const community = Object.keys(user);
+  const viewers = viewerLists.flat();
   const now = new Date();
   const posts = [];
   const comments = [];
   const reactions = [];
+  const views = [];
 
   POSTS.forEach((p, i) => {
     const _id = new mongoose.Types.ObjectId();
@@ -112,16 +145,20 @@ export async function seedPosts() {
       }
       commentCount += 1 + replies.length;
     }
+    const seen = viewsFor(_id, createdAt, p.views(viewers.length), viewers, now);
+    views.push(...seen);
     posts.push({
       _id,
       author: user[p.author],
       body: p.body,
+      tags: p.tags,
       media: p.media.filter((k) => media[k]).map((k) => {
         const { type, url, publicId, alt, posterUrl, width, height, durationSec } = media[k];
         return { type, url, publicId, alt, posterUrl, width, height, durationSec };
       }),
       reactionCounts,
       commentCount,
+      viewCount: seen.length,
       createdAt,
       updatedAt: createdAt,
     });
@@ -130,5 +167,7 @@ export async function seedPosts() {
   await insertPosts(posts);
   await insertComments(comments);
   await insertReactions(reactions);
-  return `${posts.length} posts, ${comments.length} comments, ${reactions.length} reactions`;
+  await insertViews(views);
+  const top = await refreshTopPosts(now);
+  return `${posts.length} posts, ${comments.length} comments, ${reactions.length} reactions, ${views.length} views (top 3: ${top.map((t) => t.views).join(' / ')})`;
 }

@@ -27,12 +27,12 @@ export async function uploadFromUrl(url, { path, resourceType }) {
  * What Cloudinary stored for an upload (Admin API), or null when there is no such asset.
  * @param {string} publicId
  * @param {'image'|'video'|'raw'} [resourceType]
- * @returns {Promise<{ bytes: number, format: string, resourceType: string, originalFilename: string } | null>}
+ * @returns {Promise<{ bytes: number, format: string, resourceType: string, originalFilename: string, width?: number, height?: number, duration?: number } | null>}
  */
 export async function getUploadedAsset(publicId, resourceType = 'image') {
   try {
     const r = await cloudinary.api.resource(publicId, { resource_type: resourceType });
-    return { bytes: r.bytes, format: r.format, resourceType: r.resource_type, originalFilename: r.original_filename ?? publicId.split('/').at(-1) };
+    return { bytes: r.bytes, format: r.format, resourceType: r.resource_type, originalFilename: r.original_filename ?? publicId.split('/').at(-1), width: r.width, height: r.height, duration: r.duration };
   } catch (error) {
     if (error?.error?.http_code === 404 || error?.http_code === 404) return null;
     throw error;

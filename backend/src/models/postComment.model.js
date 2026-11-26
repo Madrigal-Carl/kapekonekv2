@@ -10,6 +10,7 @@ const commentSchema = new mongoose.Schema(
     body: { type: String, required: true },
     reactionCount: { type: Number, default: 0 },
     replyCount: { type: Number, default: 0 },
+    editedAt: { type: Date, default: null },
   },
   { timestamps: true },
 );

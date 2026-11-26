@@ -1,11 +1,13 @@
 import { Worker } from 'bullmq';
 import { createValkeyConnection } from '../../config/valkey.js';
 import { expireBeanListings } from '../../services/bean.service.js';
+import { refreshTopPosts } from '../../services/post.service.js';
 import { JOBS, JOBS_QUEUE } from '../jobs.queue.js';
 
 /** Job name → handler. Handlers are idempotent: a job that runs twice changes nothing the second time. */
 const handlers = {
   [JOBS.BEANS_EXPIRE]: () => expireBeanListings(new Date()),
+  [JOBS.POSTS_TOP3]: async () => ({ top: (await refreshTopPosts(new Date())).length }),
 };
 
 /** @param {{ name: string }} job */

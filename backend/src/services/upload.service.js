@@ -5,7 +5,7 @@ import { kindForFormat, UPLOAD_PURPOSES, UPLOAD_RULES, uploadRule } from '../sch
 import { AppError } from '../utils/AppError.js';
 
 /** Upload purposes users may sign and their Cloudinary folders (later milestones add theirs). */
-export const UPLOAD_FOLDERS = { avatar: 'avatars', receipt: 'receipts', farmer_document: 'farmer-documents', bean_photo: 'bean-photos', product_photo: 'product-photos', wallet_qr: 'wallet-qr', message_attachment: 'message-attachments' };
+export const UPLOAD_FOLDERS = { avatar: 'avatars', receipt: 'receipts', farmer_document: 'farmer-documents', bean_photo: 'bean-photos', product_photo: 'product-photos', wallet_qr: 'wallet-qr', message_attachment: 'message-attachments', post_media: 'post-media' };
 
 /** "JPG, PNG, WebP or HEIC, or PDF" */
 const acceptedTypes = (kinds) => kinds.map((kind) => UPLOAD_RULES[kind].hint.split(' · ')[0]).join(', or ');
@@ -70,7 +70,7 @@ export async function assertUploadAllowed(purpose, publicId, field) {
   const name = `${asset.originalFilename}.${asset.format}`;
   const kind = kindForFormat(purpose, asset.format);
   const checked = kind && uploadRule(kind).safeParse({ name, size: asset.bytes, format: asset.format });
-  if (checked?.success) return { kind, bytes: asset.bytes, name };
+  if (checked?.success) return { kind, bytes: asset.bytes, name, width: asset.width, height: asset.height, durationSec: asset.duration && Math.round(asset.duration) };
   await destroyImage(publicId);
   const issue = checked?.error.issues[0];
   const code = issue?.params?.code ?? 'FILE_TYPE_NOT_ALLOWED';

@@ -18,6 +18,7 @@ export * from './order.model.js';
 export * from './permission.model.js';
 export * from './post.model.js';
 export * from './postComment.model.js';
+export * from './postView.model.js';
 export * from './product.model.js';
 export * from './reaction.model.js';
 export * from './review.model.js';
