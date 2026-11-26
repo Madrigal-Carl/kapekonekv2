@@ -12,6 +12,17 @@ async function signIn(page, identifier) {
   await page.getByRole('button', { name: 'Sign in' }).click()
   await page.waitForURL((url) => !url.pathname.startsWith('/login'))
 }
+// Kaluppa signs in once per run: the login limiter allows 5 tries a minute per account.
+let kaluppaSession
+async function asKaluppa(browser, options = {}) {
+  if (!kaluppaSession) {
+    const context = await browser.newContext()
+    await signIn(await context.newPage(), 'kaluppa')
+    kaluppaSession = await context.storageState()
+    await context.close()
+  }
+  return (await browser.newContext({ ...options, storageState: kaluppaSession })).newPage()
+}
 const noSideScroll = async (page) => expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize().width)
 
 test('a farmer buys fertilizer with GCash; Kaluppa confirms it against the receipt, sends it out and marks it sold', async ({ page, browser }) => {
@@ -36,8 +47,7 @@ test('a farmer buys fertilizer with GCash; Kaluppa confirms it against the recei
   await expect(mine).toContainText('Organic Fertilizer')
   await expect(mine).toContainText('GCash')
 
-  const kaluppa = await (await browser.newContext()).newPage()
-  await signIn(kaluppa, 'kaluppa')
+  const kaluppa = await asKaluppa(browser)
   await kaluppa.goto(`/dashboard/orders?status=all&open=${orderId}`)
   const drawer = kaluppa.getByRole('dialog')
   await expect(drawer).toContainText('Farmer ·')
@@ -58,8 +68,8 @@ test('a farmer buys fertilizer with GCash; Kaluppa confirms it against the recei
   await expect(page.getByRole('dialog')).toContainText('Completed')
 })
 
-test('Kaluppa picks a new thumbnail for a product, and the store shows it first', async ({ page }) => {
-  await signIn(page, 'kaluppa')
+test('Kaluppa picks a new thumbnail for a product, and the store shows it first', async ({ browser }) => {
+  const page = await asKaluppa(browser)
   await page.goto('/dashboard/inventory?q=Barako')
   await page.getByRole('button', { name: /^Edit Barako/ }).first().click()
   const form = page.getByRole('dialog', { name: /^Edit Barako/ })
@@ -76,8 +86,8 @@ test('Kaluppa picks a new thumbnail for a product, and the store shows it first'
   expect(store.images[0].url).toContain(publicId)
 })
 
-test('Kaluppa replies to a review and the reply shows under it on the product page', async ({ page, browser }) => {
-  await signIn(page, 'kaluppa')
+test('Kaluppa replies to a review and the reply shows under it on the product page', async ({ browser }) => {
+  const page = await asKaluppa(browser)
   const [review] = (await (await page.request.get(`${API}/admin/reviews?reply=needs&limit=1`)).json()).data
   const text = `Salamat po! E2E ${Date.now().toString(36)}`
   await page.goto(`/dashboard/reviews?open=${review._id ?? review.id}`)
@@ -93,8 +103,8 @@ test('Kaluppa replies to a review and the reply shows under it on the product pa
   await expect(guest.getByText('Reply from Kaluppa').first()).toBeVisible()
 })
 
-test('Kaluppa opens Sunday in Settings; the save bar appears on change and the pickup card follows', async ({ page }) => {
-  await signIn(page, 'kaluppa')
+test('Kaluppa opens Sunday in Settings; the save bar appears on change and the pickup card follows', async ({ browser }) => {
+  const page = await asKaluppa(browser)
   await page.goto('/dashboard/settings')
   const sunday = page.getByRole('switch', { name: 'Open on Sunday' })
   await expect(page.getByText('You have unsaved changes.')).toBeHidden()
@@ -125,8 +135,7 @@ test.describe('at 390 px', () => {
     await expect(page.getByRole('heading', { name: 'My orders' })).toBeVisible()
     await noSideScroll(page)
 
-    const kaluppa = await (await browser.newContext({ viewport: { width: 390, height: 844 } })).newPage()
-    await signIn(kaluppa, 'kaluppa')
+    const kaluppa = await asKaluppa(browser, { viewport: { width: 390, height: 844 } })
     for (const [path, heading] of [['/dashboard/orders', 'Orders'], ['/dashboard/inventory', 'Inventory'], ['/dashboard/reviews', 'Reviews'], ['/dashboard/settings', 'Settings']]) {
       await kaluppa.goto(path)
       await expect(kaluppa.getByRole('heading', { name: heading, exact: true })).toBeVisible()
