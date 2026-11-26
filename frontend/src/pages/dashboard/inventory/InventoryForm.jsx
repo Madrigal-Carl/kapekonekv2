@@ -217,7 +217,7 @@ function SwitchRow({ title, text, checked, onChange, disabled, error }) {
   )
 }
 
-/** Up to five photos (`product_photo`); clicking one makes it the thumbnail; removing the thumbnail promotes the first left. */
+/** Up to five photos (`product_photo`); the star picks the thumbnail; removing the thumbnail promotes the first left. */
 function PhotoPicker({ photos, onChange, error }) {
   const id = useId()
   const upload = useUploadImage('product_photo')
@@ -240,25 +240,28 @@ function PhotoPicker({ photos, onChange, error }) {
       <span id={`${id}-l`} className="block text-[10.5px] font-medium uppercase tracking-[0.16em] text-ink-2">
         Photos <span className="normal-case tracking-normal text-ink-4">(up to 5, images up to 5 MB each)</span>
       </span>
-      <span className="mt-1 block text-xs text-ink-3">Click a photo to make it the thumbnail. It shows on product cards, in the cart and on orders.</span>
-      <ul aria-labelledby={`${id}-l`} className="m-0 mt-2.5 grid list-none grid-cols-5 gap-2.5 p-0">
+      <span className="mt-1 block text-xs text-ink-3">Tap the star on a photo to make it the thumbnail shown on product cards, in the cart and on orders.</span>
+      <ul aria-labelledby={`${id}-l`} className="m-0 mt-2.5 grid list-none grid-cols-5 gap-2.5 p-0 max-[720px]:grid-cols-3">
         {photos.map((p, i) => (
-          <li key={p.publicId} className="relative">
+          <li key={p.publicId} className="relative min-w-0">
+            <img
+              src={imageUrl(p.url, 120)}
+              alt={`Photo ${i + 1}`}
+              className={cn('block aspect-square w-full rounded-lg bg-photo object-cover', i === thumb ? 'border-2 border-roast ring-[3px] ring-roast/20' : 'border border-sand')}
+            />
             <Button
               variant="bare"
               aria-pressed={i === thumb}
-              aria-label={`Photo ${i + 1}${i === thumb ? ', thumbnail' : ', make thumbnail'}`}
+              aria-label={i === thumb ? `Photo ${i + 1} is the thumbnail` : `Make photo ${i + 1} the thumbnail`}
+              title={i === thumb ? `Photo ${i + 1} is the thumbnail` : `Make photo ${i + 1} the thumbnail`}
               onClick={() => onChange(markThumb(photos, i))}
-              className={cn('block aspect-square w-full overflow-hidden rounded-lg bg-photo p-0', i === thumb ? 'border-2 border-roast ring-2 ring-roast/25' : 'border border-sand')}
+              className={cn(
+                'absolute left-[5px] top-[5px] grid size-[26px] place-items-center rounded-full shadow-[0_1px_3px_rgb(43_26_18/0.3)] focus-visible:outline-2 focus-visible:outline-white',
+                i === thumb ? 'bg-roast text-white' : 'bg-white/90 text-roast',
+              )}
             >
-              <img src={imageUrl(p.url, 120)} alt="" className="size-full object-cover" />
+              <IconStar aria-hidden="true" className={cn('size-3.5', i === thumb && 'fill-current')} strokeWidth={2} />
             </Button>
-            {i === thumb && (
-              <span className="pointer-events-none absolute bottom-1.5 left-1.5 inline-flex items-center gap-1 rounded-full bg-roast px-[7px] py-0.5 text-[10.5px] font-semibold text-white">
-                <IconStar aria-hidden="true" className="size-2.5 fill-current" />
-                Thumbnail
-              </span>
-            )}
             <Button
               variant="bare"
               aria-label={`Remove photo ${i + 1}`}

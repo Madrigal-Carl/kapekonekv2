@@ -57,11 +57,12 @@ describe('Inventory', () => {
   it('picks another photo as the thumbnail and saves it', async () => {
     renderAt('/dashboard/inventory?open=p1&mode=edit')
     const dialog = await screen.findByRole('dialog', { name: 'Edit Barako Medium Roast' })
-    const third = await within(dialog).findByRole('button', { name: /Photo 3/ })
+    const third = await within(dialog).findByRole('button', { name: 'Make photo 3 the thumbnail' })
     expect(third.getAttribute('aria-pressed')).toBe('false')
     fireEvent.click(third)
-    expect(third.getAttribute('aria-pressed')).toBe('true')
-    expect(within(dialog).getByRole('button', { name: /Photo 1/ }).getAttribute('aria-pressed')).toBe('false')
+    expect(within(dialog).getByRole('button', { name: 'Photo 3 is the thumbnail' }).getAttribute('aria-pressed')).toBe('true')
+    expect(within(dialog).getByRole('button', { name: 'Make photo 1 the thumbnail' }).getAttribute('aria-pressed')).toBe('false')
+    expect(within(dialog).queryByText('Thumbnail')).toBeNull()
     fireEvent.click(within(dialog).getByRole('button', { name: 'Save changes' }))
     await vi.waitFor(() => expect(updateProduct).toHaveBeenCalled())
     const body = updateProduct.mock.calls[0][0]
@@ -73,7 +74,7 @@ describe('Inventory', () => {
     renderAt('/dashboard/inventory?open=p1&mode=edit')
     const dialog = await screen.findByRole('dialog', { name: 'Edit Barako Medium Roast' })
     fireEvent.click(await within(dialog).findByRole('button', { name: 'Remove photo 1' }))
-    expect(within(dialog).getByRole('button', { name: /Photo 1/ }).getAttribute('aria-pressed')).toBe('true')
+    expect(within(dialog).getByRole('button', { name: 'Photo 1 is the thumbnail' }).getAttribute('aria-pressed')).toBe('true')
   })
 
   it('shows no coffee fields for fertilizer and keeps Featured off', async () => {
