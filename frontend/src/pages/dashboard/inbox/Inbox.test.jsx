@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, configure, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { useAuthStore } from '@/stores/auth.store'
@@ -40,6 +40,9 @@ const service = vi.hoisted(() => ({
 }))
 vi.mock('@/services/inbox.service', () => service)
 vi.mock('@/lib/socket', () => ({ emitSocket: vi.fn(), connectSocket: () => () => {} }))
+
+// The first render waits on the mocked queries: allow 3 s when the full suite loads the machine.
+configure({ asyncUtilTimeout: 3000 })
 
 beforeAll(() => {
   globalThis.IntersectionObserver = class { observe() {} disconnect() {} }
