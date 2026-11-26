@@ -1,4 +1,7 @@
-import { listEntityHistory } from '../repositories/audit.repository.js';
+import { findAuditEntryById, listAuditForExport, listAuditPage, listEntityHistory } from '../repositories/audit.repository.js';
+import { findUserIdsByName } from '../repositories/user.repository.js';
+import { toCsv } from '../utils/csv.js';
+import { containsPattern } from '../utils/escapeRegex.js';
 import { AppError } from '../utils/AppError.js';
 import { getAssociation } from './association.service.js';
 import { getListing } from './bean.service.js';
@@ -31,6 +34,7 @@ const ACCESS = {
 export const HISTORY_TYPES = Object.keys(ACCESS);
 
 const initials = (u) => `${u.firstName[0] ?? ''}${u.lastName[0] ?? ''}`.toUpperCase();
+const actorOf = (u) => (u ? { id: String(u._id), name: `${u.firstName} ${u.lastName}`, initials: initials(u), avatarUrl: u.avatar?.url ?? null } : null);
 
 /**
  * A record's history for its drawer, newest first: actor, action, time and changed fields.
@@ -50,10 +54,80 @@ export async function getEntityHistory(actor, { entityType, entityId, cursor, li
       at: e.at,
       area: e.area,
       action: e.action,
-      actor: e.actor ? { id: String(e.actor._id), name: `${e.actor.firstName} ${e.actor.lastName}`, initials: initials(e.actor), avatarUrl: e.actor.avatar?.url ?? null } : null,
+      actor: actorOf(e.actor),
       actorRole: e.actorRole,
       changes: e.changes,
     })),
     meta: { ...meta, canOpenAuditLog: await userCan(actor, 'audit.view') },
   };
+}
+
+/** Areas and actor roles the audit log filters by (every `area` that `audit.record` is called with). */
+export const AUDIT_AREAS = ['associations', 'beans', 'farmers', 'farms', 'group_managers', 'harvests', 'hub', 'inventory', 'orders', 'reviews', 'settings', 'trees'];
+export const AUDIT_ROLES = ['kaluppa', 'group_manager', 'farmer', 'buyer', 'system'];
+const EXPORT_MAX = 10_000;
+
+/** A short, stable reference for an entry ("AUD-1A2B3C4D"). */
+const codeOf = (id) => `AUD-${String(id).slice(-8).toUpperCase()}`;
+
+const toEntry = (e) => ({
+  id: String(e._id),
+  code: codeOf(e._id),
+  at: e.at,
+  actor: actorOf(e.actor),
+  actorRole: e.actorRole,
+  area: e.area,
+  action: e.action,
+  entityType: e.entityType,
+  entityId: String(e.entityId),
+  entityLabel: e.entityLabel,
+  changes: e.changes,
+});
+
+/** Manila calendar days → instants: from the start of `from` to the end of `to`. */
+const dayStart = (day) => new Date(`${day}T00:00:00+08:00`);
+async function filtersOf({ area, role, from, to, entity, q }) {
+  const words = q ? q.split(/\s+/).filter(Boolean).map(containsPattern) : [];
+  return {
+    area,
+    role,
+    entity,
+    from: from ? dayStart(from) : undefined,
+    to: to ? new Date(dayStart(to).getTime() + 86_400_000) : undefined,
+    q: q ? containsPattern(q) : undefined,
+    actorIds: words.length ? await findUserIdsByName(words) : [],
+  };
+}
+
+/**
+ * The audit log (Kaluppa, `audit.view`): newest first, page-numbered.
+ * @param {{ area?: string, role?: string, from?: string, to?: string, entity?: string, q?: string, page: number, limit: number }} query
+ */
+export async function listAuditLog({ page, limit, ...query }) {
+  const { items, meta } = await listAuditPage(await filtersOf(query), { page, limit });
+  return { items: items.map(toEntry), meta };
+}
+
+/** One entry for the diff drawer; 404 when there's none. */
+export async function getAuditEntry(id) {
+  const entry = await findAuditEntryById(id);
+  if (!entry) throw new AppError(404, 'Audit entry not found.');
+  return toEntry(entry);
+}
+
+const valueText = (v) => (v == null || v === '' ? '—' : typeof v === 'object' ? JSON.stringify(v) : String(v));
+
+/** The filtered entries as CSV (at most 10,000, newest first). */
+export async function exportAuditLog(query) {
+  const rows = (await listAuditForExport(await filtersOf(query), EXPORT_MAX)).map(toEntry).map((e) => [
+    e.code,
+    e.at.toISOString(),
+    e.actor?.name ?? 'System',
+    e.actorRole,
+    e.area,
+    e.action,
+    e.entityLabel || e.entityId,
+    e.changes.map((c) => `${c.field}: ${valueText(c.from)} → ${valueText(c.to)}`).join('; '),
+  ]);
+  return toCsv(['Entry', 'When', 'Who', 'Role', 'Area', 'Action', 'Record', 'Changes'], rows);
 }

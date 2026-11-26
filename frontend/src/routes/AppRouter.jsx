@@ -24,6 +24,7 @@ import { Harvests } from '@/pages/dashboard/records/Harvests'
 import { Trees } from '@/pages/dashboard/records/Trees'
 import { FarmMap } from '@/pages/dashboard/map/FarmMap'
 import { Reports } from '@/pages/dashboard/reports/Reports'
+import { AuditLog } from '@/pages/dashboard/auditLog/AuditLog'
 
 // Each page is its own chunk, loaded on first visit (RootLayout's Suspense shows the spinner).
 const page = (load, name) => lazy(() => load().then((m) => ({ default: m[name] })))
@@ -42,18 +43,12 @@ const Profile = page(() => import('@/pages/account/Profile'), 'Profile')
 const Settings = page(() => import('@/pages/account/Settings'), 'Settings')
 const SetPassword = page(() => import('@/pages/auth/SetPassword'), 'SetPassword')
 const Overview = page(() => import('@/pages/dashboard/overview/Overview'), 'Overview')
-const ComingSoon = page(() => import('@/pages/dashboard/ComingSoon'), 'ComingSoon')
 const NotFound = page(() => import('@/pages/errors/NotFound'), 'NotFound')
 const Landing = page(() => import('@/pages/storefront/Landing'), 'Landing')
 const PostDetail = page(() => import('@/pages/storefront/PostDetail'), 'PostDetail')
 const ProductDetail = page(() => import('@/pages/storefront/ProductDetail'), 'ProductDetail')
 const Products = page(() => import('@/pages/storefront/Products'), 'Products')
 
-/** Dashboard pages from later milestones: [path, permission]. Each milestone swaps its placeholder for the real page. */
-const DASHBOARD_PAGES = [
-  ['reports', 'reports.view'],
-  ['audit-log', 'audit.view'],
-]
 // Built pages: [path, permission, element].
 const RECORD_PAGES = [
   ['farmers', 'farmers.manage', <Farmers key="farmers" />],
@@ -73,6 +68,7 @@ const RECORD_PAGES = [
   ['hub/posts/:id', 'dashboard.view', <HubPost key="hub-post" />],
   ['farm-map', 'map.view', <FarmMap key="farm-map" />],
   ['reports', 'reports.view', <Reports key="reports" />],
+  ['audit-log', 'audit.view', <AuditLog key="audit-log" />],
 ]
 
 export const router = createBrowserRouter([
@@ -153,10 +149,6 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <Navigate to="overview" replace /> },
               { path: 'overview', element: <Overview /> },
-              ...DASHBOARD_PAGES.map(([path, permission]) => ({
-                element: <ProtectedRoute permissions={[permission]} />,
-                children: [{ path, element: <ComingSoon /> }],
-              })),
               ...RECORD_PAGES.map(([path, permission, element]) => ({
                 element: <ProtectedRoute permissions={[permission]} />,
                 children: [{ path, element }],
