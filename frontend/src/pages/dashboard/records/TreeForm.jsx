@@ -133,7 +133,7 @@ export function TreeGroupFields({ formId, group = null, farm, farms, actsForFarm
           )}
         />
       )}
-      <div className={cn('grid gap-3 sm:grid-cols-2', !inline && 'gap-5')}>
+      <div className={cn('grid gap-3 min-[720px]:grid-cols-2', !inline && 'gap-5')}>
         <Controller
           name="variety"
           control={control}
@@ -169,7 +169,7 @@ export function TreeGroupFields({ formId, group = null, farm, farms, actsForFarm
           )}
         />
       </div>
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-5 min-[720px]:grid-cols-2">
         <TextField id={id('count')} label="Number of trees" type="number" inputMode="numeric" min="1" step="1" placeholder="e.g. 40" error={errors.count?.message} {...register('count', { setValueAs: toNumber })} />
         <TextField id={id('planted')} label="Date planted" type="date" max={todayKey()} error={errors.plantedAt?.message} {...register('plantedAt')} />
       </div>

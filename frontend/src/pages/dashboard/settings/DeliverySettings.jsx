@@ -79,15 +79,15 @@ export function DeliverySettings({ delivery, onSaved }) {
     <form id={FORM_ID} noValidate onSubmit={submit} className="flex flex-col gap-4">
       <div className="flex flex-wrap items-start gap-4">
         <SettingsCard title="Delivery fee" text={`Distance is the road distance from the branch pin (Mapbox). If that fails, straight-line distance × ${delivery.roadFactorFallback}.`} className="flex-[1_1_420px]">
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-5 min-[720px]:grid-cols-2">
             <TextField id="fee-base" label="Base fee (₱)" type="number" min="0" step="0.01" error={errors.baseFee?.message} {...register('baseFee', num)} />
             <TextField id="fee-base-km" label="Covers the first (km)" type="number" min="0" step="0.1" error={errors.baseKm?.message} {...register('baseKm', num)} />
           </div>
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-5 min-[720px]:grid-cols-2">
             <TextField id="fee-per-km" label="Per km after that (₱)" type="number" min="0" step="0.01" error={errors.perKm?.message} {...register('perKm', num)} />
             <TextField id="fee-round" label="Round up to the nearest (₱)" type="number" min="1" step="1" error={errors.roundUpTo?.message} {...register('roundUpTo', num)} />
           </div>
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-5 min-[720px]:grid-cols-2">
             <TextField id="fee-max" label="Maximum distance (km)" type="number" min="1" step="1" hint="Farther pins are outside the delivery area." error={errors.maxKm?.message} {...register('maxKm', num)} />
             <div role="group" aria-labelledby="eta-label">
               <span id="eta-label" className="block text-[10.5px] font-medium uppercase tracking-[0.16em] text-ink-2">Delivery estimate (business days)</span>

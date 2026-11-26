@@ -100,7 +100,7 @@ export function FarmerReview({ open, farmer, transfer, onClose }) {
             ]}
           />
           <SectionTitle>Documents</SectionTitle>
-          <div className="grid grid-cols-2 gap-3 max-[480px]:grid-cols-1">
+          <div className="grid grid-cols-2 gap-3 max-[720px]:grid-cols-1">
             <DocumentFigure label="Valid ID" doc={farmer.documents?.validId} />
             <DocumentFigure label="Proof of land ownership" doc={farmer.documents?.landProof} />
           </div>

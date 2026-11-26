@@ -116,7 +116,7 @@ function ProductFields({ formId, product, create, update, onClose }) {
         )}
       />
       {(rules?.variety || rules?.coffeeType) && (
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-5 min-[720px]:grid-cols-2">
           {rules.variety && (
             <Controller
               name="variety"
@@ -137,7 +137,7 @@ function ProductFields({ formId, product, create, update, onClose }) {
           )}
         </div>
       )}
-      <div className="grid gap-5 sm:grid-cols-3">
+      <div className="grid gap-5 min-[720px]:grid-cols-3">
         <Controller
           name="unit"
           control={control}

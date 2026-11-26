@@ -120,7 +120,7 @@ function HarvestFields({ formId, harvest, farms, actsForFarmers, create, update,
           </p>
         )}
       </div>
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-5 min-[720px]:grid-cols-2">
         <TextField
           id={`${formId}-kg`}
           label="Yield (kg)"

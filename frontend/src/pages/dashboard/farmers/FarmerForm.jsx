@@ -114,7 +114,7 @@ function FarmerFields({ formId, create, update, farmer, association, onClose, on
           />
         ))}
       <SectionTitle>Name</SectionTitle>
-      <div className="grid gap-5 sm:grid-cols-3">
+      <div className="grid gap-5 min-[720px]:grid-cols-3">
         <TextField id="fm-first" label="First name" autoComplete="off" error={errors.firstName?.message} {...register('firstName')} />
         <TextField id="fm-middle" label="Middle" optional autoComplete="off" error={errors.middleName?.message} {...register('middleName')} />
         <TextField id="fm-last" label="Last name" autoComplete="off" error={errors.lastName?.message} {...register('lastName')} />
@@ -140,7 +140,7 @@ function FarmerFields({ formId, create, update, farmer, association, onClose, on
         {...register('email')}
       />
       <SectionTitle>Documents</SectionTitle>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 min-[720px]:grid-cols-2">
         <DocumentUpload compact label="Valid ID" short="valid ID" value={docs.validId} onChange={setDoc('validId')} error={errors.validId?.message} />
         <DocumentUpload compact label="Proof of land ownership" short="land proof" value={docs.landProof} onChange={setDoc('landProof')} error={errors.landProof?.message} />
       </div>

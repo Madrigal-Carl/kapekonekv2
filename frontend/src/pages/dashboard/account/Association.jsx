@@ -284,7 +284,7 @@ function Documents({ profile: p }) {
         <h2 id="docs-h" className="text-base font-semibold">Documents</h2>
         <span className="text-xs text-ink-3">Seen by you, your Group Manager and Kaluppa</span>
       </div>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <div className="mt-4 grid gap-4 min-[720px]:grid-cols-2">
         {DOCS.map(([key, label]) => (
           <DocumentFigure key={key} field={key} label={label} doc={p.documents[key]} status={DOC_STATUS[p.status]} />
         ))}
@@ -463,7 +463,7 @@ function JoinCard({ profile: p }) {
           onChange={setAssociationId}
           error={options.isError ? 'We couldn’t load the associations. Reload the page and try again.' : undefined}
         />
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 min-[720px]:grid-cols-2">
           <DocumentUpload label="Valid ID" short="valid ID" compact value={docs.validId} onChange={(doc) => setDocs((d) => ({ ...d, validId: doc }))} />
           <DocumentUpload label="Proof of land ownership" short="proof of land ownership" compact value={docs.landProof} onChange={(doc) => setDocs((d) => ({ ...d, landProof: doc }))} />
         </div>

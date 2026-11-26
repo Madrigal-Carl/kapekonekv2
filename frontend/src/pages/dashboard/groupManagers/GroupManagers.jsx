@@ -221,7 +221,7 @@ function GroupManagerFields({ formId, gm, create, update, onClose }) {
   return (
     <form id={formId} noValidate onSubmit={handleSubmit(onSubmit)} className="contents">
       <SectionTitle>Name</SectionTitle>
-      <div className="grid gap-5 sm:grid-cols-3">
+      <div className="grid gap-5 min-[720px]:grid-cols-3">
         <TextField id="gm-first" label="First name" autoComplete="off" error={errors.firstName?.message} {...register('firstName')} />
         <TextField id="gm-middle" label="Middle" optional autoComplete="off" error={errors.middleName?.message} {...register('middleName')} />
         <TextField id="gm-last" label="Last name" autoComplete="off" error={errors.lastName?.message} {...register('lastName')} />

@@ -67,7 +67,7 @@ function OrderView({ open, order, onCancel, onClose }) {
           <Banner banner={farmerBanner(order)} />
           <SectionTitle>Items</SectionTitle>
           <ItemsList order={order} />
-          <div className="grid grid-cols-2 gap-5 max-[560px]:grid-cols-1">
+          <div className="grid grid-cols-2 gap-5 max-[720px]:grid-cols-1">
             <InfoBox title={dest.title}>{dest.text}</InfoBox>
             <InfoBox title={pay.title}>{pay.text}</InfoBox>
           </div>

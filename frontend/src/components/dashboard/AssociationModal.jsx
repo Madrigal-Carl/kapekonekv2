@@ -79,7 +79,7 @@ export function AssociationModal({ open, onClose, rejection = null }) {
                   : 'No Group Manager yet — Kaluppa will review your request'}
               </p>
             )}
-            <div className="grid gap-5 sm:grid-cols-2">
+            <div className="grid gap-5 min-[720px]:grid-cols-2">
               <DocumentUpload label="Valid ID" short="valid ID" value={docs.validId} onChange={(doc) => setDocs((d) => ({ ...d, validId: doc }))} />
               <DocumentUpload label="Proof of land ownership" short="proof of land ownership" value={docs.landProof} onChange={(doc) => setDocs((d) => ({ ...d, landProof: doc }))} />
             </div>

@@ -180,7 +180,7 @@ function FarmFields({ formId, farm, create, update, actsForFarmers, isKaluppa, o
           )}
         />
       )}
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-5 min-[720px]:grid-cols-2">
         <TextField id="farm-lot" label="Lot number" placeholder="e.g. Lot 12-B" autoComplete="off" error={errors.lotNumber?.message} {...register('lotNumber')} />
         <div>
           <Label htmlFor="farm-pn">Property number</Label>
@@ -206,7 +206,7 @@ function FarmFields({ formId, farm, create, update, actsForFarmers, isKaluppa, o
         error={errors.sizeHa?.message}
         {...register('sizeHa', { setValueAs: (v) => (v === '' || v == null ? undefined : Number(v)) })}
       />
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-5 min-[720px]:grid-cols-2">
         <Controller
           name="municipality"
           control={control}

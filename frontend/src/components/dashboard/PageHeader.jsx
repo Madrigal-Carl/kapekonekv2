@@ -10,7 +10,7 @@ export function PageHeader({ eyebrow, title, description, actions }) {
         <h1 className="mt-2 text-[30px] font-medium leading-[1.15] tracking-[-0.02em]">{title}</h1>
         {description && <p className="mt-1.5 text-sm leading-[1.6] text-ink-2">{description}</p>}
       </div>
-      {actions && <div className="flex flex-wrap gap-2.5">{actions}</div>}
+      {actions && <div className="flex flex-wrap gap-2.5 max-[720px]:w-full max-[720px]:[&>*]:flex-auto">{actions}</div>}
     </div>
   )
 }

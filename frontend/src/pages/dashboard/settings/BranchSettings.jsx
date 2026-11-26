@@ -119,11 +119,11 @@ export function BranchSettings({ branch, onSaved }) {
     <form id={FORM_ID} noValidate onSubmit={submit} className="flex flex-col gap-4">
       <div className="flex flex-wrap items-start gap-4">
         <SettingsCard title="Kaluppa branch" text="Used as the delivery-fee starting point, the pickup card at checkout and the bean drop-off instructions." className="flex-[1_1_420px]">
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-5 min-[720px]:grid-cols-2">
             <TextField id="branch-name" label="Branch name" maxLength={80} error={errors.name?.message} {...register('name')} />
             <TextField id="branch-phone" label="Contact number" type="tel" maxLength={13} error={errors.phone?.message} {...register('phone')} />
           </div>
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-5 min-[720px]:grid-cols-2">
             <SearchSelect label="Municipality" icon="pin" placeholder="Select municipality" searchPlaceholder="Search municipality" options={(locations.data ?? []).map((t) => t.name)} value={municipality || null} onChange={pickMunicipality} error={errors.municipality?.message} />
             <Controller
               name="barangay"

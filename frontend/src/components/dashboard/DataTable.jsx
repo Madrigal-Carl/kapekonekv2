@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { SearchSelect } from '@/components/ui/SearchSelect'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { cn } from '@/lib/cn'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { StatusPill } from './StatusPill'
 
 // Row action icons and labels (DataTable.dc.html).
@@ -60,10 +61,31 @@ function Cell({ column, value }) {
   )
 }
 
+/** The first column as a phone card's title (DataTable.dc.html cards): avatar for people, then main and sub lines. */
+function CardHead({ column, value }) {
+  if (column.render) return <div className="text-[14.5px] font-semibold">{column.render(value)}</div>
+  const object = typeof value === 'object' && value !== null
+  const person = column.kind === 'person' && object
+  const main = person ? value.name : object ? value.main : value
+  return (
+    <div className="flex items-center gap-2.5">
+      {person && (
+        <span aria-hidden="true" className={cn('grid size-[34px] shrink-0 place-items-center rounded-full text-[11.5px] font-semibold text-white', value.avatarClassName ?? 'bg-roast')}>
+          {value.initials}
+        </span>
+      )}
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="text-[14.5px] font-semibold">{main ?? '—'}</span>
+        {object && value.sub && <span className="text-xs text-ink-3">{value.sub}</span>}
+      </span>
+    </div>
+  )
+}
+
 /**
  * Every management list (DataTable.dc.html, DESIGN §8.2): search left; "Clear filters", then Status, then plain dropdowns right;
  * person / pill / two-line / mono / strong / muted cells; icon row actions; "Showing a–b of n" and numbered pages.
- * State lives in the URL through `query` (useTableParams). Below 640px rows become cards.
+ * State lives in the URL through `query` (useTableParams). Below 720px the toolbar stacks and rows become cards (DESIGN §8.6).
  * @param {{
  *   query: ReturnType<typeof import('@/hooks/useTableParams').useTableParams>,
  *   columns: Array<{ key: string, label: string, kind?: 'person'|'pill'|'two-line'|'mono'|'strong'|'muted'|'text', align?: 'left'|'right', wrap?: boolean, render?: (value: any) => React.ReactNode }>,
@@ -103,11 +125,15 @@ export function DataTable({
   const list = rows ?? []
   const empty = !loading && !error && list.length === 0
   const searching = Boolean(params.q) || filtered
+  const phone = useMediaQuery('(max-width: 720px)')
+  const keysFor = (row) => row.actions ?? (typeof actions === 'function' ? actions(row) : actions)
+  const actionLabel = (key, row) => `${ACTIONS[key][0]} ${row.label ?? ''}`.trim()
+  const actionTone = (key) => (DESTRUCTIVE.has(key) ? 'text-logout hover:text-logout' : key === 'approve' ? 'text-success-ink hover:text-success-ink' : 'text-ink-2 hover:text-ink-2')
 
   return (
     <section aria-label={ariaLabel} className="rounded-card border border-sand bg-white text-ink">
-      <div className="flex flex-wrap items-center justify-between gap-3 p-4">
-        <div className="relative max-w-[360px] flex-[1_1_260px]">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-4 max-[720px]:flex-col max-[720px]:items-stretch max-[720px]:p-3">
+        <div className="relative max-w-[360px] flex-[1_1_260px] max-[720px]:max-w-none max-[720px]:flex-auto">
           <IconSearch aria-hidden="true" className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-4" strokeWidth={2} />
           <input
             type="search"
@@ -122,9 +148,9 @@ export function DataTable({
           />
         </div>
         {dropdowns.length > 0 && (
-          <div role="group" aria-label="Filters" className="flex flex-wrap items-center justify-end gap-2.5">
+          <div role="group" aria-label="Filters" className="flex flex-wrap items-center justify-end gap-2.5 max-[720px]:grid max-[720px]:grid-cols-2 max-[720px]:gap-2">
             {filtered && (
-              <Button variant="ghost" size="sm" onClick={clear} className="px-2.5">
+              <Button variant="ghost" size="sm" onClick={clear} className="px-2.5 max-[720px]:col-span-2 max-[720px]:justify-self-start">
                 Clear filters
               </Button>
             )}
@@ -139,7 +165,7 @@ export function DataTable({
                 options={d.options}
                 value={params[d.key] ?? d.options[0]?.value ?? ''}
                 onChange={(value) => set({ [d.key]: value })}
-                className={d.key === 'status' ? 'w-[200px]' : 'w-[190px]'}
+                className={cn(d.key === 'status' ? 'w-[200px]' : 'w-[190px]', 'max-[720px]:w-auto max-[720px]:min-w-0')}
               />
             ))}
           </div>
@@ -147,79 +173,106 @@ export function DataTable({
       </div>
 
       <div className="overflow-x-auto border-t border-sand-soft">
-        <table aria-busy={loading || undefined} className="w-full border-collapse text-[13.5px] max-[640px]:block max-[640px]:!min-w-0" style={{ minWidth }}>
-          <thead className="max-[640px]:hidden">
-            <tr className="bg-cream">
-              {columns.map((c) => (
-                <th key={c.key} scope="col" className={cn('whitespace-nowrap border-b border-sand-soft px-3.5 py-[11px] text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-3', c.align === 'right' ? 'text-right' : 'text-left')}>
-                  {c.label}
-                </th>
-              ))}
-              <th scope="col" className="border-b border-sand-soft px-3.5 py-[11px] text-right text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="max-[640px]:block">
+        {phone ? (
+          <ul aria-label={ariaLabel} aria-busy={loading || undefined} className="m-0 flex list-none flex-col gap-2.5 p-3">
             {loading &&
-              Array.from({ length: 5 }, (_, i) => (
-                <tr key={i} className="border-b border-skeleton max-[640px]:block">
-                  {columns.map((c) => (
-                    <td key={c.key} className="px-3.5 py-3 max-[640px]:block">
-                      <Skeleton className="h-4 w-3/4" />
-                    </td>
-                  ))}
-                  <td className="px-3.5 py-3 max-[640px]:hidden" />
-                </tr>
+              Array.from({ length: 3 }, (_, i) => (
+                <li key={i} className="rounded-card border border-sand p-3.5">
+                  <Skeleton className="h-5 w-2/3" />
+                  <Skeleton className="mt-3 h-4 w-full" />
+                  <Skeleton className="mt-2 h-4 w-5/6" />
+                </li>
               ))}
             {!loading &&
-              list.map((row) => {
-                const keys = row.actions ?? (typeof actions === 'function' ? actions(row) : actions)
-                return (
-                  <tr
-                    key={row.id}
-                    className={cn(
-                      'border-b border-skeleton max-[640px]:m-3 max-[640px]:block max-[640px]:rounded-card max-[640px]:border max-[640px]:border-sand max-[640px]:p-1',
-                      row.id === selectedId ? 'bg-highlight' : 'bg-white',
-                    )}
-                  >
+              list.map((row) => (
+                <li key={row.id} className={cn('rounded-card border bg-white p-3.5', row.id === selectedId ? 'border-roast' : 'border-sand')}>
+                  <CardHead column={columns[0]} value={row[columns[0].key]} />
+                  <dl className="m-0 mt-3 grid grid-cols-[auto_minmax(0,1fr)] gap-x-3.5 gap-y-[7px] text-[13px]">
+                    {columns.slice(1).map((c) => (
+                      <div key={c.key} className="contents">
+                        <dt className="text-ink-3">{c.label}</dt>
+                        <dd className="m-0 flex min-w-0 justify-end break-words text-right font-medium">
+                          <Cell column={c} value={row[c.key]} />
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                  {keysFor(row).length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-1.5 border-t border-skeleton pt-2.5">
+                      {keysFor(row).map((key) => {
+                        const Icon = ACTIONS[key][1]
+                        return (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            key={key}
+                            aria-label={actionLabel(key, row)}
+                            onClick={() => onAction?.(key, row)}
+                            className={cn('min-h-[38px] flex-1 gap-1.5 border-sand px-2.5 text-[13px]', actionTone(key))}
+                          >
+                            <Icon aria-hidden="true" className="size-[15px]" strokeWidth={1.9} />
+                            {ACTIONS[key][0]}
+                          </Button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </li>
+              ))}
+          </ul>
+        ) : (
+          <table aria-busy={loading || undefined} className="w-full border-collapse text-[13.5px]" style={{ minWidth }}>
+            <thead>
+              <tr className="bg-cream">
+                {columns.map((c) => (
+                  <th key={c.key} scope="col" className={cn('whitespace-nowrap border-b border-sand-soft px-3.5 py-[11px] text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-3', c.align === 'right' ? 'text-right' : 'text-left')}>
+                    {c.label}
+                  </th>
+                ))}
+                <th scope="col" className="border-b border-sand-soft px-3.5 py-[11px] text-right text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading &&
+                Array.from({ length: 5 }, (_, i) => (
+                  <tr key={i} className="border-b border-skeleton">
                     {columns.map((c) => (
-                      <td
-                        key={c.key}
-                        data-label={c.label}
-                        className={cn(
-                          'px-3.5 py-3 align-middle',
-                          c.wrap ? 'whitespace-normal' : 'whitespace-nowrap',
-                          c.align === 'right' && 'text-right',
-                          'max-[640px]:flex max-[640px]:items-start max-[640px]:justify-between max-[640px]:gap-4 max-[640px]:whitespace-normal max-[640px]:py-2 max-[640px]:text-right',
-                          'max-[640px]:before:shrink-0 max-[640px]:before:pt-0.5 max-[640px]:before:text-left max-[640px]:before:text-[11px] max-[640px]:before:font-semibold max-[640px]:before:uppercase max-[640px]:before:tracking-[0.08em] max-[640px]:before:text-ink-3 max-[640px]:before:content-[attr(data-label)]',
-                        )}
-                      >
+                      <td key={c.key} className="px-3.5 py-3">
+                        <Skeleton className="h-4 w-3/4" />
+                      </td>
+                    ))}
+                    <td className="px-3.5 py-3" />
+                  </tr>
+                ))}
+              {!loading &&
+                list.map((row) => (
+                  <tr key={row.id} className={cn('border-b border-skeleton', row.id === selectedId ? 'bg-highlight' : 'bg-white')}>
+                    {columns.map((c) => (
+                      <td key={c.key} data-label={c.label} className={cn('px-3.5 py-3 align-middle', c.wrap ? 'whitespace-normal' : 'whitespace-nowrap', c.align === 'right' && 'text-right')}>
                         <Cell column={c} value={row[c.key]} />
                       </td>
                     ))}
-                    <td data-label="Actions" className="whitespace-nowrap px-2.5 py-2 text-right max-[640px]:flex max-[640px]:justify-end max-[640px]:border-t max-[640px]:border-sand-soft">
-                      {keys.map((key) => (
+                    <td data-label="Actions" className="whitespace-nowrap px-2.5 py-2 text-right">
+                      {keysFor(row).map((key) => (
                         <Button
                           variant="ghost"
                           size="sm"
                           iconOnly
                           key={key}
-                          aria-label={`${ACTIONS[key][0]} ${row.label ?? ''}`.trim()}
+                          aria-label={actionLabel(key, row)}
                           title={ACTIONS[key][0]}
                           onClick={() => onAction?.(key, row)}
-                          className={cn(
-                            'hover:bg-crema',
-                            DESTRUCTIVE.has(key) ? 'text-logout hover:text-logout' : key === 'approve' ? 'text-success-ink hover:text-success-ink' : 'text-ink-2 hover:text-ink-2',
-                          )}
+                          className={cn('hover:bg-crema', actionTone(key))}
                         >
                           <RowIcon icon={ACTIONS[key][1]} />
                         </Button>
                       ))}
                     </td>
                   </tr>
-                )
-              })}
-          </tbody>
-        </table>
+                ))}
+            </tbody>
+          </table>
+        )}
         {error && !loading && (
           <div role="alert" className="px-4 py-12 text-center">
             <p className="text-sm font-semibold">We couldn’t load this list</p>
@@ -238,11 +291,11 @@ export function DataTable({
         )}
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-sand-soft px-3.5 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-sand-soft px-3.5 py-3 max-[720px]:flex-col max-[720px]:items-stretch max-[720px]:text-center">
         <span aria-live="polite" className="text-[12.5px] text-ink-2">
           {total ? `Showing ${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, total)} of ${total}` : loading ? 'Loading…' : 'No results'}
         </span>
-        <nav aria-label="Pages" className="flex items-center gap-1">
+        <nav aria-label="Pages" className="flex flex-wrap items-center gap-1 max-[720px]:justify-center">
           <Button variant="outline" size="sm" iconOnly aria-label="Previous page" disabled={page <= 1} onClick={() => set({ page: page - 1 })} className="border-sand">
             <IconChevronLeft aria-hidden="true" className="size-[15px]" strokeWidth={2.2} />
           </Button>

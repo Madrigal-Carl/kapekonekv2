@@ -336,7 +336,7 @@ function CompleteForm({ formId, listing, onSubmit }) {
   return (
     <form id={formId} noValidate onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3 rounded-lg border border-sand-soft bg-cream p-4">
       <strong className="text-sm">Weighed at the branch</strong>
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-5 min-[720px]:grid-cols-2">
         <TextField id={`${formId}-fw`} label="Final weight (kg)" type="number" inputMode="decimal" step="0.01" min="0" {...register('finalWeightKg', { setValueAs: toNumber })} error={errors.finalWeightKg?.message} />
         <TextField id={`${formId}-fa`} label="Final amount (₱)" type="number" inputMode="decimal" step="0.01" min="1" {...register('finalAmount', { setValueAs: toNumber })} error={errors.finalAmount?.message} />
       </div>

@@ -229,7 +229,7 @@ describe('messages', () => {
     expect([p1.data.length, p2.data.length, p3.data.length]).toEqual([30, 30, 15]);
     expect(p3.data.at(-1).body).toBe('m1');
     expect(p3.meta).toMatchObject({ hasMore: false, nextCursor: null });
-  });
+  }, 30_000); // 75 sequential sends: slow under a loaded full run
 
   it('Kaluppa team replies show the Kaluppa sender’s name', async () => {
     const team = (await kaluppa.post('/api/conversations/direct').send({ userId: ids.ana }).expect(200)).body.data;

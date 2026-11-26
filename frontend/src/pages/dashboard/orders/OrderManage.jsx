@@ -171,7 +171,7 @@ export function OrderManage({ open, order, onClose }) {
           {needRider && (
             <div className="flex flex-col gap-2.5 rounded-lg border border-sand-soft bg-cream p-3.5">
               <strong className="text-[13.5px]">Rider</strong>
-              <div className="grid grid-cols-2 gap-5 max-[560px]:grid-cols-1">
+              <div className="grid grid-cols-2 gap-5 max-[720px]:grid-cols-1">
                 <TextField id="rider-name" label="Rider name" value={rider.name} maxLength={60} onChange={(e) => setRider({ ...rider, name: e.target.value })} />
                 <TextField id="rider-phone" label="Rider phone" type="tel" value={rider.phone} maxLength={13} onChange={(e) => setRider({ ...rider, phone: e.target.value })} />
               </div>

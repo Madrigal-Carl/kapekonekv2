@@ -279,6 +279,43 @@ frontend/src/
 
 ---
 
+## Change 06 — Phone layouts, overview date filter, History in drawers, fidelity fixes, GCash only
+
+**Prompt:** `docs/prompts/CHANGE-06-MOBILE-DATES-HISTORY-INBOX-GCASH.md`. Specs: DESIGN §8.2 / §8.5 / §8.6, PHASE-2-SPEC §3.14–§3.16. Runs after M12 (it was written for before M12, so Part E rebuilds the M12 Inbox to the revised screens). One commit per part: `Change 06A: …` … `Change 06F: …`.
+
+### Task C06.A: Phone and tablet (DESIGN §8.6)
+- [ ] Nav drawer: 280px (max 86%), close button inside, closes on navigate/Esc/backdrop (Modal already traps focus). Avatar name/role hidden < 960px (already).
+- [ ] `DataTable` < 720px: toolbar stacks (full-width search; filters a 2-column grid; "Clear filters" spans the row); rows render as a `<ul>` of cards (first column = title with avatar for person cells; others as `<dl>` label/value rows, values right; pills kept; actions as labeled 38px buttons); footer stacks with centered pages. The table never scrolls sideways on a phone.
+- [ ] `PageHeader` < 720px: actions full width and stretched. `Drawer` < 720px: full width, body 20/18, head/foot 18px sides, footer buttons stretch; every 2-/3-column field grid one column (shared `kk-g2`/`kk-g3` → Tailwind `max-[720px]:grid-cols-1` on the grids). `Modal` center: `calc(100% - 32px)`.
+- [ ] Maps keep aspect ratio (`aspect-*` + `max-w-full`).
+- [ ] Playwright `mobile.spec.js`: every dashboard route per role at 390 and 768: `scrollWidth <= innerWidth`, open the first drawer when the page has one.
+
+### Task C06.B: Overview date filter, fully live overviews (PHASE-2-SPEC §3.14)
+- [ ] Backend `utils/period.js`: `periodRange(period, now)` → `{ from, to, prevFrom, prevTo, buckets: [{ from, to, label }], label, rangeText, prevLabel }` in Asia/Manila; Monday weeks; today = 6 two-hour buckets from 6 AM (earlier → first, later → last); month = weeks (Week 1 = days 1–7 …); year = Jan–Dec.
+- [ ] `GET /dashboard/overview?period=today|week|month|year` (Zod, default `month`). Per role: period KPIs (harvest kg, beans kg, sales ₱, with `{ previous, pct }` comparison and `vs <prevLabel>`), stock KPIs as of now (farms, trees, orders to confirm, listings to review, farmers), charts bucketed (harvest by variety for Group Managers, single series otherwise), tree stages, beans / orders / queue / low-stock lists from real data.
+- [ ] Frontend `DateRangeSegmented` (pill bar, 36px segments, espresso active), "Showing this month · Nov 1 – Nov 30, 2026"; `?period=` synced, remembered in `localStorage` per user (try/catch).
+- [ ] Tests: boundaries (Manila midnight, Monday week start on a Sunday, month/year edges), previous period, comparison maths (0 → null), scope per role.
+
+### Task C06.C: History in drawers (PHASE-2-SPEC §3.15)
+- [ ] `GET /audit-logs/entity/:entityType/:entityId?cursor&limit=5` → newest first, cursor paged; access = can view the record (resolved per entity type through the existing service getters, which already apply the policy), else 404. Kaluppa gets `canOpenAuditLog`.
+- [ ] Audit gaps filled: order status changes (staff, buyer cancel, system expiry), receipt check (`payment.verifiedAt`), rider, refund; farmer's own contact change.
+- [ ] `<History entityType entityId />` at the end of the listed drawers; Farm view gets a History tab; order timeline titled "Status".
+- [ ] Tests: entity history scope (owner, another farmer → 404, Kaluppa), cursor paging, order transitions write entries.
+
+### Task C06.D: Inventory thumbnail star
+- [ ] 26px round star button top-left (outline roast on white 92% / filled white on roast), `aria-pressed`, labels; no text badge; tiles never overflow (5 per row at 620px, 3 per row on phones).
+
+### Task C06.E: Settings and Inbox match their screens
+- [ ] Settings: values in the prompt; spacings changed listed below when done.
+- [ ] Inbox: panel 760px/radius 10, list 340px, list header, 5px-corner search and composer, chips, rows, thread header, bubbles, composer, avatars with photos everywhere (seed a few avatars), "…" menu directly below its button, flips up only without room, pressed state while open.
+
+### Task C06.F: Copy and payments
+- [ ] Landing: remove the "How ordering works" note. Payment copy from the enabled providers (`paymentPhrase(providers)`): hero (`{payments}` token in seeded slides), step 3, FAQ, product notes, cart drawer, checkout (tabs hidden with one provider), Settings note. Emails already use the order's provider.
+- [ ] Providers: `showAtCheckout` replaces `enabled` (old values read through); seed GCash on, Maya saved but off. Public `GET /delivery/info` carries `payment.providers`.
+- [ ] Test: turning Maya on makes it appear in the copy with no code change.
+
+---
+
 ## M13 — Hub and the landing top 3
 
 ### Task 13.1: Hub API

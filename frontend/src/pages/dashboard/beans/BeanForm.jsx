@@ -128,7 +128,7 @@ function BeanFields({ formId, listing, actsForFarmers, create, update, onOver, o
           )}
         />
       )}
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-5 min-[720px]:grid-cols-2">
         <Controller
           name="variety"
           control={control}
@@ -144,7 +144,7 @@ function BeanFields({ formId, listing, actsForFarmers, create, update, onOver, o
           )}
         />
       </div>
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-5 min-[720px]:grid-cols-2">
         <TextField
           id={`${formId}-kg`}
           label="Weight (kg)"

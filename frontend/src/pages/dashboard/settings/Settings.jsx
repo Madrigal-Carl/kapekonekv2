@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { IconCheck, IconTriangleAlert, IconX } from '@/components/ui/icons'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useAdminSetting } from '@/hooks/useAdminSettings'
+import { DashPage } from '@/pages/dashboard/overview/Overview'
 import { cn } from '@/lib/cn'
 import { BranchSettings } from './BranchSettings'
 import { DeliverySettings } from './DeliverySettings'
@@ -29,7 +30,7 @@ export function Settings() {
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <DashPage>
       <PageHeader eyebrow="System" title="Settings" description="Branch details, delivery fees and e-wallet accounts. Changes apply to new orders and listings only." />
       <div role="tablist" aria-label="Settings sections" className="flex gap-1 overflow-x-auto border-b border-sand">
         {TABS.map((t) => (
@@ -61,6 +62,6 @@ export function Settings() {
       ) : (
         <tab.Form key={tab.key} {...{ [tab.prop]: setting.data }} onSaved={() => setSaved(true)} />
       )}
-    </div>
+    </DashPage>
   )
 }
