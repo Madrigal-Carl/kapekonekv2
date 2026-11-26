@@ -344,3 +344,16 @@ frontend/src/
 - **Verified**: backend 367/367, frontend 152/152, lint clean in both apps; `migrate:fresh -- --seed` ok; Playwright 40/40 (Phase 1 + M8 + `records.spec.js`: farmer adds a farm → trees → harvest, Group Manager and Kaluppa forms, 404 guard, every record page per role at 1440/390); screenshots compared with Farms / Trees / Harvests; graphify updated (code only).
 - **Not verified**: the map tiles in the view and form drawers (the headless screenshots show the map frame before tiles draw).
 - **Waiting on later milestones**: the Farmers page's farm and harvest columns still show "—" (they need per-farmer totals); overview record tiles stay as M8 built them.
+
+### M12 — done (2026-11-26)
+
+- **Messages and rules**: `Message` model (body, up to 5 image/PDF attachments, reply, edit within 15 minutes, delete for everyone / for me); who may message whom (`canMessage`); Kaluppa has no direct chats, since its chats are the per-person team chat; former members keep read-only history up to the time they left; receipts (Sent / Delivered / Seen, plus "Seen by N" in groups) come from member cursors; unread is a stored counter, and the sidebar badge counts chats with unread messages.
+- **Realtime**: conversation rooms plus `team:kaluppa`; `message:new|updated|deleted` and `conversation:read|delivered|updated` carry ids only; typing is throttled to 3 s and expires after 5 s; membership changes join or leave rooms live.
+- **Inbox UI**: two panes from 961 px; on a phone, the chat list, then the chat full screen with Back. Filters (All / Unread / Groups) and search; older messages load as you scroll up; day separators; reply quotes, a ⋯ menu (Edit / Delete for everyone / Delete for me), a composer (Enter sends, Shift+Enter adds a line, attach), typing dots, a read-only note, and New message (people search). The "Message" buttons open `?to=<userId>`.
+- **Seeds**: `inbox` seeder with 18 messages in 7 chats around `farmer.approved`, covering every receipt state, an edited message, one deleted for everyone, photos and a read-only group.
+- **Verified**:
+  - backend 520/520 and frontend 258/258, lint clean in both apps;
+  - `migrate:fresh -- --seed` ok;
+  - Playwright 68/68 (Phase 1 + M8–M11 + `inbox.spec.js`: two farmers live — typing, message, Seen — the 390 px list → chat → Back, and the buyer 403 guard);
+  - screenshots for farmer, Group Manager and Kaluppa at 1440/390, compared with Inbox / InboxMobile.
+- **Not built** (see the ledger rulings): presence ("Active now"), the Chat details (i) panel, and an attachment preview tray.

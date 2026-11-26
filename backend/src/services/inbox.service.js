@@ -81,7 +81,8 @@ async function peopleSubs(users) {
 }
 
 const personOf = (u) => ({ id: String(u._id), name: fullName(u), initials: initialsOf(fullName(u)) });
-const authorOf = (sender) => (isKaluppaTeam(sender) ? `${sender.firstName} · Kaluppa` : fullName(sender));
+// Staff sign as 'Ana · Kaluppa'; the shared team account is just 'Kaluppa'.
+const authorOf = (sender) => (isKaluppaTeam(sender) ? (sender.firstName === 'Kaluppa' ? 'Kaluppa' : `${sender.firstName} · Kaluppa`) : fullName(sender));
 const previewOf = (m) => (m.deletedForEveryoneAt ? DELETED : m.body || (m.attachments[0]?.kind === 'image' ? 'Photo' : 'File'));
 
 /** The message as the viewer sees it. */

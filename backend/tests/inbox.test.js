@@ -235,7 +235,7 @@ describe('messages', () => {
     const team = (await kaluppa.post('/api/conversations/direct').send({ userId: ids.ana }).expect(200)).body.data;
     await send(kaluppa, team.id, 'Your listing is approved.').expect(201);
     const [latest] = (await messages(ana.agent, team.id)).data;
-    expect(latest).toMatchObject({ author: 'Kaluppa · Kaluppa', mine: false, sender: { team: 'kaluppa' } });
+    expect(latest).toMatchObject({ author: 'Kaluppa', mine: false, sender: { team: 'kaluppa' } });
     expect((await conversations(ana.agent))[0].lastMessage).toMatchObject({ senderName: 'Kaluppa', mine: false });
   });
 });

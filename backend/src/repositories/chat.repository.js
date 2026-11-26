@@ -112,3 +112,16 @@ export const setLastMessageText = (conversationId, messageId, text) =>
   Conversation.updateOne({ _id: conversationId, 'lastMessage.message': messageId }, { 'lastMessage.text': text });
 
 export const hideMessageFor = (id, userId) => Message.updateOne({ _id: id }, { $addToSet: { deletedFor: userId } });
+
+// ── Seeds ──────────────────────────────────────────────────────────────────
+
+export const anyMessage = async () => Boolean(await Message.exists({}));
+
+/** Insert one seed message with its own `createdAt`. */
+export const insertSeedMessage = async (doc) => (await Message.insertMany([doc]))[0];
+
+export const setLastMessage = (conversationId, lastMessage) => Conversation.updateOne({ _id: conversationId }, { lastMessage });
+
+/** Set a member's cursors and state directly (seeds). `owner` is `{ user }` or `{ team: 'kaluppa' }`. */
+export const setMemberState = (conversationId, owner, fields) =>
+  ConversationMember.updateOne({ conversation: conversationId, user: owner.user ?? null, team: owner.team ?? null }, fields);

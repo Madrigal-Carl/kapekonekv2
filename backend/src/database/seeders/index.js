@@ -3,6 +3,7 @@ import { seedBeans } from './beans.seeder.js';
 import { associationAccounts, seedAssociationsAndFarmers } from './associations.seeder.js';
 import { seedCategories } from './categories.seeder.js';
 import { seedDemo } from './demo.seeder.js';
+import { seedInbox } from './inbox.seeder.js';
 import { seedPosts } from './posts.seeder.js';
 import { seedProducts } from './products.seeder.js';
 import { seedRecords } from './records.seeder.js';
@@ -17,6 +18,7 @@ export const SEEDERS = [
   { name: 'associations', run: seedAssociationsAndFarmers },
   { name: 'records', run: seedRecords },
   { name: 'beans', run: seedBeans },
+  { name: 'inbox', run: seedInbox },
   { name: 'categories', run: seedCategories },
   { name: 'products', run: seedProducts },
   { name: 'settings', run: seedSettings },

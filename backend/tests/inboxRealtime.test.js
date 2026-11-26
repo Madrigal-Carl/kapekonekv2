@@ -35,8 +35,10 @@ function open(user) {
     socket.on('connect_error', reject);
   });
 }
+// Events that should arrive wait up to 3 s (a loaded test run is slow); `QUIET` is how long we listen for one that must not.
+const QUIET = 400;
 /** The next `event` on the socket, or null after `ms`. */
-const next = (socket, event, ms = 400) =>
+const next = (socket, event, ms = 3000) =>
   new Promise((resolve) => {
     const timer = setTimeout(() => resolve(null), ms);
     socket.once(event, (payload) => {
@@ -80,7 +82,7 @@ describe('conversation rooms', () => {
     const group = await groupOf(people.ana.agent);
     const [toCora, toBen, sent] = await Promise.all([
       next(cora, 'message:new'),
-      next(ben, 'message:new'),
+      next(ben, 'message:new', QUIET),
       people.ana.agent.post(`/api/conversations/${group.id}/messages`).send({ body: 'Meeting at 8' }).expect(201),
     ]);
     expect(toCora).toEqual({ conversationId: group.id, messageId: sent.body.data.id });
@@ -88,7 +90,7 @@ describe('conversation rooms', () => {
     // edits and deletes reach the same members only
     const [edited, benEdit] = await Promise.all([
       next(cora, 'message:updated'),
-      next(ben, 'message:updated'),
+      next(ben, 'message:updated', QUIET),
       people.ana.agent.patch(`/api/messages/${sent.body.data.id}`).send({ body: 'Meeting at 9' }).expect(200),
     ]);
     expect(edited).toMatchObject({ conversationId: group.id, messageId: sent.body.data.id });
@@ -104,7 +106,7 @@ describe('conversation rooms', () => {
     const own = (await people.ana.agent.post('/api/conversations/direct').send({ userId: 'kaluppa' }).expect(200)).body.data;
     const [toTeam, toCora] = await Promise.all([
       next(team, 'message:new'),
-      next(cora, 'message:new'),
+      next(cora, 'message:new', QUIET),
       people.ana.agent.post(`/api/conversations/${own.id}/messages`).send({ body: 'Hello Kaluppa' }).expect(201),
     ]);
     expect(toTeam).toMatchObject({ conversationId: own.id });
@@ -134,12 +136,12 @@ describe('typing and delivery', () => {
   it('typing relays only to the other members, with a 5-second expiry', async () => {
     const [ana, anaTab2, cora, ben] = await Promise.all([open(people.ana.user), open(people.ana.user), open(people.cora.user), open(people.ben.user)]);
     const group = await groupOf(people.ana.agent);
-    const [toCora, toBen, toSelf] = await Promise.all([next(cora, 'typing'), next(ben, 'typing'), next(ana, 'typing'), Promise.resolve(ana.emit('typing', { conversationId: group.id }))]);
+    const [toCora, toBen, toSelf] = await Promise.all([next(cora, 'typing'), next(ben, 'typing', QUIET), next(ana, 'typing', QUIET), Promise.resolve(ana.emit('typing', { conversationId: group.id }))]);
     expect(toCora).toMatchObject({ conversationId: group.id, user: { id: String(people.ana.user._id), name: 'Ana' }, expiresInMs: 5000 });
     expect(toBen).toBeNull();
     expect(toSelf).toBeNull();
     // someone outside the chat can't type into it
-    const [leak] = await Promise.all([next(cora, 'typing'), Promise.resolve(ben.emit('typing', { conversationId: group.id }))]);
+    const [leak] = await Promise.all([next(cora, 'typing', QUIET), Promise.resolve(ben.emit('typing', { conversationId: group.id }))]);
     expect(leak).toBeNull();
     for (const s of [ana, anaTab2, cora, ben]) s.close();
   });
@@ -162,7 +164,7 @@ describe('membership end (Review Focus 4)', () => {
     const group = await groupOf(people.ben.agent);
     const [updated] = await Promise.all([next(ben, 'conversation:updated'), chat.endMembership(people.ben.user._id, [group.id])]);
     expect(updated).toMatchObject({ conversationId: group.id, canPost: false });
-    const [after] = await Promise.all([next(ben, 'message:new'), gm.post(`/api/conversations/${group.id}/messages`).send({ body: 'After Ben left' }).expect(201)]);
+    const [after] = await Promise.all([next(ben, 'message:new', QUIET), gm.post(`/api/conversations/${group.id}/messages`).send({ body: 'After Ben left' }).expect(201)]);
     expect(after).toBeNull();
     ben.close();
   });

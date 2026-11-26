@@ -201,7 +201,7 @@ function ManagerCard({ profile: p }) {
             <dt className="text-ink-3">Email</dt>
             <dd className="m-0 break-all font-medium">{gm.email ?? '—'}</dd>
           </dl>
-          <Button as={Link} to="/dashboard/inbox" variant="soft" fullWidth className="mt-[18px]" leftIcon={<IconMessage aria-hidden="true" className="size-4" strokeWidth={2} />}>
+          <Button as={Link} to={`/dashboard/inbox?to=${gm.id}`} variant="soft" fullWidth className="mt-[18px]" leftIcon={<IconMessage aria-hidden="true" className="size-4" strokeWidth={2} />}>
             Message {gm.name.split(' ')[0]}
           </Button>
         </>

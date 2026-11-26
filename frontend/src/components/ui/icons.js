@@ -88,6 +88,11 @@ import {
   LuWallet,
   LuWheat,
   LuX,
+  LuSend,
+  LuPaperclip,
+  LuEllipsis,
+  LuCheckCheck,
+  LuSquarePen,
 } from 'react-icons/lu'
 
 // Dashboard areas (Sidebar.dc.html)
@@ -186,6 +191,12 @@ export const IconShield = LuShield
 export const IconUsers = LuUsersRound
 export const IconWallet = LuWallet
 export const IconX = LuX
+// Inbox
+export const IconSend = LuSend
+export const IconAttach = LuPaperclip
+export const IconMore = LuEllipsis
+export const IconDoubleCheck = LuCheckCheck
+export const IconCompose = LuSquarePen
 
 /** Sidebar / KPI tile icons by nav key (constants/dashboardNav.js). */
 export const NAV_ICONS = {

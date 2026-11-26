@@ -137,7 +137,7 @@ export function FarmerReview({ open, farmer, transfer, onClose }) {
 export function FarmerView({ open, farmer, canEdit, onEdit, onClose }) {
   const footer = farmer && (
     <>
-      <Button as={Link} variant="outline" to="/dashboard/inbox">Message</Button>
+      <Button as={Link} variant="outline" to={`/dashboard/inbox?to=${farmer.id}`}>Message</Button>
       {canEdit && <Button onClick={onEdit}>Edit</Button>}
     </>
   )

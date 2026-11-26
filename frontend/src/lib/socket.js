@@ -1,8 +1,13 @@
 import { io } from 'socket.io-client'
 import { refreshOnce } from '@/api/axios'
 
+let current = null
+
+/** Send a client event (`typing`, `conversation:delivered`) on the open socket; a no-op while offline. */
+export const emitSocket = (event, payload) => current?.emit(event, payload)
+
 /**
- * Open the push-only socket (`notification:new`, `order:updated`). The handshake uses the
+ * Open the socket (server push, plus the two Inbox client events). The handshake uses the
  * accessToken cookie; when the server refuses it (token expired), refresh once and reconnect.
  * @param {Record<string, (payload: any) => void>} handlers event → listener
  * @returns {() => void} disconnect
@@ -23,5 +28,9 @@ export function connectSocket(handlers) {
     )
   })
   for (const [event, listener] of Object.entries(handlers)) socket.on(event, listener)
-  return () => socket.disconnect()
+  current = socket
+  return () => {
+    if (current === socket) current = null
+    socket.disconnect()
+  }
 }

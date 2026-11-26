@@ -18,6 +18,7 @@ import { Orders as DashboardOrders } from '@/pages/dashboard/orders/Orders'
 import { Reviews } from '@/pages/dashboard/reviews/Reviews'
 import { Settings as KaluppaSettings } from '@/pages/dashboard/settings/Settings'
 import { Farms } from '@/pages/dashboard/records/Farms'
+import { Inbox } from '@/pages/dashboard/inbox/Inbox'
 import { Harvests } from '@/pages/dashboard/records/Harvests'
 import { Trees } from '@/pages/dashboard/records/Trees'
 
@@ -47,7 +48,6 @@ const Products = page(() => import('@/pages/storefront/Products'), 'Products')
 
 /** Dashboard pages from later milestones: [path, permission]. Each milestone swaps its placeholder for the real page. */
 const DASHBOARD_PAGES = [
-  ['inbox/*', 'inbox.use'],
   ['hub/*', 'dashboard.view'],
   ['farm-map', 'map.view'],
   ['reports', 'reports.view'],
@@ -66,6 +66,8 @@ const RECORD_PAGES = [
   ['inventory', 'inventory.manage', <Inventory key="inventory" />],
   ['reviews', 'reviews.moderate', <Reviews key="reviews" />],
   ['settings', 'settings.manage', <KaluppaSettings key="settings" />],
+  ['inbox', 'inbox.use', <Inbox key="inbox" />],
+  ['inbox/:conversationId', 'inbox.use', <Inbox key="inbox-chat" />],
 ]
 
 export const router = createBrowserRouter([

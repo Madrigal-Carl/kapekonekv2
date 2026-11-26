@@ -143,7 +143,7 @@ export function GroupManagers() {
 function GroupManagerView({ open, gm, onEdit, onClose }) {
   const footer = gm && (
     <>
-      <Button as={Link} variant="outline" to="/dashboard/inbox">Message</Button>
+      <Button as={Link} variant="outline" to={`/dashboard/inbox?to=${gm.id}`}>Message</Button>
       {gm.status !== 'archived' && <Button onClick={onEdit}>Edit</Button>}
     </>
   )
