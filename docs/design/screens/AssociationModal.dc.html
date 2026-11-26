@@ -17,6 +17,27 @@ a{color:#7B4A2A}a:hover{color:#653B20}
 button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
 .kk-menu{display:none !important}
 @media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+.kk-dt-cards{display:none}
+@media (max-width: 720px){
+.kk-dt-bar{flex-direction:column !important;align-items:stretch !important;padding:12px !important}
+.kk-dt-search{max-width:none !important;flex:1 1 auto !important}
+.kk-dt-filters{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:8px !important}
+.kk-dt-filters > div{width:auto !important}
+.kk-dt-clear{grid-column:1 / -1;justify-self:start}
+.kk-dt-table{display:none !important}
+.kk-dt-cards{display:flex !important}
+.kk-dt-foot{flex-direction:column !important;align-items:stretch !important;text-align:center}
+.kk-dt-foot nav{justify-content:center}
+.kk-g2,.kk-g3{grid-template-columns:minmax(0,1fr) !important}
+.kk-ph-actions{width:100%}
+.kk-ph-actions > *{flex:1 1 auto}
+.kk-seg{width:100%}
+.kk-seg > button{flex:1 1 0}
+.kk-drawer{width:100% !important;border-left:0 !important}
+.kk-drawer-body{padding:20px 18px 28px !important}
+.kk-drawer-head,.kk-drawer-foot{padding-left:18px !important;padding-right:18px !important}
+.kk-drawer-foot > *{flex:1 1 auto}
+}
 </style>
 </helmet>
 <div style="position: relative; width: 100%; min-height: 1000px; overflow: hidden">
@@ -37,7 +58,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
         <sc-if value="{{ hasAssoc }}" hint-placeholder-val="{{ true }}">
           <p style="margin: -6px 0 0; display: flex; gap: 8px; align-items: center; font-size: 12.5px; color: #4A3A30"><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#7B4A2A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"></path></svg>{{ assocNote }}</p>
         </sc-if>
-        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+        <div class="kk-g2" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
           <sc-for list="{{ docs }}" as="d" hint-placeholder-count="2">
             <div>
               <span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">{{ d.label }}</span>

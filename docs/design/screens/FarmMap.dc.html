@@ -17,6 +17,27 @@ a{color:#7B4A2A}a:hover{color:#653B20}
 button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
 .kk-menu{display:none !important}
 @media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+.kk-dt-cards{display:none}
+@media (max-width: 720px){
+.kk-dt-bar{flex-direction:column !important;align-items:stretch !important;padding:12px !important}
+.kk-dt-search{max-width:none !important;flex:1 1 auto !important}
+.kk-dt-filters{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:8px !important}
+.kk-dt-filters > div{width:auto !important}
+.kk-dt-clear{grid-column:1 / -1;justify-self:start}
+.kk-dt-table{display:none !important}
+.kk-dt-cards{display:flex !important}
+.kk-dt-foot{flex-direction:column !important;align-items:stretch !important;text-align:center}
+.kk-dt-foot nav{justify-content:center}
+.kk-g2,.kk-g3{grid-template-columns:minmax(0,1fr) !important}
+.kk-ph-actions{width:100%}
+.kk-ph-actions > *{flex:1 1 auto}
+.kk-seg{width:100%}
+.kk-seg > button{flex:1 1 0}
+.kk-drawer{width:100% !important;border-left:0 !important}
+.kk-drawer-body{padding:20px 18px 28px !important}
+.kk-drawer-head,.kk-drawer-foot{padding-left:18px !important;padding-right:18px !important}
+.kk-drawer-foot > *{flex:1 1 auto}
+}
 </style>
 </helmet>
 <div style="position: relative; width: 100%; min-height: 1000px; background: #F5F0EA; display: flex; align-items: stretch">
@@ -24,7 +45,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
     <dc-import name="Sidebar" role="{{ role }}" active="Farm Map" hint-size="256px,900px"></dc-import>
   </div>
   <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
-    <dc-import name="DashTopbar" role="{{ role }}" crumb-a="Map" crumb-b="Farm Map" hint-size="100%,64px"></dc-import>
+    <dc-import name="DashTopbar" role="{{ role }}" active="Farm Map" crumb-a="Map" crumb-b="Farm Map" hint-size="100%,64px"></dc-import>
     <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
       <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
         <div style="min-width: 0; max-width: 720px">
@@ -32,7 +53,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
           <h1 style="margin: 8px 0 0; font-weight: 500; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15">Farm Map</h1>
           <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">{{ desc }}</p>
         </div>
-        <div style="display: flex; flex-wrap: wrap; gap: 10px"></div>
+        <div class="kk-ph-actions" style="display: flex; flex-wrap: wrap; gap: 10px"></div>
       </div>
       <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
         <sc-for list="{{ fl }}" as="f" hint-placeholder-count="3"><div style="position: relative; z-index: {{ f.z }}; width: 230px"><dc-import name="SearchSelect" aria-label="{{ f.label }}" icon="{{ f.icon }}" size="sm" options="{{ f.options }}" value="{{ f.value }}" on-pick="{{ f.pick }}" hint-size="100%,40px"></dc-import></div></sc-for>

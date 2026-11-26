@@ -17,6 +17,27 @@ a{color:#7B4A2A}a:hover{color:#653B20}
 button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
 .kk-menu{display:none !important}
 @media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+.kk-dt-cards{display:none}
+@media (max-width: 720px){
+.kk-dt-bar{flex-direction:column !important;align-items:stretch !important;padding:12px !important}
+.kk-dt-search{max-width:none !important;flex:1 1 auto !important}
+.kk-dt-filters{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:8px !important}
+.kk-dt-filters > div{width:auto !important}
+.kk-dt-clear{grid-column:1 / -1;justify-self:start}
+.kk-dt-table{display:none !important}
+.kk-dt-cards{display:flex !important}
+.kk-dt-foot{flex-direction:column !important;align-items:stretch !important;text-align:center}
+.kk-dt-foot nav{justify-content:center}
+.kk-g2,.kk-g3{grid-template-columns:minmax(0,1fr) !important}
+.kk-ph-actions{width:100%}
+.kk-ph-actions > *{flex:1 1 auto}
+.kk-seg{width:100%}
+.kk-seg > button{flex:1 1 0}
+.kk-drawer{width:100% !important;border-left:0 !important}
+.kk-drawer-body{padding:20px 18px 28px !important}
+.kk-drawer-head,.kk-drawer-foot{padding-left:18px !important;padding-right:18px !important}
+.kk-drawer-foot > *{flex:1 1 auto}
+}
 </style>
 </helmet>
 <div style="position: relative; width: 100%; min-height: 1100px; background: #F5F0EA; display: flex; align-items: stretch">
@@ -24,7 +45,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
     <dc-import name="Sidebar" role="kaluppa" active="Settings" hint-size="256px,900px"></dc-import>
   </div>
   <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
-    <dc-import name="DashTopbar" role="kaluppa" crumb-a="System" crumb-b="Settings" hint-size="100%,64px"></dc-import>
+    <dc-import name="DashTopbar" role="kaluppa" active="Settings" crumb-a="System" crumb-b="Settings" hint-size="100%,64px"></dc-import>
     <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
       <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
         <div style="min-width: 0; max-width: 720px">
@@ -32,7 +53,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
           <h1 style="margin: 8px 0 0; font-weight: 500; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15">Settings</h1>
           <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">Branch details, delivery fees and e-wallet accounts. Changes apply to new orders and listings only.</p>
         </div>
-        <div style="display: flex; flex-wrap: wrap; gap: 10px"></div>
+        <div class="kk-ph-actions" style="display: flex; flex-wrap: wrap; gap: 10px"></div>
       </div>
       <div role="tablist" aria-label="Settings sections" style="display: flex; gap: 4px; border-bottom: 1px solid #E7DCCD"><sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3"><button type="button" role="tab" aria-selected="{{ t.on }}" onClick="{{ t.pick }}" style="min-height: 44px; padding: 0 14px; border: 0; border-bottom: 2px solid {{ t.line }}; margin-bottom: -1px; background: transparent; font: inherit; font-size: 14px; font-weight: {{ t.fw }}; color: {{ t.fg }}; cursor: pointer">{{ t.label }}</button></sc-for></div>
       <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
@@ -43,8 +64,8 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
           <section style="flex: 1 1 420px; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; padding: 22px; display: flex; flex-direction: column; gap: 14px">
             <h2 style="margin: 0; font-size: 16px; font-weight: 600">Kaluppa branch</h2>
             <p style="margin: -8px 0 0; font-size: 12.5px; color: #6B5A4E">Used as the delivery-fee starting point, the pickup card at checkout and the bean drop-off instructions.</p>
-            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px"><div><label for="bn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Branch name</label><input class="kk-f" id="bn" type="text" defaultValue="Kaluppa — Pantayin" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div><div><label for="bp" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Contact number</label><input class="kk-f" id="bp" type="tel" defaultValue="0917 800 1122" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div></div>
-            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+            <div class="kk-g2" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px"><div><label for="bn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Branch name</label><input class="kk-f" id="bn" type="text" defaultValue="Kaluppa — Pantayin" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div><div><label for="bp" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Contact number</label><input class="kk-f" id="bp" type="tel" defaultValue="0917 800 1122" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div></div>
+            <div class="kk-g2" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
               <div style="position: relative; z-index: 11"><dc-import name="SearchSelect" label="Municipality" icon="pin" placeholder="Select municipality" search-placeholder="Search municipality" options="{{ munis }}" value="{{ muni }}" on-pick="{{ pickMuni }}" hint-size="100%,70px"></dc-import></div>
               <div style="position: relative; z-index: 10"><dc-import name="SearchSelect" label="Barangay" icon="home" placeholder="Select barangay" search-placeholder="Search barangay" options="{{ brgys }}" value="{{ brgy }}" on-pick="{{ pickBrgy }}" hint-size="100%,70px"></dc-import></div>
             </div>
@@ -65,9 +86,9 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
           <section style="flex: 1 1 420px; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; padding: 22px; display: flex; flex-direction: column; gap: 14px">
             <h2 style="margin: 0; font-size: 16px; font-weight: 600">Delivery fee</h2>
             <p style="margin: -8px 0 0; font-size: 12.5px; color: #6B5A4E">Distance is the road distance from the branch pin (Mapbox). If that fails, straight-line distance × 1.35.</p>
-            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px"><div><label for="bf" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Base fee (₱)</label><input class="kk-f" id="bf" type="number" defaultValue="50" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div><div><label for="bk" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Covers the first (km)</label><input class="kk-f" id="bk" type="number" defaultValue="3" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div></div>
-            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px"><div><label for="pk" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Per km after that (₱)</label><input class="kk-f" id="pk" type="number" defaultValue="10" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div><div><label for="rn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Round up to the nearest (₱)</label><input class="kk-f" id="rn" type="number" defaultValue="5" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div></div>
-            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px"><div><label for="mx" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Maximum distance (km)</label><input class="kk-f" id="mx" type="number" defaultValue="60" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"><span style="display: block; margin-top: 6px; font-size: 12px; line-height: 1.5; color: #6B5A4E">Farther pins are outside the delivery area.</span></div><div><label for="eta" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Delivery estimate (business days)</label><input class="kk-f" id="eta" type="text" defaultValue="3–5" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div></div>
+            <div class="kk-g2" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px"><div><label for="bf" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Base fee (₱)</label><input class="kk-f" id="bf" type="number" defaultValue="50" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div><div><label for="bk" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Covers the first (km)</label><input class="kk-f" id="bk" type="number" defaultValue="3" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div></div>
+            <div class="kk-g2" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px"><div><label for="pk" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Per km after that (₱)</label><input class="kk-f" id="pk" type="number" defaultValue="10" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div><div><label for="rn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Round up to the nearest (₱)</label><input class="kk-f" id="rn" type="number" defaultValue="5" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div></div>
+            <div class="kk-g2" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px"><div><label for="mx" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Maximum distance (km)</label><input class="kk-f" id="mx" type="number" defaultValue="60" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"><span style="display: block; margin-top: 6px; font-size: 12px; line-height: 1.5; color: #6B5A4E">Farther pins are outside the delivery area.</span></div><div><label for="eta" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Delivery estimate (business days)</label><input class="kk-f" id="eta" type="text" defaultValue="3–5" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div></div>
           </section>
           <section style="flex: 1 1 320px; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; padding: 22px">
             <h2 style="margin: 0; font-size: 16px; font-weight: 600">Try it</h2>
@@ -78,14 +99,15 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
         </div>
       </sc-if>
       <sc-if value="{{ onWallet }}" hint-placeholder-val="{{ false }}">
+        <p role="note" style="margin: 0; padding: 12px 14px; border-radius: 8px; background: #F7EFE4; font-size: 13px; color: #4A3A30; line-height: 1.6">Checkout, the landing page, the FAQ and emails only mention wallets that are shown at checkout. <strong>For now only GCash is on.</strong> Maya stays saved here so you can switch it back on any time.</p>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px">
           <sc-for list="{{ wallets }}" as="w" hint-placeholder-count="2">
             <section style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; padding: 22px; display: flex; gap: 18px; flex-wrap: wrap">
               <div style="flex: 1 1 200px; display: flex; flex-direction: column; gap: 12px">
-                <h2 style="margin: 0; font-size: 16px; font-weight: 600">{{ w.name }}</h2>
+                <h2 style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600">{{ w.name }}<span style="padding: 2px 8px; border-radius: 999px; background: {{ w.stBg }}; color: {{ w.stFg }}; font-size: 11px; font-weight: 600">{{ w.status }}</span></h2>
                 <div><span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Account name</span><input class="kk-f" aria-label="{{ w.name }} account name" defaultValue="{{ w.acct }}" style="margin-top: 6px; width: 100%; min-height: 42px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 9px 12px; font: inherit; font-size: 14px"></div>
                 <div><span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Account number</span><input class="kk-f" aria-label="{{ w.name }} account number" defaultValue="{{ w.num }}" style="margin-top: 6px; width: 100%; min-height: 42px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 9px 12px; font: inherit; font-size: 14px"></div>
-                <label style="display: flex; gap: 8px; align-items: center; font-size: 13.5px; cursor: pointer"><input type="checkbox" checked="{{ true }}" style="width: 18px; height: 18px; accent-color: #7B4A2A">Show at checkout</label>
+                <label style="display: flex; gap: 8px; align-items: center; font-size: 13.5px; cursor: pointer"><input type="checkbox" checked="{{ w.on }}" onChange="{{ w.toggle }}" style="width: 18px; height: 18px; accent-color: #7B4A2A">Show at checkout</label>
               </div>
               <div style="width: 160px">
                 <span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">QR code</span>
@@ -128,7 +150,7 @@ class Component extends DCLogic {
       hours: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => { const c = !!s.closed[d]; return { d: { Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday', Sun: 'Sunday' }[d], open: !c, text: c ? 'Closed' : '8:00 AM – 5:00 PM', fg: c ? '#8C7A66' : '#2B1A12', track: c ? '#DCCBB5' : '#7B4A2A', knob: c ? '3px' : '21px', toggle: () => this.setState({ closed: { ...s.closed, [d]: !c } }) }; }),
       km: s.km, onKm: (e) => this.setState({ km: e.target.value }),
       fee: fee === null ? 'Outside the area' : '₱' + fee, feeWhy: fee === null ? 'More than 60 km by road.' : '₱50 for the first 3 km + ₱10 × ' + Math.max(0, km - 3).toFixed(1) + ' km, rounded up to ₱5',
-      wallets: [{ name: 'GCash', acct: 'KALUPPA COFFEE', num: '0917 800 1122' }, { name: 'Maya', acct: 'KALUPPA COFFEE', num: '0918 800 3344' }],
+      wallets: [{ name: 'GCash', acct: 'KALUPPA COFFEE', num: '0917 800 1122', on: !s.hideGcash }, { name: 'Maya', acct: 'KALUPPA COFFEE', num: '0918 800 3344', on: !!s.showMaya }].map((w) => ({ ...w, status: w.on ? 'Shown at checkout' : 'Hidden at checkout', stBg: w.on ? '#E1F2E4' : '#F1ECE6', stFg: w.on ? '#1E5A34' : '#4A3A30', toggle: () => this.setState(w.name === 'Maya' ? { showMaya: !s.showMaya } : { hideGcash: !s.hideGcash }) })),
       hasToast: !!s.toast, toast: s.toast, clearToast: () => this.setState({ toast: '' }),
       save: () => this.setState({ toast: 'Settings saved. New quotes use the updated values.' })
     };

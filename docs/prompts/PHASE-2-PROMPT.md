@@ -84,6 +84,7 @@ _(Change 05 runs before this milestone: react-icons, `<Button>`, map area highli
 - **Settings**: branch (map pin, hours), delivery fee (calculator), e-wallet (QR upload). The delivery quote, pickup card and bean instructions read from Settings. Orders keep their saved copy.
 
 ### M12 — Inbox
+_(Change 06 runs before this milestone: phone layouts, the overview date filter, History in drawers, Inbox fidelity (5px inputs, avatars, menu below "…"), GCash-only copy. M12 builds on that Inbox spec.)_
 - Conversation, ConversationMember and Message models, with the auto-created chats:
   - Kaluppa chats on account creation;
   - group chats per association;

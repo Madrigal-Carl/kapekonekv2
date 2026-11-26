@@ -246,6 +246,31 @@ The handover happens at the branch, outside the system.
 
 ---
 
+### 3.14 Overview date filter (Change 06)
+- Every overview has **Today · This week · This month (default) · This year**: calendar ranges in Asia/Manila, weeks starting Monday, `?period=` in the URL, remembered per user.
+- `GET /dashboard/overview?period=` returns the KPIs, the comparison with the previous equivalent period, and chart buckets (today: 2-hour buckets from 6 AM; week: days; month: weeks; year: months).
+- Stock-like KPIs (farms, trees, orders to confirm, listings to review) ignore the period.
+
+### 3.15 Record history in drawers (Change 06)
+- Every view drawer (and every edit drawer for an existing record) ends with **History**: actor, action, time and changed fields, newest first, 5 at a time.
+- It comes from `GET /audit-logs/entity/:entityType/:entityId?cursor`. Anyone who can view the record can read its history; only Kaluppa gets "Open in audit log".
+- Audited actions needed:
+  - farmer request / approve / reject / transfer / remove / contact change;
+  - Group Manager create / assign / move / archive;
+  - association create / edit / assign;
+  - farm create / edit / pin move / archive / assign farmers;
+  - tree group add / edit / stage change / archive;
+  - harvest record / edit / archive;
+  - bean list / edit / approve / reject / complete / cancel / expire;
+  - order status changes, receipt check, rider, refund;
+  - product create / edit / stock / price / thumbnail / archive;
+  - review reply / hide / unhide.
+
+### 3.16 Payment providers (Change 06)
+- E-wallet providers live in Settings with `showAtCheckout`.
+- **For now only GCash is on**; Maya is seeded with its account details but off.
+- All copy (landing, FAQ, product notes, cart, checkout, emails) is built from the enabled providers. Checkout hides the wallet tabs when only one is on.
+
 ## 4. Data models (new or changed)
 
 **Accounts and associations**
@@ -392,6 +417,7 @@ Every route follows the Phase 1 flow: route → **auth** → validation → cont
   - 3 associations, 3 Group Managers (one unassigned);
   - about 14 farmers covering every state: approved, pending, rejected, unaffiliated, a pending transfer, and one created by a Group Manager with no email and `mustChangePassword`.
 - **Records**: farms with pins across all 6 towns (including 2 Kaluppa farms, one managed by the Santa Cruz Group Manager); tree groups in all 5 stages; 12 months of harvests.
+- **Payments**: GCash shown at checkout; Maya saved with its account details but `showAtCheckout: false`.
 - **Beans and orders**: bean listings in every status (one approved listing expiring in 1 day; one unapproved farmer at 3 of 5 kg); farmer store orders in several statuses.
 - **Inbox**: conversations of every kind with sent, delivered and seen states, one edited message, one deleted for everyone, and one read-only chat.
 - **Hub**: posts with tags, multi-image and video posts (including **one portrait photo** to test the fixed frames), and views so the top 3 is filled.

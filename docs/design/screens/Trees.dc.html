@@ -17,6 +17,27 @@ a{color:#7B4A2A}a:hover{color:#653B20}
 button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
 .kk-menu{display:none !important}
 @media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+.kk-dt-cards{display:none}
+@media (max-width: 720px){
+.kk-dt-bar{flex-direction:column !important;align-items:stretch !important;padding:12px !important}
+.kk-dt-search{max-width:none !important;flex:1 1 auto !important}
+.kk-dt-filters{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:8px !important}
+.kk-dt-filters > div{width:auto !important}
+.kk-dt-clear{grid-column:1 / -1;justify-self:start}
+.kk-dt-table{display:none !important}
+.kk-dt-cards{display:flex !important}
+.kk-dt-foot{flex-direction:column !important;align-items:stretch !important;text-align:center}
+.kk-dt-foot nav{justify-content:center}
+.kk-g2,.kk-g3{grid-template-columns:minmax(0,1fr) !important}
+.kk-ph-actions{width:100%}
+.kk-ph-actions > *{flex:1 1 auto}
+.kk-seg{width:100%}
+.kk-seg > button{flex:1 1 0}
+.kk-drawer{width:100% !important;border-left:0 !important}
+.kk-drawer-body{padding:20px 18px 28px !important}
+.kk-drawer-head,.kk-drawer-foot{padding-left:18px !important;padding-right:18px !important}
+.kk-drawer-foot > *{flex:1 1 auto}
+}
 </style>
 </helmet>
 <div style="position: relative; width: 100%; min-height: 1100px; background: #F5F0EA; display: flex; align-items: stretch">
@@ -24,7 +45,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
     <dc-import name="Sidebar" role="{{ role }}" active="Tree" hint-size="256px,900px"></dc-import>
   </div>
   <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
-    <dc-import name="DashTopbar" role="{{ role }}" crumb-a="Records" crumb-b="Tree" hint-size="100%,64px"></dc-import>
+    <dc-import name="DashTopbar" role="{{ role }}" active="Tree" crumb-a="Records" crumb-b="Tree" hint-size="100%,64px"></dc-import>
     <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
       <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
         <div style="min-width: 0; max-width: 720px">
@@ -32,7 +53,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
           <h1 style="margin: 8px 0 0; font-weight: 500; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15">Trees</h1>
           <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">{{ desc }}</p>
         </div>
-        <div style="display: flex; flex-wrap: wrap; gap: 10px"><button type="button" onClick="{{ openAdd }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; "><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Add tree group</button></div>
+        <div class="kk-ph-actions" style="display: flex; flex-wrap: wrap; gap: 10px"><button type="button" onClick="{{ openAdd }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; "><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Add tree group</button></div>
       </div>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px">
         <sc-for list="{{ stageTiles }}" as="t" hint-placeholder-count="5"><div style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px"><span aria-hidden="true" style="width: 8px; height: 30px; border-radius: 4px; background: {{ t.color }}"></span><span><span style="display: block; font-size: 12px; color: #4A3A30">{{ t.label }}</span><span style="display: block; font-size: 18px; font-weight: 600">{{ t.count }}</span></span></div></sc-for>
@@ -45,22 +66,36 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
   </div>
   <sc-if value="{{ isForm }}" hint-placeholder-val="{{ false }}">
     <button type="button" aria-label="Close panel" onClick="{{ closeDrawer }}" style="position: absolute; inset: 0; z-index: 60; border: 0; padding: 0; background: rgba(43,26,18,0.42); cursor: default"></button>
-    <aside role="dialog" aria-modal="true" aria-labelledby="dr-title" style="position: absolute; top: 0; right: 0; bottom: 0; z-index: 61; width: 600px; max-width: 100%; background: #FFFFFF; border-left: 1px solid #E7DCCD; box-shadow: -24px 0 48px -24px rgba(43,26,18,0.45); display: flex; flex-direction: column">
-      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 32px 20px; border-bottom: 1px solid #EFE6DA">
+    <aside class="kk-drawer" role="dialog" aria-modal="true" aria-labelledby="dr-title" style="position: absolute; top: 0; right: 0; bottom: 0; z-index: 61; width: 600px; max-width: 100%; background: #FFFFFF; border-left: 1px solid #E7DCCD; box-shadow: -24px 0 48px -24px rgba(43,26,18,0.45); display: flex; flex-direction: column">
+      <div class="kk-drawer-head" style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 32px 20px; border-bottom: 1px solid #EFE6DA">
         <div style="min-width: 0"><span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Tree group</span><h2 id="dr-title" style="margin: 4px 0 0; font-size: 20px; font-weight: 600; line-height: 1.3">{{ formTitle }}</h2></div>
         <button type="button" aria-label="Close" onClick="{{ closeDrawer }}" style="width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border: 0; background: transparent; border-radius: 5px; color: #6B5A4E; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
       </div>
-      <div style="flex: 1; overflow-y: auto; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px">
+      <div class="kk-drawer-body" style="flex: 1; overflow-y: auto; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px">
         <sc-if value="{{ isGm }}" hint-placeholder-val="{{ false }}"><div style="position: relative; z-index: 14"><dc-import name="SearchSelect" label="Farmer" icon="home" placeholder="Select farmer" search-placeholder="Search farmer" options="{{ farmerOpts }}" value="{{ tFarmer }}" on-pick="{{ pickFarmer }}" hint-size="100%,70px"></dc-import></div></sc-if>
         <div style="position: relative; z-index: 13"><dc-import name="SearchSelect" label="Farm" icon="pin" placeholder="Select farm" search-placeholder="Search farm" options="{{ farmOpts }}" value="{{ tFarm }}" on-pick="{{ pickFarm }}" hint-size="100%,70px"></dc-import></div>
-        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+        <div class="kk-g2" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
           <div style="position: relative; z-index: 12"><dc-import name="SearchSelect" label="Variety" icon="tag" placeholder="Select variety" search-placeholder="Search variety" options="{{ varOpts }}" value="{{ tVar }}" on-pick="{{ pickVar }}" hint-size="100%,70px"></dc-import></div>
           <div style="position: relative; z-index: 11"><dc-import name="SearchSelect" label="Stage" icon="tag" placeholder="Select stage" search-placeholder="Search stage" options="{{ stageOpts }}" value="{{ tStage }}" on-pick="{{ pickStage }}" hint-size="100%,70px"></dc-import></div>
         </div>
-        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px"><div><label for="cnt" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Number of trees</label><input class="kk-f" id="cnt" type="number" defaultValue="{{ tv.count }}" placeholder="e.g. 40" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div><div><label for="pl" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Date planted</label><input class="kk-f" id="pl" type="date" defaultValue="{{ tv.planted }}" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div></div>
+        <div class="kk-g2" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px"><div><label for="cnt" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Number of trees</label><input class="kk-f" id="cnt" type="number" defaultValue="{{ tv.count }}" placeholder="e.g. 40" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div><div><label for="pl" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Date planted</label><input class="kk-f" id="pl" type="date" defaultValue="{{ tv.planted }}" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div></div>
         <div><label for="nt" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Note <span style="text-transform: none; letter-spacing: 0; color: #7A6A5E">(optional)</span></label><textarea class="kk-f" id="nt" rows="3" placeholder="e.g. Leaf rust on the lower rows" style="margin-top: 8px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; line-height: 1.55; resize: vertical">{{ tv.note }}</textarea></div>
+        <sc-if value="{{ isEditing }}" hint-placeholder-val="{{ false }}"><section aria-label="History" style="display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding-top: 18px; border-top: 1px solid #F1E9DE"><h3 style="margin: 0; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B5A4E; font-weight: 600">History</h3><sc-if value="{{ histLink }}" hint-placeholder-val="{{ false }}"><a href="AuditLog.dc.html" style="font-size: 12.5px; font-weight: 600; text-decoration: none">Open in audit log</a></sc-if></div>
+          <ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column">
+            <sc-for list="{{ auditHist }}" as="ah" hint-placeholder-count="3">
+              <li style="display: flex; gap: 12px">
+                <span style="display: flex; flex-direction: column; align-items: center"><span aria-hidden="true" style="width: 30px; height: 30px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: {{ ah.bg }}; color: #FFFFFF; font-size: 10.5px; font-weight: 600">{{ ah.i }}</span><span aria-hidden="true" style="flex: 1; width: 2px; min-height: 14px; background: #EFE6DA"></span></span>
+                <div style="flex: 1; min-width: 0; padding: 4px 0 16px">
+                  <span style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; font-size: 13.5px"><span><strong>{{ ah.who }}</strong> {{ ah.what }}</span><span style="font-size: 12px; color: #8C7A66">{{ ah.when }}</span></span>
+                  <sc-if value="{{ ah.hasDiff }}" hint-placeholder-val="{{ false }}"><span style="display: block; margin-top: 4px; font-size: 12.5px; color: #4A3A30"><sc-for list="{{ ah.diff }}" as="df" hint-placeholder-count="1"><span style="display: block"><code style="font-size: 11.5px; color: #6B5A4E">{{ df.f }}</code> <del style="color: #8F2D22">{{ df.b }}</del> → <span style="color: #1E5A34; font-weight: 600">{{ df.a }}</span></span></sc-for></span></sc-if>
+                </div>
+              </li>
+            </sc-for>
+          </ol>
+        </section></sc-if>
       </div>
-      <div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; padding: 18px 32px; border-top: 1px solid #EFE6DA; background: #FBF8F4">
+      <div class="kk-drawer-foot" style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; padding: 18px 32px; border-top: 1px solid #EFE6DA; background: #FBF8F4">
 <button type="button" onClick="{{ closeDrawer }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Cancel</button><button type="button" onClick="{{ save }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">{{ formCta }}</button>
       </div>
     </aside>
@@ -126,6 +161,8 @@ class Component extends DCLogic {
       filters: [{ key: 'farm', label: 'Farm', options: ['All farms'].concat(farms.filter((f) => !f.archived).map((f) => f.code)) }, { key: 'variety', label: 'Variety', options: ['All varieties', 'Liberica', 'Excelsa', 'Robusta', 'Arabica'] }, { key: 'stage', label: 'Stage', options: ['All stages'].concat(STAGES.map((x) => x.label)) }],
       onAction: (k, r) => { if (k === 'edit') this.setState({ mode: 'edit', row: r, farm: r.t.farm.code + ' · ' + r.t.farm.lot, tvar: r.t.variety, tstage: r.t.stage.label }); else if (k === 'archive') this.setState({ modal: 'archive', row: r }); },
       isForm: s.mode === 'add' || editing, isArchive: s.modal === 'archive', isGm: role === 'group_manager',
+      isEditing: editing, histLink: role === 'kaluppa',
+      auditHist: (() => { const H = (i, bg, who, what, when, diff) => ({ i, bg, who, what, when, diff: diff || [], hasDiff: !!(diff && diff.length) });     const P = { ana: ['AV', '#2B1A12', 'Ana Villanueva'], liza: ['LR', '#8A5A12', 'Liza Ramos'], rodel: ['RM', '#3F6B4E', 'Rodel Mendoza'], sys: ['SY', '#8C7A66', 'System'], nestor: ['NP', '#4A3A30', 'Nestor Perez'] };     const h = (p, what, when, diff) => H(P[p][0], P[p][1], P[p][2], what, when, diff ? diff.map(([f, b, a]) => ({ f, b, a })) : null); return [h('rodel', 'changed the stage', 'Nov 10, 2026', [['stage', 'Growing', cur.stage.label]]), h('liza', 'corrected the count', 'Oct 2, 2026', [['count', String(cur.count + 10), String(cur.count)]]), h('rodel', 'added the tree group', 'Mar 15, 2022')]; })(),
       formTitle: editing ? 'Edit tree group' : 'Add a tree group', formCta: editing ? 'Save changes' : 'Add trees',
       tv: editing ? { count: String(cur.count), planted: '2022-03-15', note: cur.note } : { count: '', planted: '', note: '' },
       farmerOpts: ['Rodel Mendoza', 'Joy Lacsamana', 'Nestor Perez', 'Kaluppa farm (you manage)'], tFarmer: s.farmer, pickFarmer: (v) => this.setState({ farmer: v }),

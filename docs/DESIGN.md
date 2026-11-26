@@ -178,7 +178,7 @@ Put these in one `constants/orderStatus.js` map used by `StatusPill`, tabs and t
 - Products: variety chips, coffee-type checkboxes, price range, sort (`SearchSelect`, small), search — all synced to the URL query; infinite scroll with skeleton row and "Loading more coffee…".
 - Product detail: thumbnail switching, unit-aware quantity stepper capped at `stock − inCart` with the "already in your cart" line, star picker, review panel (your review → Edit / Delete with inline confirm → write again), "Load more reviews". List badge reads "Verified purchase".
 - Cart: steppers capped at stock ("That is all we have" hint), over-stock warning when stock dropped after adding, Checkout disabled while any warning shows.
-- Checkout: delivery/pickup cards switch section 2 (saved addresses vs Kaluppa pickup card + contact number); payment cards switch between e-wallet (GCash/Maya tabs, QR, receipt upload) and the cash note; the summary updates fee, total, destination, ETA and payment live.
+- Checkout: delivery/pickup cards switch section 2 (saved addresses vs Kaluppa pickup card + contact number); payment cards switch between e-wallet (tabs only when more than one wallet is enabled; GCash only for now, QR, receipt upload) and the cash note; the summary updates fee, total, destination, ETA and payment live.
 - Addresses: set default, edit, delete (confirm), add (opens modal).
 - Address modal: click/drag pin → fields fill; municipality select flies the map to it and drives barangay options and postal code; barangay select flies closer; zoom buttons; outside-area pin shows the error.
 - Orders: group cards filter the list; status chips narrow it inside a group; infinite scroll.
@@ -229,6 +229,11 @@ The dashboard screens are the canvas rows titled "Dashboard". Each page has a **
 | `UsernameField` | `Register`, `FarmerForm`, `GroupManagerForm` | `@` prefix, a status line with an icon, and 3 one-line suggestion chips. |
 | `AccountNav` | `FarmerAssociation`, `FarmerAddresses` | A pill bar with icons; the active item is crema with an espresso label. |
 
+| `DateRangeSegmented` | `Overview*` | White pill bar (4px padding, 8px radius). Segments 36px tall, 13px/600 text; the active segment is espresso with white text. "Showing <period> · <range>" sits to its left. |
+| `History` | every view drawer (and edit drawers for an existing record) | A section with a hairline divider and the uppercase title "History", plus "Open in audit log" (Kaluppa only). Entries: 30px avatar, a vertical connector line, "**Name** action" at 13.5px, the time at 12px on the right, and changed fields as `field` <del>before</del> → **after** (red / green). |
+| Thumbnail star | `Inventory`, `InventoryForm` | A 26px round button at the photo's top-left. Outline roast star on white for normal photos; filled white star on roast for the thumbnail. No text badge. |
+| Inbox inputs | `Inbox`, `InboxMobile` | The search and composer use **5px corners** (like the DataTable search); the send button is 42px square with 5px corners. Avatars show the profile photo when there is one, otherwise initials. The "…" menu opens directly below its button. |
+
 ### 8.3 Chart colors (validated with the dataviz checker; don't change the order)
 - **Varieties** (categorical): Liberica `#2a78d6`, Excelsa `#eb6834`, Robusta `#1baf7a`, Arabica `#eda100`.
 - **Tree stages**: Newly planted `#2a78d6`, Growing `#eb6834`, Flowering `#1baf7a`, Fruiting `#eda100`, Damaged `#e87ba4`.
@@ -265,6 +270,14 @@ The dashboard screens are the canvas rows titled "Dashboard". Each page has a **
 | `Main` (top-3 section), `Register` (farmer card copy), `PostDetail` (fixed media stage) | Phase 1 routes | updated |
 
 `Dashboard.dc.html` (Phase 1 placeholder) is replaced; delete the placeholder page.
+
+### 8.6 Phone and tablet (Change 06; boards `MobileOverview`, `MobileFarms`, `MobileFarmForm`, `MobileNav`)
+- **Below 960px**: the sidebar hides; the top bar's menu button opens it as a 280px left drawer with a backdrop. The avatar's name and role hide.
+- **Below 720px**:
+  - **DataTable**: the toolbar stacks (full-width search; filters in a 2-column grid; "Clear filters" spans both columns); rows become cards (title, label/value rows, labeled action buttons); the footer stacks.
+  - **Page header**: actions stretch; the date filter's segments are equal width.
+  - **Drawers**: full width, body padding 20/18, every field grid one column, footer buttons stretch.
+  - **No horizontal page scroll anywhere.**
 
 ### 8.5 Interactions to rebuild (dashboard)
 - **Tables**: search (debounced 300 ms), the Status dropdown, the filters and the page are synced to the URL query (`?status=&q=&variety=&page=`). Filter dropdowns have no search box. ↑ ↓ / Enter / Esc work on them. Row actions open drawers; drawers update the URL (`?open=<id>&mode=view|edit`) so links can be shared.

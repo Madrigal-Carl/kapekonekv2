@@ -17,6 +17,27 @@ a{color:#7B4A2A}a:hover{color:#653B20}
 button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
 .kk-menu{display:none !important}
 @media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+.kk-dt-cards{display:none}
+@media (max-width: 720px){
+.kk-dt-bar{flex-direction:column !important;align-items:stretch !important;padding:12px !important}
+.kk-dt-search{max-width:none !important;flex:1 1 auto !important}
+.kk-dt-filters{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:8px !important}
+.kk-dt-filters > div{width:auto !important}
+.kk-dt-clear{grid-column:1 / -1;justify-self:start}
+.kk-dt-table{display:none !important}
+.kk-dt-cards{display:flex !important}
+.kk-dt-foot{flex-direction:column !important;align-items:stretch !important;text-align:center}
+.kk-dt-foot nav{justify-content:center}
+.kk-g2,.kk-g3{grid-template-columns:minmax(0,1fr) !important}
+.kk-ph-actions{width:100%}
+.kk-ph-actions > *{flex:1 1 auto}
+.kk-seg{width:100%}
+.kk-seg > button{flex:1 1 0}
+.kk-drawer{width:100% !important;border-left:0 !important}
+.kk-drawer-body{padding:20px 18px 28px !important}
+.kk-drawer-head,.kk-drawer-foot{padding-left:18px !important;padding-right:18px !important}
+.kk-drawer-foot > *{flex:1 1 auto}
+}
 </style>
 </helmet>
 <div style="position: relative; width: 100%; min-height: 1250px; background: #F5F0EA; display: flex; align-items: stretch">
@@ -24,7 +45,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
     <dc-import name="Sidebar" role="kaluppa" active="Overview" hint-size="256px,900px"></dc-import>
   </div>
   <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
-    <dc-import name="DashTopbar" role="kaluppa" crumb-a="Dashboard" crumb-b="Overview" hint-size="100%,64px"></dc-import>
+    <dc-import name="DashTopbar" role="kaluppa" active="Overview" crumb-a="Dashboard" crumb-b="Overview" hint-size="100%,64px"></dc-import>
     <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
       <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
         <div style="min-width: 0; max-width: 720px">
@@ -32,7 +53,13 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
           <h1 style="margin: 8px 0 0; font-weight: 500; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15">Good morning, Ana</h1>
           <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">4 orders and 6 bean listings need you today.</p>
         </div>
-        <div style="display: flex; flex-wrap: wrap; gap: 10px"><a href="Inventory.dc.html" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; "><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Add product</a><a href="BeansKaluppa.dc.html" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Review beans</a></div>
+        <div class="kk-ph-actions" style="display: flex; flex-wrap: wrap; gap: 10px"><a href="Inventory.dc.html" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; "><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Add product</a><a href="BeansKaluppa.dc.html" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Review beans</a></div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+        <span style="font-size: 13.5px; color: #4A3A30">Showing <strong style="color: #2B1A12">{{ periodLabel }}</strong> · {{ periodRange }}</span>
+        <div class="kk-seg" role="group" aria-label="Date range" style="display: inline-flex; padding: 4px; gap: 2px; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px">
+          <sc-for list="{{ periods }}" as="pd" hint-placeholder-count="4"><button type="button" aria-pressed="{{ pd.on }}" onClick="{{ pd.pick }}" style="min-height: 36px; padding: 0 14px; border: 0; border-radius: 6px; background: {{ pd.bg }}; color: {{ pd.fg }}; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap">{{ pd.label }}</button></sc-for>
+        </div>
       </div>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px">
         <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
@@ -45,14 +72,14 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
       </div>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: start">
         <section style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; padding: 18px 20px">
-          <h2 style="margin: 0; font-size: 15.5px; font-weight: 600">Store sales per month</h2>
+          <h2 style="margin: 0; font-size: 15.5px; font-weight: 600">{{ salesTitle }}</h2>
           <p style="margin: 2px 0 10px; font-size: 12.5px; color: #6B5A4E">Sold orders, buyers and farmers, in pesos</p>
-          <dc-import name="BarChart" labels="{{ months }}" series="{{ salesSeries }}" prefix="₱" height="{{ 220 }}" aria="Store sales per month in pesos" hint-size="100%,260px"></dc-import>
+          <dc-import name="BarChart" labels="{{ chartLabels }}" series="{{ salesSeries }}" prefix="₱" height="{{ 220 }}" aria="Store sales per month in pesos" hint-size="100%,260px"></dc-import>
         </section>
         <section style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; padding: 18px 20px">
-          <h2 style="margin: 0; font-size: 15.5px; font-weight: 600">Beans bought from farmers</h2>
+          <h2 style="margin: 0; font-size: 15.5px; font-weight: 600">{{ beansTitle }}</h2>
           <p style="margin: 2px 0 10px; font-size: 12.5px; color: #6B5A4E">Completed listings, in kilograms</p>
-          <dc-import name="BarChart" labels="{{ months }}" series="{{ beanSeries }}" suffix=" kg" height="{{ 220 }}" aria="Beans bought per month in kilograms" hint-size="100%,260px"></dc-import>
+          <dc-import name="BarChart" labels="{{ chartLabels }}" series="{{ beanSeries }}" suffix=" kg" height="{{ 220 }}" aria="Beans bought per month in kilograms" hint-size="100%,260px"></dc-import>
         </section>
       </div>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; align-items: start">
@@ -97,7 +124,15 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 1440, "height": 1250}}'>
 class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { period: props.period || 'month' }; }
   renderVals() {
+    const per = this.state.period;
+    const PER = [['today', 'Today'], ['week', 'This week'], ['month', 'This month'], ['year', 'This year']];
+    const pv = (m) => ({ today: m[0], week: m[1], month: m[2], year: m[3] })[per];
+    const LBL = { today: ['6 AM', '8 AM', '10 AM', '12 PM', '2 PM', '4 PM'], week: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], month: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], year: ['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'] };
+    const W = { today: [0, 0.2, 0.35, 0.1, 0.25, 0.1], week: [0.18, 0.1, 0.22, 0.15, 0.2, 0.15, 0], month: [0.22, 0.31, 0.18, 0.29] };
+    const fit = (yearArr, total) => (per === 'year' ? yearArr : W[per].map((w) => Math.round(w * total)));
+    const periodVals = { periodLabel: PER.find((p) => p[0] === per)[1].toLowerCase(), periodRange: pv(['Nov 27, 2026', 'Nov 23 – Nov 29, 2026', 'Nov 1 – Nov 30, 2026', 'Jan 1 – Dec 31, 2026']), chartLabels: LBL[per], periods: PER.map(([k, l]) => ({ label: l, on: per === k, pick: () => this.setState({ period: k }), bg: per === k ? '#2B1A12' : 'transparent', fg: per === k ? '#FFFFFF' : '#4A3A30' })) };
     const IC = {
       farm: 'M7 20h10M10 20c5.5-2.5.8-6.4 3-10M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8zM14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z',
       tree: 'M12 22v-6M12 2 5 11h4l-5 5h16l-5-5h4z',
@@ -115,13 +150,13 @@ class Component extends DCLogic {
     return {
       kpis: [
         { label: 'Orders to confirm', value: '4', note: '2 e-wallet receipts to check', icon: IC.orders, href: 'OrdersKaluppa.dc.html', noteFg: '#6B4209' },
-        { label: 'Sales this month', value: '₱48,250', note: '▲ 12% vs October', icon: IC.peso, href: 'Reports.dc.html', noteFg: '#1E5A34' },
+        { label: 'Sales', value: pv(['₱3,420', '₱12,980', '₱48,250', '₱372,400']), note: pv(['6 orders sold today', '24 orders sold', '▲ 12% vs October', '▲ 41% vs last year']), icon: IC.peso, href: 'Reports.dc.html', noteFg: '#1E5A34' },
         { label: 'Bean listings to review', value: '6', note: '146 kg offered', icon: IC.beans, href: 'BeansKaluppa.dc.html', noteFg: '#6B4209' },
         { label: 'Farmers', value: '41', note: 'in 3 associations · 7 waiting', icon: IC.farmers, href: 'Associations.dc.html', noteFg: '#6B5A4E' }
       ],
-      months: ['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'],
-      salesSeries: [{ name: 'Sales', color: '#7B4A2A', values: [21400, 26900, 31250, 38800, 43050, 48250] }],
-      beanSeries: [{ name: 'Beans bought', color: '#7B4A2A', values: [40, 35, 120, 260, 410, 230] }],
+      ...periodVals, salesTitle: pv(['Store sales today', 'Store sales this week', 'Store sales this month', 'Store sales per month']), beansTitle: pv(['Beans bought today', 'Beans bought this week', 'Beans bought this month', 'Beans bought per month']),
+      salesSeries: [{ name: 'Sales', color: '#7B4A2A', values: fit([9800, 12100, 10400, 11800, 13200, 15400, 21400, 26900, 31250, 38800, 43050, 48250], pv([3420, 12980, 48250, 0])) }],
+      beanSeries: [{ name: 'Beans bought', color: '#7B4A2A', values: fit([20, 30, 10, 0, 0, 0, 40, 35, 120, 260, 410, 230], pv([12, 60, 230, 0])) }],
       ordersList: [
         { title: 'KK-20261123-0004 · Marites Abad', sub: 'Buyer · GCash receipt · ₱1,130', status: 'Check receipt', ...tone('amber') },
         { title: 'KK-20261122-0019 · Rodel Mendoza', sub: 'Farmer · cash on delivery · ₱2,690', status: 'To confirm', ...tone('amber') },

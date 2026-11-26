@@ -17,6 +17,27 @@ a{color:#7B4A2A}a:hover{color:#653B20}
 button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
 .kk-menu{display:none !important}
 @media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+.kk-dt-cards{display:none}
+@media (max-width: 720px){
+.kk-dt-bar{flex-direction:column !important;align-items:stretch !important;padding:12px !important}
+.kk-dt-search{max-width:none !important;flex:1 1 auto !important}
+.kk-dt-filters{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:8px !important}
+.kk-dt-filters > div{width:auto !important}
+.kk-dt-clear{grid-column:1 / -1;justify-self:start}
+.kk-dt-table{display:none !important}
+.kk-dt-cards{display:flex !important}
+.kk-dt-foot{flex-direction:column !important;align-items:stretch !important;text-align:center}
+.kk-dt-foot nav{justify-content:center}
+.kk-g2,.kk-g3{grid-template-columns:minmax(0,1fr) !important}
+.kk-ph-actions{width:100%}
+.kk-ph-actions > *{flex:1 1 auto}
+.kk-seg{width:100%}
+.kk-seg > button{flex:1 1 0}
+.kk-drawer{width:100% !important;border-left:0 !important}
+.kk-drawer-body{padding:20px 18px 28px !important}
+.kk-drawer-head,.kk-drawer-foot{padding-left:18px !important;padding-right:18px !important}
+.kk-drawer-foot > *{flex:1 1 auto}
+}
 </style>
 </helmet>
 <div style="position: relative; width: 100%; min-height: 1000px; background: #F5F0EA; display: flex; align-items: stretch">
@@ -24,7 +45,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
     <dc-import name="Sidebar" role="farmer" active="" hint-size="256px,900px"></dc-import>
   </div>
   <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
-    <dc-import name="DashTopbar" role="farmer" crumb-a="Account settings" crumb-b="Addresses" hint-size="100%,64px"></dc-import>
+    <dc-import name="DashTopbar" role="farmer" active="" crumb-a="Account settings" crumb-b="Addresses" hint-size="100%,64px"></dc-import>
     <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
       <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
         <div style="min-width: 0; max-width: 720px">
@@ -32,7 +53,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
           <h1 style="margin: 8px 0 0; font-weight: 500; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15">Addresses</h1>
           <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">Where Kaluppa delivers your fertilizer and seedlings. Your default address is picked first at checkout.</p>
         </div>
-        <div style="display: flex; flex-wrap: wrap; gap: 10px"><a href="AddressModal.dc.html" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #7B4A2A; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Add address</a></div>
+        <div class="kk-ph-actions" style="display: flex; flex-wrap: wrap; gap: 10px"><a href="AddressModal.dc.html" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #7B4A2A; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Add address</a></div>
       </div>
       <nav aria-label="Account settings" style="display: flex; gap: 4px; padding: 5px; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 10px; width: fit-content; max-width: 100%; overflow-x: auto">
         <sc-for list="{{ accNav }}" as="an" hint-placeholder-count="4"><a href="{{ an.href }}" aria-current="{{ an.current }}" style="display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px; border-radius: 7px; background: {{ an.bg }}; color: {{ an.fg }}; font-size: 13.5px; font-weight: {{ an.fw }}; text-decoration: none; white-space: nowrap"><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="{{ an.ic }}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ an.icon }}"></path></svg>{{ an.label }}</a></sc-for>

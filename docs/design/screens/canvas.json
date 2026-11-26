@@ -603,6 +603,38 @@
       "title": "Farmer account — Addresses (map cards)",
       "expand": "fill",
       "is_interactive": true
+    },
+    "MobileOverview.dc.html": {
+      "x": 0,
+      "y": 23190,
+      "w": 390,
+      "h": 2300,
+      "title": "Phone — farmer overview (date filter, banner)",
+      "is_interactive": true
+    },
+    "MobileFarms.dc.html": {
+      "x": 470,
+      "y": 23190,
+      "w": 390,
+      "h": 1900,
+      "title": "Phone — table becomes cards, filters in a 2-column grid",
+      "is_interactive": true
+    },
+    "MobileFarmForm.dc.html": {
+      "x": 940,
+      "y": 23190,
+      "w": 390,
+      "h": 1900,
+      "title": "Phone — drawer goes full width, fields stack",
+      "is_interactive": true
+    },
+    "MobileNav.dc.html": {
+      "x": 1410,
+      "y": 23190,
+      "w": 390,
+      "h": 844,
+      "title": "Phone — menu button opens the sidebar as a drawer",
+      "is_interactive": true
     }
   },
   "order": [
@@ -673,7 +705,11 @@
     "Reviews.dc.html",
     "ReviewView.dc.html",
     "Buttons.dc.html",
-    "FarmerAddresses.dc.html"
+    "FarmerAddresses.dc.html",
+    "MobileOverview.dc.html",
+    "MobileFarms.dc.html",
+    "MobileFarmForm.dc.html",
+    "MobileNav.dc.html"
   ],
   "notes": {
     "row1": {
@@ -761,6 +797,13 @@
       "text": "Dashboard — add drawers (open)",
       "kind": "title1",
       "maxW": 9040
+    },
+    "row11": {
+      "x": 0,
+      "y": 22890,
+      "text": "Dashboard — phone (390px)",
+      "kind": "title1",
+      "maxW": 1800
     }
   },
   "designSystems": []

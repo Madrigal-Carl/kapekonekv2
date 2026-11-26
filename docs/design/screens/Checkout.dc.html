@@ -250,14 +250,14 @@ class Component extends DCLogic {
       s2Title: isDelivery ? 'Delivery address' : 'Pickup at Kaluppa',
       addresses: addrs.map((a, i) => ({ ...a, on: addr === i, pick: () => this.setState({ addr: i }), feeLabel: peso(a.feeC), ...sel(addr === i) })),
       pays: [
-        { key: 'ewallet', title: 'GCash or Maya', text: 'Pay now and upload your receipt.' },
+        { key: 'ewallet', title: 'GCash', text: 'Pay now and upload your receipt.' },
         { key: 'cash', title: isDelivery ? 'Cash on delivery' : 'Cash on pickup', text: isDelivery ? 'Pay the rider when it arrives.' : 'Pay at Kaluppa when you collect it.' }
       ].map((p) => ({ ...p, on: pay === p.key, pick: () => this.setState({ pay: p.key }), ...sel(pay === p.key) })),
       isEwallet,
       isCash: !isEwallet,
       cashNote: isDelivery ? 'Please prepare ' + peso(total) + ' in cash for the rider. No receipt upload needed.' : 'Pay ' + peso(total) + ' in cash at Kaluppa when you pick up your order.',
       wallet: w,
-      wallets: ['GCash', 'Maya'].map((name) => ({ name, on: w === name, pick: () => this.setState({ w: name }), bg: w === name ? '#FFFFFF' : 'transparent', fg: w === name ? '#2B1A12' : '#6B5A4E' })),
+      wallets: ['GCash'].map((name) => ({ name, on: w === name, pick: () => this.setState({ w: name }), bg: w === name ? '#FFFFFF' : 'transparent', fg: w === name ? '#2B1A12' : '#6B5A4E' })),
       feeLabel: isDelivery ? 'Delivery fee · ' + addrs[addr].distance + ' km' : 'Pickup',
       fee: isDelivery ? peso(feeC) : 'Free',
       total: peso(total),

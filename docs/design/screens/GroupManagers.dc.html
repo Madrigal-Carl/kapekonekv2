@@ -17,6 +17,27 @@ a{color:#7B4A2A}a:hover{color:#653B20}
 button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
 .kk-menu{display:none !important}
 @media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+.kk-dt-cards{display:none}
+@media (max-width: 720px){
+.kk-dt-bar{flex-direction:column !important;align-items:stretch !important;padding:12px !important}
+.kk-dt-search{max-width:none !important;flex:1 1 auto !important}
+.kk-dt-filters{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:8px !important}
+.kk-dt-filters > div{width:auto !important}
+.kk-dt-clear{grid-column:1 / -1;justify-self:start}
+.kk-dt-table{display:none !important}
+.kk-dt-cards{display:flex !important}
+.kk-dt-foot{flex-direction:column !important;align-items:stretch !important;text-align:center}
+.kk-dt-foot nav{justify-content:center}
+.kk-g2,.kk-g3{grid-template-columns:minmax(0,1fr) !important}
+.kk-ph-actions{width:100%}
+.kk-ph-actions > *{flex:1 1 auto}
+.kk-seg{width:100%}
+.kk-seg > button{flex:1 1 0}
+.kk-drawer{width:100% !important;border-left:0 !important}
+.kk-drawer-body{padding:20px 18px 28px !important}
+.kk-drawer-head,.kk-drawer-foot{padding-left:18px !important;padding-right:18px !important}
+.kk-drawer-foot > *{flex:1 1 auto}
+}
 </style>
 </helmet>
 <div style="position: relative; width: 100%; min-height: 1000px; background: #F5F0EA; display: flex; align-items: stretch">
@@ -24,7 +45,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
     <dc-import name="Sidebar" role="kaluppa" active="Group Managers" hint-size="256px,900px"></dc-import>
   </div>
   <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
-    <dc-import name="DashTopbar" role="kaluppa" crumb-a="Records" crumb-b="Group Managers" hint-size="100%,64px"></dc-import>
+    <dc-import name="DashTopbar" role="kaluppa" active="Group Managers" crumb-a="Records" crumb-b="Group Managers" hint-size="100%,64px"></dc-import>
     <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
       <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
         <div style="min-width: 0; max-width: 720px">
@@ -32,7 +53,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
           <h1 style="margin: 8px 0 0; font-weight: 500; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15">Group Managers</h1>
           <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">Accounts that run each association. Only Kaluppa creates them.</p>
         </div>
-        <div style="display: flex; flex-wrap: wrap; gap: 10px"><button type="button" onClick="{{ openAdd }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; "><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Add Group Manager</button></div>
+        <div class="kk-ph-actions" style="display: flex; flex-wrap: wrap; gap: 10px"><button type="button" onClick="{{ openAdd }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; "><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Add Group Manager</button></div>
       </div>
       <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
         <div role="status" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 8px; background: #E1F2E4; border: 1px solid #BFDFC6; color: #1E5A34; font-size: 13.5px; font-weight: 500"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg><span style="flex: 1">{{ toast }}</span><button type="button" aria-label="Dismiss" onClick="{{ clearToast }}" style="width: 32px; height: 32px; border: 0; background: transparent; color: #1E5A34; cursor: pointer; display: grid; place-items: center"><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>
@@ -42,14 +63,14 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
   </div>
   <sc-if value="{{ isForm }}" hint-placeholder-val="{{ false }}">
     <button type="button" aria-label="Close panel" onClick="{{ closeDrawer }}" style="position: absolute; inset: 0; z-index: 60; border: 0; padding: 0; background: rgba(43,26,18,0.42); cursor: default"></button>
-    <aside role="dialog" aria-modal="true" aria-labelledby="dr-title" style="position: absolute; top: 0; right: 0; bottom: 0; z-index: 61; width: 600px; max-width: 100%; background: #FFFFFF; border-left: 1px solid #E7DCCD; box-shadow: -24px 0 48px -24px rgba(43,26,18,0.45); display: flex; flex-direction: column">
-      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 32px 20px; border-bottom: 1px solid #EFE6DA">
+    <aside class="kk-drawer" role="dialog" aria-modal="true" aria-labelledby="dr-title" style="position: absolute; top: 0; right: 0; bottom: 0; z-index: 61; width: 600px; max-width: 100%; background: #FFFFFF; border-left: 1px solid #E7DCCD; box-shadow: -24px 0 48px -24px rgba(43,26,18,0.45); display: flex; flex-direction: column">
+      <div class="kk-drawer-head" style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 32px 20px; border-bottom: 1px solid #EFE6DA">
         <div style="min-width: 0"><span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Group Manager</span><h2 id="dr-title" style="margin: 4px 0 0; font-size: 20px; font-weight: 600; line-height: 1.3">{{ formTitle }}</h2></div>
         <button type="button" aria-label="Close" onClick="{{ closeDrawer }}" style="width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border: 0; background: transparent; border-radius: 5px; color: #6B5A4E; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
       </div>
-      <div style="flex: 1; overflow-y: auto; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px">
+      <div class="kk-drawer-body" style="flex: 1; overflow-y: auto; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px">
         <h3 style="margin: 8px 0 -8px; padding-top: 18px; border-top: 1px solid #F1E9DE; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B5A4E; font-weight: 600">Name</h3>
-        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px"><div><label for="gfn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">First name</label><input class="kk-f" id="gfn" type="text" defaultValue="{{ g.first }}" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div><div><label for="gmn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Middle <span style="text-transform: none; letter-spacing: 0; color: #7A6A5E">(optional)</span></label><input class="kk-f" id="gmn" type="text" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div><div><label for="gln" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Last name</label><input class="kk-f" id="gln" type="text" defaultValue="{{ g.last }}" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div></div>
+        <div class="kk-g3" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px"><div><label for="gfn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">First name</label><input class="kk-f" id="gfn" type="text" defaultValue="{{ g.first }}" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div><div><label for="gmn" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Middle <span style="text-transform: none; letter-spacing: 0; color: #7A6A5E">(optional)</span></label><input class="kk-f" id="gmn" type="text" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div><div><label for="gln" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Last name</label><input class="kk-f" id="gln" type="text" defaultValue="{{ g.last }}" placeholder="" style="margin-top: 8px; width: 100%; min-height: 44px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 10px 13px; font: inherit; font-size: 14px; color: #2B1A12; background: #FFFFFF"></div></div>
         <div>
           <label for="un" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Username</label>
           <div style="position: relative; margin-top: 8px">
@@ -70,23 +91,37 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
         <div style="position: relative; z-index: 8"><dc-import name="SearchSelect" label="Association" icon="tag" placeholder="Assign later" search-placeholder="Search association" options="{{ assocOpts }}" value="{{ gAssoc }}" on-pick="{{ pickAssoc }}" hint-size="100%,70px"></dc-import></div>
         <p style="margin: 0; font-size: 12.5px; color: #4A3A30; line-height: 1.6">When saved: a chat with Kaluppa is created. If you pick an association, they join its group chat and review its farmer requests.</p>
       </div>
-      <div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; padding: 18px 32px; border-top: 1px solid #EFE6DA; background: #FBF8F4">
+      <div class="kk-drawer-foot" style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; padding: 18px 32px; border-top: 1px solid #EFE6DA; background: #FBF8F4">
 <button type="button" onClick="{{ closeDrawer }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Cancel</button><button type="button" onClick="{{ save }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">{{ formCta }}</button>
       </div>
     </aside>
   </sc-if>  <sc-if value="{{ isView }}" hint-placeholder-val="{{ false }}">
     <button type="button" aria-label="Close panel" onClick="{{ closeDrawer }}" style="position: absolute; inset: 0; z-index: 60; border: 0; padding: 0; background: rgba(43,26,18,0.42); cursor: default"></button>
-    <aside role="dialog" aria-modal="true" aria-labelledby="v-title" style="position: absolute; top: 0; right: 0; bottom: 0; z-index: 61; width: 600px; max-width: 100%; background: #FFFFFF; border-left: 1px solid #E7DCCD; box-shadow: -24px 0 48px -24px rgba(43,26,18,0.45); display: flex; flex-direction: column">
-      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 32px 20px; border-bottom: 1px solid #EFE6DA">
+    <aside class="kk-drawer" role="dialog" aria-modal="true" aria-labelledby="v-title" style="position: absolute; top: 0; right: 0; bottom: 0; z-index: 61; width: 600px; max-width: 100%; background: #FFFFFF; border-left: 1px solid #E7DCCD; box-shadow: -24px 0 48px -24px rgba(43,26,18,0.45); display: flex; flex-direction: column">
+      <div class="kk-drawer-head" style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 32px 20px; border-bottom: 1px solid #EFE6DA">
         <div style="min-width: 0"><span style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Group Manager</span><h2 id="v-title" style="margin: 4px 0 0; font-size: 20px; font-weight: 600; line-height: 1.3">{{ cur.name }}</h2></div>
         <button type="button" aria-label="Close" onClick="{{ closeDrawer }}" style="width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border: 0; background: transparent; border-radius: 5px; color: #6B5A4E; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
       </div>
-      <div style="flex: 1; overflow-y: auto; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px">
+      <div class="kk-drawer-body" style="flex: 1; overflow-y: auto; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px">
         <div style="display: flex; align-items: center; gap: 14px"><span aria-hidden="true" style="width: 52px; height: 52px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: {{ cur.bg }}; color: #FFFFFF; font-size: 17px; font-weight: 600">{{ cur.initials }}</span><div><span style="display: block; font-size: 17px; font-weight: 600">{{ cur.name }}</span><span style="display: block; font-size: 13px; color: #6B5A4E">{{ cur.sub }}</span></div></div>
         <dl style="margin: 0; display: grid; grid-template-columns: 160px 1fr; gap: 12px 18px; font-size: 14px; line-height: 1.5"><sc-for list="{{ viewRows }}" as="d" hint-placeholder-count="5"><dt style="color: #6B5A4E">{{ d.k }}</dt><dd style="margin: 0; font-weight: 500">{{ d.v }}</dd></sc-for></dl>
         <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px"><sc-for list="{{ stats }}" as="t" hint-placeholder-count="3"><div style="padding: 12px; border-radius: 8px; background: #FBF8F4; border: 1px solid #EFE6DA"><span style="display: block; font-size: 12px; color: #6B5A4E">{{ t.k }}</span><span style="display: block; font-size: 20px; font-weight: 600">{{ t.v }}</span></div></sc-for></div>
+        <section aria-label="History" style="display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding-top: 18px; border-top: 1px solid #F1E9DE"><h3 style="margin: 0; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B5A4E; font-weight: 600">History</h3><sc-if value="{{ histLink }}" hint-placeholder-val="{{ false }}"><a href="AuditLog.dc.html" style="font-size: 12.5px; font-weight: 600; text-decoration: none">Open in audit log</a></sc-if></div>
+          <ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column">
+            <sc-for list="{{ auditHist }}" as="ah" hint-placeholder-count="3">
+              <li style="display: flex; gap: 12px">
+                <span style="display: flex; flex-direction: column; align-items: center"><span aria-hidden="true" style="width: 30px; height: 30px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: {{ ah.bg }}; color: #FFFFFF; font-size: 10.5px; font-weight: 600">{{ ah.i }}</span><span aria-hidden="true" style="flex: 1; width: 2px; min-height: 14px; background: #EFE6DA"></span></span>
+                <div style="flex: 1; min-width: 0; padding: 4px 0 16px">
+                  <span style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; font-size: 13.5px"><span><strong>{{ ah.who }}</strong> {{ ah.what }}</span><span style="font-size: 12px; color: #8C7A66">{{ ah.when }}</span></span>
+                  <sc-if value="{{ ah.hasDiff }}" hint-placeholder-val="{{ false }}"><span style="display: block; margin-top: 4px; font-size: 12.5px; color: #4A3A30"><sc-for list="{{ ah.diff }}" as="df" hint-placeholder-count="1"><span style="display: block"><code style="font-size: 11.5px; color: #6B5A4E">{{ df.f }}</code> <del style="color: #8F2D22">{{ df.b }}</del> → <span style="color: #1E5A34; font-weight: 600">{{ df.a }}</span></span></sc-for></span></sc-if>
+                </div>
+              </li>
+            </sc-for>
+          </ol>
+        </section>
       </div>
-      <div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; padding: 18px 32px; border-top: 1px solid #EFE6DA; background: #FBF8F4">
+      <div class="kk-drawer-foot" style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; padding: 18px 32px; border-top: 1px solid #EFE6DA; background: #FBF8F4">
 <a href="Inbox.dc.html" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Message</a><button type="button" onClick="{{ editCur }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Edit</button>
       </div>
     </aside>
@@ -123,6 +158,9 @@ class Component extends DCLogic {
       ['g4', 'Rhea Bautista', 'rhea.b', 'RB', '#4A3A30', '', 0, '0905 664 2117', 'archived', 'Archived Sep 30']
     ];
     const rows = G.map((r) => ({ id: r[0], label: r[1], first: r[1].split(' ')[0], tab: r[8], gm: { name: r[1], sub: '@' + r[2], initials: r[3], bg: r[4] }, assoc: r[5] ? { main: r[5], sub: r[6] + ' farmers' } : { main: 'Not assigned', sub: 'Assign from Edit' }, phone: r[7], status: r[8] === 'archived' ? pill('Archived', 'gray') : (r[8] === 'unassigned' ? pill('No association', 'amber') : pill('Active', 'green')), since: r[9], assocName: r[5], actions: r[8] === 'archived' ? ['view', 'restore'] : ['view', 'edit', 'archive'] }));
+    const H = (i, bg, who, what, when, diff) => ({ i, bg, who, what, when, diff: diff || [], hasDiff: !!(diff && diff.length) });
+    const P = { ana: ['AV', '#2B1A12', 'Ana Villanueva'], liza: ['LR', '#8A5A12', 'Liza Ramos'], rodel: ['RM', '#3F6B4E', 'Rodel Mendoza'], sys: ['SY', '#8C7A66', 'System'], nestor: ['NP', '#4A3A30', 'Nestor Perez'] };
+    const h = (p, what, when, diff) => H(P[p][0], P[p][1], P[p][2], what, when, diff ? diff.map(([f, b, a]) => ({ f, b, a })) : null);
     const cur = s.row || rows[0];
     const editing = s.mode === 'edit';
     const unv = this.state.un;
@@ -139,7 +177,8 @@ class Component extends DCLogic {
       unSugg: [unFirst + '.' + unLast, unFirst[0] + unLast, unFirst + unLast[0] + '2026'].filter((n) => !unTaken.includes(n)).slice(0, 3).map((name) => ({ name, bg: unv === name ? '#F7EFE4' : '#FFFFFF', border: unv === name ? '#7B4A2A' : '#DCCBB5', pick: () => this.setState({ un: name }) }))
     };
     return {
-      ...base, ...unVals, minW: '760px',
+      ...base, ...unVals, minW: '760px', histLink: true,
+      auditHist: [h('ana', 'assigned the association', 'May 4, 2026, 10:20 AM', [['association', '—', cur.assoc.main]]), h('ana', 'created the account', 'May 4, 2026, 10:18 AM', [['role', '—', 'group_manager']]), h('sys', 'sent the invite email', 'May 4, 2026, 10:18 AM')],
       cols: [{ key: 'gm', label: 'Group Manager', kind: 'person' }, { key: 'assoc', label: 'Association' }, { key: 'phone', label: 'Contact' }, { key: 'status', label: 'Status', kind: 'pill' }, { key: 'since', label: 'Created', kind: 'muted' }],
       rows, filters: [],
       tabs: [{ key: 'all', label: 'All' }, { key: 'active', label: 'Active' }, { key: 'unassigned', label: 'No association' }, { key: 'archived', label: 'Archived' }],

@@ -13,14 +13,14 @@
 </helmet>
 <section aria-label="{{ ariaLabel }}" style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; color: #2B1A12; box-sizing: border-box">
 
-  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 16px">
-    <div style="position: relative; flex: 1 1 260px; max-width: 360px">
+  <div class="kk-dt-bar" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 16px">
+    <div class="kk-dt-search" style="position: relative; flex: 1 1 260px; max-width: 360px">
       <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#7A6A5E" stroke-width="2" stroke-linecap="round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
       <input type="search" aria-label="{{ searchPlaceholder }}" value="{{ q }}" onInput="{{ onQ }}" placeholder="{{ searchPlaceholder }}" style="width: 100%; min-height: 40px; border: 1px solid #DCCBB5; border-radius: 5px; padding: 8px 12px 8px 36px; font: inherit; font-size: 13.5px; color: #2B1A12; background: #FFFFFF; box-sizing: border-box">
     </div>
-    <div role="group" aria-label="Filters" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px">
+    <div class="kk-dt-filters" role="group" aria-label="Filters" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px">
       <sc-if value="{{ hasActive }}" hint-placeholder-val="{{ false }}">
-        <button type="button" onClick="{{ clearAll }}" style="min-height: 40px; padding: 0 10px; border: 0; background: transparent; color: #7B4A2A; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">Clear filters</button>
+        <button type="button" class="kk-dt-clear" onClick="{{ clearAll }}" style="min-height: 40px; padding: 0 10px; border: 0; background: transparent; color: #7B4A2A; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">Clear filters</button>
       </sc-if>
       <sc-for list="{{ filterList }}" as="f" hint-placeholder-count="2">
         <div style="position: relative; z-index: {{ f.z }}; width: {{ f.w }}">
@@ -30,7 +30,7 @@
     </div>
   </div>
 
-  <div style="overflow-x: auto; border-top: 1px solid #EFE6DA">
+  <div class="kk-dt-table" style="overflow-x: auto; border-top: 1px solid #EFE6DA">
     <table style="width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: {{ minW }}">
       <thead>
         <tr style="background: #FBF8F4">
@@ -76,7 +76,32 @@
     </sc-if>
   </div>
 
-  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-top: 1px solid #EFE6DA">
+  <ul class="kk-dt-cards" aria-label="{{ ariaLabel }}" style="list-style: none; margin: 0; padding: 12px; border-top: 1px solid #EFE6DA; flex-direction: column; gap: 10px">
+    <sc-for list="{{ pageRows }}" as="r" hint-placeholder-count="3">
+      <li style="border: 1px solid {{ r.cardBorder }}; border-radius: 8px; background: #FFFFFF; padding: 14px">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <sc-if value="{{ r.head.isPerson }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="width: 34px; height: 34px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: {{ r.head.avatarBg }}; color: #FFFFFF; font-size: 11.5px; font-weight: 600">{{ r.head.initials }}</span></sc-if>
+          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><span style="font-size: 14.5px; font-weight: 600">{{ r.head.main }}</span><span style="font-size: 12px; color: #6B5A4E">{{ r.head.sub }}</span></span>
+        </div>
+        <dl style="margin: 12px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 7px 14px; font-size: 13px">
+          <sc-for list="{{ r.rest }}" as="c" hint-placeholder-count="4">
+            <dt style="color: #6B5A4E">{{ c.label }}</dt>
+            <dd style="margin: 0; text-align: right; min-width: 0">
+              <sc-if value="{{ c.isPill }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px; background: {{ c.pillBg }}; color: {{ c.pillFg }}; font-size: 11.5px; font-weight: 600"><span aria-hidden="true" style="width: 6px; height: 6px; border-radius: 999px; background: {{ c.dot }}"></span>{{ c.main }}</span></sc-if>
+              <sc-if value="{{ c.notPill }}" hint-placeholder-val="{{ true }}"><span style="font-weight: 500">{{ c.main }}</span><sc-if value="{{ c.hasSub }}" hint-placeholder-val="{{ false }}"><span style="display: block; font-size: 11.5px; color: #6B5A4E">{{ c.sub }}</span></sc-if></sc-if>
+            </dd>
+          </sc-for>
+        </dl>
+        <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid #F1E9DE; display: flex; flex-wrap: wrap; gap: 6px">
+          <sc-for list="{{ r.actions }}" as="a" hint-placeholder-count="2">
+            <button type="button" onClick="{{ a.run }}" style="flex: 1 1 0; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; padding: 0 10px; border: 1px solid #E7DCCD; background: #FFFFFF; color: {{ a.fg }}; border-radius: 5px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ a.icon }}"></path></svg>{{ a.label }}</button>
+          </sc-for>
+        </div>
+      </li>
+    </sc-for>
+  </ul>
+
+  <div class="kk-dt-foot" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-top: 1px solid #EFE6DA">
     <span aria-live="polite" style="font-size: 12.5px; color: #4A3A30">{{ rangeLabel }}</span>
     <nav aria-label="Pages" style="display: flex; align-items: center; gap: 4px">
       <button type="button" aria-label="Previous page" disabled="{{ atFirst }}" onClick="{{ prev }}" style="width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid #E7DCCD; background: #FFFFFF; border-radius: 5px; color: {{ prevFg }}; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></button>
@@ -151,6 +176,9 @@ class Component extends DCLogic {
       pageRows: slice.map((r) => ({
         bg: r.id && r.id === p.selectedId ? '#FBF6F0' : '#FFFFFF',
         cells: cols.map((c) => fmt(c, r)),
+        head: (() => { const c = fmt(cols[0], r); return { ...c, sub: c.sub || '' }; })(),
+        rest: cols.slice(1).map((c) => { const x = fmt(c, r); return { ...x, label: c.label, notPill: !x.isPill, main: x.isPerson ? x.main : x.main, sub: x.sub || '', hasSub: !!x.sub && !x.isPill }; }),
+        cardBorder: r.id && r.id === p.selectedId ? '#7B4A2A' : '#E7DCCD',
         actions: (r.actions || p.actions || ['view', 'edit', 'archive']).map((k) => ({ label: LABEL[k], aria: LABEL[k] + ' ' + (r.label || ''), icon: ICON[k], fg: k === 'archive' || k === 'reject' || k === 'cancel' || k === 'hide' ? '#A1362B' : (k === 'approve' ? '#22633A' : '#4A3A30'), run: () => p.onAction && p.onAction(k, r) }))
       })),
       empty: rows.length === 0,

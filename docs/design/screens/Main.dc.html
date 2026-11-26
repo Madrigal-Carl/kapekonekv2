@@ -54,7 +54,7 @@ a{color:#7B4A2A}a:hover{color:#653B20}
           Marinduque coffee · Sourced by Kaluppa
         </span>
         <h1 style="margin: 22px 0 0; color: #FFFFFF; font-weight: 500; font-size: 56px; line-height: 1.08; letter-spacing: -0.02em">Marinduque coffee, delivered to your door.</h1>
-        <p style="margin: 20px auto 0; max-width: 620px; color: rgba(255,255,255,0.85); font-size: 17px; line-height: 1.65">Green beans, fresh roasts and grounds from local farms. Order online, pay by GCash, Maya or cash on delivery, and get it anywhere in Marinduque in 3–5 business days.</p>
+        <p style="margin: 20px auto 0; max-width: 620px; color: rgba(255,255,255,0.85); font-size: 17px; line-height: 1.65">Green beans, fresh roasts and grounds from local farms. Order online, pay by GCash or cash on delivery, and get it anywhere in Marinduque in 3–5 business days.</p>
         <div style="margin-top: 32px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center">
           <a class="kk-btn" href="Products.dc.html" style="display: inline-flex; align-items: center; gap: 8px; background: #F7EFE4; color: #2B1A12; text-decoration: none; padding: 13px 22px; border-radius: 5px; font-size: 14px; font-weight: 600">Browse coffee
             <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
@@ -169,10 +169,6 @@ a{color:#7B4A2A}a:hover{color:#653B20}
           </li>
         </sc-for>
       </ol>
-      <div style="margin-top: 40px; display: flex; align-items: flex-start; gap: 12px; background: #FBF3E3; border: 1px solid #EBD3A6; border-radius: 8px; padding: 16px 18px; max-width: 760px">
-        <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#8A5A12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-        <p style="margin: 0; font-size: 13.5px; line-height: 1.6; color: #5C3D0E">Kaluppa confirms each order within 3 days. If it isn't confirmed in time, it expires, and any e-wallet payment is refunded.</p>
-      </div>
     </div>
   </section>
 
@@ -301,7 +297,7 @@ class Component extends DCLogic {
   renderVals() {
     const faqs = [
       { q: 'How does delivery work?', a: 'Kaluppa delivers anywhere in Marinduque. Add your address (drop a pin or type it in), and the delivery fee is calculated from the road distance to Kaluppa in Pantayin, Santa Cruz.' },
-      { q: 'How do I pay?', a: 'By GCash or Maya (scan the QR at checkout and upload your receipt), or cash on delivery. Pickup orders can pay by e-wallet or in cash at Kaluppa.' },
+      { q: 'How do I pay?', a: 'By GCash (scan the QR at checkout and upload your receipt), or cash on delivery. Pickup orders can pay by e-wallet or in cash at Kaluppa.' },
       { q: 'When will my order arrive?', a: 'Usually 3\u20135 business days after Kaluppa confirms it. You\u2019ll get an email and an in-app notification when it\u2019s out for delivery.' },
       { q: 'What if Kaluppa doesn\u2019t confirm my order?', a: 'Orders that aren\u2019t confirmed within 3 days expire automatically. If you paid by e-wallet, your payment is marked for refund.' },
       { q: 'Can I cancel?', a: 'Yes, while your order is still pending. Pick a reason. E-wallet payments are refunded by Kaluppa.' }
@@ -322,7 +318,7 @@ class Component extends DCLogic {
       steps: [
         { n: '1', title: 'Add coffee to your cart', text: 'Filter by variety and type, then choose your quantity.' },
         { n: '2', title: 'Choose delivery or pickup', text: 'Pick a saved address or add one with a map pin, or collect at Kaluppa.' },
-        { n: '3', title: 'Pay your way', text: 'GCash or Maya with a receipt upload, or cash on delivery.' },
+        { n: '3', title: 'Pay your way', text: 'GCash with a receipt upload, or cash on delivery.' },
         { n: '4', title: 'Get it in 3\u20135 business days', text: 'Kaluppa confirms, prepares and ships it. We notify you at every step.' }
       ],
       posts: [
