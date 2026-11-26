@@ -410,4 +410,5 @@ frontend/src/
   - `migrate:fresh -- --seed` ok;
   - Playwright 87/90: `hub.spec.js` 5/5 (post → react → comment → tag filter → Kaluppa removes → farmer notified; grid and viewer heights fixed at 1440/390; landing top 3 and the guest sign-in prompt; buyer 403). The 3 failures predate M13 and are stale after Change 06: `orders.spec` looks for a "GCash or Maya" radio (GCash only since 06F), `store.spec` reads an `<img>` inside the thumbnail button (a star button since 06D), `storefront.spec` review test finds no "Write a review" panel for `buyer`;
   - screenshots for farmer and Kaluppa at 1440 and Group Manager at 390, compared with Hub.dc.html by its markup values.
+- **After review**: the Hub fills the page width (no 1240px page or 680px feed cap; the aside stays 340px on the right), like the Inbox.
 - **Not built**: the association name in a Group Manager's post meta ("· Santa Cruz Coffee Growers"); graphify not re-run.

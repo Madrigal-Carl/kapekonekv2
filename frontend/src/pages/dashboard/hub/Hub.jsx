@@ -114,7 +114,7 @@ function usePostDialogs({ onToast, onGone }) {
 }
 
 function Main({ children }) {
-  return <main className="flex w-full max-w-[1240px] flex-col gap-5 px-8 pb-14 pt-7 max-[960px]:px-4 max-[960px]:pb-10 max-[960px]:pt-5">{children}</main>
+  return <main className="flex w-full flex-col gap-5 px-8 pb-14 pt-7 max-[960px]:px-4 max-[960px]:pb-10 max-[960px]:pt-5">{children}</main>
 }
 
 /** `/dashboard/hub` (Hub.dc.html): composer, tag filter, the feed with infinite scroll, and the aside. */
@@ -131,7 +131,7 @@ export function Hub() {
   return (
     <Main>
       <div className="flex flex-wrap items-start gap-6">
-        <div className="flex min-w-0 max-w-[680px] flex-[999_1_560px] flex-col gap-3.5">
+        <div className="flex min-w-0 flex-[999_1_560px] flex-col gap-3.5">
           <div>
             <span className="block text-[11px] font-medium uppercase tracking-[0.16em] text-ink-3">Community</span>
             <h1 className="mt-1.5 text-[28px] font-medium tracking-[-0.02em]">Hub</h1>
@@ -176,7 +176,7 @@ export function HubPost() {
 
   return (
     <Main>
-      <div className="flex w-full max-w-[680px] flex-col gap-3.5">
+      <div className="flex w-full flex-col gap-3.5">
         <Link to="/dashboard/hub" className="self-start text-[13.5px] font-semibold no-underline">← Back to Hub</Link>
         <Banner message={toastText} onClose={() => setToastText('')} />
         {isPending && <Skeleton className="h-[480px] rounded-[10px]" />}
