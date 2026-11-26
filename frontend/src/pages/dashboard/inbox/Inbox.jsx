@@ -72,7 +72,7 @@ export function Inbox() {
 
   return (
     <main className="flex w-full flex-col gap-5 px-8 pb-14 pt-7 max-[960px]:p-0">
-      <div className="max-[960px]:hidden">
+      <div className="max-[960px]:sr-only">{/* InboxMobile shows no header; the h1 stays for screen readers */}
         <PageHeader eyebrow="Community" title="Inbox" />
       </div>
       <section aria-label="Inbox" className="flex h-[760px] overflow-hidden rounded-[10px] border border-sand bg-white max-[960px]:h-[calc(100dvh-64px)] max-[960px]:rounded-none max-[960px]:border-0">
