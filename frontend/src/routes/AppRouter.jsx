@@ -7,27 +7,28 @@ import { RootLayout } from '@/layouts/RootLayout'
 import { StorefrontLayout } from '@/layouts/StorefrontLayout'
 import { Forbidden } from '@/pages/errors/Forbidden' // the guards render it too
 import { GuestRoute, ProtectedRoute, StorefrontRoute } from './guards'
-import { AccountSettings } from '@/pages/dashboard/account/AccountSettings'
-import { Association as DashboardAssociation } from '@/pages/dashboard/account/Association'
-import { Associations } from '@/pages/dashboard/associations/Associations'
-import { Farmers } from '@/pages/dashboard/farmers/Farmers'
-import { GroupManagers } from '@/pages/dashboard/groupManagers/GroupManagers'
-import { Beans } from '@/pages/dashboard/beans/Beans'
-import { Inventory } from '@/pages/dashboard/inventory/Inventory'
-import { Orders as DashboardOrders } from '@/pages/dashboard/orders/Orders'
-import { Reviews } from '@/pages/dashboard/reviews/Reviews'
-import { Settings as KaluppaSettings } from '@/pages/dashboard/settings/Settings'
-import { Farms } from '@/pages/dashboard/records/Farms'
-import { Inbox } from '@/pages/dashboard/inbox/Inbox'
-import { Hub, HubPost } from '@/pages/dashboard/hub/Hub'
-import { Harvests } from '@/pages/dashboard/records/Harvests'
-import { Trees } from '@/pages/dashboard/records/Trees'
-import { FarmMap } from '@/pages/dashboard/map/FarmMap'
-import { Reports } from '@/pages/dashboard/reports/Reports'
-import { AuditLog } from '@/pages/dashboard/auditLog/AuditLog'
 
 // Each page is its own chunk, loaded on first visit (RootLayout's Suspense shows the spinner).
 const page = (load, name) => lazy(() => load().then((m) => ({ default: m[name] })))
+const AccountSettings = page(() => import('@/pages/dashboard/account/AccountSettings'), 'AccountSettings')
+const DashboardAssociation = page(() => import('@/pages/dashboard/account/Association'), 'Association')
+const Associations = page(() => import('@/pages/dashboard/associations/Associations'), 'Associations')
+const Farmers = page(() => import('@/pages/dashboard/farmers/Farmers'), 'Farmers')
+const GroupManagers = page(() => import('@/pages/dashboard/groupManagers/GroupManagers'), 'GroupManagers')
+const Beans = page(() => import('@/pages/dashboard/beans/Beans'), 'Beans')
+const Inventory = page(() => import('@/pages/dashboard/inventory/Inventory'), 'Inventory')
+const DashboardOrders = page(() => import('@/pages/dashboard/orders/Orders'), 'Orders')
+const Reviews = page(() => import('@/pages/dashboard/reviews/Reviews'), 'Reviews')
+const KaluppaSettings = page(() => import('@/pages/dashboard/settings/Settings'), 'Settings')
+const Farms = page(() => import('@/pages/dashboard/records/Farms'), 'Farms')
+const Inbox = page(() => import('@/pages/dashboard/inbox/Inbox'), 'Inbox')
+const Hub = page(() => import('@/pages/dashboard/hub/Hub'), 'Hub')
+const HubPost = page(() => import('@/pages/dashboard/hub/Hub'), 'HubPost')
+const Harvests = page(() => import('@/pages/dashboard/records/Harvests'), 'Harvests')
+const Trees = page(() => import('@/pages/dashboard/records/Trees'), 'Trees')
+const FarmMap = page(() => import('@/pages/dashboard/map/FarmMap'), 'FarmMap')
+const Reports = page(() => import('@/pages/dashboard/reports/Reports'), 'Reports')
+const AuditLog = page(() => import('@/pages/dashboard/auditLog/AuditLog'), 'AuditLog')
 const ForgotPassword = page(() => import('@/pages/auth/ForgotPassword'), 'ForgotPassword')
 const Login = page(() => import('@/pages/auth/Login'), 'Login')
 const Register = page(() => import('@/pages/auth/Register'), 'Register')

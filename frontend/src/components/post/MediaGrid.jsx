@@ -30,7 +30,7 @@ export function MediaGrid({ media, onOpen }) {
           <Button
             variant="bare"
             key={item.url + i}
-            aria-label={`Open ${isVideo ? 'video' : 'photo'} ${i + 1} of ${media.length}`}
+            aria-label={`Open ${isVideo ? 'video' : 'photo'} ${i + 1} of ${media.length}${i === 3 && more > 0 ? `, +${more} more` : ''}`}
             onClick={() => onOpen(i)}
             className={`relative grid min-h-0 place-items-center overflow-hidden border-0 p-0 ${isVideo ? 'bg-espresso-2' : 'bg-photo'} ${tiles[i]}`}
           >

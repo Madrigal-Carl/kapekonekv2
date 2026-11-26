@@ -5,6 +5,13 @@ import { IconLocate, IconMapPin, IconMaximize, IconMinus, IconPlus, IconSearch }
 
 import { useEffect, useRef, useState } from 'react'
 import MapGL, { Layer, Marker, Source } from 'react-map-gl/mapbox'
+
+// Mapbox marks every marker role="img" ("Map marker"); one that holds buttons must not be an image (axe nested-interactive).
+const notAnImage = (marker) => {
+  const el = marker?.getElement()
+  el?.removeAttribute('role')
+  el?.removeAttribute('aria-label')
+}
 import { toast } from 'sonner'
 import { inputClasses } from '@/components/ui/Input'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
@@ -221,7 +228,7 @@ export function MapPicker({
             {pins?.map((p) => {
               const on = p.id === selectedId
               return (
-                <Marker key={p.id} latitude={p.lat} longitude={p.lng} anchor="bottom" style={{ zIndex: on ? 3 : 1 }}>
+                <Marker ref={notAnImage} key={p.id} latitude={p.lat} longitude={p.lng} anchor="bottom" style={{ zIndex: on ? 3 : 1 }}>
                   <Button
                     variant="bare"
                     aria-label={p.label}
@@ -238,7 +245,7 @@ export function MapPicker({
               )
             })}
             {selectedPin && popup && (
-              <Marker latitude={selectedPin.lat} longitude={selectedPin.lng} anchor="bottom" offset={[0, -46]} style={{ zIndex: 5 }}>
+              <Marker ref={notAnImage} latitude={selectedPin.lat} longitude={selectedPin.lng} anchor="bottom" offset={[0, -46]} style={{ zIndex: 5 }}>
                 {popup}
               </Marker>
             )}

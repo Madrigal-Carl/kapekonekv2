@@ -97,7 +97,7 @@ function Breakdown({ query, csvUrl, isKaluppa }) {
       ) : query.data.rows.length === 0 ? (
         <p className="px-[18px] py-8 text-center text-[13px] text-ink-3">{isKaluppa ? 'No associations yet.' : 'No approved farmers yet.'}</p>
       ) : (
-        <div className="overflow-x-auto">
+        <div tabIndex={0} role="region" aria-label={`${title} table`} className="overflow-x-auto">
           <table className="w-full min-w-[760px] border-collapse text-[13.5px]">
             <thead>
               <tr className="bg-cream">

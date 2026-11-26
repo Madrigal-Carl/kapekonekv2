@@ -29,7 +29,7 @@
   --color-ink-2: #4A3A30;         /* body */
   --color-ink-3: #6B5A4E;         /* muted, labels */
   --color-ink-4: #7A6A5E;         /* faint, timestamps */
-  --color-ink-5: #8C7A66;         /* chat times and receipts */
+  --color-ink-5: #8C7A66;         /* decorative only (system avatar); below 4.5:1 for text */
   --color-typing-1: #B8A08A; --color-typing-2: #9C8470; /* typing dots */
 
   /* feedback */

@@ -97,7 +97,7 @@ export function ChatList({ query, activeId, filter, onFilter, q, onQ, onOpen, on
                   <span className="min-w-0 flex-1">
                     <span className="flex justify-between gap-2">
                       <span className={cn('truncate text-sm', unread ? 'font-bold' : 'font-semibold')}>{chat.name}</span>
-                      {chat.lastMessage && <span className={cn('shrink-0 text-[11.5px]', unread ? 'text-roast' : 'text-ink-5')}>{listTime(chat.lastMessage.at)}</span>}
+                      {chat.lastMessage && <span className={cn('shrink-0 text-[11.5px]', unread ? 'text-roast' : 'text-ink-4')}>{listTime(chat.lastMessage.at)}</span>}
                     </span>
                     <span className="flex items-center justify-between gap-2">
                       <span className={cn('truncate text-[12.5px]', typing ? 'italic text-roast' : unread ? 'font-semibold text-ink' : 'text-ink-3')}>

@@ -117,3 +117,34 @@ test('keyboard: cart drawer traps focus and Esc returns it; the bell panel opens
   await expect(page.getByRole('heading', { name: 'Notifications' })).toBeHidden()
   await expect(bell).toBeFocused()
 })
+
+// M15: every sidebar page per dashboard role, at both widths.
+for (const who of ['farmer.approved', 'manager.santacruz', 'kaluppa']) {
+  test(`${who}: every dashboard page has no WCAG A/AA violations`, async ({ page }) => {
+    test.setTimeout(420_000)
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await signIn(page, who, '/dashboard/overview')
+    const nav = page.getByRole('complementary', { name: 'Dashboard navigation' }).getByRole('navigation')
+    await expect(nav.getByRole('link').first()).toBeVisible()
+    const routes = (await nav.getByRole('link').evaluateAll((links) => links.map((a) => a.getAttribute('href')))).filter((href) => href.startsWith('/dashboard/'))
+    const problems = await audit(page, routes)
+    expect(problems, problems.join('\n')).toEqual([])
+  })
+}
+
+test('keyboard: a view drawer traps focus, Esc closes it and focus returns to its row button', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await signIn(page, 'kaluppa', '/dashboard/farms')
+  const view = page.getByRole('button', { name: /^View / }).first()
+  await view.focus()
+  await page.keyboard.press('Enter')
+  const drawer = page.getByRole('dialog')
+  await expect(drawer).toBeVisible()
+  for (let i = 0; i < 25; i += 1) {
+    await page.keyboard.press('Tab')
+    expect(await drawer.evaluate((d) => d.contains(document.activeElement))).toBe(true)
+  }
+  await page.keyboard.press('Escape')
+  await expect(drawer).toBeHidden()
+  await expect(view).toBeFocused()
+})

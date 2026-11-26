@@ -108,7 +108,7 @@ export function ChatThread({ chat, myId, onBack }) {
             return (
               <Fragment key={m.id}>
                 {newDay && (
-                  <div className="flex items-center gap-2.5 text-[11.5px] text-ink-5">
+                  <div className="flex items-center gap-2.5 text-[11.5px] text-ink-4">
                     <span className="h-px flex-1 bg-sand" />
                     {dayLabel(m.createdAt)}
                     <span className="h-px flex-1 bg-sand" />

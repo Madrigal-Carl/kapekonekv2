@@ -60,7 +60,7 @@ function MessageMenu({ canEdit, onEdit, onDeleteEveryone, onDeleteMe, onClose })
 function Receipt({ receipt }) {
   const Icon = receipt.state === 'sent' ? IconCheck : IconDoubleCheck
   return (
-    <span className={cn('inline-flex items-center gap-1 px-1 text-[11px]', receipt.state === 'seen' ? 'text-roast' : 'text-ink-5')}>
+    <span className={cn('inline-flex items-center gap-1 px-1 text-[11px]', receipt.state === 'seen' ? 'text-roast' : 'text-ink-4')}>
       <Icon aria-hidden="true" className="size-[15px]" strokeWidth={2} />
       {receipt.label}
       {receipt.seenBy.length > 1 && (
@@ -162,7 +162,7 @@ export function MessageBubble({ message: m, chat, receipt, onReply, onEdit, onDe
             {m.deleted ? <em>This message was deleted</em> : m.body}
           </div>
         </div>
-        <span className="px-1 text-[11px] text-ink-5">
+        <span className="px-1 text-[11px] text-ink-4">
           <time dateTime={m.createdAt}>{format(new Date(m.createdAt), 'h:mm a')}</time>
           {m.editedAt && !m.deleted && ' · Edited'}
         </span>
