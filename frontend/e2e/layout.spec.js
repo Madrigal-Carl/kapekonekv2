@@ -51,6 +51,9 @@ test('Hub is full width with a sticky aside; Inbox is full width', async ({ page
   const mainWidth = await page.locator('main').first().evaluate((el) => el.getBoundingClientRect().width)
   expect(mainWidth).toBeGreaterThan(1500)
   await expect(page.locator('article').first()).toBeVisible()
+  // The feed fills the width beside the 340px aside (main's 32px padding each side, 24px gap).
+  const feed = await page.locator('article').first().evaluate((el) => el.getBoundingClientRect().width)
+  expect(feed).toBeGreaterThan(mainWidth - 64 - 340 - 24 - 2)
   await page.evaluate(() => window.scrollTo(0, 2000))
   await expect.poll(() => topOf(aside)).toBe(88)
   await page.goto('/dashboard/inbox')

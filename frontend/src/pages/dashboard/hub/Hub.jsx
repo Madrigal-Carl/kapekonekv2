@@ -148,8 +148,8 @@ export function Hub() {
 
   return (
     <main className="flex w-full flex-col gap-5 px-8 pb-14 pt-7 max-[960px]:px-4 max-[960px]:pb-10 max-[960px]:pt-5">
-      <div className="flex flex-wrap items-start justify-center gap-6">
-        <div className="flex min-w-0 flex-[0_1_680px] flex-col gap-3.5">
+      <div className="flex items-start gap-6">
+        <div className="flex min-w-0 flex-1 flex-col gap-3.5">
           <div>
             <span className="block text-[11px] font-medium uppercase tracking-[0.16em] text-ink-3">Community</span>
             <h1 className="mt-1.5 text-[28px] font-medium tracking-[-0.02em]">Hub</h1>

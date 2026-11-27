@@ -282,7 +282,7 @@ The dashboard screens are the canvas rows titled "Dashboard". Each page has a **
 
 ### 8.7 Layout rules to keep (Change 07)
 - The dashboard top bar is sticky on every page.
-- Inbox and Hub are full width (no 1240px cap). The Hub feed is 680px and centered, with a **sticky 340px aside**.
+- Inbox and Hub are full width (no 1240px cap). The Hub feed fills the page width beside a **sticky 340px aside** (no 680px feed cap).
 - Reports charts sit in a 2×2 grid.
 - The Beans **Sell beans** button is disabled once an unapproved farmer reaches 5 kg (board `BeansLimit`).
 
