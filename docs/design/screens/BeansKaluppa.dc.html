@@ -68,7 +68,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
       <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
         <div role="status" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 8px; background: #E1F2E4; border: 1px solid #BFDFC6; color: #1E5A34; font-size: 13.5px; font-weight: 500"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg><span style="flex: 1">{{ toast }}</span><button type="button" aria-label="Dismiss" onClick="{{ clearToast }}" style="width: 32px; height: 32px; border: 0; background: transparent; color: #1E5A34; cursor: pointer; display: grid; place-items: center"><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>
       </sc-if>
-      <dc-import name="DataTable" aria-label="Bean listings" columns="{{ cols }}" rows="{{ rows }}" tabs="{{ tabs }}" filters="{{ filters }}" on-action="{{ onAction }}" selected-id="{{ selId }}" search-placeholder="Search listing no., farmer or variety" page-size="{{ 6 }}" min-width="{{ minW }}" hint-size="100%,560px"></dc-import>
+      <dc-import name="DataTable" aria-label="Bean listings" columns="{{ cols }}" rows="{{ rows }}" tabs="{{ tabs }}" filters="{{ filters }}" on-action="{{ onAction }}" selected-id="{{ selId }}" search-placeholder="Search listing no., farmer or variety" page-size="{{ 6 }}" min-width="{{ minW }}" sort-index="{{ sortIndex }}" hint-size="100%,560px"></dc-import>
     </main>
   </div>
   <sc-if value="{{ isView }}" hint-placeholder-val="{{ false }}">
@@ -131,7 +131,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"start": {"editor": "enum", "options": ["", "view"], "default": ""}, "$preview": {"width": 1440, "height": 1100}}'>
 class Component extends DCLogic {
-  constructor(props) { super(props); this.state = { mode: props.start || null, row: null, modal: null, toast: '', rejecting: false, tab: props.tab || 'details', pin: null, muni: null, brgy: null, view: null, adding: false, gi: 0, completing: false }; }
+  constructor(props) { super(props); this.state = { mode: props.start || null, row: null, modal: props.modal || null, toast: '', rejecting: false, tab: props.tab || 'details', pin: null, muni: null, brgy: null, view: null, adding: false, gi: 0, completing: false }; }
   renderVals() {
     const s = this.state;
     const close = () => this.setState({ mode: null, row: null, rejecting: false, adding: false });

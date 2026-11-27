@@ -33,6 +33,9 @@ body{margin:0}
           <sc-if value="{{ isProducts }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: #7B4A2A"></span></sc-if>
         </a>
         <a class="kk-navlink" href="Main.dc.html#how" style="font-size: 13.5px; text-decoration: none; color: #4A3A30; padding: 22px 0">How it works</a>
+        <a class="kk-navlink" href="ContactUs.dc.html" aria-current="{{ contactCurrent }}" style="position: relative; font-size: 13.5px; text-decoration: none; color: {{ contactColor }}; font-weight: {{ contactWeight }}; padding: 22px 0">Contact us
+          <sc-if value="{{ isContact }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: #7B4A2A"></span></sc-if>
+        </a>
       </nav>
     </div>
 
@@ -85,7 +88,7 @@ body{margin:0}
   </div>
 </header>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"variant":{"editor":"enum","options":["guest","buyer"],"default":"guest"},"active":{"editor":"enum","options":["home","products","none"],"default":"home"},"cartCount":{"editor":"int","default":0,"min":0,"max":99},"$preview":{"width":1440,"height":64}}'>
+<script type="text/x-dc" data-dc-script data-props='{"variant":{"editor":"enum","options":["guest","buyer"],"default":"guest"},"active":{"editor":"enum","options":["home","products","contact","none"],"default":"home"},"cartCount":{"editor":"int","default":0,"min":0,"max":99},"$preview":{"width":1440,"height":64}}'>
 class Component extends DCLogic {
   constructor(props) { super(props); this.state = { menuOpen: false }; }
   renderVals() {
@@ -107,7 +110,8 @@ class Component extends DCLogic {
       isProducts,
       productsCurrent: isProducts ? 'page' : 'false',
       productsColor: isProducts ? '#7B4A2A' : '#4A3A30',
-      productsWeight: isProducts ? '600' : '400'
+      productsWeight: isProducts ? '600' : '400',
+      isContact: active === 'contact', contactCurrent: active === 'contact' ? 'page' : 'false', contactColor: active === 'contact' ? '#7B4A2A' : '#4A3A30', contactWeight: active === 'contact' ? '600' : '400'
     };
   }
 }

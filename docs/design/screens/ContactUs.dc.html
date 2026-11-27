@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Contact us</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+.kk-card{transition:box-shadow .2s ease}
+.kk-card:hover{box-shadow:0 14px 32px -20px rgba(43,26,18,.38)}
+.kk-f:focus-visible,.kk-f:focus{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+button:focus-visible,a:focus-visible{outline:2px solid #7B4A2A;outline-offset:2px}
+@keyframes kkpulse{0%,100%{opacity:1}50%{opacity:.5}}
+.kk-skel{animation:kkpulse 1.6s ease-in-out infinite}
+@media (max-width: 760px){{.kk-ct-g2{{grid-template-columns:minmax(0,1fr) !important}}}}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 100vh; background: #FFFFFF">
+  <dc-import name="Navbar" variant="{{ variant }}" active="contact" hint-size="100%,64px"></dc-import>
+  <section style="background: #F7EFE4; padding: 64px 0 56px">
+    <div style="max-width: 1180px; margin: 0 auto; padding: 0 32px">
+      <div style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Contact us</div>
+      <h1 style="margin: 12px 0 0; font-weight: 500; font-size: 42px; line-height: 1.1; letter-spacing: -0.02em; max-width: 640px">Questions about coffee, orders or selling? Ask Kaluppa.</h1>
+      <p style="margin: 14px 0 0; max-width: 600px; font-size: 16px; line-height: 1.65; color: #4A3A30">Send us a message and we’ll reply by email within 1–2 business days. For an order, include your order number so we can find it fast.</p>
+    </div>
+  </section>
+  <section style="padding: 56px 0 96px">
+    <div style="max-width: 1180px; margin: 0 auto; padding: 0 32px; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+      <div style="flex: 1 1 560px; min-width: 0; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 10px; padding: 28px">
+        <sc-if value="{{ notSent }}" hint-placeholder-val="{{ true }}">
+          <h2 style="margin: 0; font-size: 20px; font-weight: 600">Send a message</h2>
+          <p style="margin: 4px 0 0; font-size: 13.5px; color: #6B5A4E">Fields without “optional” are required.</p>
+          <sc-if value="{{ hasErrors }}" hint-placeholder-val="{{ false }}"><div role="alert" style="margin-top: 16px; padding: 12px 14px; border-radius: 6px; background: #FDF0EE; border: 1px solid #F2C9C4; font-size: 13px; color: #7A2A22">Please fix the fields marked below.</div></sc-if>
+          <form onSubmit="{{ submit }}" novalidate style="margin-top: 20px; display: flex; flex-direction: column; gap: 18px">
+            <div class="kk-ct-g2" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px"><div><label for="cname" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Full name</label><input class="kk-f" id="cname" type="text" autocomplete="name" value="{{ v.cname }}" onInput="{{ on.cname }}" placeholder="e.g. Carla Reyes" aria-invalid="{{ err.cname }}" aria-describedby="cname-e" style="margin-top: 6px; width: 100%; min-height: 44px; border: 1px solid {{ bd.cname }}; border-radius: 5px; padding: 10px 12px; font: inherit; font-size: 14px; background: #FFFFFF"><sc-if value="{{ err.cname }}" hint-placeholder-val="{{ false }}"><span id="cname-e" style="display: block; margin-top: 5px; font-size: 12px; color: #A1362B">{{ msg.cname }}</span></sc-if></div><div><label for="cemail" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Email</label><input class="kk-f" id="cemail" type="email" autocomplete="email" value="{{ v.cemail }}" onInput="{{ on.cemail }}" placeholder="name@gmail.com" aria-invalid="{{ err.cemail }}" aria-describedby="cemail-e" style="margin-top: 6px; width: 100%; min-height: 44px; border: 1px solid {{ bd.cemail }}; border-radius: 5px; padding: 10px 12px; font: inherit; font-size: 14px; background: #FFFFFF"><sc-if value="{{ err.cemail }}" hint-placeholder-val="{{ false }}"><span id="cemail-e" style="display: block; margin-top: 5px; font-size: 12px; color: #A1362B">{{ msg.cemail }}</span></sc-if></div></div>
+            <div class="kk-ct-g2" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px"><div><label for="cphone" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Contact number <span style="text-transform: none; letter-spacing: 0; color: #7A6A5E">(optional)</span></label><input class="kk-f" id="cphone" type="tel" autocomplete="tel" value="{{ v.cphone }}" onInput="{{ on.cphone }}" placeholder="09XX XXX XXXX" aria-invalid="{{ err.cphone }}" aria-describedby="cphone-e" style="margin-top: 6px; width: 100%; min-height: 44px; border: 1px solid {{ bd.cphone }}; border-radius: 5px; padding: 10px 12px; font: inherit; font-size: 14px; background: #FFFFFF"></div><div style="position: relative; z-index: 5"><dc-import name="SearchSelect" label="Topic" icon="tag" placeholder="Choose a topic" searchable="{{ false }}" options="{{ topics }}" value="{{ topic }}" on-pick="{{ pickTopic }}" hint-size="100%,72px"></dc-import><sc-if value="{{ err.topic }}" hint-placeholder-val="{{ false }}"><span style="display: block; margin-top: 5px; font-size: 12px; color: #A1362B">Choose a topic.</span></sc-if></div></div>
+            <sc-if value="{{ isOrderTopic }}" hint-placeholder-val="{{ false }}"><div><label for="corder" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Order number <span style="text-transform: none; letter-spacing: 0; color: #7A6A5E">(optional)</span></label><input class="kk-f" id="corder" type="text" autocomplete="" value="{{ v.corder }}" onInput="{{ on.corder }}" placeholder="e.g. KK-20261118-0014" aria-invalid="{{ err.corder }}" aria-describedby="corder-e" style="margin-top: 6px; width: 100%; min-height: 44px; border: 1px solid {{ bd.corder }}; border-radius: 5px; padding: 10px 12px; font: inherit; font-size: 14px; background: #FFFFFF"></div></sc-if>
+            <div><label for="cmsg" style="display: block; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #4A3A30; font-weight: 500">Message</label><textarea class="kk-f" id="cmsg" rows="6" maxLength="1000" value="{{ v.cmsg }}" onInput="{{ on.cmsg }}" aria-invalid="{{ err.cmsg }}" aria-describedby="cmsg-e cmsg-c" placeholder="How can we help?" style="margin-top: 6px; width: 100%; min-height: 44px; border: 1px solid {{ bd.cmsg }}; border-radius: 5px; padding: 10px 12px; font: inherit; font-size: 14px; background: #FFFFFF; resize: vertical; line-height: 1.55"></textarea><div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 5px; font-size: 12px"><span id="cmsg-e" style="color: #A1362B">{{ msg.cmsg }}</span><span id="cmsg-c" style="color: #6B5A4E">{{ count }} / 1,000</span></div></div>
+            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px"><span style="font-size: 12px; color: #6B5A4E; max-width: 360px; line-height: 1.5">We use your details only to reply. See our <a href="Main.dc.html">Privacy policy</a>.</span><button type="submit" style="display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 22px; border: 0; border-radius: 5px; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"></path></svg>Send message</button></div>
+          </form>
+        </sc-if>
+        <sc-if value="{{ sent }}" hint-placeholder-val="{{ false }}">
+          <div role="status" style="padding: 24px 4px; text-align: center">
+            <span aria-hidden="true" style="width: 56px; height: 56px; margin: 0 auto; display: grid; place-items: center; border-radius: 999px; background: #E1F2E4; color: #1E5A34"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span>
+            <h2 style="margin: 16px 0 0; font-size: 21px; font-weight: 600">Message sent</h2>
+            <p style="margin: 8px auto 0; max-width: 420px; font-size: 14px; color: #4A3A30; line-height: 1.6">Thanks, {{ firstName }}. We sent a copy to <strong>{{ v.cemail }}</strong> and will reply within 1–2 business days.</p>
+            <button type="button" onClick="{{ again }}" style="margin-top: 20px; min-height: 42px; padding: 0 18px; border: 1px solid #DCCBB5; border-radius: 5px; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Send another message</button>
+          </div>
+        </sc-if>
+      </div>
+      <aside style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <section style="background: #2B1A12; color: #F7EFE4; border-radius: 10px; padding: 24px">
+          <h2 style="margin: 0; font-size: 17px; font-weight: 600">Kaluppa — Pantayin</h2>
+          <ul style="list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 14px; font-size: 14px">
+            <sc-for list="{{ info }}" as="i" hint-placeholder-count="3"><li style="display: flex; gap: 12px"><span aria-hidden="true" style="width: 34px; height: 34px; flex-shrink: 0; display: grid; place-items: center; border-radius: 8px; background: rgba(235,201,143,0.14); color: #EBC98F"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ i.icon }}"></path></svg></span><span><span style="display: block; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #C9B49B">{{ i.k }}</span><a href="{{ i.href }}" style="color: #F7EFE4; text-decoration: none; font-weight: 500">{{ i.v }}</a></span></li></sc-for>
+          </ul>
+          <div style="margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(247,239,228,0.14)"><span style="display: block; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #C9B49B">Opening hours</span><dl style="margin: 8px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 13.5px"><sc-for list="{{ hours }}" as="h" hint-placeholder-count="3"><dt style="color: #C9B49B">{{ h.d }}</dt><dd style="margin: 0">{{ h.t }}</dd></sc-for></dl></div>
+        </section>
+        <section style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 10px; overflow: hidden">
+          <div style="position: relative; z-index: 1"><dc-import name="MiniMap" aria-label="Map showing Kaluppa in Pantayin, Santa Cruz" pins="{{ pins }}" focus="{{ focus }}" controls="{{ true }}" flush="{{ true }}" hint-size="100%,300px"></dc-import></div>
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 16px"><span style="font-size: 13px; color: #4A3A30">Pickup orders are collected here.</span><a href="#" style="font-size: 13px; font-weight: 600; text-decoration: none">Get directions</a></div>
+        </section>
+        <a href="Main.dc.html" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 18px; border: 1px solid #E7DCCD; border-radius: 10px; background: #F7EFE4; color: #2B1A12; text-decoration: none; font-size: 14px"><span><strong style="display: block">Check the FAQ first</strong><span style="font-size: 12.5px; color: #4A3A30">Delivery, payment and cancelling, answered.</span></span><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#7B4A2A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></a>
+      </aside>
+    </div>
+  </section>
+  <dc-import name="Footer" hint-size="100%,340px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"variant":{"editor":"enum","options":["guest","buyer"],"default":"guest"},"state":{"editor":"enum","options":["empty","errors","sent"],"default":"empty"},"$preview":{"width":1440,"height":1600}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const buyer = props.variant === 'buyer';
+    this.state = { v: { cname: buyer ? 'Carla Reyes' : '', cemail: buyer ? 'carla.reyes.kapekonek@gmail.com' : '', cphone: '', corder: '', cmsg: '' }, topic: null, tried: props.state === 'errors', sent: props.state === 'sent' };
+    if (props.state === 'sent') this.state.v = { cname: 'Carla Reyes', cemail: 'carla.reyes.kapekonek@gmail.com', cphone: '', corder: '', cmsg: 'Hi!' };
+  }
+  renderVals() {
+    const s = this.state, v = s.v;
+    const emailOk = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.cemail);
+    const E = { cname: !v.cname.trim() ? 'Enter your name.' : '', cemail: !v.cemail.trim() ? 'Enter your email so we can reply.' : (!emailOk ? 'Enter a valid email, like name@gmail.com.' : ''), cmsg: v.cmsg.trim().length < 10 ? 'Write at least 10 characters.' : '', topic: !s.topic ? 'x' : '' };
+    const show = (k) => s.tried && !!E[k];
+    const set = (k) => (e) => this.setState({ v: { ...v, [k]: e.target.value } });
+    const ok = !Object.values(E).some(Boolean);
+    return {
+      variant: this.props.variant || 'guest', v, notSent: !s.sent, sent: s.sent, firstName: (v.cname || 'there').split(' ')[0],
+      on: { cname: set('cname'), cemail: set('cemail'), cphone: set('cphone'), corder: set('corder'), cmsg: set('cmsg') },
+      err: { cname: show('cname'), cemail: show('cemail'), cmsg: show('cmsg'), topic: show('topic'), cphone: false, corder: false },
+      msg: { cname: E.cname, cemail: E.cemail, cmsg: s.tried ? E.cmsg : '' },
+      bd: { cname: show('cname') ? '#C2554A' : '#DCCBB5', cemail: show('cemail') ? '#C2554A' : '#DCCBB5', cmsg: show('cmsg') ? '#C2554A' : '#DCCBB5', cphone: '#DCCBB5', corder: '#DCCBB5' },
+      hasErrors: s.tried && !ok, count: v.cmsg.length.toLocaleString(),
+      topics: ['An order', 'Delivery or pickup', 'Payment', 'Selling as a farmer', 'Partnership or bulk order', 'Something else'], topic: s.topic, pickTopic: (t) => this.setState({ topic: t }), isOrderTopic: s.topic === 'An order',
+      submit: (e) => { if (e && e.preventDefault) e.preventDefault(); if (!ok) this.setState({ tried: true }); else this.setState({ sent: true }); },
+      again: () => this.setState({ sent: false, tried: false, topic: null, v: { ...v, cmsg: '', corder: '' } }),
+      info: [{ k: 'Address', v: 'Pantayin, Santa Cruz, Marinduque', href: '#', icon: 'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0ZM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z' }, { k: 'Phone', v: '0917 800 1122', href: 'tel:+639178001122', icon: 'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z' }, { k: 'Email', v: 'kaluppa.kapekonek@gmail.com', href: 'mailto:kaluppa.kapekonek@gmail.com', icon: 'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2ZM22 6l-10 7L2 6' }],
+      hours: [{ d: 'Mon – Fri', t: '8:00 AM – 5:00 PM' }, { d: 'Saturday', t: '8:00 AM – 12:00 PM' }, { d: 'Sunday', t: 'Closed' }],
+      pins: [{ id: 'k', x: 324, y: 156, label: 'Kaluppa', tone: 'kaluppa' }], focus: { cx: 324, cy: 160, z: 2.4 }
+    };
+  }
+}
+</script>
+</body>
+</html>

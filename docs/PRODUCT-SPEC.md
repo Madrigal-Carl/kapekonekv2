@@ -252,7 +252,7 @@ seed values: ₱50 base for the first 3 km, ₱10 per km after, round up to ₱5
   - `GuestRoute`; `ProtectedRoute` with `permissions` and `requireVerified`; `RoleRedirect`.
   - `?redirect=` is only followed for internal paths.
 - **Landing**:
-  - hero carousel and featured coffee;
+  - hero carousel (top 3 best sellers) and the **Best sellers carousel** (top 8 by completed orders, last 90 days; no manual Featured flag since Change 08);
   - varieties, then "How ordering works" (3–5 business days, 3-day confirmation note);
   - latest posts, for farmers, what KapeKonek does, FAQ (delivery, payment, arrival time, expiry, cancel), closing call to action, footer.
 - **Products, Product detail, Post detail**:

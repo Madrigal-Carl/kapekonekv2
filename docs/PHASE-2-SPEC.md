@@ -87,9 +87,8 @@ Screens: `docs/design/screens/*.dc.html` (the "Dashboard" rows of the canvas). T
 6. **Removal by a Group Manager**: confirmation required. The farmer becomes unaffiliated and unapproved, so the cap applies again. Their records stay theirs, and their chats with that Group Manager and the group become read-only.
 
 ### 3.2 Farmers created by a Group Manager
-- Email is **optional**. They sign in with a **username**.
-- **Without an email**: the Group Manager sees a **temporary password once** (modal with Copy). The account has `mustChangePassword: true`, so the first sign-in goes to a "Set a new password" page.
-- **With an email**: an invite link to set the password is sent instead.
+- **Email is required** (Change 08). The account starts with the **default password `KapeKonek@123`**, shown read-only with Copy in the create form. A verification email is sent, and until it's verified every sign-in lands on the **Verify email** page (created variant).
+- Editing a farmer has **Reset password** (back to the default, signs them out everywhere, emails them). The same applies to Kaluppa → Group Managers.
 - These accounts are approved and verified automatically. Documents are optional; they can be added later.
 
 ### 3.3 Group Manager accounts
@@ -123,7 +122,8 @@ The handover happens at the branch, outside the system.
 ### 3.6 Farms, trees, harvests
 - **Farm**:
   - `propertyNumber` is auto-generated (`TCT-<year>-<4-digit seq>`, using the Counter collection);
-  - `lotNumber` is typed by the user, unique per owner;
+  - there is **no lot number** (removed in Change 08); the property number is never typed and isn't shown as an input;
+  - `sizeHa` has at most 2 decimals; the Farms table sorts by property number ascending;
   - `sizeHa`, municipality, barangay, optional street, and a **required pin**.
   - The form map follows the address-map rules (Phase 1 Change 03):
     - picking a municipality flies to it and moves the pin;
@@ -224,7 +224,7 @@ The handover happens at the branch, outside the system.
   - farmer: their own farms;
   - Group Manager: association farms plus its Kaluppa farm;
   - Kaluppa: all farms, with Kaluppa farms drawn darker.
-- The popover shows property number, lot number, owner, association, size, trees by variety, the main stages, last harvest, "Managed by" for Kaluppa farms, and an "Open farm" link.
+- The popover shows property number, owner, association, size, trees by variety, the main stages, last harvest, "Managed by" for Kaluppa farms, and an "Open farm" link.
 - Filters: association (Kaluppa only), municipality, variety. A side list selects a farm and flies to it.
 
 ### 3.12 Reports and Audit log
@@ -277,6 +277,21 @@ The handover happens at the branch, outside the system.
 - **For now only GCash is on**; Maya is seeded with its account details but off.
 - All copy (landing, FAQ, product notes, cart, checkout, emails) is built from the enabled providers. Checkout hides the wallet tabs when only one is on.
 
+### 3.17 Change 08 summary
+- **Confirmations**: every edit of an existing record asks "Save these changes?" with a before → after list. Deleting a chat message asks "Delete message?".
+- **Export**: every Export opens a modal to pick **CSV or PDF**. The file follows the filters on screen; Group Managers are scoped to their association.
+- **Accounts**: email is required; the default password is shown read-only on create; Reset password on edit; verified email required before the dashboard opens.
+- **Farms**: no lot number; size has 2 decimals; sorted by property number. The Farmers page has a Farms owned column.
+- **Store**:
+  - Seedlings → **Beans** (still `catalog.farm_supplies`);
+  - no Featured flag: the landing shows the **top 8 best sellers** (90 days, completed orders, viewer's categories) in a carousel;
+  - a default image for products with no photo;
+  - new products need starting stock above the low-stock level (10).
+- **Associations**: a map of active associations in the join window and settings (`Association.location`). A pending farmer can message that association's Group Manager.
+- **Hub**: @mentions with role scope (see CHANGE-08 Part F), stored as `mentions[]`, with notifications.
+- **Contact us**: a public page and form (`ContactMessage`), using the new Settings → Branch contact email.
+- **Address book**: atomic 10-address limit and an `addressesVersion` check ("Your addresses changed in another tab. Refresh and try again.").
+
 ## 4. Data models (new or changed)
 
 **Accounts and associations**
@@ -290,11 +305,10 @@ The handover happens at the branch, outside the system.
 
 **Records**
 - **Farm**:
-  - `propertyNumber` (unique), `lotNumber`, `owner`, `ownerType` (`farmer|kaluppa`), `association`;
+  - `propertyNumber` (unique), `owner`, `ownerType` (`farmer|kaluppa`), `association`;
   - `managedBy|null`, `assignedFarmers[]`;
   - `sizeHa`, `municipality`, `barangay`, `street`, `location` (GeoJSON Point, 2dsphere);
   - `createdBy`, `archivedAt`.
-  - Unique index `{owner, lotNumber}` on non-archived farms (partial index).
 - **TreeGroup**: `farm`, `owner`, `association`, `variety`, `count`, `stage`, `plantedAt`, `note`, `recordedBy`, `archivedAt`.
 - **Harvest**: `farm`, `owner`, `association`, `variety`, `yieldKg`, `harvestedAt`, `note`, `recordedBy`, `archivedAt`.
 
@@ -394,7 +408,10 @@ Every route follows the Phase 1 flow: route → **auth** → validation → cont
 | Farmer request sent | Group Manager (or Kaluppa if none) | ✓ | ✓ |
 | Approved / rejected (with reason) | Farmer | ✓ | ✓ |
 | Transfer approved / rejected | Farmer | ✓ | ✓ |
-| Account created (invite link) | New Group Manager / farmer with email | ✓ | |
+| Account created (verify your email; default password) | New Group Manager / farmer | ✓ | |
+| Password reset to default | Group Manager / farmer | ✓ | ✓ |
+| Mentioned in the Hub | Mentioned user | opt-in | ✓ |
+| Contact form copy | Sender (and Kaluppa's contact email) | ✓ | |
 | Bean approved (branch + hours + deadline) / rejected / cancelled / expired / completed | Farmer (and their Group Manager in-app) | ✓ | ✓ |
 | Order status | Buyer / farmer | ✓ | ✓ |
 | New message | Members | | ✓ (badge) |
@@ -405,7 +422,7 @@ Every route follows the Phase 1 flow: route → **auth** → validation → cont
 ---
 
 ## 7. Validation (shared Zod, `schemas/`)
-- Lot number: 1–40 characters. Size: 0.01–500 ha. Tree count: 1–100,000. Yield: 0.5–100,000 kg in 0.5 steps. Dates can't be in the future.
+- Size: 0.01–500 ha, at most 2 decimals. Tree count: 1–100,000. Yield: 0.5–100,000 kg in 0.5 steps. Dates can't be in the future.
 - Bean weight: 0.5–10,000 kg in 0.5 steps; price ₱1–₱10,000 per kg; photos 1–5; note ≤ 500.
 - Rejection / cancel / removal reasons: 5–300 characters.
 - Message ≤ 2000 characters; post ≤ 5000 characters; comment ≤ 1000 characters; tags ≤ 3 from the list.
@@ -437,7 +454,8 @@ Every route follows the Phase 1 flow: route → **auth** → validation → cont
 | `farmer.approved` | Approved farmer | `/dashboard/overview` |
 | `farmer.pending` | Waiting for approval, 3 of 5 kg used | overview with the banner |
 | `farmer.new` | Verified, no association | the association window |
-| `farmer.nomail` | Created by a Group Manager, username only | "Set a new password" |
+| `farmer.unverified` | Created by a Group Manager, email not verified | Verify email page (created variant) |
+| `manager.unverified` | Created by Kaluppa, email not verified | Verify email page (created variant) |
 | `buyer` | Buyer (Phase 1) | storefront |
 
 ---

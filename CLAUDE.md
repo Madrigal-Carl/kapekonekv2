@@ -14,7 +14,7 @@ Precedence when they disagree: the user's latest message → this file → PHASE
 
 A coffee marketplace with a CRM side, built for Kaluppa in Marinduque.
 
-- **Kaluppa is the only seller and does all fulfilment.** Farmers sell beans *to* Kaluppa. Buyers order **coffee** from Kaluppa. Farmers will later order **fertilizer and seedlings**.
+- **Kaluppa is the only seller and does all fulfilment.** Farmers sell beans *to* Kaluppa. Buyers order **coffee** from Kaluppa. Farmers will later order **fertilizer and beans** (the Beans category replaced Seedlings in Change 08).
 - **Fulfilment**:
   - **Delivery** anywhere in Marinduque. The fee is calculated server-side from the Mapbox road distance to Kaluppa, and the order arrives 3–5 business days after confirmation.
   - **Pickup at Kaluppa** (Pantayin, Santa Cruz, Marinduque).
@@ -154,6 +154,8 @@ Zod schema (react-hook-form) → TanStack Query hook → service function → ax
 - **Scope by policy, not by role.** Records use the policy helpers in PHASE-2-SPEC §2 (`isOwner`, `isAssociationManager`, `isAssignedManager`, `isKaluppaFarm`). A Group Manager acting for a farmer always sends `farmerId`, and the service checks that the farmer is in the Group Manager's association.
 - **Two farmer states, two words:** "email verified" and "approved farmer". Never call an approved farmer "verified" in code, copy or tests.
 - **The 5 kg bean cap** is enforced in the service inside a transaction (PHASE-2-SPEC §3.5). The UI meter is only a hint.
+- **Every edit of an existing record asks "Save these changes?"** with a before → after list (`ConfirmChangesModal`). Destructive actions always confirm in a modal.
+- **Exports offer CSV and PDF and always follow the filters on screen.**
 - **Don't undo agreed layout**: sticky top bar; full-width Inbox and Hub; sticky Hub aside; 2×2 Reports charts (DESIGN §8.7).
 - **Phones are first-class**: every dashboard page works at 390px with no horizontal scroll (DESIGN §8.6).
 - **Every view drawer ends with History** from the audit log (PHASE-2-SPEC §3.15).

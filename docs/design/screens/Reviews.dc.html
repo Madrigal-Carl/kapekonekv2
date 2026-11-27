@@ -65,7 +65,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
       <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
         <div role="status" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 8px; background: #E1F2E4; border: 1px solid #BFDFC6; color: #1E5A34; font-size: 13.5px; font-weight: 500"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg><span style="flex: 1">{{ toast }}</span><button type="button" aria-label="Dismiss" onClick="{{ clearToast }}" style="width: 32px; height: 32px; border: 0; background: transparent; color: #1E5A34; cursor: pointer; display: grid; place-items: center"><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>
       </sc-if>
-      <dc-import name="DataTable" aria-label="Product reviews" columns="{{ cols }}" rows="{{ rows }}" tabs="{{ tabs }}" filters="{{ filters }}" on-action="{{ onAction }}" selected-id="{{ selId }}" search-placeholder="Search product, reviewer or text" page-size="{{ 6 }}" min-width="{{ minW }}" hint-size="100%,560px"></dc-import>
+      <dc-import name="DataTable" aria-label="Product reviews" columns="{{ cols }}" rows="{{ rows }}" tabs="{{ tabs }}" filters="{{ filters }}" on-action="{{ onAction }}" selected-id="{{ selId }}" search-placeholder="Search product, reviewer or text" page-size="{{ 6 }}" min-width="{{ minW }}" sort-index="{{ sortIndex }}" hint-size="100%,560px"></dc-import>
     </main>
   </div>
   <sc-if value="{{ isView }}" hint-placeholder-val="{{ false }}">
@@ -141,7 +141,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"start": {"editor": "enum", "options": ["", "view"], "default": ""}, "$preview": {"width": 1440, "height": 1050}}'>
 class Component extends DCLogic {
-  constructor(props) { super(props); this.state = { mode: props.start || null, row: null, modal: null, toast: '', rejecting: false, tab: props.tab || 'details', pin: null, muni: null, brgy: null, view: null, adding: false, replies: {}, editing: false, draft: '', hidden: {} }; }
+  constructor(props) { super(props); this.state = { mode: props.start || null, row: null, modal: props.modal || null, toast: '', rejecting: false, tab: props.tab || 'details', pin: null, muni: null, brgy: null, view: null, adding: false, replies: {}, editing: false, draft: '', hidden: {} }; }
   renderVals() {
     const s = this.state;
     const close = () => this.setState({ mode: null, row: null, rejecting: false, adding: false });
@@ -157,7 +157,7 @@ class Component extends DCLogic {
       ['r2', 'Excelsa Green Beans', 'Excelsa · Green beans', 'Jun Lopez', 'JL', '#8A5A12', 'Buyer', 3, 'Good beans but a few were broken. Hoping the sorting is better next time.', 'Nov 13, 2026', 'KK-20261108-0021', '', false],
       ['r3', 'Complete fertilizer 14-14-14', 'Fertilizer · 50 kg sack', 'Rodel Mendoza', 'RM', '#3F6B4E', 'Farmer', 4, 'Delivered right to the farm. One sack was a little torn but nothing spilled.', 'Nov 12, 2026', 'KK-20261102-0007', '', false],
       ['r4', 'Barako Medium Roast', 'Liberica · Roasted beans', 'Carla Reyes', 'CR', '#4A3A30', 'Buyer', 4, 'Bold flavor. I wish there was a 500 g pack.', 'Nov 2, 2026', 'KK-20261028-0004', 'Noted, Carla! A 500 g pack is coming in December.', false],
-      ['r5', 'Liberica seedlings', 'Seedlings · bagged', 'Nestor Perez', 'NP', '#4A3A30', 'Farmer', 5, 'Healthy seedlings, almost all survived the first month.', 'Oct 30, 2026', 'KK-20261018-0014', '', false],
+      ['r5', 'Liberica dried cherry', 'Beans · Dried cherry', 'Nestor Perez', 'NP', '#4A3A30', 'Farmer', 5, 'Well dried and clean. Easy to process at home.', 'Oct 30, 2026', 'KK-20261018-0014', '', false],
       ['r6', 'Robusta Ground', 'Robusta · Ground', 'Paolo Gomez', 'PG', '#8A5A12', 'Buyer', 2, 'Too fine for my French press. Call 0917… for better beans!', 'Oct 28, 2026', 'KK-20261020-0009', '', true],
       ['r7', 'Arabica Light Roast', 'Arabica · Roasted beans', 'Ana Nolasco', 'AN', '#7B4A2A', 'Buyer', 5, 'Fruity and light. Great as a pour-over.', 'Oct 21, 2026', 'KK-20261015-0003', 'Thank you, Ana!', false],
       ['r8', 'Liberica Green Beans', 'Liberica · Green beans', 'Lorna Ilagan', 'LI', '#8A5A12', 'Farmer', 1, 'Ordered 2 kg, received 1.5 kg.', 'Oct 19, 2026', 'KK-20261012-0010', '', false]

@@ -30,9 +30,9 @@
     },
     "AssociationModal.dc.html": {
       "expand": "fill",
-      "h": 1000,
+      "h": 1420,
       "is_interactive": true,
-      "title": "Farmer onboarding — join your association (tweak: new / rejected)",
+      "title": "Farmer onboarding — join your association, pick on the map (tweak: new / rejected)",
       "w": 1440,
       "x": 1520,
       "y": 13820
@@ -230,7 +230,7 @@
       "expand": "fill",
       "h": 1000,
       "is_interactive": true,
-      "title": "Farmers — Group Manager (approve, add, remove)",
+      "title": "Farmers — Group Manager (Farms owned column; approve, add, remove)",
       "w": 1440,
       "x": 0,
       "y": 15660
@@ -239,7 +239,7 @@
       "expand": "fill",
       "h": 1200,
       "is_interactive": true,
-      "title": "Farms (tweak: role)",
+      "title": "Farms — sorted by property number (tweak: role)",
       "w": 1440,
       "x": 6080,
       "y": 15660
@@ -327,7 +327,7 @@
       "expand": "fill",
       "h": 1050,
       "is_interactive": true,
-      "title": "Inventory — Kaluppa products",
+      "title": "Inventory — Kaluppa products (default image when a product has no photo)",
       "w": 1440,
       "x": 10640,
       "y": 17280
@@ -354,7 +354,7 @@
       "expand": "fill",
       "h": 5700,
       "is_interactive": true,
-      "title": "Landing — guest",
+      "title": "Landing — guest (best sellers: top 8 carousel)",
       "w": 1440,
       "x": 0,
       "y": 0
@@ -675,6 +675,95 @@
       "h": 1250,
       "title": "Beans — farmer at the 5 kg limit (Sell beans disabled)",
       "is_interactive": true
+    },
+    "ContactUs.dc.html": {
+      "x": 7600,
+      "y": 0,
+      "w": 1440,
+      "h": 1600,
+      "title": "Contact us — form + Kaluppa branch (tweaks: variant, state)",
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    "InboxDeleteConfirm.dc.html": {
+      "x": 0,
+      "y": 27330,
+      "w": 1440,
+      "h": 980,
+      "title": "Inbox — “Delete message?” before deleting",
+      "is_interactive": true
+    },
+    "ReportsExport.dc.html": {
+      "x": 1520,
+      "y": 27330,
+      "w": 1440,
+      "h": 1000,
+      "title": "Reports — export as CSV or PDF, with the current filters",
+      "is_interactive": true
+    },
+    "GroupManagerCreate.dc.html": {
+      "x": 3040,
+      "y": 27330,
+      "w": 1440,
+      "h": 1100,
+      "title": "Group Managers — add: default password, read-only",
+      "is_interactive": true
+    },
+    "GroupManagerReset.dc.html": {
+      "x": 4560,
+      "y": 27330,
+      "w": 1440,
+      "h": 1000,
+      "title": "Group Managers — edit: reset to the default password",
+      "is_interactive": true
+    },
+    "FarmerCreate.dc.html": {
+      "x": 6080,
+      "y": 27330,
+      "w": 1440,
+      "h": 1150,
+      "title": "Farmers — add: default password, read-only; email required",
+      "is_interactive": true
+    },
+    "FarmEditConfirm.dc.html": {
+      "x": 7600,
+      "y": 27330,
+      "w": 1440,
+      "h": 1200,
+      "title": "Global — “Save these changes?” before saving any edit",
+      "is_interactive": true
+    },
+    "InventoryLowStock.dc.html": {
+      "x": 9120,
+      "y": 27330,
+      "w": 1440,
+      "h": 1100,
+      "title": "Inventory — add blocked when starting stock is at or below the low-stock level",
+      "is_interactive": true
+    },
+    "HubMention.dc.html": {
+      "x": 10640,
+      "y": 27330,
+      "w": 1440,
+      "h": 1000,
+      "title": "Hub — @mention people you’re allowed to mention",
+      "is_interactive": true
+    },
+    "VerifyEmailCreated.dc.html": {
+      "x": 12160,
+      "y": 27330,
+      "w": 1440,
+      "h": 900,
+      "title": "Verify email — accounts made by Kaluppa or a Group Manager",
+      "is_interactive": true
+    },
+    "ContactUsErrors.dc.html": {
+      "x": 13680,
+      "y": 27330,
+      "w": 1440,
+      "h": 1600,
+      "title": "Contact us — validation errors",
+      "is_interactive": true
     }
   },
   "createdOnFiles": {
@@ -699,7 +788,8 @@
     "dashrules",
     "row10",
     "row11",
-    "row12"
+    "row12",
+    "row13"
   ],
   "notes": {
     "dashrules": {
@@ -720,7 +810,7 @@
     },
     "row1": {
       "kind": "title1",
-      "maxW": 7520,
+      "maxW": 9040,
       "text": "Storefront — guests & buyers",
       "w": 240,
       "x": 0,
@@ -812,6 +902,13 @@
       "text": "Dashboard — Hub posting & viewing",
       "kind": "title1",
       "maxW": 5420
+    },
+    "row13": {
+      "x": 0,
+      "y": 27030,
+      "text": "Change 08 — confirmations, exports, accounts, mentions, contact",
+      "kind": "title1",
+      "maxW": 15120
     }
   },
   "order": [
@@ -892,7 +989,18 @@
     "HubPostText.dc.html",
     "HubMobileCreate.dc.html",
     "HubMobileView.dc.html",
-    "BeansLimit.dc.html"
+    "BeansLimit.dc.html",
+    "InboxDeleteConfirm.dc.html",
+    "ReportsExport.dc.html",
+    "GroupManagerCreate.dc.html",
+    "GroupManagerReset.dc.html",
+    "FarmerCreate.dc.html",
+    "FarmEditConfirm.dc.html",
+    "InventoryLowStock.dc.html",
+    "HubMention.dc.html",
+    "VerifyEmailCreated.dc.html",
+    "ContactUsErrors.dc.html",
+    "ContactUs.dc.html"
   ],
   "pages": [],
   "title": "KapeKonek — Phase 1 Pages"

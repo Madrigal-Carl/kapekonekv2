@@ -126,11 +126,22 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
             <div role="note" style="border-top: 1px solid #EFE6DA; background: #FBF8F4; padding: 16px; text-align: center; font-size: 13px; color: #4A3A30">You left Boac Highland Farmers on Mar 2. This chat is read-only; its history stays here.</div>
           </sc-if>
   </sc-if>
+  <sc-if value="{{ isDelMsg }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close dialog" onClick="{{ cancelDel }}" style="position: absolute; inset: 0; z-index: 70; border: 0; padding: 0; background: rgba(43,26,18,0.5); cursor: default"></button>
+    <div role="alertdialog" aria-modal="true" aria-labelledby="dm-title" style="position: absolute; left: 50%; top: 220px; transform: translateX(-50%); z-index: 71; width: 460px; max-width: calc(100% - 32px); background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 24px 48px -24px rgba(43,26,18,0.5); padding: 24px">
+      <span aria-hidden="true" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 999px; background: #FDF0EE; color: #A1362B"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></span>
+      <h2 id="dm-title" style="margin: 14px 0 0; font-size: 18px; font-weight: 600">Delete message?</h2>
+<p style="margin: 6px 0 0; font-size: 13.5px; color: #4A3A30; line-height: 1.6">{{ delMsgText }}</p>
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" onClick="{{ cancelDel }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Cancel</button><button type="button" onClick="{{ doDelMsg }}" style="display: inline-flex; align-items: center; min-height: 42px; padding: 0 16px; border: 0; border-radius: 5px; background: #A1362B; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">{{ delMsgCta }}</button>
+      </div>
+    </div>
+  </sc-if>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"screen": {"editor": "enum", "options": ["list", "chat"], "default": "list"}, "conv": {"editor": "enum", "options": ["grp", "kal", "liza"], "default": "grp"}, "$preview": {"width": 390, "height": 844}}'>
 class Component extends DCLogic {
-  constructor(props) { super(props); this.state = { conv: props.conv || 'grp', filter: 'all', q: '', draft: '', sent: {}, menu: null, replyTo: null, editing: null, editedText: {}, editedIds: [], deletedEveryone: [], hiddenIds: [], screen: props.screen || 'list' }; }
+  constructor(props) { super(props); this.state = { conv: props.conv || 'grp', filter: 'all', q: '', draft: '', sent: {}, menu: null, replyTo: null, editing: null, editedText: {}, editedIds: [], deletedEveryone: [], hiddenIds: [], screen: props.screen || 'list', askDel: props.confirmDelete ? { id: 'g1', mode: props.confirmDelete } : null }; }
   renderVals() {
     const s = this.state;
     const CONVS = [
@@ -160,7 +171,7 @@ class Component extends DCLogic {
         { id: 'l3', mine: true, text: 'Thank you po! I’ll upload the photos later.', time: 'Yesterday, 4:19 PM', status: 'delivered' }
       ]
     };
-    const fallback = (c) => [{ id: c.id + '1', mine: false, author: c.name, text: c.readonly ? 'Welcome to our new members!' : 'Magandang umaga! Did you get the seedlings from Kaluppa?', time: 'Mon, 6:12 PM', image: c.id === 'lorna' }, { id: c.id + '2', mine: true, text: 'Yes, 50 pieces. Planting them this weekend.', time: 'Mon, 6:30 PM', status: c.readonly ? 'seen' : 'sent' }];
+    const fallback = (c) => [{ id: c.id + '1', mine: false, author: c.name, text: c.readonly ? 'Welcome to our new members!' : 'Magandang umaga! Did you get the fertilizer from Kaluppa?', time: 'Mon, 6:12 PM', image: c.id === 'lorna' }, { id: c.id + '2', mine: true, text: 'Yes, 50 pieces. Planting them this weekend.', time: 'Mon, 6:30 PM', status: c.readonly ? 'seen' : 'sent' }];
     const ICON = { seen: 'M2 12.5 6 16.5 14 8.5M9 16.5l8-8M17 16.5l5-5', delivered: 'M2 12.5 6 16.5 14 8.5M9 16.5l8-8', sent: 'M5 12.5 9.5 17 19 7.5' };
     const build = (list, c) => {
       const out = [];
@@ -184,8 +195,8 @@ class Component extends DCLogic {
           reply: m.reply || { author: '', text: '' },
           doReply: () => this.setState({ replyTo: { author: m.mine ? 'You' : (m.author || c.name), text: m.text }, menu: null }),
           doEdit: () => this.setState({ editing: m.id, draft: (s.editedText || {})[m.id] || m.text, menu: null }),
-          delEveryone: () => this.setState({ deletedEveryone: (s.deletedEveryone || []).concat([m.id]), menu: null }),
-          delMe: () => this.setState({ hiddenIds: (s.hiddenIds || []).concat([m.id]), menu: null })
+          delEveryone: () => this.setState({ askDel: { id: m.id, mode: 'everyone' }, menu: null }),
+          delMe: () => this.setState({ askDel: { id: m.id, mode: 'me' }, menu: null })
         });
       });
       return out.filter((m) => !(s.hiddenIds || []).includes(m.id));
@@ -208,6 +219,9 @@ class Component extends DCLogic {
       convs, chips, q: s.q, onQ: (e) => this.setState({ q: e.target.value }),
       curShape: c.kind === 'group' || c.kind === 'kaluppa' ? '12px' : '999px', curPhoto: !!c.photo, curNoPhoto: !c.photo, curAvBg: c.photo ? 'linear-gradient(160deg, #D9B48F 0%, #A9744D 55%, #6E4A33 100%)' : c.bg,
       msgs, cur: c,
+      isDelMsg: !!s.askDel, delMsgText: s.askDel && s.askDel.mode === 'me' ? 'It’s removed from your view only. Everyone else in the chat still sees it.' : 'It’s removed for everyone in this chat. They’ll see “This message was deleted”.', delMsgCta: s.askDel && s.askDel.mode === 'me' ? 'Delete for me' : 'Delete for everyone',
+      cancelDel: () => this.setState({ askDel: null }),
+      doDelMsg: () => { const a = s.askDel; if (!a) return; if (a.mode === 'me') this.setState({ hiddenIds: (s.hiddenIds || []).concat([a.id]), askDel: null }); else this.setState({ deletedEveryone: (s.deletedEveryone || []).concat([a.id]), askDel: null }); },
       typing: c.typing || c.kind === 'group', typingText: c.kind === 'group' ? 'Nestor is typing…' : c.name.split(' ')[0] + ' is typing…',
       canPost: !c.readonly, readOnly: !!c.readonly,
       draft: s.draft, onDraft: (e) => this.setState({ draft: e.target.value }), onKey: (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } },

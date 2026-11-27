@@ -35,7 +35,7 @@
       <thead>
         <tr style="background: #FBF8F4">
           <sc-for list="{{ cols }}" as="c" hint-placeholder-count="5">
-            <th scope="col" style="text-align: {{ c.align }}; padding: 11px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6B5A4E; font-weight: 600; white-space: nowrap; border-bottom: 1px solid #EFE6DA">{{ c.label }}<sc-if value="{{ c.sorted }}" hint-placeholder-val="{{ false }}"><svg aria-hidden="true" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#7B4A2A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px; vertical-align: -1px"><path d="m6 9 6 6 6-6"></path></svg></sc-if></th>
+            <th scope="col" aria-sort="{{ c.sortLabel }}" style="text-align: {{ c.align }}; padding: 11px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6B5A4E; font-weight: 600; white-space: nowrap; border-bottom: 1px solid #EFE6DA">{{ c.label }}<sc-if value="{{ c.sorted }}" hint-placeholder-val="{{ false }}"><svg aria-hidden="true" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#7B4A2A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px; vertical-align: -1px"><path d="m18 15-6-6-6 6"></path></svg></sc-if></th>
           </sc-for>
           <th scope="col" style="text-align: right; padding: 11px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6B5A4E; font-weight: 600; border-bottom: 1px solid #EFE6DA">Actions</th>
         </tr>
@@ -47,6 +47,9 @@
               <td style="padding: 12px 14px; text-align: {{ cell.align }}; vertical-align: middle; white-space: {{ cell.ws }}">
                 <sc-if value="{{ cell.isPerson }}" hint-placeholder-val="{{ false }}">
                   <span style="display: flex; align-items: center; gap: 10px"><span aria-hidden="true" style="width: 32px; height: 32px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: {{ cell.avatarBg }}; color: #FFFFFF; font-size: 11.5px; font-weight: 600">{{ cell.initials }}</span><span style="display: flex; flex-direction: column; min-width: 0"><span style="font-weight: 600">{{ cell.main }}</span><span style="font-size: 12px; color: #6B5A4E">{{ cell.sub }}</span></span></span>
+                </sc-if>
+                <sc-if value="{{ cell.isProduct }}" hint-placeholder-val="{{ false }}">
+                  <span style="display: flex; align-items: center; gap: 12px"><sc-if value="{{ cell.hasPhoto }}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 6px; background: linear-gradient(160deg, #EADCCB 0%, #CDAF8E 100%)"></span></sc-if><sc-if value="{{ cell.noPhoto }}" hint-placeholder-val="{{ false }}"><span role="img" aria-label="Default product image" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 6px; background: radial-gradient(circle at 30% 25%, #4A2E1F 0%, #2B1A12 70%); color: #EBC98F; display: grid; place-items: center"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="6.5" ry="9" transform="rotate(35 12 12)"></ellipse><path d="M8.8 5.6c3 3 .4 6.4 3.4 8.9s2.1 3.4 3.4 3.9"></path></svg></span></sc-if><span style="display: flex; flex-direction: column; min-width: 0"><span style="font-weight: 600">{{ cell.main }}</span><span style="font-size: 12px; color: #6B5A4E">{{ cell.sub }}</span></span></span>
                 </sc-if>
                 <sc-if value="{{ cell.isPill }}" hint-placeholder-val="{{ false }}">
                   <span style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: {{ cell.pillBg }}; color: {{ cell.pillFg }}; font-size: 12px; font-weight: 600; white-space: nowrap"><span aria-hidden="true" style="width: 6px; height: 6px; border-radius: 999px; background: {{ cell.dot }}"></span>{{ cell.main }}</span>
@@ -81,7 +84,7 @@
       <li style="border: 1px solid {{ r.cardBorder }}; border-radius: 8px; background: #FFFFFF; padding: 14px">
         <div style="display: flex; align-items: center; gap: 10px">
           <sc-if value="{{ r.head.isPerson }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="width: 34px; height: 34px; flex-shrink: 0; display: grid; place-items: center; border-radius: 999px; background: {{ r.head.avatarBg }}; color: #FFFFFF; font-size: 11.5px; font-weight: 600">{{ r.head.initials }}</span></sc-if>
-          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><span style="font-size: 14.5px; font-weight: 600">{{ r.head.main }}</span><span style="font-size: 12px; color: #6B5A4E">{{ r.head.sub }}</span></span>
+          <sc-if value="{{ r.head.isProduct }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ r.head.hasPhoto }}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 6px; background: linear-gradient(160deg, #EADCCB 0%, #CDAF8E 100%)"></span></sc-if><sc-if value="{{ r.head.noPhoto }}" hint-placeholder-val="{{ false }}"><span role="img" aria-label="Default product image" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 6px; background: radial-gradient(circle at 30% 25%, #4A2E1F 0%, #2B1A12 70%); color: #EBC98F; display: grid; place-items: center"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="6.5" ry="9" transform="rotate(35 12 12)"></ellipse><path d="M8.8 5.6c3 3 .4 6.4 3.4 8.9s2.1 3.4 3.4 3.9"></path></svg></span></sc-if></sc-if><span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><span style="font-size: 14.5px; font-weight: 600">{{ r.head.main }}</span><span style="font-size: 12px; color: #6B5A4E">{{ r.head.sub }}</span></span>
         </div>
         <dl style="margin: 12px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 7px 14px; font-size: 13px">
           <sc-for list="{{ r.rest }}" as="c" hint-placeholder-count="4">
@@ -157,8 +160,9 @@ class Component extends DCLogic {
     const slice = rows.slice((pg - 1) * size, pg * size);
     const fmt = (c, r) => {
       const v = r[c.key];
-      const base = { align: c.align || 'left', ws: c.wrap ? 'normal' : 'nowrap', isPerson: false, isPill: false, isText: false, fw: 400, ff: 'inherit', fg: '#2B1A12', hasSub: false, sub: '' };
+      const base = { align: c.align || 'left', ws: c.wrap ? 'normal' : 'nowrap', isPerson: false, isPill: false, isText: false, isProduct: false, hasPhoto: false, noPhoto: false, fw: 400, ff: 'inherit', fg: '#2B1A12', hasSub: false, sub: '' };
       if (c.kind === 'person') return { ...base, isPerson: true, main: v.name, sub: v.sub, initials: v.initials, avatarBg: v.bg || '#7B4A2A' };
+      if (c.kind === 'product') return { ...base, isProduct: true, main: v.main, sub: v.sub, hasPhoto: !!v.photo, noPhoto: !v.photo };
       if (c.kind === 'pill') { const t = TONE[v.tone] || TONE.gray; return { ...base, isPill: true, main: v.label, pillBg: t[0], pillFg: t[1], dot: t[2] }; }
       const isObj = v && typeof v === 'object';
       return { ...base, isText: true, main: isObj ? v.main : v, sub: isObj ? v.sub : '', hasSub: isObj && !!v.sub, fw: c.kind === 'strong' ? 600 : 400, ff: c.kind === 'mono' ? "ui-monospace, 'SF Mono', Menlo, monospace" : 'inherit', fg: c.kind === 'muted' ? '#6B5A4E' : '#2B1A12' };
@@ -172,7 +176,7 @@ class Component extends DCLogic {
       hasActive: !!ql || filters.some((fl) => f[fl.key] && f[fl.key] !== fl.options[0]) || (tabs.length > 0 && tab !== tabs[0].key),
       clearAll: () => this.setState({ q: '', f: {}, page: 1, tab: tabs.length ? tabs[0].key : null }),
       minW: p.minWidth || '760px',
-      cols: cols.map((c, i) => ({ label: c.label, align: c.align || 'left', sorted: i === (p.sortIndex ?? -1) })),
+      cols: cols.map((c, i) => ({ label: c.label, align: c.align || 'left', sorted: i === (p.sortIndex ?? -1), sortLabel: i === (p.sortIndex ?? -1) ? 'ascending' : 'none' })),
       pageRows: slice.map((r) => ({
         bg: r.id && r.id === p.selectedId ? '#FBF6F0' : '#FFFFFF',
         cells: cols.map((c) => fmt(c, r)),

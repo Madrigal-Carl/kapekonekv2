@@ -65,10 +65,20 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
       <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
         <div role="status" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 8px; background: #E1F2E4; border: 1px solid #BFDFC6; color: #1E5A34; font-size: 13.5px; font-weight: 500"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg><span style="flex: 1">{{ toast }}</span><button type="button" aria-label="Dismiss" onClick="{{ clearToast }}" style="width: 32px; height: 32px; border: 0; background: transparent; color: #1E5A34; cursor: pointer; display: grid; place-items: center"><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>
       </sc-if>
-      <dc-import name="DataTable" aria-label="Associations" columns="{{ cols }}" rows="{{ rows }}" tabs="{{ tabs }}" filters="{{ filters }}" on-action="{{ onAction }}" selected-id="{{ selId }}" search-placeholder="Search association or town" page-size="{{ 6 }}" min-width="{{ minW }}" hint-size="100%,460px"></dc-import>
+      <dc-import name="DataTable" aria-label="Associations" columns="{{ cols }}" rows="{{ rows }}" tabs="{{ tabs }}" filters="{{ filters }}" on-action="{{ onAction }}" selected-id="{{ selId }}" search-placeholder="Search association or town" page-size="{{ 6 }}" min-width="{{ minW }}" sort-index="{{ sortIndex }}" hint-size="100%,460px"></dc-import>
     </main>
   </div>
-  <sc-if value="{{ isForm }}" hint-placeholder-val="{{ false }}">
+  <sc-if value="{{ isConfirmSave }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close dialog" onClick="{{ closeModal }}" style="position: absolute; inset: 0; z-index: 70; border: 0; padding: 0; background: rgba(43,26,18,0.5); cursor: default"></button>
+    <div role="alertdialog" aria-modal="true" aria-labelledby="cs-title" style="position: absolute; left: 50%; top: 200px; transform: translateX(-50%); z-index: 71; width: 460px; max-width: calc(100% - 32px); background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 24px 48px -24px rgba(43,26,18,0.5); padding: 24px">
+      <span aria-hidden="true" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 999px; background: #F7EFE4; color: #7B4A2A"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8"></path></svg></span>
+      <h2 id="cs-title" style="margin: 14px 0 0; font-size: 18px; font-weight: 600">Save these changes?</h2>
+<p style="margin: 6px 0 0; font-size: 13.5px; color: #4A3A30; line-height: 1.6">You changed:</p><ul style="list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px"><sc-for list="{{ changedList }}" as="cg" hint-placeholder-count="2"><li style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; padding: 8px 10px; border-radius: 6px; background: #FBF8F4; border: 1px solid #EFE6DA; font-size: 13px"><strong>{{ cg.k }}</strong><span style="color: #8F2D22; text-decoration: line-through">{{ cg.from }}</span><span aria-hidden="true" style="color: #6B5A4E">→</span><span style="color: #1E5A34; font-weight: 600">{{ cg.to }}</span></li></sc-for></ul><p style="margin: 10px 0 0; font-size: 12.5px; color: #6B5A4E">This is recorded in the History and the audit log.</p>
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" onClick="{{ closeModal }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Keep editing</button><button type="button" onClick="{{ confirmSave }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Save changes</button>
+      </div>
+    </div>
+  </sc-if>  <sc-if value="{{ isForm }}" hint-placeholder-val="{{ false }}">
     <button type="button" aria-label="Close panel" onClick="{{ closeDrawer }}" style="position: absolute; inset: 0; z-index: 60; border: 0; padding: 0; background: rgba(43,26,18,0.42); cursor: default"></button>
     <aside class="kk-drawer" role="dialog" aria-modal="true" aria-labelledby="dr-title" style="position: absolute; top: 0; right: 0; bottom: 0; z-index: 61; width: 600px; max-width: 100%; background: #FFFFFF; border-left: 1px solid #E7DCCD; box-shadow: -24px 0 48px -24px rgba(43,26,18,0.45); display: flex; flex-direction: column">
       <div class="kk-drawer-head" style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 32px 20px; border-bottom: 1px solid #EFE6DA">
@@ -133,7 +143,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"start": {"editor": "enum", "options": ["", "add", "view"], "default": ""}, "$preview": {"width": 1440, "height": 1000}}'>
 class Component extends DCLogic {
-  constructor(props) { super(props); this.state = { mode: props.start || null, row: null, modal: null, toast: '', rejecting: false, tab: props.tab || 'details', pin: null, muni: null, brgy: null, view: null, adding: false, am: null, ag: null }; }
+  constructor(props) { super(props); this.state = { mode: props.start || null, row: null, modal: props.modal || null, toast: '', rejecting: false, tab: props.tab || 'details', pin: null, muni: null, brgy: null, view: null, adding: false, am: null, ag: null }; }
   renderVals() {
     const s = this.state;
     const close = () => this.setState({ mode: null, row: null, rejecting: false, adding: false });
@@ -174,7 +184,9 @@ class Component extends DCLogic {
       viewRows: [{ k: 'Municipality', v: cur.muni }, { k: 'Group Manager', v: cur.gm.main }, { k: 'Created', v: 'May 4, 2026' }],
       members: [{ n: 'Rodel Mendoza', i: 'RM', bg: '#3F6B4E', s: 'Approved', fg: '#1E5A34' }, { n: 'Nestor Perez', i: 'NP', bg: '#4A3A30', s: 'Approved', fg: '#1E5A34' }, { n: 'Joy Lacsamana', i: 'JL', bg: '#8A5A12', s: 'Waiting', fg: '#6B4209' }, { n: 'Lorna Ilagan', i: 'LI', bg: '#8A5A12', s: 'Approved', fg: '#1E5A34' }, { n: 'Rosa Manalo', i: 'RM', bg: '#7B4A2A', s: 'Transfer', fg: '#1F4E86' }],
       openAdd: () => this.setState({ mode: 'add', row: null, am: null, ag: null }), editCur: () => this.setState({ mode: 'edit', am: cur.muni, ag: cur.gmName || null }),
-      save: () => this.setState({ mode: null, toast: editing ? 'Changes saved.' : 'Association created with its group chat.' }),
+      save: () => (editing ? this.setState({ modal: 'confirmSave' }) : (this.setState({ mode: null, toast: editing ? 'Changes saved.' : 'Association created with its group chat.' }))),
+      confirmSave: () => { this.setState({ modal: null }); (this.setState({ mode: null, toast: editing ? 'Changes saved.' : 'Association created with its group chat.' })); },
+      isConfirmSave: s.modal === 'confirmSave', changedList: [{ k: 'Description', from: 'Farmers of Santa Cruz', to: 'Liberica and Excelsa growers of Santa Cruz' }],
       doArchive: () => this.setState({ modal: null, toast: cur.label + ' was archived.' })
     };
   }

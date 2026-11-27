@@ -210,7 +210,7 @@ Seed logins use password **`KapeKonek@123`** and Gmail addresses. Set `SEED_EMAI
 | `buyer.unverified` | verify-email page |
 | `kaluppa` | Kaluppa dashboard |
 | `manager.santacruz` | Group Manager dashboard |
-| `farmer.approved` / `farmer.pending` / `farmer.new` / `farmer.nomail` | farmer dashboard (see PHASE-2-SPEC §8) |
+| `farmer.approved` / `farmer.pending` / `farmer.new` / `farmer.unverified` (and `manager.unverified`) | farmer dashboard (see PHASE-2-SPEC §8) |
 
 To move test orders through their statuses before the Kaluppa screens exist, ask Claude Code: `Show me curl commands to log in as Kaluppa and move order KK-… to reserved, processing, out_for_delivery (with a rider) and sold.`
 

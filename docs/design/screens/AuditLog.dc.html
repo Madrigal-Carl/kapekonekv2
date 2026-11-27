@@ -60,9 +60,12 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
           <h1 style="margin: 8px 0 0; font-weight: 500; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15">Audit log</h1>
           <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">Who changed what and when. Read-only.</p>
         </div>
-        <div class="kk-ph-actions" style="display: flex; flex-wrap: wrap; gap: 10px"><button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; "><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>Export CSV</button></div>
+        <div class="kk-ph-actions" style="display: flex; flex-wrap: wrap; gap: 10px"><button type="button" onClick="{{ openExport }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; "><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>Export</button></div>
       </div>
-      <dc-import name="DataTable" aria-label="Audit log" columns="{{ cols }}" rows="{{ rows }}" tabs="{{ tabs }}" filters="{{ filters }}" on-action="{{ onAction }}" selected-id="{{ selId }}" search-placeholder="Search actor, record or action" page-size="{{ 6 }}" min-width="{{ minW }}" hint-size="100%,560px"></dc-import>
+      <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 8px; background: #E1F2E4; border: 1px solid #BFDFC6; color: #1E5A34; font-size: 13.5px; font-weight: 500"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg><span style="flex: 1">{{ toast }}</span><button type="button" aria-label="Dismiss" onClick="{{ clearToast }}" style="width: 32px; height: 32px; border: 0; background: transparent; color: #1E5A34; cursor: pointer; display: grid; place-items: center"><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>
+      </sc-if>
+      <dc-import name="DataTable" aria-label="Audit log" columns="{{ cols }}" rows="{{ rows }}" tabs="{{ tabs }}" filters="{{ filters }}" on-action="{{ onAction }}" selected-id="{{ selId }}" search-placeholder="Search actor, record or action" page-size="{{ 6 }}" min-width="{{ minW }}" sort-index="{{ sortIndex }}" hint-size="100%,560px"></dc-import>
     </main>
   </div>
   <sc-if value="{{ isView }}" hint-placeholder-val="{{ false }}">
@@ -83,12 +86,30 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
 <button type="button" onClick="{{ closeDrawer }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Close</button>
       </div>
     </aside>
+  </sc-if>  <sc-if value="{{ isExport }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close dialog" onClick="{{ closeExport }}" style="position: absolute; inset: 0; z-index: 70; border: 0; padding: 0; background: rgba(43,26,18,0.5); cursor: default"></button>
+    <div role="alertdialog" aria-modal="true" aria-labelledby="ex-title" style="position: absolute; left: 50%; top: 180px; transform: translateX(-50%); z-index: 71; width: 460px; max-width: calc(100% - 32px); background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 24px 48px -24px rgba(43,26,18,0.5); padding: 24px">
+      <span aria-hidden="true" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 999px; background: #F7EFE4; color: #7B4A2A"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></span>
+      <h2 id="ex-title" style="margin: 14px 0 0; font-size: 18px; font-weight: 600">{{ exportTitle }}</h2>
+<p style="margin: 6px 0 0; font-size: 13.5px; color: #4A3A30; line-height: 1.6">{{ exportDesc }}</p>
+      <div role="radiogroup" aria-label="File format" style="margin-top: 14px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <sc-for list="{{ exportFormats }}" as="xf" hint-placeholder-count="2"><button type="button" role="radio" aria-checked="{{ xf.on }}" onClick="{{ xf.pick }}" style="display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 14px; border: {{ xf.border }}; border-radius: 8px; background: {{ xf.bg }}; font: inherit; text-align: left; color: #2B1A12; cursor: pointer; box-shadow: {{ xf.ring }}"><span style="display: flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 600"><span aria-hidden="true" style="width: 32px; height: 32px; display: grid; place-items: center; border-radius: 6px; background: {{ xf.iconBg }}; color: {{ xf.iconFg }}; font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em">{{ xf.tag }}</span>{{ xf.label }}</span><span style="font-size: 12.5px; color: #4A3A30; line-height: 1.5">{{ xf.desc }}</span></button></sc-for>
+      </div>
+      <div style="margin-top: 14px; padding: 12px 14px; border-radius: 8px; background: #FBF8F4; border: 1px solid #EFE6DA">
+        <span style="display: block; font-size: 12.5px; font-weight: 600; color: #2B1A12">Uses what’s on screen now</span>
+        <sc-if value="{{ hasExportFilters }}" hint-placeholder-val="{{ true }}"><div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{ exportFilters }}" as="ef" hint-placeholder-count="2"><span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; background: #FFFFFF; border: 1px solid #E7DCCD; font-size: 12px"><span style="color: #6B5A4E">{{ ef.k }}:</span><strong style="font-weight: 600">{{ ef.v }}</strong></span></sc-for></div></sc-if>
+        <span style="display: block; margin-top: 8px; font-size: 12px; color: #6B5A4E; line-height: 1.5">{{ exportScopeNote }}</span>
+      </div>
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" onClick="{{ closeExport }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Cancel</button><button type="button" onClick="{{ doExport }}" style="display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 16px; border: 0; border-radius: 5px; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>{{ exportCta }}</button>
+      </div>
+    </div>
   </sc-if>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"start": {"editor": "enum", "options": ["", "view"], "default": ""}, "$preview": {"width": 1440, "height": 1000}}'>
 class Component extends DCLogic {
-  constructor(props) { super(props); this.state = { mode: props.start || null, row: null, modal: null, toast: '', rejecting: false, tab: props.tab || 'details', pin: null, muni: null, brgy: null, view: null, adding: false }; }
+  constructor(props) { super(props); this.state = { mode: props.start || null, row: null, modal: props.modal || null, toast: '', rejecting: false, tab: props.tab || 'details', pin: null, muni: null, brgy: null, view: null, adding: false }; }
   renderVals() {
     const s = this.state;
     const close = () => this.setState({ mode: null, row: null, rejecting: false, adding: false });
@@ -113,8 +134,16 @@ class Component extends DCLogic {
     ];
     const rows = E.map((e) => ({ id: e[0], label: e[8], e, when: { main: e[1], sub: e[2] }, actor: { name: e[3], sub: e[4], initials: e[5], bg: e[6] }, cat: pill(e[7], e[11]), action: e[8], record: e[9], changes: { main: e[10].map((d) => d[0]).join(', '), sub: e[10].length + (e[10].length > 1 ? ' fields' : ' field') }, f: { cat: e[7], role: e[4] }, actions: ['view'] }));
     const e = s.row ? s.row.e : E[0];
+    const exportVals = (title, desc, filtersArr, scopeNote) => ({
+      isExport: !!s.exp, exportTitle: title, exportDesc: desc,
+      exportFormats: [['csv', 'CSV', 'CSV', 'Rows of data for Excel or Google Sheets.', '#E1F2E4', '#1E5A34'], ['pdf', 'PDF', 'PDF', 'A formatted report with the totals, charts and tables, ready to print or share.', '#FDF0EE', '#A1362B']].map(([k, l, tag, d, ib, ifg]) => { const on = (s.fmt || 'csv') === k; return { label: l, tag, desc: d, on, iconBg: ib, iconFg: ifg, border: on ? '2px solid #7B4A2A' : '1px solid #E7DCCD', bg: on ? '#FBF6F0' : '#FFFFFF', ring: on ? '0 0 0 3px rgba(123,74,42,.12)' : 'none', pick: () => this.setState({ fmt: k }) }; }),
+      hasExportFilters: filtersArr.length > 0, exportFilters: filtersArr, exportScopeNote: scopeNote,
+      exportCta: 'Export ' + ((s.fmt || 'csv') === 'pdf' ? 'PDF' : 'CSV'),
+      closeExport: () => this.setState({ exp: null }),
+      doExport: () => this.setState({ exp: null, toast: ((s.fmt || 'csv') === 'pdf' ? 'PDF' : 'CSV') + ' is downloading.' })
+    });
     return {
-      ...base, minW: '1020px',
+      ...base, minW: '1020px', ...exportVals('Export audit log', 'Download the entries in the table.', [], 'Uses the search, date range and filters applied to the table right now.'), openExport: () => this.setState({ exp: 'all' }),
       cols: [{ key: 'when', label: 'When' }, { key: 'actor', label: 'Who', kind: 'person' }, { key: 'cat', label: 'Area', kind: 'pill' }, { key: 'action', label: 'What', kind: 'strong' }, { key: 'record', label: 'Record', kind: 'mono' }, { key: 'changes', label: 'Changed', kind: 'muted' }],
       rows, tabs: [],
       filters: [{ key: 'cat', label: 'Area', options: ['All areas', 'Account', 'Association', 'Farm', 'Harvest', 'Beans', 'Inventory', 'Order', 'Settings'] }, { key: 'role', label: 'Role', options: ['Everyone', 'Kaluppa', 'Group Manager', 'Farmer', 'System'] }],

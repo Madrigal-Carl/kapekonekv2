@@ -215,7 +215,7 @@ The dashboard screens are the canvas rows titled "Dashboard". Each page has a **
 |---|---|---|
 | `DataTable` | `DataTable.dc.html` (used on every list page) | **No tabs or count chips above the table.** Toolbar uses `justify-content: space-between`: search on the left; on the right a filter group of **plain dropdowns** (the same `SearchSelect` look, size `sm`, `searchable={false}`: no search box), with "Clear filters" before them. The old view tabs (Active/Archived, Waiting/Approved…) are the first dropdown, labeled **Status**. Then the table (11px uppercase headers on `#FBF8F4`, 12/14px cells, person / pill / two-line / mono cells, icon row actions: view, edit, archive, restore, review, manage, cancel) → footer ("Showing 1–6 of 24", numbered pages). Empty state with an icon. Wide tables scroll inside the card; **below 640px rows become cards**. |
 | `Drawer` | every Add / Edit / View | Right side, **600–720px**, backdrop `rgba(43,26,18,.42)`. **Roomy, not compact**: header padding 22/32px with a 20px title; body padding 28/32/32px with **24px between blocks**; 20px gaps in 2- and 3-column field grids; 44px inputs with 8px between label and input; section headings get a hairline divider and 18px space above. Footer padding 18/32px on `#FBF8F4`, actions on the right. Esc closes it; focus is trapped. |
-| `ConfirmModal` | `DashModals.dc.html` | Archive, restore, reject (reason required), cancel sale, remove post, temporary password (Copy, shown once). Icon circle tinted by tone. |
+| `ConfirmModal` | `DashModals.dc.html` | Archive, restore, reject (reason required), cancel sale, remove post, reset password, delete message, save changes. Icon circle tinted by tone. |
 | `MapPicker` / `FarmMap` | `MiniMap.dc.html` | Mapbox in the app. Pins: farmer farm roast `#7B4A2A`, Kaluppa farm espresso `#2B1A12`, new or edited pin caramel `#C8913A`. The pin scales with selection; the popover card shows key/value rows and "Open farm". Zoom +/−/fit controls. The dashed caramel ring marks a barangay's area. |
 | `BarChart` | `BarChart.dc.html` | Thin bars with 4px rounded tops anchored at the baseline, 2px gaps between stacked segments, light grid lines, a hover column with a dark tooltip, a legend for 2+ series, and a **"View as table"** toggle. One y-axis only. |
 | `StageBar` | overviews, Reports | Segmented horizontal bar (2px gaps) plus a legend list with counts and percentages. |
@@ -282,9 +282,19 @@ The dashboard screens are the canvas rows titled "Dashboard". Each page has a **
 
 ### 8.7 Layout rules to keep (Change 07)
 - The dashboard top bar is sticky on every page.
-- Inbox and Hub are full width (no 1240px cap). The Hub feed fills the page width beside a **sticky 340px aside** (no 680px feed cap).
+- Inbox and Hub are full width (no 1240px cap). The Hub feed is 680px and centered, with a **sticky 340px aside**.
 - Reports charts sit in a 2×2 grid.
 - The Beans **Sell beans** button is disabled once an unapproved farmer reaches 5 kg (board `BeansLimit`).
+
+### 8.8 Change 08 components
+- **ConfirmChangesModal** (`FarmEditConfirm`): save icon, "Save these changes?", a list of `label: before → after` (struck-through red → green), the note about History, and Keep editing / Save changes. Used by every edit form.
+- **ExportModal** (`ReportsExport`): two format radio cards (CSV green tag, PDF red tag) with a 2px roast border when picked, a "Uses what's on screen now" box with filter chips, and an Export CSV / PDF button.
+- **Default password field**: read-only monospace input `KapeKonek@123` with Copy (create only). **Reset password box** in edit forms, with its confirm modal.
+- **DataTable `product` cell**: a 44px thumbnail; with no photo, the **default image** (espresso radial gradient, caramel bean logo).
+- **Association map**: MiniMap with Group Manager-colored pins for each active association; the picked one is ringed and its town shaded.
+- **Mentions**: list under the textarea (32px avatar, name, role · association, first row highlighted). Mentions render as roast text on a crema chip.
+- **Best sellers carousel** (`Main`): 4 / 2 / 1 per view, round prev / next buttons in the header, pill dots, "#N best seller" badge.
+- **Contact us** (`ContactUs`): crema hero; form card on the left; espresso branch card, map and FAQ link on the right.
 
 ### 8.5 Interactions to rebuild (dashboard)
 - **Tables**: search (debounced 300 ms), the Status dropdown, the filters and the page are synced to the URL query (`?status=&q=&variety=&page=`). Filter dropdowns have no search box. ↑ ↓ / Enter / Esc work on them. Row actions open drawers; drawers update the URL (`?open=<id>&mode=view|edit`) so links can be shared.
