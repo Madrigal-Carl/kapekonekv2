@@ -1,11 +1,19 @@
 # KapeKonek
 
-KapeKonek is a coffee marketplace with a CRM side, built for Kaluppa in Marinduque. Buyers order coffee from Kaluppa for delivery anywhere in Marinduque or for pickup at Kaluppa. They pay by GCash/Maya (with a receipt upload) or in cash. Farmers and group managers use a dashboard.
+KapeKonek is a coffee marketplace with a CRM side, built for Kaluppa in Marinduque. Kaluppa is the only seller and does all fulfilment: delivery anywhere in Marinduque (fee from the road distance) or pickup at Kaluppa in Pantayin, Santa Cruz. Customers pay by e-wallet (QR and a receipt upload; only GCash is enabled for now, set in Settings) or in cash.
+
+| Role | Uses | Home after sign-in |
+|---|---|---|
+| Buyer | The storefront: coffee, cart, checkout, orders, addresses | `/` |
+| Farmer | The dashboard: farms, trees, harvests, selling beans to Kaluppa (5 kg in total until approved), the store for fertilizer and seedlings, Inbox, Hub, Farm Map. Must verify their email. | `/dashboard/overview` |
+| Group Manager | The dashboard for one association: approves farmers and does everything for them (records, beans), Inbox, Hub, Farm Map, Reports | `/dashboard/overview` |
+| Kaluppa | Everything: Group Managers, associations, its own farms, the bean review, orders, inventory, reviews, settings, reports with CSV, the audit log | `/dashboard/overview` |
 
 - `backend/`: Express 5 API, Socket.IO, the BullMQ email worker and the order-expiry scheduler, all in one process.
 - `frontend/`: React 19 + Vite single-page app.
 - `docs/`: what to build and how it should look.
-  - `PRODUCT-SPEC.md`: product specification.
+  - `PRODUCT-SPEC.md`: product specification (Phase 1, the storefront).
+  - `PHASE-2-SPEC.md`: the dashboard (Phase 2).
   - `DESIGN.md`: design rules.
   - `design/screens/*.dc.html`: the approved screens.
 
@@ -50,15 +58,35 @@ Every account is a Gmail address with the password `KapeKonek@123` (`SEED_DEFAUL
 - Leave `SEED_EMAIL_BASE` empty and the emails are `kapekonek.<username>@gmail.com`. The mail worker never emails these accounts: it writes the message to `backend/storage/mail/` with a `skipped-seed` note.
 - Set `SEED_EMAIL_BASE=yourname@gmail.com` and they become `yourname+<username>@gmail.com`, so every email really reaches your inbox.
 
-| Email (without `SEED_EMAIL_BASE`) | Username | Role | Email verified |
-|---|---|---|---|
-| `kapekonek.kaluppa@gmail.com` | `kaluppa` | Kaluppa (admin) | yes |
-| `kapekonek.manager.santacruz@gmail.com` | `manager.santacruz` | Group Manager | yes |
-| `kapekonek.farmer.approved@gmail.com` | `farmer.approved` | Farmer | yes |
-| `kapekonek.farmer.unverified@gmail.com` | `farmer.unverified` | Farmer | no |
-| `kapekonek.buyer@gmail.com` | `buyer` | Buyer (with addresses and orders) | yes |
-| `kapekonek.buyer.unverified@gmail.com` | `buyer.unverified` | Buyer | no: blocked until verified |
-| `kapekonek.buyer01@gmail.com` … `kapekonek.buyer20@gmail.com` | `buyer01` … `buyer20` | Buyers (reviewers) | yes |
+| Username | Who | Lands on |
+|---|---|---|
+| `kaluppa` | Kaluppa (admin), branch pin and hours set | `/dashboard/overview` |
+| `manager.santacruz` | Group Manager, Santa Cruz Coffee Growers (4 farmers waiting); manages the Kaluppa Demo Farm | `/dashboard/overview` |
+| `manager.boac` | Group Manager, Boac Highland Farmers | `/dashboard/overview` |
+| `manager.unassigned` | Group Manager with no association | `/dashboard/overview` (empty state) |
+| `farmer.approved` | Approved farmer (Rodel), farms, beans, farm-supply orders and chats | `/dashboard/overview` |
+| `farmer.pending` | Waiting for approval, 3 of 5 kg used | overview with the banner |
+| `farmer.new` | Email verified, no association | the association window |
+| `farmer.nomail` | Created by a Group Manager, username only, must set a new password | "Set a new password" |
+| `farmer.rejected` | Request rejected | overview with the reason |
+| `farmer.transfer` | In Boac, asking to move to Santa Cruz | `/dashboard/overview` |
+| `farmer.unverified` | Email not verified | `/verify-email` |
+| `buyer` | Buyer (Juana) with addresses and orders in every status | `/` |
+| `buyer.unverified` | Buyer, blocked until verified | `/verify-email` |
+| `buyer01` … `buyer20` | Buyers who left reviews | `/` |
+
+Emails are `kapekonek.<username>@gmail.com` (or `yourname+<username>@gmail.com`); `farmer.nomail` has none. The seed also fills farms in all 6 towns, tree groups in every stage, 12 months of harvests, bean listings in every status (one approved listing expires within a day), chats with every receipt state, Hub posts (one portrait photo, one video) with views for the landing top 3, and about 60 audit entries.
+
+## Background jobs
+
+All run inside the API process; nothing else needs deploying.
+
+| Job | When | What |
+|---|---|---|
+| Email worker (BullMQ `email`) | on demand | Sends every email through Brevo (or writes it to `backend/storage/mail/`), 3 attempts with backoff. Skips seed accounts unless `SEED_EMAIL_BASE` is set. |
+| Order expiry | every `ORDER_EXPIRY_INTERVAL_MINUTES` | Expires orders not confirmed in 3 days and releases their stock. Also callable from cron: `POST /api/cron/expire-orders`. |
+| `beans:expire` (BullMQ `jobs`) | hourly | Expires approved bean listings not brought in within 7 days. |
+| `posts:top3` (BullMQ `jobs`) | hourly | Ranks the 3 most-viewed Hub posts of the last 30 days for the landing page. |
 
 ## Deploy
 
