@@ -354,10 +354,10 @@ frontend/src/
 
 ## M15 — Seeds, polish, verification
 
-- [ ] Complete PHASE-2-SPEC §8 coverage and the sign-in table (every handle in §8 plus Phase 1's).
-- [ ] Playwright per role (farmer, Group Manager, Kaluppa) through every sidebar item at 1440/390, compared with each screen's Tweaks branches; fix differences.
-- [ ] Accessibility (drawer/modal focus traps, keyboard tables and filters, chart table views, axe), performance (lazy dashboard routes, image sizes), README (roles, handles, jobs).
-- [ ] PHASE-2-PROMPT §4 checklist all green.
+- [x] Complete PHASE-2-SPEC §8 coverage and the sign-in table (every handle in §8 plus Phase 1's).
+- [x] Playwright per role (farmer, Group Manager, Kaluppa) through every sidebar item at 1440/390, compared with each screen's Tweaks branches; fix differences.
+- [x] Accessibility (drawer/modal focus traps, keyboard tables and filters, chart table views, axe), performance (lazy dashboard routes, image sizes), README (roles, handles, jobs).
+- [x] PHASE-2-PROMPT §4 checklist all green.
 
 ---
 
@@ -424,3 +424,16 @@ frontend/src/
   - Playwright 94/97 on the full run; `insights.spec.js` 6/6 (Kaluppa filters the map by association → popover → Open farm; farmer sees own farms only; Reports Export all CSV; Group Manager's reports; audit entry diff; Group Manager / farmer guards) and the 390/768 pass now covers Farm Map, Reports and Audit log. Failures: `orders.spec` and `store.spec` (stale since Change 06, as in M13) and one inbox sign-in timeout that passes on rerun;
   - screenshots for Kaluppa, Group Manager and farmer at 1440/390, compared with FarmMap / Reports / AuditLog by their markup values. After review: Reports rows by harvest, Group Manager totals without Kaluppa farms, Insights crumb.
 - **Not built**: report data before the seeded months (charts are sparse until M15 seeds); graphify ran code-only.
+
+### M15 — done (2026-11-27)
+
+- **Seeds** (PHASE-2-SPEC §8): audited the fresh seed against every bullet. The one gap was farmer store orders: `farmer.approved` now has 6 fertilizer/seedling orders (pending, processing, ready for pickup, cancelled, sold ×2) from the same builder as Juana's. The sign-in table lists every handle; `signins.spec.js` signs in as all 14 and checks where each lands.
+- **Per-role pass**: `tour.spec.js` opens every sidebar item for farmer, Group Manager and Kaluppa at 1440 and 390 (fails on page errors, 5xx answers or a page without an h1; `SHOTS=<dir>` saves screenshots). Found: the Inbox had no h1 on phones (now screen-reader-only, as InboxMobile draws none). Screenshots reviewed for the overviews, orders, inventory, reports and phone views.
+- **Accessibility**: axe on every dashboard page per role at both widths, plus a keyboard test of a view drawer (focus trapped, Esc closes, focus returns). Fixed: Mapbox markers holding buttons no longer `role="img"`; the Hub "+N" tile names its count; chat times and day separators at 4.5:1 (ink-4); the Reports table scroller is a focusable region.
+- **Performance**: dashboard pages are lazy chunks; the entry bundle went from 688 kB to 396 kB (gzip 197 → 121 kB). Every image already goes through the Cloudinary resize helpers except signed document previews.
+- **README**: roles, every seed handle and where it lands, what the seed covers, the four background jobs, GCash-only payment copy.
+- **§4 checklist**: each item maps to tests (cap concurrency `beanCap`, transfer/removal `farmerProfile`, Group Manager without orders `permissions`, bean expiry `beanExpire`, Inbox `inbox`/`chat`, Hub `hub`, seeds `seed`, and the e2e specs).
+- **Verified**:
+  - lint clean; backend 602/602, frontend 284/284; `migrate:fresh -- --seed` ok;
+  - Playwright: the full run was stopped by the machine running low on memory at 52/122, with 51 passed and Chromium crashing on the 52nd. Run alone this session and green: a11y 8/8, insights 7/7, tour 6/6, signins 14/14, orders + store 8/8 (the two specs stale since Change 06 now follow the current UI), inbox + auth. Not rerun after the M15 changes: maps, media, mobile, overview, payments, realtime, records, storefront, thumbnail (all green in the M14 full run).
+- **Not built**: a reviewer subagent pass (self-review only); doc nodes in graphify not re-extracted.
