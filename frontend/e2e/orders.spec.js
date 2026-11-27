@@ -82,7 +82,7 @@ test('pickup: GCash with an uploaded receipt is placed as pending', async ({ pag
   await addAndCheckout(page, 'barako-medium-roast')
   await page.getByRole('radio', { name: /Pick up at Kaluppa/ }).check()
   await page.getByLabel('Contact number').fill('0917 555 0199')
-  await expect(page.getByRole('radio', { name: /GCash or Maya/ })).toBeChecked()
+  await expect(page.getByRole('radio', { name: /^GCash/ })).toBeChecked() // labelled from Settings: only GCash is shown at checkout
   await expect(page.getByRole('img', { name: 'Sample GCash QR code' })).toBeVisible()
   // A 6 MB image is stopped in the browser before anything uploads.
   await page.locator('input[type="file"]').setInputFiles({ name: 'big-receipt.png', mimeType: 'image/png', buffer: Buffer.alloc(6 * 1024 * 1024, 1) })

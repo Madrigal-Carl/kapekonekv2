@@ -73,10 +73,9 @@ test('Kaluppa picks a new thumbnail for a product, and the store shows it first'
   await page.goto('/dashboard/inventory?q=Barako')
   await page.getByRole('button', { name: /^Edit Barako/ }).first().click()
   const form = page.getByRole('dialog', { name: /^Edit Barako/ })
-  const second = form.getByRole('button', { name: 'Photo 2, make thumbnail' })
-  const src = await second.locator('img').getAttribute('src')
-  await second.click()
-  await expect(form.getByRole('button', { name: 'Photo 2, thumbnail' })).toHaveAttribute('aria-pressed', 'true')
+  const src = await form.getByRole('img', { name: 'Photo 2', exact: true }).getAttribute('src')
+  await form.getByRole('button', { name: 'Make photo 2 the thumbnail' }).click()
+  await expect(form.getByRole('button', { name: 'Photo 2 is the thumbnail' })).toHaveAttribute('aria-pressed', 'true')
   await form.getByRole('button', { name: 'Save changes' }).click()
   await expect(form).toBeHidden()
   const [product] = (await (await page.request.get(`${API}/admin/products?q=Barako&limit=1`)).json()).data
