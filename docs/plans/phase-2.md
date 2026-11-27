@@ -361,6 +361,23 @@ frontend/src/
 
 ---
 
+## Change 07 — Sticky top bar, Sell beans at the limit, agreed layouts, Hub posting and viewing
+
+**Prompt:** `docs/prompts/CHANGE-07-STICKY-LIMIT-LAYOUT-HUB.md`. Specs: DESIGN §8.7 and the Hub rows in §8.2 / §8.5, PHASE-2-SPEC §3.10. Runs after M15 (written for before M12, so the Hub from M13 is rebuilt in Part B). One commit per part: `Change 07A: …`, `Change 07B: …`.
+
+### Task C07.A: Sticky top bar, the selling limit, agreed layouts (DESIGN §8.7)
+- [x] `DashTopbar` `sticky top-0 z-30` (page content below; drawers, modals and the phone nav are `z-50`; the phone chat thread `z-40` covers it on purpose). `data-sticky-bar` on it and on the storefront navbar: a page `SearchSelect` whose trigger scrolls under the bar closes (lists inside dialogs are above the bar and stay open).
+- [x] Sell beans at 5 kg (`BeansLimit`): button disabled (sand-soft fill, ink-4 text, `cursor: not-allowed`, title) with "You’ve used your 5 kg limit" under it via `aria-describedby`; the banner says "You’ve reached your 5 kg limit." and how it unlocks. Numbers from `GET /beans/cap`; the server still refuses over the cap (`403 BEAN_CAP_EXCEEDED`, PHASE-2-SPEC §3.5).
+- [x] Group Manager farmer picker: `GET /farmers` items carry `capLeftKg` (null once approved); options read "Name · unapproved, 2 kg left", and a farmer at 0 is a disabled option with "limit reached" (`SearchSelect` options take `disabled` and `note`).
+- [x] Layouts kept: Hub feed `flex: 0 1 680px` centered with a `340px` aside, sticky at `top: 88px`, hidden under 960px (Hub.dc.html `kk-hide-sm`); Inbox and Hub full width (no page cap anywhere); Reports charts `grid-cols-2`, one column ≤ 720px (the `Row maxCols` workaround removed).
+- [x] Tests: backend `beanCap` (capLeftKg 0 / null); frontend Beans (disabled + description + banner; picker disabled option); e2e `beans.spec` (Dario reaches 5 kg → disabled, the Group Manager can't pick him, a cancel unlocks it) and `layout.spec` (bar at top after scrolling at 1440/390 and under a drawer; Reports 2 / 1 columns; Hub full width with the aside at 88px; Inbox full width).
+
+### Task C07.B: Hub Create post modal and post viewer (PHASE-2-SPEC §3.10)
+- [ ] Trigger card + `CreatePostModal` (create and edit, discard confirm, phone full screen).
+- [ ] `PostViewer` at `/dashboard/hub/posts/:id?media=n` (media: 400px panel + dark stage; text-only: 640px dialog; phones: stage 56% on top).
+- [ ] Feed card: last comment, "View all N comments", "Write a comment…", captions cut at 240 with "See more"; no inline thread.
+- [ ] Tests and Playwright.
+
 ## Milestone summaries
 
 (Added after each milestone.)

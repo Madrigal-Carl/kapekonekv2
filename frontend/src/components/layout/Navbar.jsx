@@ -26,7 +26,7 @@ export function Navbar() {
   const showCart = useCartDrawer((s) => s.show)
 
   return (
-    <header className="sticky top-0 z-40 h-16 w-full border-b border-sand bg-white/94 backdrop-blur">
+    <header data-sticky-bar className="sticky top-0 z-40 h-16 w-full border-b border-sand bg-white/94 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between gap-2 px-4 sm:gap-4 sm:px-8">
         <div className="flex items-center gap-10">
           <Link to="/" aria-label="KapeKonek home" className="flex items-center gap-2.5 text-ink no-underline hover:text-ink">

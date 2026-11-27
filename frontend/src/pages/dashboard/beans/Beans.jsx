@@ -58,10 +58,15 @@ function toRow(l, isKaluppa) {
 /** “You can sell up to 5 kg until you’re approved.” with the meter (BeansFarmer.dc.html). */
 function SellingLimit({ cap }) {
   const pct = Math.min(100, (cap.usedKg / cap.capKg) * 100)
+  const full = cap.leftKg <= 0
   return (
     <section aria-label="Selling limit" className="flex flex-wrap items-center gap-4 rounded-lg border border-notice-line bg-notice-bg px-4 py-3.5 text-notice-ink">
       <div className="flex-[1_1_280px] text-[13.5px] leading-[1.55]">
-        <strong>You can sell up to {formatKg(cap.capKg)} until you’re approved.</strong> Pending, approved and completed listings count.{' '}
+        {full ? (
+          <><strong>You’ve reached your {formatKg(cap.capKg)} limit.</strong> Sell beans unlocks once your Group Manager approves you, or when a listing is cancelled or rejected.{' '}</>
+        ) : (
+          <><strong>You can sell up to {formatKg(cap.capKg)} until you’re approved.</strong> Pending, approved and completed listings count.{' '}</>
+        )}
         <Link to="/dashboard/account/association" className="font-semibold text-notice-ink underline">Check your request</Link>
       </div>
       <div className="flex-[1_1_260px]">
@@ -134,6 +139,8 @@ export function Beans() {
     limit: PAGE_SIZE,
   })
   const cap = useBeanCap(undefined, { enabled: !isKaluppa && !actsForFarmers })
+  // BeansLimit: the same numbers the server checks (it still refuses anything over the cap).
+  const atLimit = Boolean(cap.data && !cap.data.approved && cap.data.leftKg <= 0)
   const openId = params.open && params.open !== 'new' ? params.open : null
   const opened = useBean(openId)
   const cancel = useCancelBean()
@@ -186,10 +193,19 @@ export function Beans() {
         }
         actions={
           !isKaluppa && (
-            <Button onClick={() => set({ open: 'new', mode: null })} className="min-h-[42px] py-0 font-semibold">
-              <IconPlus aria-hidden="true" className="size-4" strokeWidth={2.2} />
-              Sell beans
-            </Button>
+            <span className="inline-flex flex-col items-end gap-1">
+              <Button
+                onClick={() => set({ open: 'new', mode: null })}
+                disabled={atLimit}
+                aria-describedby={atLimit ? 'sell-why' : undefined}
+                title={atLimit ? 'You can sell more once your Group Manager approves you' : undefined}
+                className="min-h-[42px] py-0 font-semibold disabled:bg-sand-soft disabled:text-ink-4 disabled:opacity-100"
+              >
+                <IconPlus aria-hidden="true" className="size-4" strokeWidth={2.2} />
+                Sell beans
+              </Button>
+              {atLimit && <span id="sell-why" className="text-xs text-notice-ink">You’ve used your {formatKg(cap.data.capKg)} limit</span>}
+            </span>
           )
         }
       />

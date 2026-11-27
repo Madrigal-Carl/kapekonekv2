@@ -27,7 +27,7 @@ function Highlight({ label, q }) {
  * highlighted matches, a check on the chosen option and keyboard hints. Rendered in a portal so modals don't clip it.
  * Works with react-hook-form through `Controller` (`ref` goes to the trigger, so RHF can focus it on error).
  * @param {{
- *   label?: string, options: Array<string | { value: string, label: string }>, value: string | null | undefined,
+ *   label?: string, options: Array<string | { value: string, label: string, disabled?: boolean, note?: string }>, value: string | null | undefined,
  *   onChange: (value: string) => void, placeholder?: string, searchPlaceholder?: string,
  *   icon?: 'pin'|'home'|'sort'|'tag'|'none', size?: 'md'|'sm', searchable?: boolean, disabled?: boolean,
  *   error?: string, 'aria-label'?: string, name?: string, id?: string, className?: string, ref?: React.Ref<HTMLButtonElement>,
@@ -73,6 +73,7 @@ export function SearchSelect({
     onBlur?.()
   }
   const choose = (option) => {
+    if (option.disabled) return
     onChange(option.value)
     close()
   }
@@ -82,6 +83,9 @@ export function SearchSelect({
     if (!open) return undefined
     const measure = () => {
       const r = trigger.current.getBoundingClientRect()
+      // Page content scrolls under the sticky top bar (Change 07); a select that goes under it closes. Dialogs sit above the bar.
+      const bar = !trigger.current.closest('[role="dialog"]') && document.querySelector('[data-sticky-bar]')
+      if (bar && r.top < bar.getBoundingClientRect().bottom) return setOpen(false)
       const below = window.innerHeight - r.bottom
       const up = below < POPOVER_MAX && r.top > below
       setPlace({ left: r.left, width: Math.max(r.width, 220), top: up ? undefined : r.bottom + 6, bottom: up ? window.innerHeight - r.top + 6 : undefined })
@@ -260,14 +264,16 @@ export function SearchSelect({
                   id={ids.option(i)}
                   role="option"
                   aria-selected={o.value === value}
+                  aria-disabled={o.disabled || undefined}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => choose(o)}
                   onMouseEnter={() => i !== act && setActive(i)}
-                  className={cn('flex cursor-pointer items-center gap-2.5 rounded-control px-2.5 py-[9px] text-[13.5px]', i === act && 'bg-crema')}
+                  className={cn('flex cursor-pointer items-center gap-2.5 rounded-control px-2.5 py-[9px] text-[13.5px]', i === act && 'bg-crema', o.disabled && 'cursor-not-allowed text-ink-4')}
                 >
                   <span className="min-w-0 flex-1">
                     <Highlight label={o.label} q={q} />
                   </span>
+                  {o.note && <span className="shrink-0 text-xs text-ink-4">{o.note}</span>}
                   {o.value === value && <IconCheck aria-hidden="true" className="size-4 shrink-0 text-roast" strokeWidth={2.5} />}
                 </li>
               ))}

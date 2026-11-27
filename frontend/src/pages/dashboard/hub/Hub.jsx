@@ -41,7 +41,7 @@ function Aside() {
   const top = useTopPosts()
   const tags = useTagCounts()
   return (
-    <aside className="sticky top-7 flex max-w-[340px] flex-[1_1_280px] flex-col gap-3.5 self-start max-[720px]:static max-[720px]:max-w-none">
+    <aside className="sticky top-[88px] flex flex-[0_0_340px] flex-col gap-3.5 self-start max-[960px]:hidden">
       <section className={card}>
         <h2 className="m-0 text-[15px] font-semibold">Most viewed this month</h2>
         <p className="mt-0.5 text-xs leading-[1.5] text-ink-3">These 3 appear on the landing page for everyone. Views count signed-in people once a day.</p>
@@ -130,8 +130,8 @@ export function Hub() {
 
   return (
     <Main>
-      <div className="flex flex-wrap items-start gap-6">
-        <div className="flex min-w-0 flex-[999_1_560px] flex-col gap-3.5">
+      <div className="flex flex-wrap items-start justify-center gap-6">
+        <div className="flex min-w-0 flex-[0_1_680px] flex-col gap-3.5">
           <div>
             <span className="block text-[11px] font-medium uppercase tracking-[0.16em] text-ink-3">Community</span>
             <h1 className="mt-1.5 text-[28px] font-medium tracking-[-0.02em]">Hub</h1>

@@ -14,7 +14,7 @@ import { useReport } from '@/hooks/useReports'
 import { useTableParams } from '@/hooks/useTableParams'
 import { formatKg, formatPesoShort } from '@/lib/format'
 import { reportCsvUrl } from '@/services/report.service'
-import { ChartCard, DashPage, KpiRow, Row } from '../overview/Overview'
+import { ChartCard, DashPage, KpiRow } from '../overview/Overview'
 
 const PERIOD_OPTIONS = [
   { value: 'last_12_months', label: 'Last 12 months' },
@@ -162,8 +162,8 @@ export function Reports() {
         ))}
       </div>
       <Kpis summary={summary} isKaluppa={isKaluppa} />
-      {/* 2 × 2 like Reports.dc.html, whose 1240px page never fits a third column. */}
-      <Row min={420} maxCols={2}>
+      {/* 2 × 2 (DESIGN §8.7), one column on phones. */}
+      <div className="grid grid-cols-2 items-stretch gap-4 max-[720px]:grid-cols-1 [&>*]:min-w-0">
         <ChartCard title="Harvest by variety" sub="Kilograms per month, stacked">
           <Loaded query={harvest}>
             {(d) => (
@@ -195,7 +195,7 @@ export function Reports() {
             {(d) => <StageBar items={stageItems(d.byStage)} />}
           </Loaded>
         </ChartCard>
-      </Row>
+      </div>
       <Breakdown query={breakdown} csvUrl={reportCsvUrl('breakdown', filters)} isKaluppa={isKaluppa} />
     </DashPage>
   )

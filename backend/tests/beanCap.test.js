@@ -96,6 +96,10 @@ describe('the 5 kg cap (PHASE-2-SPEC §3.5)', () => {
     const over = await list(manager, managerId, { farmerId: String(joy.user._id), weightKg: 1.5 }).expect(403);
     expect(over.body.data).toEqual({ capKg: 5, usedKg: 4, leftKg: 1 });
     await list(manager, managerId, { farmerId: String(joy.user._id), weightKg: 1 }).expect(201);
+    // The farmer picker shows who is at the limit (BeansLimit): unapproved farmers carry what's left, approved ones null.
+    const listed = (await manager.get('/api/farmers').expect(200)).body.data;
+    expect(listed.find((f) => f.id === String(joy.user._id)).capLeftKg).toBe(0);
+    expect(listed.filter((f) => f.status === 'approved').every((f) => f.capLeftKg === null)).toBe(true);
   });
 
   it('an edit re-checks the cap without counting the listing twice', async () => {

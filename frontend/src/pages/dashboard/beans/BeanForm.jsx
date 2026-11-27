@@ -119,7 +119,11 @@ function BeanFields({ formId, listing, actsForFarmers, create, update, onOver, o
               searchPlaceholder="Search farmer"
               options={(farmers.data?.items ?? [])
                 .filter((f) => f.status === 'approved' || f.status === 'pending')
-                .map((f) => ({ value: f.id, label: f.status === 'approved' ? f.name : `${f.name} · unapproved` }))}
+                .map((f) => (f.status === 'approved' || f.capLeftKg == null
+                  ? { value: f.id, label: f.name }
+                  : f.capLeftKg > 0
+                    ? { value: f.id, label: `${f.name} · unapproved, ${formatKg(f.capLeftKg)} left` }
+                    : { value: f.id, label: `${f.name} · unapproved`, note: 'limit reached', disabled: true }))}
               value={field.value || null}
               onChange={field.onChange}
               ref={field.ref}

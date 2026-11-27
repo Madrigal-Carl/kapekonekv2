@@ -28,6 +28,15 @@ export async function capUsedKg(farmerId, { excludeId, session } = {}) {
   return row?.kg ?? 0;
 }
 
+/** Cap kilograms used per farmer, for a page of farmers. @returns {Promise<Map<string, number>>} */
+export async function capUsedKgByFarmers(farmerIds) {
+  const rows = await BeanListing.aggregate([
+    { $match: { farmer: { $in: farmerIds.map(oid) }, countsTowardCap: true, status: { $in: CAP_STATUSES } } },
+    { $group: { _id: '$farmer', kg: { $sum: '$weightKg' } } },
+  ]);
+  return new Map(rows.map((r) => [String(r._id), r.kg]));
+}
+
 /** Final kilograms of the farmer's completed sales since a date. */
 export async function soldKgSince(farmerId, since) {
   const [row] = await BeanListing.aggregate([

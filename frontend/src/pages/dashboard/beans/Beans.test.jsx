@@ -87,6 +87,15 @@ describe('Beans — farmer', () => {
     cap.value = { capKg: 5, usedKg: 3, leftKg: 2, approved: false }
   })
 
+  it('at 5 kg the Sell beans button is disabled and says why (BeansLimit)', async () => {
+    cap.value = { capKg: 5, usedKg: 5, leftKg: 0, approved: false }
+    await renderAs('farmer')
+    const sell = await screen.findByRole('button', { name: 'Sell beans', description: 'You’ve used your 5 kg limit' })
+    expect(sell.disabled).toBe(true)
+    expect(within(screen.getByRole('region', { name: 'Selling limit' })).getByText('You’ve reached your 5 kg limit.')).toBeTruthy()
+    cap.value = { capKg: 5, usedKg: 3, leftKg: 2, approved: false }
+  })
+
   it('a pending listing’s view says it waits for review and offers Cancel listing', async () => {
     await renderAs('farmer', '/dashboard/beans?open=b1')
     const drawer = await screen.findByRole('dialog', { name: '2 kg Liberica, dried cherry' })
@@ -111,6 +120,27 @@ describe('Beans — Group Manager', () => {
     expect(screen.queryByRole('region', { name: 'Selling limit' })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Sell beans' }))
     expect(await within(await screen.findByRole('dialog', { name: 'List beans for Kaluppa' })).findByRole('button', { name: /^Farmer/ })).toBeTruthy()
+  })
+
+  it('a farmer at the limit shows as disabled with “limit reached” in the picker', async () => {
+    const { listFarmers } = await import('@/services/farmer.service')
+    listFarmers.mockResolvedValueOnce({
+      items: [
+        { id: 'f1', name: 'Joy Lacsamana', firstName: 'Joy', status: 'pending', capLeftKg: 0 },
+        { id: 'f2', name: 'Lito Rey', firstName: 'Lito', status: 'pending', capLeftKg: 1 },
+        { id: 'f3', name: 'Rodel Mendoza', firstName: 'Rodel', status: 'approved', capLeftKg: null },
+      ],
+      meta: { page: 1, limit: 50, total: 3 },
+    })
+    await renderAs('manager')
+    fireEvent.click(await screen.findByRole('button', { name: 'Sell beans' }))
+    fireEvent.click(await within(await screen.findByRole('dialog', { name: 'List beans for Kaluppa' })).findByRole('button', { name: /^Farmer/ }))
+    const joy = await screen.findByRole('option', { name: /Joy Lacsamana/ })
+    expect(joy.getAttribute('aria-disabled')).toBe('true')
+    expect(within(joy).getByText('limit reached')).toBeTruthy()
+    expect(screen.getByRole('option', { name: 'Lito Rey · unapproved, 1 kg left' })).toBeTruthy()
+    fireEvent.click(joy)
+    expect(screen.getByRole('listbox')).toBeTruthy() // still open: nothing was picked
   })
 })
 

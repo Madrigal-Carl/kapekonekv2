@@ -40,10 +40,9 @@ export function HeaderAction({ to, variant = 'solid', plus, children }) {
   )
 }
 
-/** Cards at least `min` px wide, as many per line as fit; `maxCols` caps that (a column is then never narrower than its share). */
-export function Row({ min = 340, maxCols, children }) {
-  const floor = maxCols ? `max(${min}px, calc((100% - ${(maxCols - 1) * 16}px) / ${maxCols}))` : `${min}px`
-  return <div className="grid items-start gap-4" style={{ gridTemplateColumns: `repeat(auto-fit, minmax(min(${floor}, 100%), 1fr))` }}>{children}</div>
+/** Cards at least `min` px wide, as many per line as fit. */
+export function Row({ min = 340, children }) {
+  return <div className="grid items-start gap-4" style={{ gridTemplateColumns: `repeat(auto-fit, minmax(min(${min}px, 100%), 1fr))` }}>{children}</div>
 }
 
 export const KpiRow = ({ children }) => (

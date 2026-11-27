@@ -32,8 +32,9 @@ export function DashTopbar({ role, crumbs, onMenu, menuOpen }) {
   const canShop = useCan('cart.manage') && TOPBAR_CART.has(role)
   const cartCount = useCart().data?.count ?? 0
 
+  // Sticky on every page (DESIGN §8.7): above page content, below drawers, modals and the phone nav (z-50).
   return (
-    <header className="relative z-30 flex h-16 items-center gap-3 border-b border-sand bg-white px-6 text-ink max-[960px]:px-4">
+    <header data-sticky-bar className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-sand bg-white px-6 text-ink max-[960px]:px-4">
       <Button
         variant="outline"
         iconOnly
