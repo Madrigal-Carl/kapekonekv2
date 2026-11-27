@@ -154,6 +154,7 @@ Zod schema (react-hook-form) → TanStack Query hook → service function → ax
 - **Scope by policy, not by role.** Records use the policy helpers in PHASE-2-SPEC §2 (`isOwner`, `isAssociationManager`, `isAssignedManager`, `isKaluppaFarm`). A Group Manager acting for a farmer always sends `farmerId`, and the service checks that the farmer is in the Group Manager's association.
 - **Two farmer states, two words:** "email verified" and "approved farmer". Never call an approved farmer "verified" in code, copy or tests.
 - **The 5 kg bean cap** is enforced in the service inside a transaction (PHASE-2-SPEC §3.5). The UI meter is only a hint.
+- **Don't undo agreed layout**: sticky top bar; full-width Inbox and Hub; sticky Hub aside; 2×2 Reports charts (DESIGN §8.7).
 - **Phones are first-class**: every dashboard page works at 390px with no horizontal scroll (DESIGN §8.6).
 - **Every view drawer ends with History** from the audit log (PHASE-2-SPEC §3.15).
 - **Payment copy is never hard-coded**: build it from the providers enabled in Settings (only GCash for now).

@@ -197,6 +197,7 @@ The handover happens at the branch, outside the system.
 
 ### 3.10 Hub
 - A feed for farmers, Group Managers and Kaluppa.
+  - **Posting happens in a "Create post" modal** (Facebook-style). The feed shows a trigger card ("What’s on your mind, Rodel?" plus Photo / video and Tags shortcuts) that opens it. Editing reuses the same modal, titled "Edit post". Closing with unsaved content asks "Discard this post?".
   - **Composer**: text, up to 10 media (images 5 MB, **videos 50 MB**), and **up to 3 tags** from `pruning, harvesting, processing, soil, advisory, announcement`.
   - Tags show as `#tag` at the end of the post. **Tag filter chips** sit above the feed.
 - Posts can be edited or deleted by their author. Reactions are Phase 1's like / love / celebrate. Comments have one level of replies; authors can edit or delete them.
@@ -207,7 +208,12 @@ The handover happens at the branch, outside the system.
     - 2 items: two columns;
     - 3 items: one big tile plus two small;
     - 4 or more: a 2×2 grid with "+N" on the last tile.
-  - The viewer and post page use a **fixed 16:10 stage** (max 560 px tall) with `object-fit: contain` on a dark background. Thumbnails are square with `object-fit: cover`.
+  - **Post viewer** (opens from a media tile, the time, "See more", the comment count, the Comment button or "Write a comment…"; it has its own URL, `/dashboard/hub/posts/:id?media=n`):
+    - **posts with media**: a full-screen dialog. The **left panel (400 px, white)** holds the author, caption, tags, reaction and comment counts, React / Comment, the full comment thread with replies, and a comment box pinned at the bottom. The **right side is a dark stage** with the current photo or video (`object-fit: contain`, never cropped), a "2 / 5" counter, previous / next buttons, arrow keys, a thumbnail strip, and a close button.
+    - **text-only posts**: a centered 640 px dialog with the same panel.
+    - **phones**: the stage sits on top (56% of the height), with the panel scrolling below it.
+    - Esc closes it and focus returns to what opened it.
+  - The feed card shows the last comment and "View all N comments"; the full thread lives in the viewer. Captions longer than 240 characters are cut with "See more".
 - **Views**: a `PostView {post, user, day}` record, unique, signed-in users only. **Guests are not counted.**
 - **Landing page**: shows the **3 most-viewed posts of the last 30 days**, computed hourly by a BullMQ job and cached in Valkey (`posts:top3`). Guests and buyers can open those 3 posts (public post page). Any other post asks them to sign in.
   - This replaces Phase 1's "latest posts".

@@ -37,6 +37,13 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
 .kk-drawer-body{padding:20px 18px 28px !important}
 .kk-drawer-head,.kk-drawer-foot{padding-left:18px !important;padding-right:18px !important}
 .kk-drawer-foot > *{flex:1 1 auto}
+.kk-cp{top:0 !important;left:0 !important;transform:none !important;width:100% !important;max-width:none !important;height:100vh;max-height:none !important;border-radius:0 !important}
+.kk-pv{flex-direction:column-reverse !important;overflow-y:auto}
+.kk-pv-side{width:100% !important;flex:1 0 auto !important;min-height:auto !important}
+.kk-pv-stage{flex:0 0 56vh !important;padding:52px 10px 78px !important}
+.kk-pv-nav{width:40px !important;height:40px !important}
+.kk-pv-thumb{width:44px !important;height:44px !important}
+.kk-pv-text{top:0 !important;left:0 !important;transform:none !important;width:100% !important;max-width:none !important;height:100vh;max-height:none !important;border-radius:0 !important}
 }
 </style>
 </helmet>
@@ -45,7 +52,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
     <dc-import name="Sidebar" role="{{ role }}" active="Reports" hint-size="256px,900px"></dc-import>
   </div>
   <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
-    <dc-import name="DashTopbar" role="{{ role }}" active="Reports" crumb-a="Insights" crumb-b="Reports" hint-size="100%,64px"></dc-import>
+    <div style="position: sticky; top: 0; z-index: 40"><dc-import name="DashTopbar" role="{{ role }}" active="Reports" crumb-a="Insights" crumb-b="Reports" hint-size="100%,64px"></dc-import></div>
     <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
       <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
         <div style="min-width: 0; max-width: 720px">
@@ -67,7 +74,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
           </a>
         </sc-for>
       </div>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 16px; align-items: start">
+      <div class="kk-g2" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: stretch">
         <section style="background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; padding: 18px 20px">
           <h2 style="margin: 0; font-size: 15.5px; font-weight: 600">Harvest by variety</h2>
           <p style="margin: 2px 0 10px; font-size: 12.5px; color: #6B5A4E">Kilograms per month, stacked</p>

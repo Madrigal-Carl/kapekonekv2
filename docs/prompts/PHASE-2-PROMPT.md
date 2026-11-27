@@ -102,7 +102,8 @@ _(Change 06 runs before this milestone: phone layouts, the overview date filter,
 - Tests: permissions matrix, cursor maths, edit window, delete for everyone.
 
 ### M13 — Hub and the landing top 3
-- Composer: text, ≤ 10 media (images 5 MB, **videos 50 MB**), ≤ 3 tags.
+- **Create post modal** (Facebook-style; also used for editing, with a discard check): text, ≤ 10 media (images 5 MB, **videos 50 MB**), ≤ 3 tags. Match `HubCreatePost` / `HubMobileCreate`.
+- **Post viewer** (`HubPostView`, `HubPostText`, `HubMobileView`): caption, tags, reactions and the comment thread on the left; the media stage with prev / next and thumbnails on the right; deep link `/dashboard/hub/posts/:id?media=n`.
 - Feed with tag chips and cursor loading; **fixed 16:10 media grid** (1 / 2 / 1+2 / 2×2 +N, cover) and the viewer (contain).
 - Reactions (like / love / celebrate), comments with one level of replies, author edit/delete.
 - Kaluppa **remove with reason**, with notifications.

@@ -221,7 +221,8 @@ The dashboard screens are the canvas rows titled "Dashboard". Each page has a **
 | `StageBar` | overviews, Reports | Segmented horizontal bar (2px gaps) plus a legend list with counts and percentages. |
 | `CapMeter` | farmer overview, Beans | Amber card with a progress bar: "3 kg of 5 kg used". |
 | `ChatList`, `ChatThread`, `MessageBubble`, `Composer` | `Inbox.dc.html`, `InboxMobile.dc.html` | Mine: roast bubble, white text, radius 14/14/4/14. Theirs: white with a sand border. Deleted: dashed outline, italic. Replies quote with a caramel left bar. Status line under my last message: ✓ Sent / ✓✓ Delivered (gray) / ✓✓ Seen (roast) or "Seen by N" with avatars. Hover actions: Reply, ⋯ (Edit within 15 min, Delete for everyone, Delete for me). Typing shows three dots. Read-only chats replace the composer with a note. |
-| `PostCard`, `PostComposer`, `ReactionPicker`, `CommentThread` | `Hub.dc.html` | **Fixed 16:10 media grid** (1 / 2 / 1+2 / 2×2 with "+N"), cover crop; the viewer uses contain on a dark stage. Tag chips under the text. Role badge: Farmer green, Group Manager blue, Kaluppa espresso. The "On the landing page" badge marks the top-3 posts. |
+| `PostCard`, `CreatePostModal`, `PostViewer`, `ReactionPicker`, `CommentThread` | `Hub.dc.html`, `HubCreatePost`, `HubPostView`, `HubPostText`, `HubMobileCreate`, `HubMobileView` | **Create post modal**: 560 px, centered title + round close, author row with an audience chip, a borderless textarea (19 px text, 15 px once media is added), an upload dropzone, a media grid with remove buttons, tag chips, an "Add to your post" bar (photo and tag icon buttons), and a full-width Post button (disabled until there is text or media); full screen on phones. **Post viewer**: details panel on the left (400 px), dark media stage on the right. |
+| `PostCard` (feed) | `Hub.dc.html` | **Fixed 16:10 media grid** (1 / 2 / 1+2 / 2×2 with "+N"), cover crop; the viewer uses contain on a dark stage. Tag chips under the text. Role badge: Farmer green, Group Manager blue, Kaluppa espresso. The "On the landing page" badge marks the top-3 posts. |
 
 | `Button` | `Buttons.dc.html` | One component. `variant` solid · outline · soft · ghost · danger · danger-outline · success · link (+ light / glass / caramel on dark), `size` sm 36 · md 42 · lg 48, `leftIcon` / `rightIcon`, `iconOnly`, `loading`, `fullWidth`, `as`. Hover, focus (2px roast ring, offset 2) and disabled (45% opacity) as on the board. |
 | Icons | all screens | `react-icons/lu` (Lucide) through `components/ui/icons.js`. Inline SVGs in the screens are just Lucide drawings. |
@@ -279,6 +280,12 @@ The dashboard screens are the canvas rows titled "Dashboard". Each page has a **
   - **Drawers**: full width, body padding 20/18, every field grid one column, footer buttons stretch.
   - **No horizontal page scroll anywhere.**
 
+### 8.7 Layout rules to keep (Change 07)
+- The dashboard top bar is sticky on every page.
+- Inbox and Hub are full width (no 1240px cap). The Hub feed is 680px and centered, with a **sticky 340px aside**.
+- Reports charts sit in a 2×2 grid.
+- The Beans **Sell beans** button is disabled once an unapproved farmer reaches 5 kg (board `BeansLimit`).
+
 ### 8.5 Interactions to rebuild (dashboard)
 - **Tables**: search (debounced 300 ms), the Status dropdown, the filters and the page are synced to the URL query (`?status=&q=&variety=&page=`). Filter dropdowns have no search box. ↑ ↓ / Enter / Esc work on them. Row actions open drawers; drawers update the URL (`?open=<id>&mode=view|edit`) so links can be shared.
 - **Farm form**: municipality → fly to it and move the pin; barangay → fly closer, move the pin and show the ring; a click or drag reverse-geocodes. Kaluppa sees "Managed by"; Group Managers see "Farmer".
@@ -289,7 +296,7 @@ The dashboard screens are the canvas rows titled "Dashboard". Each page has a **
   - The Kaluppa drawer goes Approve / Reject (with reason) → "Beans arrived" → final weight and amount → Mark completed, and can Cancel sale (with reason).
 - **Orders (Kaluppa)**: Confirm is disabled until "The receipt matches the total" is ticked for e-wallet orders. The next-step button follows the status. Rider fields show for out for delivery, the cash tick for COD, and the refund reference for cancelled e-wallet orders.
 - **Inbox**: chat filters and search; switching chats; Enter sends and Shift+Enter adds a new line; reply preview; edit mode; delete menu; typing indicator; "Loading earlier messages" at the top.
-- **Hub**: composer expands on focus; tag chips (max 3; the rest disable); tag filter chips; the reaction picker; comments expand; reply inputs; the post menu (author: Edit / Delete; Kaluppa: Remove with reason).
+- **Hub**: the trigger card opens the Create post modal (Photo / video opens it with the dropzone; Tags opens it with the tag picker); clicking media, the time, the counts or Comment opens the post viewer (prev / next, thumbnails, send a comment); tag chips (max 3; the rest disable); tag filter chips; the reaction picker; comments expand; reply inputs; the post menu (author: Edit / Delete; Kaluppa: Remove with reason).
 - **Farm Map**: the filters narrow both the pins and the list; clicking a list item flies to the farm and opens its popover.
 - **Reviews**: the drawer shows the reply card (Edit / Delete) or the reply form with a counter; Hide opens the reason modal; hidden reviews show a gray banner and a "Show again" button. On the product page (`ProductDetail.dc.html`), a review with a reply shows a crema "Reply from Kaluppa" box with a roast left border.
 - **Inventory form**: clicking a photo tile makes it the thumbnail (2px roast border, ring and a "★ Thumbnail" badge); × removes a photo; + adds one (up to 5).

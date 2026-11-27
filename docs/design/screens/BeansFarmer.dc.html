@@ -37,6 +37,13 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
 .kk-drawer-body{padding:20px 18px 28px !important}
 .kk-drawer-head,.kk-drawer-foot{padding-left:18px !important;padding-right:18px !important}
 .kk-drawer-foot > *{flex:1 1 auto}
+.kk-cp{top:0 !important;left:0 !important;transform:none !important;width:100% !important;max-width:none !important;height:100vh;max-height:none !important;border-radius:0 !important}
+.kk-pv{flex-direction:column-reverse !important;overflow-y:auto}
+.kk-pv-side{width:100% !important;flex:1 0 auto !important;min-height:auto !important}
+.kk-pv-stage{flex:0 0 56vh !important;padding:52px 10px 78px !important}
+.kk-pv-nav{width:40px !important;height:40px !important}
+.kk-pv-thumb{width:44px !important;height:44px !important}
+.kk-pv-text{top:0 !important;left:0 !important;transform:none !important;width:100% !important;max-width:none !important;height:100vh;max-height:none !important;border-radius:0 !important}
 }
 </style>
 </helmet>
@@ -45,7 +52,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
     <dc-import name="Sidebar" role="{{ role }}" active="Beans" farmer-status="{{ sideStatus }}" hint-size="256px,900px"></dc-import>
   </div>
   <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
-    <dc-import name="DashTopbar" role="{{ role }}" active="Beans" crumb-a="Marketplace" crumb-b="Beans" hint-size="100%,64px"></dc-import>
+    <div style="position: sticky; top: 0; z-index: 40"><dc-import name="DashTopbar" role="{{ role }}" active="Beans" crumb-a="Marketplace" crumb-b="Beans" hint-size="100%,64px"></dc-import></div>
     <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
       <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
         <div style="min-width: 0; max-width: 720px">
@@ -53,11 +60,11 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
           <h1 style="margin: 8px 0 0; font-weight: 500; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15">{{ pageTitle }}</h1>
           <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">{{ pageDesc }}</p>
         </div>
-        <div class="kk-ph-actions" style="display: flex; flex-wrap: wrap; gap: 10px"><button type="button" onClick="{{ openSell }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; "><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Sell beans</button></div>
+        <div class="kk-ph-actions" style="display: flex; flex-wrap: wrap; gap: 10px"><span style="display: inline-flex; flex-direction: column; align-items: flex-end; gap: 4px"><button type="button" onClick="{{ openSell }}" disabled="{{ atLimit }}" aria-describedby="sell-why" title="{{ sellTitle }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border: 0; border-radius: 5px; background: {{ sellBg }}; color: {{ sellFg }}; font: inherit; font-size: 14px; font-weight: 600; cursor: {{ sellCursor }}"><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Sell beans</button><sc-if value="{{ atLimit }}" hint-placeholder-val="{{ false }}"><span id="sell-why" style="font-size: 12px; color: #6B4209">You’ve used your 5 kg limit</span></sc-if></span></div>
       </div>
       <sc-if value="{{ showCap }}" hint-placeholder-val="{{ true }}">
         <section aria-label="Selling limit" style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 14px 16px; background: #FBF3E3; border: 1px solid #EBD3A6; border-radius: 8px; color: #5C3D0E">
-          <div style="flex: 1 1 280px; font-size: 13.5px; line-height: 1.55"><strong>You can sell up to 5 kg until you’re approved.</strong> Pending, approved and completed listings count. <a href="FarmerAssociation.dc.html" style="color: #5C3D0E; font-weight: 600">Check your request</a></div>
+          <div style="flex: 1 1 280px; font-size: 13.5px; line-height: 1.55"><strong>{{ capTitle }}</strong> {{ capText }} <a href="FarmerAssociation.dc.html" style="color: #5C3D0E; font-weight: 600">Check your request</a></div>
           <div style="flex: 1 1 260px"><div style="display: flex; justify-content: space-between; font-size: 12.5px"><span><strong>{{ usedKg }} kg</strong> of 5 kg used</span><span>{{ leftKg }} kg left</span></div><div role="progressbar" aria-label="Selling limit used" aria-valuemin="0" aria-valuemax="5" aria-valuenow="{{ usedKg }}" style="margin-top: 6px; height: 10px; border-radius: 999px; background: #F1E2C4; overflow: hidden"><span style="display: block; width: {{ usedPct }}; height: 100%; border-radius: 999px; background: #7B4A2A"></span></div></div>
         </section>
       </sc-if>
@@ -154,7 +161,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
   </sc-if>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"role": {"editor": "enum", "options": ["farmer", "group_manager"], "default": "farmer"}, "status": {"editor": "enum", "options": ["unapproved", "approved"], "default": "unapproved"}, "start": {"editor": "enum", "options": ["", "sell", "view"], "default": ""}, "$preview": {"width": 1440, "height": 1250}}'>
+<script type="text/x-dc" data-dc-script data-props='{"role": {"editor": "enum", "options": ["farmer", "group_manager"], "default": "farmer"}, "status": {"editor": "enum", "options": ["unapproved", "limit", "approved"], "default": "unapproved"}, "start": {"editor": "enum", "options": ["", "sell", "view"], "default": ""}, "$preview": {"width": 1440, "height": 1250}}'>
 class Component extends DCLogic {
   constructor(props) { super(props); this.state = { mode: props.start || null, row: null, modal: null, toast: '', rejecting: false, tab: props.tab || 'details', pin: null, muni: null, brgy: null, view: null, adding: false, svar: null, sform: null, kg: '', price: '', nph: 2, farmer: null, gi: 0 }; }
   renderVals() {
@@ -184,7 +191,8 @@ class Component extends DCLogic {
     const shots = [{ label: 'Beans on drying bed', ratio: '4 / 3' }, { label: 'Close-up (portrait)', ratio: '3 / 4' }, { label: 'Sacks, weighed', ratio: '1 / 1' }];
     const gi = s.gi || 0;
     const role = this.props.role || 'farmer';
-    const unapproved = (this.props.status || 'unapproved') === 'unapproved' && role === 'farmer';
+    const fst = this.props.status || 'unapproved';
+    const unapproved = (fst === 'unapproved' || fst === 'limit') && role === 'farmer';
     const mine = B.filter((b) => role === 'farmer' ? b[11] : b[12] !== 'boac');
     const rows = mine.map((b) => ({ id: b[0], label: b[1], b, tab: ST[b[9]][2],
       code: { main: b[1], sub: b[10] }, farmer: { name: b[2], sub: b[12] === 'unapproved' ? 'Unapproved · 5 kg limit' : (b[12] === 'boac' ? 'Boac Highland Farmers' : 'Santa Cruz Coffee Growers'), initials: b[3], bg: b[4] },
@@ -193,7 +201,8 @@ class Component extends DCLogic {
     const cols = [{ key: 'code', label: 'Listing', kind: 'strong' }];
     if (role !== 'farmer') cols.push({ key: 'farmer', label: 'Farmer', kind: 'person' });
     cols.push({ key: 'beans', label: 'Beans' }, { key: 'kg', label: 'Weight', align: 'right' }, { key: 'price', label: 'Price', align: 'right' }, { key: 'amount', label: 'Amount', align: 'right' }, { key: 'status', label: 'Status', kind: 'pill' });
-    const used = 3, left = 2;
+    const used = fst === 'limit' ? 5 : 3, left = 5 - used;
+    const atLimit = unapproved && left <= 0;
     const kgN = parseFloat(s.kg) || 0, prN = parseFloat(s.price) || 0;
     const over = unapproved && kgN > left;
     const cur = s.row ? s.row.b : B[1];
@@ -212,6 +221,8 @@ class Component extends DCLogic {
       pageTitle: role === 'farmer' ? 'Sell beans to Kaluppa' : 'Beans from your farmers',
       pageDesc: role === 'farmer' ? 'List what you want to sell. Kaluppa reviews it, you bring the beans to the branch, and Kaluppa completes the sale.' : 'List beans for a farmer who needs help, and follow every listing in your association.',
       showCap: unapproved, usedKg: used, leftKg: left, usedPct: (used / 5 * 100) + '%',
+      atLimit, sellBg: atLimit ? '#EFE6DA' : '#7B4A2A', sellFg: atLimit ? '#9C8B7E' : '#FFFFFF', sellCursor: atLimit ? 'not-allowed' : 'pointer', sellTitle: atLimit ? 'You can sell more once your Group Manager approves you' : 'List beans for Kaluppa',
+      capTitle: atLimit ? 'You’ve reached your 5 kg limit.' : 'You can sell up to 5 kg until you’re approved.', capText: atLimit ? 'Sell beans unlocks once your Group Manager approves you, or when a listing is cancelled or rejected.' : 'Pending, approved and completed listings count.',
       steps: [{ n: 1, t: 'List your beans', d: 'Variety, form, weight, your price, photos' }, { n: 2, t: 'Kaluppa reviews', d: 'Approves or rejects with a reason' }, { n: 3, t: 'Bring them within 7 days', d: 'To the Kaluppa branch in Pantayin' }, { n: 4, t: 'Completed', d: 'Weighed and paid at the branch' }],
       cols, rows, filters: [{ key: 'variety', label: 'Variety', options: ['All varieties', 'Liberica', 'Excelsa', 'Robusta', 'Arabica'] }, { key: 'form', label: 'Form', options: ['All forms', 'Fresh cherry', 'Dried cherry', 'Parchment', 'Green beans'] }],
       tabs: [{ key: 'all', label: 'All' }, { key: 'pending', label: 'Waiting' }, { key: 'approved', label: 'Approved' }, { key: 'completed', label: 'Completed' }, { key: 'closed', label: 'Closed' }],
@@ -227,7 +238,7 @@ class Component extends DCLogic {
       photos: Array.from({ length: s.nph }, (_, i) => ({ n: i + 1, remove: () => this.setState({ nph: s.nph - 1 }) })), canAddPhoto: s.nph < 5, addPhoto: () => this.setState({ nph: s.nph + 1 }),
       overCap: over, submitBg: over ? '#C4B0A0' : '#7B4A2A',
       submit: () => this.setState({ mode: null, toast: 'Listing sent. Kaluppa will review it soon.', kg: '', price: '' }),
-      openSell: () => this.setState({ mode: 'sell', row: null, svar: null, sform: null, kg: '', price: '' }),
+      openSell: () => (atLimit ? null : this.setState({ mode: 'sell', row: null, svar: null, sform: null, kg: '', price: '' })),
       cur: { code: cur[1], title: cur[7] + ' kg ' + cur[5] + ', ' + cur[6].toLowerCase(), kg: cur[7], variety: cur[5] },
       vb: VB, isApproved: st === 'approved', canCancel: st === 'pending' || st === 'approved',
       gal: shots[gi], thumbs: shots.map((x, i) => ({ n: i + 1, on: i === gi, border: i === gi ? '#7B4A2A' : '#E7DCCD', pick: () => this.setState({ gi: i }) })),

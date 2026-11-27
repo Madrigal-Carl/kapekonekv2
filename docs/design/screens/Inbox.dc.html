@@ -37,6 +37,13 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
 .kk-drawer-body{padding:20px 18px 28px !important}
 .kk-drawer-head,.kk-drawer-foot{padding-left:18px !important;padding-right:18px !important}
 .kk-drawer-foot > *{flex:1 1 auto}
+.kk-cp{top:0 !important;left:0 !important;transform:none !important;width:100% !important;max-width:none !important;height:100vh;max-height:none !important;border-radius:0 !important}
+.kk-pv{flex-direction:column-reverse !important;overflow-y:auto}
+.kk-pv-side{width:100% !important;flex:1 0 auto !important;min-height:auto !important}
+.kk-pv-stage{flex:0 0 56vh !important;padding:52px 10px 78px !important}
+.kk-pv-nav{width:40px !important;height:40px !important}
+.kk-pv-thumb{width:44px !important;height:44px !important}
+.kk-pv-text{top:0 !important;left:0 !important;transform:none !important;width:100% !important;max-width:none !important;height:100vh;max-height:none !important;border-radius:0 !important}
 }
 .kk-msg .kk-act{opacity:0;transition:opacity .12s}.kk-msg:hover .kk-act,.kk-msg:focus-within .kk-act{opacity:1}
 </style>
@@ -46,8 +53,8 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
     <dc-import name="Sidebar" role="{{ role }}" active="Inbox" hint-size="256px,900px"></dc-import>
   </div>
   <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
-    <dc-import name="DashTopbar" role="{{ role }}" active="Inbox" crumb-a="Community" crumb-b="Inbox" hint-size="100%,64px"></dc-import>
-    <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
+    <div style="position: sticky; top: 0; z-index: 40"><dc-import name="DashTopbar" role="{{ role }}" active="Inbox" crumb-a="Community" crumb-b="Inbox" hint-size="100%,64px"></dc-import></div>
+    <main class="kk-main" style="width: 100%; max-width: none; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
       <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 12px"><div><span style="display: block; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Community</span><h1 style="margin: 6px 0 0; font-weight: 500; font-size: 28px; letter-spacing: -0.02em">Inbox</h1></div></div>
       <section aria-label="Inbox" style="display: flex; height: 760px; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 10px; overflow: hidden">
         <div style="width: 340px; flex-shrink: 0; border-right: 1px solid #EFE6DA; display: flex; flex-direction: column">

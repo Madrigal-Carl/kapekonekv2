@@ -161,6 +161,7 @@ Each one is a single Claude Code session. Copy the updated kit files in first (C
 | 04 · fixed post media frames, Gmail seed accounts (`KapeKonek@123`) | `Read CLAUDE.md and docs/prompts/CHANGE-04-POST-MEDIA-AND-SEED-ACCOUNTS.md, then carry out Change 04.` |
 | 05 · react-icons, one Button, map area highlights, username suggestions, farmer Association + Addresses redesign (**run after M10, before M11**) | `Read CLAUDE.md and docs/prompts/CHANGE-05-ICONS-BUTTONS-AREAS-USERNAMES-ACCOUNT.md, then carry out Change 05.` |
 | 06 · phone layouts, overview date filter, history in drawers, thumbnail star, Settings + Inbox fidelity, GCash only (**run after M11, before M12**) | `Read CLAUDE.md and docs/prompts/CHANGE-06-MOBILE-DATES-HISTORY-INBOX-GCASH.md, then carry out Change 06.` |
+| 07 · sticky top bar, Sell beans disabled at the 5 kg limit, agreed layouts (full-width Inbox/Hub, sticky Hub aside, 2×2 Reports), Hub Create post modal + post viewer (**run after Change 06, before M12**) | `Read CLAUDE.md and docs/prompts/CHANGE-07-STICKY-LIMIT-LAYOUT-HUB.md, then carry out Change 07.` |
 
 ## Phase 2 — the dashboard (farmer, Group Manager, Kaluppa)
 
