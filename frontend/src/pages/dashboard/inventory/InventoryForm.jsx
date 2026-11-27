@@ -1,16 +1,18 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { History } from '@/components/dashboard/History'
-import { useId, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Drawer } from '@/components/dashboard/Drawer'
 import { TextField } from '@/components/dashboard/RecordParts'
 import { Button } from '@/components/ui/Button'
+import { ConfirmChangesModal, NoChangesNote } from '@/components/ui/ConfirmChangesModal'
 import { IconPlus, IconStar, IconX } from '@/components/ui/icons'
 import { FieldHint, inputClasses, Label } from '@/components/ui/Input'
 import { SearchSelect } from '@/components/ui/SearchSelect'
 import { Switch } from '@/components/ui/Switch'
 import { COFFEE_TYPES, VARIETIES } from '@/constants/catalog'
+import { useDirtyDiff, useSaveConfirm } from '@/hooks/useDirtyDiff'
 import { useCreateProduct, useUpdateProduct } from '@/hooks/useInventory'
 import { useUploadImage } from '@/hooks/useUploads'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
@@ -42,6 +44,20 @@ const toForm = (p) => ({
 /** The thumbnail is the marked photo, or the first one. */
 const thumbIndex = (photos) => Math.max(0, photos.findIndex((p) => p.isThumbnail))
 const markThumb = (photos, index) => photos.map((p, i) => ({ ...p, isThumbnail: i === index }))
+const peso = (v) => Number(v).toLocaleString('en-PH', { style: 'currency', currency: 'PHP' })
+const LABELS = {
+  name: 'Product name',
+  category: { label: 'Category', format: (v) => CATEGORY_OPTIONS.find((o) => o.value === v)?.label ?? v },
+  variety: { label: 'Variety', format: (v) => VARIETIES[v] ?? v },
+  coffeeType: { label: 'Coffee type', format: (v) => COFFEE_TYPES[v]?.long ?? v },
+  unit: { label: 'Unit', format: unitText },
+  price: { label: 'Price', format: peso },
+  stock: 'Stock',
+  description: 'Description',
+  photos: { label: 'Photos', format: (photos) => `${photos.length} photo${photos.length === 1 ? '' : 's'}, thumbnail ${thumbIndex(photos) + 1}` },
+  isFeatured: 'Featured',
+  isActive: 'Active',
+}
 
 /**
  * Add or edit a product (InventoryForm.dc.html): category-dependent fields, photos with a picked thumbnail, Featured
@@ -52,6 +68,7 @@ export function InventoryForm({ open, product = null, onClose }) {
   const formId = useId()
   const create = useCreateProduct()
   const update = useUpdateProduct()
+  const [unchanged, setUnchanged] = useState(Boolean(product))
   return (
     <Drawer
       open={open}
@@ -61,24 +78,28 @@ export function InventoryForm({ open, product = null, onClose }) {
       onClose={onClose}
       footer={
         <>
+          {unchanged && <NoChangesNote id={`${formId}-nochange`} />}
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button type="submit" form={formId} loading={create.isPending || update.isPending}>
+          <Button type="submit" form={formId} loading={create.isPending || update.isPending} disabled={unchanged} aria-describedby={unchanged ? `${formId}-nochange` : undefined}>
             {product ? 'Save changes' : 'Add product'}
           </Button>
         </>
       }
     >
-      {open && <ProductFields key={product?._id ?? 'new'} formId={formId} product={product} create={create} update={update} onClose={onClose} />}
+      {open && <ProductFields key={product?._id ?? 'new'} formId={formId} product={product} create={create} update={update} onClose={onClose} onUnchanged={setUnchanged} />}
       {open && product && <History entityType="product" entityId={product._id} />}
     </Drawer>
   )
 }
 
-function ProductFields({ formId, product, create, update, onClose }) {
+function ProductFields({ formId, product, create, update, onClose, onUnchanged }) {
+  const initial = useMemo(() => toForm(product), [product])
   const { register, control, handleSubmit, setError, setValue, getValues, formState: { errors } } = useForm({
     resolver: zodResolver(productFormSchema),
-    defaultValues: toForm(product),
+    defaultValues: initial,
   })
+  const changes = useDirtyDiff(initial, useWatch({ control }), LABELS)
+  useEffect(() => onUnchanged(Boolean(product) && changes.length === 0), [product, changes.length, onUnchanged])
   const category = useWatch({ control, name: 'category' })
   const rules = PRODUCT_CATEGORIES[category]
 
@@ -91,24 +112,26 @@ function ProductFields({ formId, product, create, update, onClose }) {
     if (!nextRules.featured) setValue('isFeatured', false)
   }
 
+  const done = (name) => ({
+    onSuccess: (saved) => {
+      toast.success(product ? `${saved.name ?? name} saved.` : `${name} added to the store.`)
+      onClose()
+    },
+    onError: (error) => {
+      const mapped = applyServerErrors(error, (field, e) => setError(field === 'priceCentavos' ? 'price' : field, e))
+      if (!mapped) toast.error(errorMessage(error))
+    },
+  })
+  const confirm = useSaveConfirm(Boolean(product), (body) => update.mutate(body, done(body.name)))
   const save = handleSubmit(({ price: priceCentavos, ...values }) => {
     const body = { ...values, priceCentavos }
-    const done = {
-      onSuccess: (saved) => {
-        toast.success(product ? `${saved.name ?? values.name} saved.` : `${values.name} added to the store.`)
-        onClose()
-      },
-      onError: (error) => {
-        const mapped = applyServerErrors(error, (name, e) => setError(name === 'priceCentavos' ? 'price' : name, e))
-        if (!mapped) toast.error(errorMessage(error))
-      },
-    }
-    if (product) update.mutate({ id: product._id, ...body }, done)
-    else create.mutate(body, done)
+    if (product) confirm.submit({ id: product._id, ...body })
+    else create.mutate(body, done(values.name))
   })
 
   return (
     <form id={formId} noValidate onSubmit={save} className="contents">
+      <ConfirmChangesModal {...confirm.modal} changes={changes} pending={update.isPending} />
       <TextField id={`${formId}-name`} label="Product name" placeholder="e.g. Barako Medium Roast" maxLength={80} error={errors.name?.message} {...register('name')} />
       <Controller
         name="category"

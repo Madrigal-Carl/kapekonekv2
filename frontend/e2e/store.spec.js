@@ -1,5 +1,6 @@
 import { Buffer } from 'node:buffer'
 import { expect, test } from '@playwright/test'
+import { confirmSave } from './helpers/confirm'
 
 // M11 flows (PHASE-2-SPEC §3.9–3.13): needs `npm run migrate:fresh -- --seed`.
 const API = 'http://localhost:5100/api'
@@ -77,6 +78,7 @@ test('Kaluppa picks a new thumbnail for a product, and the store shows it first'
   await form.getByRole('button', { name: 'Make photo 2 the thumbnail' }).click()
   await expect(form.getByRole('button', { name: 'Photo 2 is the thumbnail' })).toHaveAttribute('aria-pressed', 'true')
   await form.getByRole('button', { name: 'Save changes' }).click()
+  await confirmSave(page)
   await expect(form).toBeHidden()
   const [product] = (await (await page.request.get(`${API}/admin/products?q=Barako&limit=1`)).json()).data
   const publicId = src.split('/upload/')[1].split('/').slice(1).join('/').replace(/\.\w+$/, '')
@@ -111,6 +113,7 @@ test('Kaluppa opens Sunday in Settings; the save bar appears on change and the p
   await sunday.click()
   await expect(page.getByText('You have unsaved changes.')).toBeVisible()
   await page.getByRole('button', { name: 'Save changes' }).click()
+  await confirmSave(page)
   await expect(page.getByText('Settings saved. New quotes use the updated values.')).toBeVisible()
   const { pickup } = (await (await page.request.get(`${API}/delivery/info`)).json()).data
   expect(pickup.hours.includes('Sun')).toBe(!wasOpen)
@@ -118,6 +121,7 @@ test('Kaluppa opens Sunday in Settings; the save bar appears on change and the p
   // Put it back, then check the other tabs: Try it works on the rules on screen.
   await sunday.click()
   await page.getByRole('button', { name: 'Save changes' }).click()
+  await confirmSave(page)
   await expect(page.getByText('You have unsaved changes.')).toBeHidden()
   await page.getByRole('tab', { name: 'Delivery fee' }).click()
   await page.getByLabel('Road distance (km)').fill('100')

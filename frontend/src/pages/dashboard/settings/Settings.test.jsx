@@ -17,6 +17,13 @@ const DATA = {
   ewallet: { accounts: ['GCash', 'Maya'].map((provider) => ({ provider, accountName: 'Kaluppa Coffee', accountNumber: '0917 000 0000', showAtCheckout: true, qr: null })) },
 }
 const saveAdminSetting = vi.hoisted(() => vi.fn(async ({ body }) => body))
+/** "Save these changes?": returns the listed changes, then confirms. */
+const confirmSave = async () => {
+  const ask = await screen.findByRole('dialog', { name: 'Save these changes?' })
+  const listed = within(ask).getAllByRole('listitem').map((li) => li.textContent)
+  fireEvent.click(within(ask).getByRole('button', { name: 'Save changes' }))
+  return listed
+}
 vi.mock('@/services/adminSetting.service', () => ({ getAdminSetting: vi.fn(async (section) => DATA[section]), saveAdminSetting }))
 
 afterEach(() => {
@@ -43,6 +50,8 @@ describe('Settings', () => {
     fireEvent.click(sunday)
     expect(await screen.findByText('You have unsaved changes.')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    expect(saveAdminSetting).not.toHaveBeenCalled()
+    expect(await confirmSave()).toEqual(['SundayClosed→08:00–17:00'])
     await vi.waitFor(() => expect(saveAdminSetting).toHaveBeenCalled())
     const { section, body } = saveAdminSetting.mock.calls[0][0]
     expect(section).toBe('branch')
@@ -74,6 +83,7 @@ describe('Settings', () => {
     renderAt('/dashboard/settings?tab=delivery')
     fireEvent.change(await screen.findByLabelText('Per km after that (₱)'), { target: { value: '12.5' } })
     fireEvent.click(await screen.findByRole('button', { name: 'Save changes' }))
+    await confirmSave()
     await vi.waitFor(() => expect(saveAdminSetting).toHaveBeenCalled())
     expect(saveAdminSetting.mock.calls[0][0]).toEqual({
       section: 'delivery',
@@ -89,6 +99,7 @@ describe('Settings', () => {
     expect(within(maya).getByText('Shown at checkout')).toBeTruthy()
     fireEvent.click(within(maya).getByRole('checkbox', { name: 'Show at checkout' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Save changes' }))
+    expect(await confirmSave()).toEqual(['Show Maya at checkoutOn→Off'])
     await vi.waitFor(() => expect(saveAdminSetting).toHaveBeenCalled())
     expect(saveAdminSetting.mock.calls[0][0].body.accounts.map((a) => a.showAtCheckout)).toEqual([true, false])
   })

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { confirmSave } from './helpers/confirm'
 
 // M10 flows (PHASE-2-SPEC §3.5): needs a fresh `npm run migrate:fresh -- --seed` (beans seeder: farmer.pending at 3 of 5 kg;
 // pending listings from Joy, Rodel and Felix; approved ones from Rodel, expiring within a day, and Nestor).
@@ -65,6 +66,8 @@ test('unapproved farmer lists 1.5 kg with a photo, then edits it to 2 kg', async
   await expect(edit.getByText('You can list up to 5 kg more until you’re approved.')).toBeVisible() // its own 1.5 kg counts back
   await edit.getByLabel('Weight (kg)').fill('2')
   await page.getByRole('button', { name: 'Save changes' }).click()
+  await expect(page.getByRole('dialog', { name: 'Save these changes?' })).toContainText('Weight1.5 kg→2 kg')
+  await confirmSave(page)
   await expect(page.getByText('Listing updated.')).toBeVisible()
   await expect(page.getByRole('region', { name: 'Selling limit' })).toContainText('3 kg left')
   await expect(page.getByRole('row', { name: /Excelsa Parchment 2 kg/ })).toBeVisible()

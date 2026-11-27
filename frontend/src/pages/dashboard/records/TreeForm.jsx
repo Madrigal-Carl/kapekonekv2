@@ -1,14 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { History } from '@/components/dashboard/History'
-import { useId, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { useEffect, useId, useMemo, useState } from 'react'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Drawer } from '@/components/dashboard/Drawer'
 import { TextField } from '@/components/dashboard/RecordParts'
 import { Button } from '@/components/ui/Button'
+import { ConfirmChangesModal, NoChangesNote } from '@/components/ui/ConfirmChangesModal'
 import { FieldHint, inputClasses, Label } from '@/components/ui/Input'
 import { SearchSelect } from '@/components/ui/SearchSelect'
 import { TREE_STAGES, VARIETIES } from '@/constants/charts'
+import { useDirtyDiff, useSaveConfirm } from '@/hooks/useDirtyDiff'
 import { useCreateTreeGroup, useRecordFarms, useUpdateTreeGroup } from '@/hooks/useRecords'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
 import { todayKey } from '@/schemas/rules'
@@ -84,6 +86,17 @@ export function NoteField({ id, label = 'Note', placeholder, error, ...textarea 
   )
 }
 
+const labelOf = (list) => (key) => list.find((x) => x.key === key)?.label ?? key
+/** "Save these changes?" labels for a tree group; `farmName` names a farm id. */
+const treeLabels = (farmName) => ({
+  farmId: { label: 'Farm', format: farmName },
+  variety: { label: 'Variety', format: labelOf(VARIETIES) },
+  stage: { label: 'Stage', format: labelOf(TREE_STAGES) },
+  count: { label: 'Number of trees', format: (v) => Number(v).toLocaleString('en-PH') },
+  plantedAt: 'Date planted',
+  note: 'Note',
+})
+
 const toForm = (group, farmId) => ({
   farmId: group?.farm.id ?? farmId ?? '',
   variety: group?.variety ?? '',
@@ -98,26 +111,32 @@ const toForm = (group, farmId) => ({
  * Pass `create`/`update` when a drawer footer shows their pending state.
  * @param {{ formId: string, group?: object|null, farm?: object, farms?: object[], actsForFarmers?: boolean, onSaved: () => void, inline?: boolean, create?: object, update?: object }} props
  */
-export function TreeGroupFields({ formId, group = null, farm, farms, actsForFarmers = false, onSaved, inline = false, ...mutations }) {
+export function TreeGroupFields({ formId, group = null, farm, farms, actsForFarmers = false, onSaved, inline = false, onUnchanged, ...mutations }) {
   const ownCreate = useCreateTreeGroup()
   const ownUpdate = useUpdateTreeGroup()
   const create = mutations.create ?? ownCreate
   const update = mutations.update ?? ownUpdate
+  const initial = useMemo(() => toForm(group, farm?.id), [group, farm?.id])
   const { register, control, handleSubmit, setError, formState: { errors } } = useForm({
     resolver: zodResolver(treeGroupFormSchema),
-    defaultValues: toForm(group, farm?.id),
+    defaultValues: initial,
   })
+  const farmName = (fid) => (fid === group?.farm.id ? group.farm.propertyNumber : (farms ?? []).find((f) => f.id === fid)?.propertyNumber ?? '—')
+  const changes = useDirtyDiff(initial, useWatch({ control }), treeLabels(farmName))
+  const unchanged = Boolean(group) && changes.length === 0
+  useEffect(() => onUnchanged?.(unchanged), [unchanged, onUnchanged])
+  const options = {
+    onSuccess: () => {
+      toast.success(group ? 'Tree group updated.' : `Tree group added${farm ? ` to ${farm.propertyNumber}` : ''}.`)
+      onSaved()
+    },
+    onError: (error) => {
+      if (!applyServerErrors(error, setError, FIELDS)) toast.error(errorMessage(error))
+    },
+  }
+  const confirm = useSaveConfirm(Boolean(group), (body) => update.mutate(body, options))
   const save = handleSubmit((values) => {
-    const options = {
-      onSuccess: () => {
-        toast.success(group ? 'Tree group updated.' : `Tree group added${farm ? ` to ${farm.propertyNumber}` : ''}.`)
-        onSaved()
-      },
-      onError: (error) => {
-        if (!applyServerErrors(error, setError, FIELDS)) toast.error(errorMessage(error))
-      },
-    }
-    if (group) update.mutate({ id: group.id, ...values }, options)
+    if (group) confirm.submit({ id: group.id, ...values })
     else create.mutate(values, options)
   })
   const pending = create.isPending || update.isPending
@@ -125,6 +144,7 @@ export function TreeGroupFields({ formId, group = null, farm, farms, actsForFarm
 
   return (
     <form id={formId} noValidate onSubmit={save} className={inline ? 'flex flex-col gap-3 rounded-lg border border-sand-soft bg-cream p-4' : 'contents'}>
+      <ConfirmChangesModal {...confirm.modal} changes={changes} pending={update.isPending} />
       {!farm && (
         <Controller
           name="farmId"
@@ -181,8 +201,9 @@ export function TreeGroupFields({ formId, group = null, farm, farms, actsForFarm
       )}
       {inline && (
         <div className="flex justify-end gap-2">
+          {unchanged && <NoChangesNote id={id('nochange')} />}
           <Button size="sm" variant="outline" onClick={onSaved}>Cancel</Button>
-          <Button size="sm" type="submit" loading={pending}>{group ? 'Save changes' : 'Add trees'}</Button>
+          <Button size="sm" type="submit" loading={pending} disabled={unchanged} aria-describedby={unchanged ? id('nochange') : undefined}>{group ? 'Save changes' : 'Add trees'}</Button>
         </div>
       )}
     </form>
@@ -198,15 +219,16 @@ export function TreeForm({ open, group = null, actsForFarmers, onClose }) {
   const farms = useRecordFarms(open)
   const create = useCreateTreeGroup()
   const update = useUpdateTreeGroup()
+  const [unchanged, setUnchanged] = useState(Boolean(group))
   return (
     <Drawer
       open={open}
       eyebrow="Tree group"
       title={group ? 'Edit tree group' : 'Add a tree group'}
       onClose={onClose}
-      footer={<FormFooter formId={formId} onClose={onClose} pending={create.isPending || update.isPending} label={group ? 'Save changes' : 'Add trees'} />}
+      footer={<FormFooter formId={formId} onClose={onClose} pending={create.isPending || update.isPending} label={group ? 'Save changes' : 'Add trees'} unchanged={unchanged} />}
     >
-      {open && farms.data && <TreeGroupFields key={group?.id ?? 'new'} formId={formId} group={group} farms={farms.data} actsForFarmers={actsForFarmers} onSaved={onClose} create={create} update={update} />}
+      {open && farms.data && <TreeGroupFields key={group?.id ?? 'new'} formId={formId} group={group} farms={farms.data} actsForFarmers={actsForFarmers} onSaved={onClose} create={create} update={update} onUnchanged={setUnchanged} />}
       {open && group && <History entityType="tree_group" entityId={group.id} />}
     </Drawer>
   )

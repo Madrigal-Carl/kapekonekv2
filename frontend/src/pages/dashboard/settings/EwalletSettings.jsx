@@ -1,10 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useId, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { TextField } from '@/components/dashboard/RecordParts'
 import { Alert } from '@/components/ui/Alert'
+import { ConfirmChangesModal } from '@/components/ui/ConfirmChangesModal'
 import { useSaveAdminSetting } from '@/hooks/useAdminSettings'
+import { useDirtyDiff, useSaveConfirm } from '@/hooks/useDirtyDiff'
 import { useUploadImage } from '@/hooks/useUploads'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
 import { cn } from '@/lib/cn'
@@ -64,14 +66,28 @@ function ProvidersNote({ accounts }) {
   )
 }
 
+/** One diff row per provider field ("GCash account number: … → …"); the QR shows as "changed". */
+const flat = ({ accounts = [] } = {}) =>
+  Object.fromEntries(accounts.flatMap((a, i) => [[`${i}.accountName`, a.accountName], [`${i}.accountNumber`, a.accountNumber], [`${i}.qr`, a.qr?.url ?? ''], [`${i}.showAtCheckout`, a.showAtCheckout]]))
+const labelsFor = (accounts) =>
+  Object.fromEntries(
+    accounts.flatMap(({ provider }, i) => [
+      [`${i}.accountName`, `${provider} account name`],
+      [`${i}.accountNumber`, `${provider} account number`],
+      [`${i}.qr`, { label: `${provider} QR code`, sensitive: true }],
+      [`${i}.showAtCheckout`, { label: `Show ${provider} at checkout`, format: (v) => (v ? 'On' : 'Off') }],
+    ]),
+  )
+
 /** Settings → E-wallet: one card per provider with its account, QR and "Show at checkout". */
 export function EwalletSettings({ ewallet, onSaved }) {
   const save = useSaveAdminSetting()
-  const { register, control, handleSubmit, setError, reset, formState: { errors, isDirty } } = useForm({
+  const { register, control, handleSubmit, setError, reset, formState: { errors, defaultValues } } = useForm({
     resolver: zodResolver(ewalletFormSchema),
     defaultValues: { accounts: ewallet.accounts },
   })
-  const submit = handleSubmit((body) =>
+  const changes = useDirtyDiff(flat(defaultValues), flat(useWatch({ control })), labelsFor(ewallet.accounts))
+  const confirm = useSaveConfirm(true, (body) =>
     save.mutate(
       { section: 'ewallet', body },
       {
@@ -85,9 +101,11 @@ export function EwalletSettings({ ewallet, onSaved }) {
       },
     ),
   )
+  const submit = handleSubmit(confirm.submit)
 
   return (
     <form id={FORM_ID} noValidate onSubmit={submit} className="flex flex-col gap-4">
+      <ConfirmChangesModal {...confirm.modal} changes={changes} pending={save.isPending} />
       {errors.accounts?.root?.message || errors.accounts?.message ? <Alert tone="danger">{errors.accounts.root?.message ?? errors.accounts.message}</Alert> : null}
       <ProvidersNote accounts={ewallet.accounts} />
       <div className="grid gap-4 md:grid-cols-[repeat(auto-fit,minmax(380px,1fr))]">
@@ -118,7 +136,7 @@ export function EwalletSettings({ ewallet, onSaved }) {
           )
         })}
       </div>
-      {isDirty && <SaveBar formId={FORM_ID} pending={save.isPending} onDiscard={() => reset()} />}
+      {changes.length > 0 && <SaveBar formId={FORM_ID} pending={save.isPending} onDiscard={() => reset()} />}
     </form>
   )
 }

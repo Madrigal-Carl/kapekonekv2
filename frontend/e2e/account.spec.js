@@ -1,6 +1,7 @@
 import { Buffer } from 'node:buffer'
 import { expect, test } from '@playwright/test'
 import { latestMailLink } from './helpers/mailbox.js'
+import { confirmSave } from './helpers/confirm'
 
 const API = 'http://localhost:5100/api' // playwright.config.js API_PORT
 const unique = () => `${Date.now().toString(36)}${Math.floor(Math.random() * 1e4)}`
@@ -49,6 +50,7 @@ test('profile: taken username, save fields, upload and remove the photo', async 
   await page.getByLabel('Username').fill('buyer')
   await expect(page.getByText('@buyer is taken. Try another one.')).toBeVisible()
   await page.getByRole('button', { name: 'Save changes' }).click()
+  await confirmSave(page)
   await expect(page.getByText('Username is already taken')).toBeVisible()
 
   const username = `${user.username}.new`
@@ -61,6 +63,8 @@ test('profile: taken username, save fields, upload and remove the photo', async 
   await expect(page.getByText('Use an 11-digit mobile number starting with 09')).toBeVisible()
   await page.getByLabel('Contact number').fill('0917 222 3344')
   await page.getByRole('button', { name: 'Save changes' }).click()
+  await expect(page.getByRole('dialog', { name: 'Save these changes?' })).toContainText('First name')
+  await confirmSave(page)
   await expect(page.getByText('Your profile is saved')).toBeVisible()
   await expect(page.getByText('This is your current username')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Account menu for Anabel Cruz Reyes' })).toBeVisible()

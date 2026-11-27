@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { History } from '@/components/dashboard/History'
 import { IconPlus } from '@/components/ui/icons'
-import { useId, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { useEffect, useId, useMemo, useState } from 'react'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ConfirmModal } from '@/components/dashboard/ConfirmModal'
@@ -11,6 +11,7 @@ import { Drawer } from '@/components/dashboard/Drawer'
 import { PageHeader } from '@/components/dashboard/PageHeader'
 import { DetailList, SectionTitle, StatTiles, TextField } from '@/components/dashboard/RecordParts'
 import { Button } from '@/components/ui/Button'
+import { ConfirmChangesModal } from '@/components/ui/ConfirmChangesModal'
 import { FieldHint, Label } from '@/components/ui/Input'
 import { SearchSelect } from '@/components/ui/SearchSelect'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -24,6 +25,7 @@ import {
   useRestoreAssociation,
   useUpdateAssociation,
 } from '@/hooks/useAssociations'
+import { useDirtyDiff, useSaveConfirm } from '@/hooks/useDirtyDiff'
 import { useFarmers } from '@/hooks/useFarmers'
 import { useLocations } from '@/hooks/useSettings'
 import { useTableParams } from '@/hooks/useTableParams'
@@ -218,42 +220,54 @@ function AssociationForm({ open, association, onClose }) {
   const formId = useId()
   const create = useCreateAssociation()
   const update = useUpdateAssociation()
+  const [unchanged, setUnchanged] = useState(Boolean(association))
   return (
     <Drawer
       open={open}
       eyebrow="Association"
       title={association ? `Edit ${association.name}` : 'Add an association'}
       onClose={onClose}
-      footer={<FormFooter formId={formId} onClose={onClose} pending={create.isPending || update.isPending} label={association ? 'Save changes' : 'Create association'} />}
+      footer={<FormFooter formId={formId} onClose={onClose} pending={create.isPending || update.isPending} label={association ? 'Save changes' : 'Create association'} unchanged={unchanged} />}
     >
-      {open && <AssociationFields key={association?.id ?? 'new'} formId={formId} association={association} create={create} update={update} onClose={onClose} />}
+      {open && <AssociationFields key={association?.id ?? 'new'} formId={formId} association={association} create={create} update={update} onClose={onClose} onUnchanged={setUnchanged} />}
       {open && association && <History entityType="association" entityId={association.id} />}
     </Drawer>
   )
 }
 
-function AssociationFields({ formId, association, create, update, onClose }) {
+function AssociationFields({ formId, association, create, update, onClose, onUnchanged }) {
   const locations = useLocations()
   // Group Managers who can take an association: anyone not archived (moving one empties their old association).
   const managers = useGroupManagers({ limit: 50, page: 1 })
-  const { register, control, handleSubmit, setError, formState: { errors } } = useForm({ resolver: zodResolver(associationFormSchema), defaultValues: toForm(association) })
+  const initial = useMemo(() => toForm(association), [association])
+  const { register, control, handleSubmit, setError, formState: { errors } } = useForm({ resolver: zodResolver(associationFormSchema), defaultValues: initial })
+  const done = (message) => () => {
+    toast.success(message)
+    onClose()
+  }
+  const onError = (error) => {
+    if (!applyServerErrors(error, setError, FIELDS)) toast.error(errorMessage(error))
+  }
+  const confirm = useSaveConfirm(Boolean(association), (body) => update.mutate(body, { onSuccess: done('Changes saved.'), onError }))
   const onSubmit = (values) => {
-    const done = (message) => () => {
-      toast.success(message)
-      onClose()
-    }
-    const onError = (error) => {
-      if (!applyServerErrors(error, setError, FIELDS)) toast.error(errorMessage(error))
-    }
-    if (association) update.mutate({ id: association.id, ...values }, { onSuccess: done('Changes saved.'), onError })
+    if (association) confirm.submit({ id: association.id, ...values })
     else create.mutate(values, { onSuccess: done('Association created with its group chat.'), onError })
   }
   const gmOptions = (managers.data?.items ?? [])
     .filter((g) => g.status !== 'archived')
     .map((g) => ({ value: g.id, label: g.association && g.association.id !== association?.id ? `${g.name} · now ${g.association.name}` : g.name }))
+  const gmName = (id) => (id === association?.groupManager?.id ? association.groupManager.name : (managers.data?.items ?? []).find((g) => g.id === id)?.name ?? '—')
+  const changes = useDirtyDiff(initial, useWatch({ control }), {
+    name: 'Association name',
+    municipality: 'Municipality',
+    description: 'Description',
+    groupManagerId: { label: 'Group Manager', format: gmName },
+  })
+  useEffect(() => onUnchanged(Boolean(association) && changes.length === 0), [association, changes.length, onUnchanged])
 
   return (
     <form id={formId} noValidate onSubmit={handleSubmit(onSubmit)} className="contents">
+      <ConfirmChangesModal {...confirm.modal} changes={changes} pending={update.isPending} />
       <TextField id="as-name" label="Association name" placeholder="e.g. Torrijos Coffee Farmers" error={errors.name?.message} {...register('name')} />
       <Controller
         control={control}

@@ -3,10 +3,12 @@ import { lazy, Suspense, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { TextField } from '@/components/dashboard/RecordParts'
+import { ConfirmChangesModal } from '@/components/ui/ConfirmChangesModal'
 import { Input } from '@/components/ui/Input'
 import { SearchSelect } from '@/components/ui/SearchSelect'
 import { Switch } from '@/components/ui/Switch'
 import { useSaveAdminSetting } from '@/hooks/useAdminSettings'
+import { useDirtyDiff, useSaveConfirm } from '@/hooks/useDirtyDiff'
 import { useBarangayPoint, useReverseGeocode } from '@/hooks/useGeo'
 import { useLocations } from '@/hooks/useSettings'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
@@ -18,6 +20,18 @@ const MapPicker = lazy(() => import('@/components/map/MapPicker').then((m) => ({
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 const FORM_ID = 'settings-branch'
 const toForm = (b) => ({ ...b, phone: formatPhone(b.phone), street: b.street ?? '' })
+const pinText = (p) => `${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}`
+/** One diff row per weekday ("Monday: 08:00–17:00 → Closed"). */
+const flat = ({ hours = [], ...rest } = {}) => ({ ...rest, ...Object.fromEntries(hours.map((h, i) => [`hours${i}`, h])) })
+const LABELS = {
+  name: 'Branch name',
+  phone: 'Contact number',
+  municipality: 'Municipality',
+  barangay: 'Barangay',
+  street: 'Street, building or landmark',
+  location: { label: 'Branch pin', format: pinText },
+  ...Object.fromEntries(DAYS.map((day, i) => [`hours${i}`, { label: day, format: (h) => (h.open ? `${h.from}–${h.to}` : 'Closed') }])),
+}
 
 function HoursList({ control, errors }) {
   return (
@@ -63,7 +77,7 @@ export function BranchSettings({ branch, onSaved }) {
   const save = useSaveAdminSetting()
   const [pinError, setPinError] = useState(null)
   const [focus, setFocus] = useState({ municipality: branch.municipality, barangay: branch.barangay })
-  const { register, control, handleSubmit, setValue, getValues, setError, reset, formState: { errors, isDirty } } = useForm({
+  const { register, control, handleSubmit, setValue, getValues, setError, reset, formState: { errors, defaultValues } } = useForm({
     resolver: zodResolver(branchFormSchema),
     defaultValues: toForm(branch),
   })
@@ -99,7 +113,8 @@ export function BranchSettings({ branch, onSaved }) {
     setFocus({ municipality: getValues('municipality'), barangay: name, fit: true })
   }
 
-  const submit = handleSubmit((values) =>
+  const changes = useDirtyDiff(flat(defaultValues), flat(useWatch({ control })), LABELS)
+  const confirm = useSaveConfirm(true, (values) =>
     save.mutate(
       { section: 'branch', body: values },
       {
@@ -114,9 +129,11 @@ export function BranchSettings({ branch, onSaved }) {
       },
     ),
   )
+  const submit = handleSubmit(confirm.submit)
 
   return (
     <form id={FORM_ID} noValidate onSubmit={submit} className="flex flex-col gap-4">
+      <ConfirmChangesModal {...confirm.modal} changes={changes} pending={save.isPending} />
       <div className="flex flex-wrap items-start gap-4">
         <SettingsCard title="Kaluppa branch" text="Used as the delivery-fee starting point, the pickup card at checkout and the bean drop-off instructions." className="flex-[1_1_420px]">
           <div className="grid gap-5 min-[720px]:grid-cols-2">
@@ -144,7 +161,7 @@ export function BranchSettings({ branch, onSaved }) {
               focus={focus}
               error={pinError ?? errors.location?.message}
               busy={reverse.isPending}
-              note={location ? `Pin at ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}` : null}
+              note={location ? `Pin at ${pinText(location)}` : null}
               pinLabel="Branch pin"
               ariaLabel="Branch location. Click to move the pin."
               searchable={false}
@@ -152,7 +169,7 @@ export function BranchSettings({ branch, onSaved }) {
           </Suspense>
         </SettingsCard>
       </div>
-      {isDirty && <SaveBar formId={FORM_ID} pending={save.isPending} onDiscard={() => (reset(), setPinError(null))} />}
+      {changes.length > 0 && <SaveBar formId={FORM_ID} pending={save.isPending} onDiscard={() => (reset(), setPinError(null))} />}
     </form>
   )
 }

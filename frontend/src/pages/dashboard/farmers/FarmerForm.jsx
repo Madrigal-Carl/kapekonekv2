@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { History } from '@/components/dashboard/History'
-import { useId, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { UsernameField } from '@/components/auth/UsernameField'
@@ -8,9 +8,11 @@ import { DocumentUpload } from '@/components/dashboard/DocumentUpload'
 import { Drawer } from '@/components/dashboard/Drawer'
 import { SectionTitle, TextField } from '@/components/dashboard/RecordParts'
 import { Button } from '@/components/ui/Button'
+import { ConfirmChangesModal, NoChangesNote } from '@/components/ui/ConfirmChangesModal'
 import { SearchSelect } from '@/components/ui/SearchSelect'
 import { uploadValue } from '@/constants/records'
 import { useAssociationOptions } from '@/hooks/useAssociations'
+import { useDirtyDiff, useSaveConfirm } from '@/hooks/useDirtyDiff'
 import { useCreateFarmer, useUpdateFarmer } from '@/hooks/useFarmers'
 import { USERNAME_INPUT, useUsernameStatus } from '@/hooks/useUsernameStatus'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
@@ -26,6 +28,16 @@ const toForm = (f) => ({
   contactNumber: f?.contactNumber ?? '',
   email: f?.email ?? '',
 })
+const LABELS = {
+  firstName: 'First name',
+  middleName: 'Middle name',
+  lastName: 'Last name',
+  username: { label: 'Username', format: (v) => `@${v}` },
+  contactNumber: 'Contact number',
+  email: 'Email',
+  validId: { label: 'Valid ID', sensitive: true }, // documents never show in a diff
+  landProof: { label: 'Proof of land ownership', sensitive: true },
+}
 
 /**
  * Add or edit a farmer (Farmers.dc.html, FarmerForm board). A Group Manager's farmers join its association, approved;
@@ -36,32 +48,36 @@ export function FarmerForm({ open, farmer = null, association, onClose, onCreate
   const formId = useId()
   const create = useCreateFarmer()
   const update = useUpdateFarmer()
+  const [unchanged, setUnchanged] = useState(Boolean(farmer))
   return (
     <Drawer
       open={open}
       eyebrow={farmer ? 'Farmer' : 'New farmer'}
       title={farmer ? `Edit ${farmer.name}` : 'Add a farmer'}
       onClose={onClose}
-      footer={<FormFooter formId={formId} onClose={onClose} pending={create.isPending || update.isPending} label={farmer ? 'Save changes' : 'Create farmer'} />}
+      footer={<FormFooter formId={formId} onClose={onClose} pending={create.isPending || update.isPending} label={farmer ? 'Save changes' : 'Create farmer'} unchanged={unchanged} />}
     >
       {/* Keyed so a reopened form never shows the last farmer's values. */}
-      {open && <FarmerFields key={farmer?.id ?? 'new'} formId={formId} create={create} update={update} farmer={farmer} association={association} onClose={onClose} onCreated={onCreated} />}
+      {open && <FarmerFields key={farmer?.id ?? 'new'} formId={formId} create={create} update={update} farmer={farmer} association={association} onClose={onClose} onCreated={onCreated} onUnchanged={setUnchanged} />}
       {open && farmer && <History entityType="farmer" entityId={farmer.id} />}
     </Drawer>
   )
 }
 
-function FarmerFields({ formId, create, update, farmer, association, onClose, onCreated }) {
+function FarmerFields({ formId, create, update, farmer, association, onClose, onCreated, onUnchanged }) {
   const editing = Boolean(farmer)
   const options = useAssociationOptions()
   const [associationId, setAssociationId] = useState('')
   const [docs, setDocs] = useState({ validId: uploadValue(farmer?.documents?.validId), landProof: uploadValue(farmer?.documents?.landProof) })
   const [changed, setChanged] = useState({})
   const [pickError, setPickError] = useState(null)
+  const initial = useMemo(() => ({ ...toForm(farmer), validId: farmer?.documents?.validId?.url ?? '', landProof: farmer?.documents?.landProof?.url ?? '' }), [farmer])
   const { register, control, handleSubmit, setValue, setError, formState: { errors } } = useForm({
     resolver: zodResolver(farmerFormSchema),
     defaultValues: toForm(farmer),
   })
+  const changes = useDirtyDiff(initial, { ...useWatch({ control }), validId: docs.validId?.url ?? '', landProof: docs.landProof?.url ?? '' }, LABELS)
+  useEffect(() => onUnchanged(editing && changes.length === 0), [editing, changes.length, onUnchanged])
   const [firstName, lastName, username] = useWatch({ control, name: ['firstName', 'lastName', 'username'] })
   const status = useUsernameStatus(username, errors.username?.message, { current: farmer?.username, currentMessage: 'Their current username', emptyHint: 'Pick a suggestion or type one. They sign in with it.' })
   const setDoc = (key) => (doc) => {
@@ -69,23 +85,25 @@ function FarmerFields({ formId, create, update, farmer, association, onClose, on
     setChanged((c) => ({ ...c, [key]: true }))
   }
 
+  const onError = (error) => {
+    if (error?.response?.data?.errors?.associationId) setPickError(error.response.data.errors.associationId)
+    if (!applyServerErrors(error, setError, FIELDS)) toast.error(errorMessage(error))
+  }
+  const confirm = useSaveConfirm(editing, (body) =>
+    update.mutate(body, {
+      onSuccess: () => {
+        toast.success('Changes saved.')
+        onClose()
+      },
+      onError,
+    }),
+  )
   const onSubmit = (values) => {
     if (status.tone === 'taken') return // the status line already says why
     if (!editing && !association && !associationId) return setPickError('Choose an association')
-    const onError = (error) => {
-      if (error?.response?.data?.errors?.associationId) setPickError(error.response.data.errors.associationId)
-      if (!applyServerErrors(error, setError, FIELDS)) toast.error(errorMessage(error))
-    }
     if (editing) {
       // Only new uploads go up: stored documents stay as they are.
-      const body = { id: farmer.id, ...values, ...(changed.validId && { validId: ref(docs.validId) }), ...(changed.landProof && { landProof: ref(docs.landProof) }) }
-      return update.mutate(body, {
-        onSuccess: () => {
-          toast.success('Changes saved.')
-          onClose()
-        },
-        onError,
-      })
+      return confirm.submit({ id: farmer.id, ...values, ...(changed.validId && { validId: ref(docs.validId) }), ...(changed.landProof && { landProof: ref(docs.landProof) }) })
     }
     create.mutate(
       { ...values, validId: ref(docs.validId), landProof: ref(docs.landProof), ...(!association && { associationId }) },
@@ -95,6 +113,7 @@ function FarmerFields({ formId, create, update, farmer, association, onClose, on
 
   return (
     <form id={formId} noValidate onSubmit={handleSubmit(onSubmit)} className="contents">
+      <ConfirmChangesModal {...confirm.modal} changes={changes} pending={update.isPending} />
       {!editing &&
         (association ? (
           <p className="rounded-control bg-tone-green-bg px-3 py-2.5 text-[13px] text-tone-green-ink">
@@ -152,11 +171,14 @@ function FarmerFields({ formId, create, update, farmer, association, onClose, on
 }
 
 /** Cancel + submit for a drawer form; the submit button reaches the form through `form={formId}`. */
-export function FormFooter({ formId, onClose, pending, label }) {
+/** Cancel + Save; on an edit with nothing changed yet, Save is disabled with "No changes yet". */
+export function FormFooter({ formId, onClose, pending, label, unchanged = false }) {
+  const noteId = useId()
   return (
     <>
+      {unchanged && <NoChangesNote id={noteId} />}
       <Button variant="outline" onClick={onClose}>Cancel</Button>
-      <Button type="submit" form={formId} loading={pending}>{label}</Button>
+      <Button type="submit" form={formId} loading={pending} disabled={unchanged} aria-describedby={unchanged ? noteId : undefined}>{label}</Button>
     </>
   )
 }

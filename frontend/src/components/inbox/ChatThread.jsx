@@ -1,6 +1,7 @@
 import { differenceInCalendarDays } from 'date-fns'
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { ConfirmModal } from '@/components/dashboard/ConfirmModal'
 import { Button } from '@/components/ui/Button'
 import { IconChevronLeft } from '@/components/ui/icons'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -32,6 +33,7 @@ export function ChatThread({ chat, myId, onBack }) {
   const remove = useDeleteMessage()
   const [replyTo, setReplyTo] = useState(null)
   const [editing, setEditing] = useState(null)
+  const [askDelete, setAskDelete] = useState(null) // { message, scope }: nothing is deleted until it's confirmed
   const scroller = useRef(null)
   const sentinel = useInfiniteSentinel(query)
   const typing = useTypingNames(chat.id, myId)
@@ -62,7 +64,12 @@ export function ChatThread({ chat, myId, onBack }) {
     setReplyTo(null)
     setEditing(null)
   }
-  const onDelete = (m, scope) => remove.mutate({ id: m.id, scope }, { onError: (e) => toast.error(errorMessage(e)), onSuccess: () => editing?.id === m.id && clear() })
+  const doDelete = () => {
+    const { message: m, scope } = askDelete
+    setAskDelete(null)
+    remove.mutate({ id: m.id, scope }, { onError: (e) => toast.error(errorMessage(e)), onSuccess: () => editing?.id === m.id && clear() })
+  }
+  const forMe = askDelete?.scope === 'me'
   const receipt = chat.receipt
   const lastMineId = messages.findLast((m) => m.mine && !m.deleted)?.id
 
@@ -126,7 +133,7 @@ export function ChatThread({ chat, myId, onBack }) {
                     setReplyTo(null)
                     setEditing({ id: m.id, body: m.body })
                   }}
-                  onDelete={(scope) => onDelete(m, scope)}
+                  onDelete={(scope) => setAskDelete({ message: m, scope })}
                 />
               </Fragment>
             )
@@ -144,6 +151,16 @@ export function ChatThread({ chat, myId, onBack }) {
         )}
       </div>
 
+      <ConfirmModal
+        open={Boolean(askDelete)}
+        variant="delete"
+        title="Delete message?"
+        confirmLabel={forMe ? 'Delete for me' : 'Delete for everyone'}
+        onClose={() => setAskDelete(null)}
+        onConfirm={doDelete}
+      >
+        {forMe ? 'It’s removed from your view only. Everyone else in the chat still sees it.' : 'It’s removed for everyone in this chat. They’ll see “This message was deleted”.'}
+      </ConfirmModal>
       {chat.canPost ? (
         <Composer key={`${chat.id}:${editing?.id ?? ''}`} chat={chat} replyTo={replyTo} editing={editing} onDone={clear} />
       ) : (

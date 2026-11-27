@@ -138,6 +138,25 @@ describe('Inbox — thread', () => {
     await waitFor(() => expect(service.editMessage).toHaveBeenCalledWith({ id: 'g3', body: 'Space the branches for better airflow.' }, expect.anything()))
   })
 
+  it('asks before deleting a message; Esc keeps it; the red button names the action', async () => {
+    renderInbox()
+    const mine = (await within(await screen.findByRole('log', { name: /Messages/ })).findByText('Space the branches for airflow.')).closest('[data-message]')
+    const pick = (name) => {
+      fireEvent.click(within(mine).getByRole('button', { name: 'More actions' }))
+      fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name }))
+      return screen.getByRole('dialog', { name: 'Delete message?' })
+    }
+    const forMe = pick('Delete for me')
+    expect(forMe.textContent).toContain('It’s removed from your view only.')
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByRole('dialog', { name: 'Delete message?' })).toBeNull()
+    const forAll = pick('Delete for everyone')
+    expect(forAll.textContent).toContain('They’ll see “This message was deleted”.')
+    expect(service.deleteMessage).not.toHaveBeenCalled()
+    fireEvent.click(within(forAll).getByRole('button', { name: 'Delete for everyone' }))
+    await waitFor(() => expect(service.deleteMessage).toHaveBeenCalledWith({ id: 'g3', scope: 'everyone' }, expect.anything()))
+  })
+
   it('shows who is typing until it expires', async () => {
     renderInbox()
     await within(await screen.findByRole('log', { name: /Messages/ })).findByText('Meeting on Saturday.')

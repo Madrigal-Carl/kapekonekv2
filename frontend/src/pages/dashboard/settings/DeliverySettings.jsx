@@ -3,8 +3,10 @@ import { useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { TextField } from '@/components/dashboard/RecordParts'
+import { ConfirmChangesModal } from '@/components/ui/ConfirmChangesModal'
 import { FieldHint, Input, Label } from '@/components/ui/Input'
 import { useSaveAdminSetting } from '@/hooks/useAdminSettings'
+import { useDirtyDiff, useSaveConfirm } from '@/hooks/useDirtyDiff'
 import { errorMessage } from '@/lib/applyServerErrors'
 import { feeForDistance, formatPesoShort } from '@/lib/format'
 import { deliveryFormSchema } from '@/schemas/setting.schema'
@@ -22,6 +24,16 @@ const toForm = (d) => ({
 })
 const SERVER_FIELDS = { baseFeeCentavos: 'baseFee', perKmCentavos: 'perKm', roundUpToCentavos: 'roundUpTo' }
 const num = { valueAsNumber: true }
+const peso = (v) => formatPesoShort(Math.round(Number(v) * 100))
+const LABELS = {
+  baseFee: { label: 'Base fee', format: peso },
+  baseKm: { label: 'Covers the first', format: (v) => `${v} km` },
+  perKm: { label: 'Per km after that', format: peso },
+  roundUpTo: { label: 'Round up to the nearest', format: peso },
+  maxKm: { label: 'Maximum distance', format: (v) => `${v} km` },
+  minBusinessDays: { label: 'Earliest business day', format: (v) => `day ${v}` },
+  maxBusinessDays: { label: 'Latest business day', format: (v) => `day ${v}` },
+}
 
 /** "Try it": the fee for a road distance under the rules as typed (not yet saved). */
 function TryIt({ control }) {
@@ -53,11 +65,12 @@ function TryIt({ control }) {
 /** Settings → Delivery fee: base fee, per-km rate, rounding, maximum distance, delivery estimate; plus the calculator. */
 export function DeliverySettings({ delivery, onSaved }) {
   const save = useSaveAdminSetting()
-  const { register, control, handleSubmit, setError, reset, formState: { errors, isDirty } } = useForm({
+  const { register, control, handleSubmit, setError, reset, formState: { errors, defaultValues } } = useForm({
     resolver: zodResolver(deliveryFormSchema),
     defaultValues: toForm(delivery),
   })
-  const submit = handleSubmit(({ baseFee, perKm, roundUpTo, ...rest }) =>
+  const changes = useDirtyDiff(defaultValues, useWatch({ control }), LABELS)
+  const confirm = useSaveConfirm(true, ({ baseFee, perKm, roundUpTo, ...rest }) =>
     save.mutate(
       { section: 'delivery', body: { baseFeeCentavos: baseFee, perKmCentavos: perKm, roundUpToCentavos: roundUpTo, ...rest } },
       {
@@ -73,10 +86,12 @@ export function DeliverySettings({ delivery, onSaved }) {
       },
     ),
   )
+  const submit = handleSubmit(confirm.submit)
   const etaError = errors.minBusinessDays?.message ?? errors.maxBusinessDays?.message
 
   return (
     <form id={FORM_ID} noValidate onSubmit={submit} className="flex flex-col gap-4">
+      <ConfirmChangesModal {...confirm.modal} changes={changes} pending={save.isPending} />
       <div className="flex flex-wrap items-start gap-4">
         <SettingsCard title="Delivery fee" text={`Distance is the road distance from the branch pin (Mapbox). If that fails, straight-line distance × ${delivery.roadFactorFallback}.`} className="flex-[1_1_420px]">
           <div className="grid gap-5 min-[720px]:grid-cols-2">
@@ -102,7 +117,7 @@ export function DeliverySettings({ delivery, onSaved }) {
         </SettingsCard>
         <TryIt control={control} />
       </div>
-      {isDirty && <SaveBar formId={FORM_ID} pending={save.isPending} onDiscard={() => reset()} />}
+      {changes.length > 0 && <SaveBar formId={FORM_ID} pending={save.isPending} onDiscard={() => reset()} />}
     </form>
   )
 }

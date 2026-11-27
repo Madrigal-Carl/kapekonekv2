@@ -1,9 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { History } from '@/components/dashboard/History'
-import { lazy, Suspense, useId, useState } from 'react'
+import { lazy, Suspense, useEffect, useId, useMemo, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Drawer } from '@/components/dashboard/Drawer'
+import { ConfirmChangesModal } from '@/components/ui/ConfirmChangesModal'
 import { TextField } from '@/components/dashboard/RecordParts'
 import { Label } from '@/components/ui/Input'
 import { SearchSelect } from '@/components/ui/SearchSelect'
@@ -11,6 +12,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { useGroupManagers } from '@/hooks/useAssociations'
 import { useFarmers } from '@/hooks/useFarmers'
 import { useBarangayPoint, useReverseGeocode } from '@/hooks/useGeo'
+import { useDirtyDiff, useSaveConfirm } from '@/hooks/useDirtyDiff'
 import { useCreateFarm, useUpdateFarm } from '@/hooks/useRecords'
 import { useLocations } from '@/hooks/useSettings'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
@@ -50,6 +52,7 @@ export function FarmForm({ open, farm = null, actsForFarmers, isKaluppa, onClose
   const formId = useId()
   const create = useCreateFarm()
   const update = useUpdateFarm()
+  const [unchanged, setUnchanged] = useState(Boolean(farm))
   return (
     <Drawer
       open={open}
@@ -57,15 +60,15 @@ export function FarmForm({ open, farm = null, actsForFarmers, isKaluppa, onClose
       eyebrow={isKaluppa ? 'Kaluppa farm' : 'Farm'}
       title={farm ? `Edit ${farm.propertyNumber}` : 'Add a farm'}
       onClose={onClose}
-      footer={<FormFooter formId={formId} onClose={onClose} pending={create.isPending || update.isPending} label={farm ? 'Save changes' : 'Save farm'} />}
+      footer={<FormFooter formId={formId} onClose={onClose} pending={create.isPending || update.isPending} label={farm ? 'Save changes' : 'Save farm'} unchanged={unchanged} />}
     >
-      {open && <FarmFields key={farm?.id ?? 'new'} formId={formId} farm={farm} create={create} update={update} actsForFarmers={actsForFarmers} isKaluppa={isKaluppa} onClose={onClose} />}
+      {open && <FarmFields key={farm?.id ?? 'new'} formId={formId} farm={farm} create={create} update={update} actsForFarmers={actsForFarmers} isKaluppa={isKaluppa} onClose={onClose} onUnchanged={setUnchanged} />}
       {open && farm && <History entityType="farm" entityId={farm.id} />}
     </Drawer>
   )
 }
 
-function FarmFields({ formId, farm, create, update, actsForFarmers, isKaluppa, onClose }) {
+function FarmFields({ formId, farm, create, update, actsForFarmers, isKaluppa, onClose, onUnchanged }) {
   const editing = Boolean(farm)
   const needsFarmer = actsForFarmers && !editing
   const locations = useLocations()
@@ -77,9 +80,10 @@ function FarmFields({ formId, farm, create, update, actsForFarmers, isKaluppa, o
   const [pinNote, setPinNote] = useState(null)
   const [focus, setFocus] = useState(() => (farm ? { municipality: farm.municipality, barangay: farm.barangay } : {}))
 
+  const initial = useMemo(() => toForm(farm), [farm])
   const { register, control, handleSubmit, setValue, getValues, setError, getFieldState, formState: { errors } } = useForm({
     resolver: zodResolver(farmFormSchema({ needsFarmer })),
-    defaultValues: toForm(farm),
+    defaultValues: initial,
   })
   const [municipality, location] = useWatch({ control, name: ['municipality', 'location'] })
   const town = locations.data?.find((t) => t.name === municipality)
@@ -115,12 +119,23 @@ function FarmFields({ formId, farm, create, update, actsForFarmers, isKaluppa, o
     setFocus({ municipality: town, barangay: name, fit: true })
   }
 
-  const save = handleSubmit(({ farmerId, managedById, ...values }) => {
-    const body = {
-      ...values,
-      ...(needsFarmer && { farmerId }),
-      ...(isKaluppa && { managedById: managedById === ASSIGN_LATER ? null : managedById }),
-    }
+  const managerOptions = [
+    { value: ASSIGN_LATER, label: 'Assign later' },
+    ...(managers.data?.items ?? []).map((m) => ({ value: m.id, label: `${m.name} · ${m.association?.name ?? 'no association'}` })),
+  ]
+  const managerName = (id) => (id === farm?.managedBy?.id ? farm.managedBy.name : managerOptions.find((o) => o.value === id)?.label.split(' · ')[0] ?? 'Assign later')
+  const changes = useDirtyDiff(initial, useWatch({ control }), {
+    ...(isKaluppa && { managedById: { label: 'Managed by', format: managerName } }),
+    lotNumber: 'Lot number',
+    sizeHa: { label: 'Size', format: (v) => `${Number(v).toFixed(2)} ha` },
+    municipality: 'Municipality',
+    barangay: 'Barangay',
+    street: 'Street, sitio or landmark',
+    location: { label: 'Pin location', format: (p) => `${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}` },
+  })
+  useEffect(() => onUnchanged(editing && changes.length === 0), [editing, changes.length, onUnchanged])
+
+  const send = (body) => {
     const onError = (error) => {
       if (error.response?.data?.errors?.location) setPinError(error.response.data.errors.location)
       if (!applyServerErrors(error, setError, FIELDS)) toast.error(errorMessage(error))
@@ -129,12 +144,15 @@ function FarmFields({ formId, farm, create, update, actsForFarmers, isKaluppa, o
       return update.mutate({ id: farm.id, ...body }, { onSuccess: () => (toast.success('Farm updated.'), onClose()), onError })
     }
     create.mutate(body, { onSuccess: (saved) => (toast.success(`Farm saved as ${saved.propertyNumber}.`), onClose()), onError })
-  })
-
-  const managerOptions = [
-    { value: ASSIGN_LATER, label: 'Assign later' },
-    ...(managers.data?.items ?? []).map((m) => ({ value: m.id, label: `${m.name} · ${m.association?.name ?? 'no association'}` })),
-  ]
+  }
+  const confirm = useSaveConfirm(editing, send)
+  const save = handleSubmit(({ farmerId, managedById, ...values }) =>
+    confirm.submit({
+      ...values,
+      ...(needsFarmer && { farmerId }),
+      ...(isKaluppa && { managedById: managedById === ASSIGN_LATER ? null : managedById }),
+    }),
+  )
   if (!locations.data) {
     return (
       <div className="grid min-h-60 place-items-center">
@@ -144,6 +162,7 @@ function FarmFields({ formId, farm, create, update, actsForFarmers, isKaluppa, o
   }
   return (
     <form id={formId} noValidate onSubmit={save} className="contents">
+      <ConfirmChangesModal {...confirm.modal} changes={changes} pending={update.isPending} />
       {needsFarmer && (
         <Controller
           name="farmerId"

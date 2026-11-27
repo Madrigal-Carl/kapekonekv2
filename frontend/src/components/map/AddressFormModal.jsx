@@ -1,16 +1,18 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { IconMapPin, IconX } from '@/components/ui/icons'
 
-import { lazy, Suspense, useId, useState } from 'react'
+import { lazy, Suspense, useId, useMemo, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
+import { ConfirmChangesModal, NoChangesNote } from '@/components/ui/ConfirmChangesModal'
 import { FieldHint, Input, Label } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { SearchSelect } from '@/components/ui/SearchSelect'
 import { Spinner } from '@/components/ui/Spinner'
 import { useCreateAddress, useUpdateAddress } from '@/hooks/useAddresses'
 import { useCan } from '@/hooks/useCan'
+import { useDirtyDiff, useSaveConfirm } from '@/hooks/useDirtyDiff'
 import { useBarangayPoint, usePointQuote, useReverseGeocode } from '@/hooks/useGeo'
 import { useDeliveryInfo, useLocations } from '@/hooks/useSettings'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
@@ -26,6 +28,18 @@ const OUTSIDE = 'That spot is outside our delivery area. We deliver anywhere in 
 // Camera zoom for the selects (PRODUCT-SPEC §8): a municipality, then closer for a barangay.
 const ISLAND_FOCUS = {}
 const readOnlyClasses = 'w-full rounded-control border border-sand-soft bg-cream px-3 py-2.5 text-sm text-ink-2'
+
+const LABELS = {
+  label: 'Label',
+  customLabel: 'Label name',
+  recipientName: 'Recipient name',
+  phone: 'Contact number',
+  municipality: 'Municipality',
+  barangay: 'Barangay',
+  street: 'Street, house number or landmark',
+  location: { label: 'Map pin', format: (p) => `${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}` },
+  isDefault: { label: 'Default address', format: (v) => (v ? 'Yes' : 'No') },
+}
 
 const emptyAddress = (user) => ({
   label: 'Home',
@@ -80,12 +94,16 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
   const [focus, setFocus] = useState(() => (address ? { municipality: address.municipality, barangay: address.barangay, fit: !address.location } : ISLAND_FOCUS))
 
   const farmer = useCan('farms.manage') // the Farm label (server checks it too)
+  const initial = useMemo(
+    () => (address ? { ...emptyAddress(), ...address, customLabel: address.customLabel ?? '', phone: formatPhone(address.phone) } : emptyAddress(user)),
+    [address, user],
+  )
   const { register, control, handleSubmit, setValue, getValues, setError, getFieldState, formState: { errors } } = useForm({
     resolver: zodResolver(addressSchema),
-    defaultValues: address
-      ? { ...emptyAddress(), ...address, customLabel: address.customLabel ?? '', phone: formatPhone(address.phone) }
-      : emptyAddress(user),
+    defaultValues: initial,
   })
+  const changes = useDirtyDiff(initial, useWatch({ control }), LABELS)
+  const unchanged = editing && changes.length === 0
   const [label, municipality, location] = useWatch({ control, name: ['label', 'municipality', 'location'] })
   const town = locations.data?.find((t) => t.name === municipality)
 
@@ -126,8 +144,7 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
     setFocus({ municipality: town, barangay: name, fit: true })
   }
 
-  const save = handleSubmit((values) => {
-    const body = { ...values, customLabel: values.label === 'Other' ? values.customLabel : null }
+  const send = (body) => {
     const mutation = editing ? update : create
     mutation.mutate(editing ? { id: address._id, ...body } : body, {
       onSuccess: (saved) => {
@@ -140,7 +157,9 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
         if (!applyServerErrors(error, setError, FIELDS)) toast.error(errorMessage(error))
       },
     })
-  })
+  }
+  const confirm = useSaveConfirm(editing, send)
+  const save = handleSubmit((values) => confirm.submit({ ...values, customLabel: values.label === 'Other' ? values.customLabel : null }))
   const saving = create.isPending || update.isPending
 
   return (
@@ -283,9 +302,11 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
       </div>
 
       <div className="flex justify-end gap-2.5 border-t border-sand-soft bg-cream px-6 py-4">
+        {unchanged && <NoChangesNote id={`${id}-nochange`} />}
         <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
-        <Button type="submit" form={`${id}-form`} loading={saving} disabled={!locations.data}>Save address</Button>
+        <Button type="submit" form={`${id}-form`} loading={saving} disabled={!locations.data || unchanged} aria-describedby={unchanged ? `${id}-nochange` : undefined}>Save address</Button>
       </div>
+      <ConfirmChangesModal {...confirm.modal} changes={changes} pending={update.isPending} />
     </Modal>
   )
 }

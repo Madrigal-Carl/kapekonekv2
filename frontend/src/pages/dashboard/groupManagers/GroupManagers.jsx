@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { History } from '@/components/dashboard/History'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { IconPlus } from '@/components/ui/icons'
-import { useId, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { ConfirmModal } from '@/components/dashboard/ConfirmModal'
@@ -12,6 +12,7 @@ import { Drawer } from '@/components/dashboard/Drawer'
 import { PageHeader } from '@/components/dashboard/PageHeader'
 import { DetailList, PersonHeader, SectionTitle, StatTiles, TextField } from '@/components/dashboard/RecordParts'
 import { Button } from '@/components/ui/Button'
+import { ConfirmChangesModal } from '@/components/ui/ConfirmChangesModal'
 import { SearchSelect } from '@/components/ui/SearchSelect'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { avatarFor } from '@/constants/records'
@@ -24,6 +25,7 @@ import {
   useRestoreGroupManager,
   useUpdateGroupManager,
 } from '@/hooks/useAssociations'
+import { useDirtyDiff, useSaveConfirm } from '@/hooks/useDirtyDiff'
 import { useTableParams } from '@/hooks/useTableParams'
 import { USERNAME_INPUT, useUsernameStatus } from '@/hooks/useUsernameStatus'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
@@ -186,43 +188,66 @@ function GroupManagerForm({ open, gm, onClose }) {
   const formId = useId()
   const create = useCreateGroupManager()
   const update = useUpdateGroupManager()
+  const [unchanged, setUnchanged] = useState(Boolean(gm))
   return (
     <Drawer
       open={open}
       eyebrow="Group Manager"
       title={gm ? `Edit ${gm.name}` : 'Add a Group Manager'}
       onClose={onClose}
-      footer={<FormFooter formId={formId} onClose={onClose} pending={create.isPending || update.isPending} label={gm ? 'Save changes' : 'Create account'} />}
+      footer={<FormFooter formId={formId} onClose={onClose} pending={create.isPending || update.isPending} label={gm ? 'Save changes' : 'Create account'} unchanged={unchanged} />}
     >
-      {open && <GroupManagerFields key={gm?.id ?? 'new'} formId={formId} gm={gm} create={create} update={update} onClose={onClose} />}
+      {open && <GroupManagerFields key={gm?.id ?? 'new'} formId={formId} gm={gm} create={create} update={update} onClose={onClose} onUnchanged={setUnchanged} />}
       {open && gm && <History entityType="user" entityId={gm.id} />}
     </Drawer>
   )
 }
 
-function GroupManagerFields({ formId, gm, create, update, onClose }) {
+function GroupManagerFields({ formId, gm, create, update, onClose, onUnchanged }) {
   const options = useAssociationOptions()
+  const initial = useMemo(() => toForm(gm), [gm])
   const { register, control, handleSubmit, setValue, setError, formState: { errors } } = useForm({
     resolver: zodResolver(groupManagerFormSchema),
-    defaultValues: toForm(gm),
+    defaultValues: initial,
   })
+  const associationName = (id) => (id === gm?.association?.id ? gm.association.name : (options.data ?? []).find((o) => o.id === id)?.name ?? '—')
+  const changes = useDirtyDiff(initial, useWatch({ control }), {
+    firstName: 'First name',
+    middleName: 'Middle name',
+    lastName: 'Last name',
+    username: { label: 'Username', format: (v) => `@${v}` },
+    contactNumber: 'Contact number',
+    email: 'Email',
+    associationId: { label: 'Association', format: associationName },
+  })
+  useEffect(() => onUnchanged(Boolean(gm) && changes.length === 0), [gm, changes.length, onUnchanged])
   const [firstName, lastName, username] = useWatch({ control, name: ['firstName', 'lastName', 'username'] })
   const status = useUsernameStatus(username, errors.username?.message, { current: gm?.username, currentMessage: 'Their current username', emptyHint: 'Pick a suggestion or type one. They sign in with it.' })
+  const onError = (error) => {
+    if (!applyServerErrors(error, setError, FIELDS)) toast.error(errorMessage(error))
+  }
+  const confirm = useSaveConfirm(Boolean(gm), (body) =>
+    update.mutate(body, {
+      onSuccess: () => {
+        toast.success('Changes saved.')
+        onClose()
+      },
+      onError,
+    }),
+  )
   const onSubmit = (values) => {
     if (status.tone === 'taken') return // the status line already says why
     const done = (message) => () => {
       toast.success(message)
       onClose()
     }
-    const onError = (error) => {
-      if (!applyServerErrors(error, setError, FIELDS)) toast.error(errorMessage(error))
-    }
-    if (gm) update.mutate({ id: gm.id, ...values }, { onSuccess: done('Changes saved.'), onError })
+    if (gm) confirm.submit({ id: gm.id, ...values })
     else create.mutate(values, { onSuccess: done('Account created. We emailed an invite link.'), onError })
   }
 
   return (
     <form id={formId} noValidate onSubmit={handleSubmit(onSubmit)} className="contents">
+      <ConfirmChangesModal {...confirm.modal} changes={changes} pending={update.isPending} />
       <SectionTitle>Name</SectionTitle>
       <div className="grid gap-5 min-[720px]:grid-cols-3">
         <TextField id="gm-first" label="First name" autoComplete="off" error={errors.firstName?.message} {...register('firstName')} />

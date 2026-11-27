@@ -1,15 +1,17 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { IconPlus, IconX } from '@/components/ui/icons'
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Drawer } from '@/components/dashboard/Drawer'
 import { TextField } from '@/components/dashboard/RecordParts'
 import { Button } from '@/components/ui/Button'
+import { ConfirmChangesModal, NoChangesNote } from '@/components/ui/ConfirmChangesModal'
 import { SearchSelect } from '@/components/ui/SearchSelect'
 import { VARIETIES } from '@/constants/charts'
-import { BEAN_FORMS } from '@/constants/beans'
+import { BEAN_FORMS, formLabel, varietyLabel } from '@/constants/beans'
 import { useBeanCap, useCreateBean, useUpdateBean } from '@/hooks/useBeans'
+import { useDirtyDiff, useSaveConfirm } from '@/hooks/useDirtyDiff'
 import { useFarmers } from '@/hooks/useFarmers'
 import { useUploadImage } from '@/hooks/useUploads'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
@@ -43,6 +45,7 @@ export function BeanForm({ open, listing = null, actsForFarmers, onClose }) {
   const create = useCreateBean()
   const update = useUpdateBean()
   const [over, setOver] = useState(false)
+  const [unchanged, setUnchanged] = useState(Boolean(listing))
   return (
     <Drawer
       open={open}
@@ -52,26 +55,37 @@ export function BeanForm({ open, listing = null, actsForFarmers, onClose }) {
       onClose={onClose}
       footer={
         <>
+          {unchanged && <NoChangesNote id={`${formId}-nochange`} />}
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button type="submit" form={formId} disabled={over} loading={create.isPending || update.isPending}>
+          <Button type="submit" form={formId} disabled={over || unchanged} aria-describedby={unchanged ? `${formId}-nochange` : undefined} loading={create.isPending || update.isPending}>
             {listing ? 'Save changes' : 'Send to Kaluppa'}
           </Button>
         </>
       }
     >
       {open && (
-        <BeanFields key={listing?.id ?? 'new'} formId={formId} listing={listing} actsForFarmers={actsForFarmers} create={create} update={update} onOver={setOver} onClose={onClose} />
+        <BeanFields key={listing?.id ?? 'new'} formId={formId} listing={listing} actsForFarmers={actsForFarmers} create={create} update={update} onOver={setOver} onUnchanged={setUnchanged} onClose={onClose} />
       )}
     </Drawer>
   )
 }
 
-function BeanFields({ formId, listing, actsForFarmers, create, update, onOver, onClose }) {
+function BeanFields({ formId, listing, actsForFarmers, create, update, onOver, onUnchanged, onClose }) {
   const needsFarmer = actsForFarmers && !listing
+  const initial = useMemo(() => toForm(listing), [listing])
   const { register, control, handleSubmit, setError, formState: { errors } } = useForm({
     resolver: zodResolver(beanFormSchema({ needsFarmer })),
-    defaultValues: toForm(listing),
+    defaultValues: initial,
   })
+  const changes = useDirtyDiff(initial, useWatch({ control }), {
+    variety: { label: 'Variety', format: varietyLabel },
+    form: { label: 'Form', format: formLabel },
+    weightKg: { label: 'Weight', format: (v) => formatKg(Number(v)) },
+    price: { label: 'Price per kg', format: (v) => formatPesoShort(Math.round(Number(v) * 100)) },
+    photos: { label: 'Photos', format: (p) => `${p.length} photo${p.length === 1 ? '' : 's'}` },
+    note: 'Note for Kaluppa',
+  })
+  useEffect(() => onUnchanged(Boolean(listing) && changes.length === 0), [listing, changes.length, onUnchanged])
   const [farmerId, weight, price] = useWatch({ control, name: ['farmerId', 'weightKg', 'price'] })
   const farmers = useFarmers({ limit: FARMER_LIMIT }, { enabled: needsFarmer })
   const capFarmer = actsForFarmers ? (listing?.farmer.id ?? farmerId) : undefined
@@ -88,25 +102,27 @@ function BeanFields({ formId, listing, actsForFarmers, create, update, onOver, o
   const limitText = who ? `${who} can list up to ${formatKg(left)} more until approved.` : `You can list up to ${formatKg(left)} more until you’re approved.`
   const total = kgNow && Number(price) ? formatPesoShort(Math.round(kgNow * Number(price) * 100)) : '₱0'
 
+  const options = {
+    onSuccess: () => {
+      toast.success(listing ? 'Listing updated.' : 'Listing sent. Kaluppa will review it soon.')
+      onClose()
+    },
+    onError: (error) => {
+      const mapped = applyServerErrors(error, (name, e) => setError(name === 'pricePerKgCentavos' ? 'price' : name, e))
+      if (!mapped) toast.error(errorMessage(error))
+    },
+  }
+  const confirm = useSaveConfirm(Boolean(listing), (body) => update.mutate(body, options))
   const save = handleSubmit(({ price: pricePerKgCentavos, ...values }) => {
     if (over) return
     const body = { ...values, pricePerKgCentavos, farmerId: needsFarmer ? values.farmerId : undefined }
-    const options = {
-      onSuccess: () => {
-        toast.success(listing ? 'Listing updated.' : 'Listing sent. Kaluppa will review it soon.')
-        onClose()
-      },
-      onError: (error) => {
-        const mapped = applyServerErrors(error, (name, e) => setError(name === 'pricePerKgCentavos' ? 'price' : name, e))
-        if (!mapped) toast.error(errorMessage(error))
-      },
-    }
-    if (listing) update.mutate({ id: listing.id, ...body }, options)
+    if (listing) confirm.submit({ id: listing.id, ...body })
     else create.mutate(body, options)
   })
 
   return (
     <form id={formId} noValidate onSubmit={save} className="contents">
+      <ConfirmChangesModal {...confirm.modal} changes={changes} pending={update.isPending} />
       {needsFarmer && (
         <Controller
           name="farmerId"

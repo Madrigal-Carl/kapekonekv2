@@ -1,14 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { IconCamera, IconCheck } from '@/components/ui/icons'
 
-import { useId, useState } from 'react'
+import { useId, useMemo, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
+import { ConfirmChangesModal, NoChangesNote } from '@/components/ui/ConfirmChangesModal'
 import { FileDrop } from '@/components/ui/FileDrop'
 import { FieldHint, Input, Label } from '@/components/ui/Input'
 import { useChangeAvatar, useProfile, useRemoveAvatar, useUpdateProfile } from '@/hooks/useAccount'
+import { useDirtyDiff, useSaveConfirm } from '@/hooks/useDirtyDiff'
 import { useUsernameStatus } from '@/hooks/useUsernameStatus'
 import { AccountHeading } from '@/layouts/AccountLayout'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
@@ -19,6 +21,7 @@ import { profileSchema } from '@/schemas/account.schema'
 import { imageUrl } from '@/lib/image'
 
 const FIELDS = ['firstName', 'middleName', 'lastName', 'username', 'contactNumber']
+const LABELS = { firstName: 'First name', middleName: 'Middle name', lastName: 'Last name', username: { label: 'Username', format: (v) => `@${v}` }, contactNumber: 'Contact number' }
 
 const toForm = (user) => ({
   firstName: user.firstName,
@@ -107,7 +110,9 @@ export function Profile({ embedded = false }) {
   const reset = (values) => resetForm(values, { keepDirtyValues: false, keepFieldsRef: true })
   const status = useUsernameStatus(username, errors.username?.message, { current: user.username, takenHint: 'Try another one.' })
 
-  const onSubmit = (values) =>
+  const initial = useMemo(() => toForm(user), [user])
+  const changes = useDirtyDiff(initial, useWatch({ control }), LABELS)
+  const confirm = useSaveConfirm(true, (values) =>
     update.mutate(values, {
       onSuccess: (saved) => {
         reset(toForm(saved))
@@ -116,7 +121,8 @@ export function Profile({ embedded = false }) {
       onError: (error) => {
         if (!applyServerErrors(error, setError, FIELDS)) toast.error(errorMessage(error))
       },
-    })
+    }),
+  )
 
   return (
     <>
@@ -129,7 +135,8 @@ export function Profile({ embedded = false }) {
         <div className="w-full min-w-0 overflow-hidden rounded-card border border-sand bg-white">
           <PhotoBand user={user} />
 
-          <form noValidate onSubmit={handleSubmit(onSubmit)}>
+          <form noValidate onSubmit={handleSubmit(confirm.submit)}>
+            <ConfirmChangesModal {...confirm.modal} changes={changes} pending={update.isPending} />
             <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-[18px] p-6">
               <div>
                 <Label htmlFor="firstName">First name</Label>
@@ -205,10 +212,11 @@ export function Profile({ embedded = false }) {
             </div>
 
             <div className="flex justify-end gap-2.5 border-t border-sand-soft bg-cream px-6 py-4">
-              <Button variant="outline" onClick={() => reset(toForm(user))} disabled={update.isPending} className="px-[18px]">
+              {changes.length === 0 && <NoChangesNote id="profile-nochange" />}
+              <Button variant="outline" onClick={() => reset(toForm(user))} disabled={update.isPending || changes.length === 0} className="px-[18px]">
                 Discard
               </Button>
-              <Button type="submit" loading={update.isPending} className="px-5">
+              <Button type="submit" loading={update.isPending} disabled={changes.length === 0} aria-describedby={changes.length === 0 ? 'profile-nochange' : undefined} className="px-5">
                 Save changes
               </Button>
             </div>

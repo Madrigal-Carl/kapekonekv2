@@ -378,6 +378,45 @@ frontend/src/
 - [x] Feed card: last comment (`GET /hub/posts` items carry `lastComment`, the newest top-level comment), "View all N comments" (over 1), "Write a comment…", captions over 240 cut at a word with "See more"; the time, counts and Comment open the viewer; no inline thread or inline editor.
 - [x] Tests: backend `hub` (lastComment); frontend `components/post/Hub.test.jsx` (modal start modes, 3-tag limit, length rule, discard flow, edit title; card cut / preview / opens; viewer counter, prev / next / arrows, text dialog, tag); e2e `hub.spec` (post with tags, comment in the viewer with focus back on Comment, paging 6 photos at 1440/390 with Esc / Back, photo + tags + edit + discard + text dialog + phone full screen, See more) and `a11y.spec` (axe on the modal and both viewers at 1440/390).
 
+## Change 08 — Confirmations, export, accounts, farms, store, associations, mentions, Contact us
+
+Source: `docs/prompts/CHANGE-08-CONFIRM-EXPORT-ACCOUNTS-MENTIONS-CONTACT.md`, PHASE-2-SPEC §3.17, DESIGN §8.8. One commit per part.
+
+### Task C08.A: Confirmations
+- [x] `useDirtyDiff(initial, current, labels)` + `ConfirmChangesModal` ("Save these changes?", label: before → after, Keep editing / Save changes); Save disabled with "No changes yet" when nothing changed; passwords show as "changed".
+- [x] Wired into every edit of an existing record: Farmers, Group Managers, Associations, Farms, Trees, Harvests, Inventory, Beans, Settings, profile, addresses.
+- [x] Inbox: Delete for everyone / Delete for me each confirm first ("Delete message?").
+
+### Task C08.B: Export as CSV or PDF
+- [ ] `ExportModal` (format cards, "Uses what's on screen now" chips, Export CSV / PDF, downloading toast) on Reports (all + table), Kaluppa Orders and the Audit log.
+- [ ] `GET /reports/export`, `/orders/export`, `/audit-logs/export` with `format=csv|pdf` and the screen's filters; scope re-checked; 5/min per user; audited. CSV with BOM; PDF on the server (A4, header, filters, generated-at, KPIs, SVG charts, table, page numbers).
+
+### Task C08.C: Accounts
+- [ ] Create forms: email required, read-only default password with Copy; temporary-password modal and invite flow removed.
+- [ ] Reset password (edit forms): confirm modal, default password, tokens revoked, email, audit; `users.reset_password`, `farmers.reset_password`.
+- [ ] Accounts created by Kaluppa / a Group Manager verify their email first (VerifyEmailCreated variant, Resend 60 s, Add your email); a banner suggests changing the default password.
+- [ ] Seeds: `farmer.unverified`, `manager.unverified` (replacing `farmer.nomail`).
+
+### Task C08.D: Farms and Farmers
+- [ ] Lot number removed everywhere (migration drops the field and index); property number only as a note / title.
+- [ ] Size: 0.01–500, 2 decimals, shown as "1.25 ha"; Farms sorted by property number ascending (`aria-sort`).
+- [ ] Farmers: Farms owned column.
+
+### Task C08.E: Inventory and the storefront
+- [ ] Seedlings → Beans (migration, seeds, copy); Featured removed (migration).
+- [ ] Best sellers (top 8 by quantity, completed orders, 90 days, viewer's categories; newest fill the gaps), daily job + Valkey `products:best8`; landing carousel; hero uses the top 3.
+- [ ] `ProductImage` with the default image everywhere a product image shows.
+- [ ] New products need starting stock above 10 (both sides).
+
+### Task C08.F: Association map, chatting while pending, Hub mentions
+- [ ] `Association.location`, set in the Association form, seeded; map of active associations in the join window and Account settings → Association.
+- [ ] A pending farmer gets a direct chat with the Group Manager (read-only if rejected or withdrawn).
+- [ ] Hub @mentions with role scope, `mentions[]`, notifications, @ button.
+
+### Task C08.G: Contact us and the address book
+- [ ] `/contact` page and form (`ContactMessage`, Settings → Branch contact email, copy to sender, honeypot, 3/hour), navbar and footer links.
+- [ ] Address book: atomic 10-address limit and `addressesVersion` check with a two-request race test.
+
 ## Milestone summaries
 
 (Added after each milestone.)

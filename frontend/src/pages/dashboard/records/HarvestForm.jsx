@@ -1,12 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { History } from '@/components/dashboard/History'
-import { useId } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Drawer } from '@/components/dashboard/Drawer'
 import { TextField } from '@/components/dashboard/RecordParts'
+import { ConfirmChangesModal } from '@/components/ui/ConfirmChangesModal'
 import { SearchSelect } from '@/components/ui/SearchSelect'
 import { VARIETIES } from '@/constants/charts'
+import { useDirtyDiff, useSaveConfirm } from '@/hooks/useDirtyDiff'
 import { useCreateHarvest, useRecordFarms, useUpdateHarvest } from '@/hooks/useRecords'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
 import { todayKey } from '@/schemas/rules'
@@ -35,48 +37,61 @@ export function HarvestForm({ open, harvest = null, actsForFarmers, onClose }) {
   const farms = useRecordFarms(open)
   const create = useCreateHarvest()
   const update = useUpdateHarvest()
+  const [unchanged, setUnchanged] = useState(Boolean(harvest))
   return (
     <Drawer
       open={open}
       eyebrow="Harvest"
       title={harvest ? 'Edit harvest' : 'Record a harvest'}
       onClose={onClose}
-      footer={<FormFooter formId={formId} onClose={onClose} pending={create.isPending || update.isPending} label={harvest ? 'Save changes' : 'Save harvest'} />}
+      footer={<FormFooter formId={formId} onClose={onClose} pending={create.isPending || update.isPending} label={harvest ? 'Save changes' : 'Save harvest'} unchanged={unchanged} />}
     >
       {open && farms.data && (
-        <HarvestFields key={harvest?.id ?? 'new'} formId={formId} harvest={harvest} farms={farms.data} actsForFarmers={actsForFarmers} create={create} update={update} onClose={onClose} />
+        <HarvestFields key={harvest?.id ?? 'new'} formId={formId} harvest={harvest} farms={farms.data} actsForFarmers={actsForFarmers} create={create} update={update} onClose={onClose} onUnchanged={setUnchanged} />
       )}
       {open && harvest && <History entityType="harvest" entityId={harvest.id} />}
     </Drawer>
   )
 }
 
-function HarvestFields({ formId, harvest, farms, actsForFarmers, create, update, onClose }) {
+function HarvestFields({ formId, harvest, farms, actsForFarmers, create, update, onClose, onUnchanged }) {
+  const initial = useMemo(() => toForm(harvest), [harvest])
   const { register, control, handleSubmit, setValue, setError, formState: { errors } } = useForm({
     resolver: zodResolver(harvestFormSchema),
-    defaultValues: toForm(harvest),
+    defaultValues: initial,
   })
+  const farmName = (fid) => (fid === harvest?.farm.id ? harvest.farm.propertyNumber : farms.find((f) => f.id === fid)?.propertyNumber ?? '—')
+  const changes = useDirtyDiff(initial, useWatch({ control }), {
+    farmId: { label: 'Farm', format: farmName },
+    variety: { label: 'Variety', format: label },
+    yieldKg: { label: 'Yield', format: (v) => `${Number(v).toLocaleString('en-PH')} kg` },
+    harvestedAt: 'Harvested on',
+    note: 'Notes',
+  })
+  useEffect(() => onUnchanged(Boolean(harvest) && changes.length === 0), [harvest, changes.length, onUnchanged])
   const farmId = useWatch({ control, name: 'farmId' })
   const farm = farms.find((f) => f.id === farmId)
   // An edited harvest's farm may be off the first page of options; its own variety stays pickable.
   const varieties = farm?.varieties ?? (harvest && farmId === harvest.farm.id ? [harvest.variety] : [])
 
+  const options = {
+    onSuccess: () => {
+      toast.success(harvest ? 'Harvest updated.' : 'Harvest saved.')
+      onClose()
+    },
+    onError: (error) => {
+      if (!applyServerErrors(error, setError, FIELDS)) toast.error(errorMessage(error))
+    },
+  }
+  const confirm = useSaveConfirm(Boolean(harvest), (body) => update.mutate(body, options))
   const save = handleSubmit((values) => {
-    const options = {
-      onSuccess: () => {
-        toast.success(harvest ? 'Harvest updated.' : 'Harvest saved.')
-        onClose()
-      },
-      onError: (error) => {
-        if (!applyServerErrors(error, setError, FIELDS)) toast.error(errorMessage(error))
-      },
-    }
-    if (harvest) update.mutate({ id: harvest.id, ...values }, options)
+    if (harvest) confirm.submit({ id: harvest.id, ...values })
     else create.mutate(values, options)
   })
 
   return (
     <form id={formId} noValidate onSubmit={save} className="contents">
+      <ConfirmChangesModal {...confirm.modal} changes={changes} pending={update.isPending} />
       <Controller
         name="farmId"
         control={control}

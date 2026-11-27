@@ -97,6 +97,7 @@ import {
   LuEllipsis,
   LuCheckCheck,
   LuSquarePen,
+  LuSave,
 } from 'react-icons/lu'
 
 // Dashboard areas (Sidebar.dc.html)
@@ -205,6 +206,7 @@ export const IconAttach = LuPaperclip
 export const IconMore = LuEllipsis
 export const IconDoubleCheck = LuCheckCheck
 export const IconCompose = LuSquarePen
+export const IconSave = LuSave
 
 /** Sidebar / KPI tile icons by nav key (constants/dashboardNav.js). */
 export const NAV_ICONS = {
