@@ -65,6 +65,8 @@ const ONE_FIELD = {
 }
 
 const FIELDS = {
+  format: 'format',
+  filters: 'filters',
   sizeHa: 'size (ha)',
   yieldKg: 'yield (kg)',
   weightKg: 'weight (kg)',
@@ -89,6 +91,7 @@ const FIELDS = {
 
 /** "Rodel Mendoza" + "<what>". */
 export function historyPhrase({ area, action, changes }) {
+  if (action === 'export') return 'exported a file'
   if (action === 'update' && changes.length === 1 && ONE_FIELD[changes[0].field]) return ONE_FIELD[changes[0].field]
   return ACTIONS[area]?.[action] ?? action.replaceAll('_', ' ')
 }

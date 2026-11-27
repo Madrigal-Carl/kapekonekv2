@@ -388,8 +388,8 @@ Source: `docs/prompts/CHANGE-08-CONFIRM-EXPORT-ACCOUNTS-MENTIONS-CONTACT.md`, PH
 - [x] Inbox: Delete for everyone / Delete for me each confirm first ("Delete message?").
 
 ### Task C08.B: Export as CSV or PDF
-- [ ] `ExportModal` (format cards, "Uses what's on screen now" chips, Export CSV / PDF, downloading toast) on Reports (all + table), Kaluppa Orders and the Audit log.
-- [ ] `GET /reports/export`, `/orders/export`, `/audit-logs/export` with `format=csv|pdf` and the screen's filters; scope re-checked; 5/min per user; audited. CSV with BOM; PDF on the server (A4, header, filters, generated-at, KPIs, SVG charts, table, page numbers).
+- [x] `ExportModal` (format cards, "Uses what's on screen now" chips, Export CSV / PDF, downloading toast) on Reports (all + table), Kaluppa Orders and the Audit log.
+- [x] `GET /reports/export`, `/orders/export`, `/audit-logs/export` with `format=csv|pdf` and the screen's filters; scope re-checked; 5/min per user; audited. CSV with BOM; PDF on the server (A4, header, filters, generated-at, KPIs, SVG charts, table, page numbers).
 
 ### Task C08.C: Accounts
 - [ ] Create forms: email required, read-only default password with Copy; temporary-password modal and invite flow removed.

@@ -23,7 +23,7 @@ const markOrderRefunded = vi.hoisted(() => vi.fn(async ({ id }) => ({ ...byId[id
 vi.mock('@/services/order.service', () => ({
   listOrderTable: vi.fn(async () => ({ items: [ORDER], meta: { page: 1, limit: 10, total: 1 } })),
   listAdminOrders: vi.fn(async () => ({ items: Object.values(byId), meta: { page: 1, limit: 10, total: Object.keys(byId).length } })),
-  adminOrdersCsvUrl: () => 'http://localhost:5000/api/admin/orders/export.csv',
+  exportAdminOrders: vi.fn(),
   getOrder: vi.fn(async (id) => byId[id] ?? ORDER),
   cancelOrder,
   changeOrderStatus,
@@ -103,7 +103,8 @@ describe('Orders — Kaluppa', () => {
     const filters = within(table).getByRole('group', { name: 'Filters' })
     expect(within(filters).getByRole('button', { name: /Status/ }).textContent).toContain('To confirm')
     for (const name of [/Customer/, /Delivery/, /Payment/]) expect(within(filters).getByRole('button', { name })).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Export CSV' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Export' }))
+    expect(screen.getByRole('dialog', { name: 'Export orders' })).toBeTruthy()
   })
 
   it('keeps Confirm off until the receipt is ticked for an e-wallet order', async () => {

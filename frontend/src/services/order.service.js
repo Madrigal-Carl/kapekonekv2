@@ -1,4 +1,5 @@
 import { api } from '@/api/axios'
+import { fetchFile } from '@/lib/download'
 
 const data = (response) => response.data.data
 
@@ -20,8 +21,8 @@ const adminParams = ({ status, q, type, method, payment }) => ({ status: status 
 export const listAdminOrders = ({ page, limit, ...filters }) =>
   api.get('/admin/orders', { params: { ...adminParams(filters), page, limit } }).then((r) => ({ items: r.data.data, meta: r.data.meta }))
 
-/** The CSV download link for the same filters (the cookie session goes with the navigation). */
-export const adminOrdersCsvUrl = (filters) => api.getUri({ url: '/admin/orders/export.csv', params: adminParams(filters) })
+/** Export the table's filters as CSV or PDF. */
+export const exportAdminOrders = (format, filters) => fetchFile('/admin/orders/export', { ...adminParams(filters), format })
 
 /** Kaluppa moves an order one step (Phase 1 transitions): `{ status, reasonCode?, reason?, rider? }`. */
 export const changeOrderStatus = ({ id, ...body }) => api.patch(`/orders/${id}/status`, body).then(data)

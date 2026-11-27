@@ -150,17 +150,21 @@ describe('GET /audit-logs (Kaluppa only)', () => {
   });
 
   it('exports the filtered entries as CSV', async () => {
-    const res = await r.kaluppa.get('/api/audit-logs/export.csv?area=farms').expect(200);
+    const res = await r.kaluppa.get('/api/audit-logs/export?format=csv&area=farms').expect(200);
     expect(res.headers['content-type']).toMatch(/text\/csv/);
-    const lines = res.text.trim().split('\r\n');
+    expect(res.headers['content-disposition']).toMatch(/kapekonek-audit-log-\d{4}-\d{2}-\d{2}\.csv/);
+    const lines = res.text.replace(/^\uFEFF/, '').trim().split('\r\n');
     expect(lines[0]).toBe('Entry,When,Who,Role,Area,Action,Record,Changes');
     expect(lines.length - 1).toBe((await list('?area=farms')).meta.total);
-    expect(lines.slice(1).every((l) => l.includes(',farms,'))).toBe(true);
+    expect(lines.slice(1).every((l) => l.includes(',Farms,'))).toBe(true);
+    const pdf = await r.kaluppa.get('/api/audit-logs/export?format=pdf&area=farms').expect(200);
+    expect(pdf.headers['content-type']).toBe('application/pdf');
+    expect(await AuditLog.countDocuments({ area: 'audit_log', action: 'export' })).toBe(2);
   });
 
   it('is for Kaluppa only and validates its filters', async () => {
     expect((await r.manager.get('/api/audit-logs')).status).toBe(403);
-    expect((await r.ana.agent.get('/api/audit-logs/export.csv')).status).toBe(403);
+    expect((await r.ana.agent.get('/api/audit-logs/export?format=csv')).status).toBe(403);
     expect((await r.kaluppa.get('/api/audit-logs?area=nope')).status).toBe(400);
     expect((await r.kaluppa.get('/api/audit-logs?from=yesterday')).status).toBe(400);
   });

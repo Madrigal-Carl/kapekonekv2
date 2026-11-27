@@ -108,13 +108,17 @@ describe('GET /admin/orders (Kaluppa Orders table)', () => {
 
   it('exports the filtered orders as CSV', async () => {
     const o = await order({ email: FARMER });
-    const res = await kaluppa.get('/api/admin/orders/export.csv?status=all&type=farmer');
+    const res = await kaluppa.get('/api/admin/orders/export?format=csv&status=all&type=farmer');
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toContain('text/csv');
-    const lines = res.text.trim().split(/\r?\n/);
+    expect(res.headers['content-disposition']).toMatch(/kapekonek-orders-\d{4}-\d{2}-\d{2}\.csv/);
+    const lines = res.text.replace(/^\uFEFF/, '').trim().split(/\r?\n/);
     expect(lines[0]).toBe('Order,Placed,Customer,Customer type,Items,Total (PHP),Delivery,Payment,Status');
     expect(lines).toHaveLength(2);
     expect(lines[1]).toContain(o.orderNumber);
-    expect((await farmer.get('/api/admin/orders/export.csv')).status).toBe(403);
+    const pdf = await kaluppa.get('/api/admin/orders/export?format=pdf&status=all&type=farmer');
+    expect(pdf.status).toBe(200);
+    expect(pdf.headers['content-type']).toBe('application/pdf');
+    expect((await farmer.get('/api/admin/orders/export?format=csv')).status).toBe(403);
   });
 });

@@ -41,17 +41,53 @@ test('a farmer sees only their own farms on the map', async ({ page }) => {
   await expect(page.getByRole('region', { name: 'Farms' }).getByText(/^Kaluppa farm ·/)).toHaveCount(0)
 })
 
-test('Kaluppa exports the Reports CSV', async ({ page }) => {
+test('Kaluppa exports the Reports as CSV and PDF with the filters on screen', async ({ page }) => {
   await signIn(page, 'kaluppa')
   await page.goto('/dashboard/reports')
   await expect(page.getByRole('heading', { name: 'Reports' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Store sales' })).toBeVisible()
   await expect(page.getByRole('region', { name: 'By association' }).getByRole('rowheader').first()).toBeVisible()
 
-  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('link', { name: 'Export all (CSV)' }).click()])
-  expect(download.suggestedFilename()).toBe('report-all-last_12_months.csv')
-  const csv = await readFile(await download.path(), 'utf8')
+  const day = /\d{4}-\d{2}-\d{2}/
+  await page.getByRole('button', { name: 'Export', exact: true }).first().click()
+  let modal = page.getByRole('dialog', { name: 'Export report' })
+  await expect(modal.getByRole('list', { name: 'Filters' })).toContainText('Last 12 months')
+  const [csvFile] = await Promise.all([page.waitForEvent('download'), modal.getByRole('button', { name: 'Export CSV' }).click()])
+  expect(csvFile.suggestedFilename()).toMatch(new RegExp(`^kapekonek-report-${day.source}\\.csv$`))
+  await expect(page.getByText('CSV is downloading.')).toBeVisible()
+  const csv = await readFile(await csvFile.path(), 'utf8')
+  expect(csv.charCodeAt(0)).toBe(0xfeff)
   for (const title of ['Harvest by variety', 'Beans bought by Kaluppa', 'Store sales', 'Trees by stage', 'By association']) expect(csv).toContain(title)
+
+  // The table's own Export, as PDF, for "This year".
+  await page.getByRole('button', { name: /^Period/ }).click()
+  await page.getByRole('option', { name: 'This year' }).click()
+  await page.getByRole('region', { name: 'By association' }).getByRole('button', { name: 'Export' }).click()
+  modal = page.getByRole('dialog', { name: 'Export “By association”' })
+  await expect(modal.getByRole('list', { name: 'Filters' })).toContainText('This year')
+  await modal.getByText('PDF', { exact: true }).last().click()
+  const [pdfFile] = await Promise.all([page.waitForEvent('download'), modal.getByRole('button', { name: 'Export PDF' }).click()])
+  expect(pdfFile.suggestedFilename()).toMatch(new RegExp(`^kapekonek-report-by-association-${day.source}\\.pdf$`))
+  expect((await readFile(await pdfFile.path())).subarray(0, 5).toString()).toBe('%PDF-')
+})
+
+test('Kaluppa exports Orders as PDF and the Audit log as CSV, following the filters', async ({ page }) => {
+  await signIn(page, 'kaluppa')
+  await page.goto('/dashboard/orders?status=all')
+  await page.getByRole('button', { name: 'Export', exact: true }).click()
+  let modal = page.getByRole('dialog', { name: 'Export orders' })
+  await modal.getByText('PDF', { exact: true }).last().click()
+  const [pdf] = await Promise.all([page.waitForEvent('download'), modal.getByRole('button', { name: 'Export PDF' }).click()])
+  expect(pdf.suggestedFilename()).toMatch(/^kapekonek-orders-\d{4}-\d{2}-\d{2}\.pdf$/)
+  expect((await readFile(await pdf.path())).subarray(0, 5).toString()).toBe('%PDF-')
+
+  await page.goto('/dashboard/audit-log?area=reports')
+  await page.getByRole('button', { name: 'Export', exact: true }).click()
+  modal = page.getByRole('dialog', { name: 'Export audit log' })
+  const [csv] = await Promise.all([page.waitForEvent('download'), modal.getByRole('button', { name: 'Export CSV' }).click()])
+  const rows = (await readFile(await csv.path(), 'utf8')).replace(/^\uFEFF/, '').trim().split('\r\n').slice(1)
+  expect(rows.length).toBeGreaterThan(0) // the Reports exports above were audited
+  expect(rows.every((r) => r.includes(',Reports,Export,'))).toBe(true)
 })
 
 test('Reports charts stay 2 × 2 on a wide screen (Reports.dc.html)', async ({ page }) => {

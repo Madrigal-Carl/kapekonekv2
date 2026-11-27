@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { AUDIT_AREAS, AUDIT_ROLES, HISTORY_TYPES } from '../services/auditLog.service.js';
+import { EXPORT_FORMATS } from '../services/export.service.js';
 import { objectIdRule, pageQuerySchema } from './common.schema.js';
 
 /** GET /audit-logs/entity/:entityType/:entityId (PHASE-2-SPEC §3.15). */
@@ -17,5 +18,5 @@ const auditFilters = {
 };
 /** GET /audit-logs?area&role&from&to&entity&q&page (PHASE-2-SPEC §5). */
 export const auditListQuery = pageQuerySchema.extend(auditFilters);
-/** GET /audit-logs/export.csv with the same filters. */
-export const auditExportQuery = z.object(auditFilters);
+/** GET /audit-logs/export?format=csv|pdf with the same filters. */
+export const auditExportQuery = z.object({ ...auditFilters, format: z.enum(EXPORT_FORMATS, 'Choose CSV or PDF') });

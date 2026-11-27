@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { getReport } from '@/services/report.service'
+import { saveDownload } from '@/lib/download'
+import { exportReport, getReport } from '@/services/report.service'
 import { useAuthStore } from '@/stores/auth.store'
 import { Reports } from './Reports'
 
@@ -29,7 +30,9 @@ const DATA = {
 vi.mock('@/services/report.service', async (importOriginal) => ({
   ...(await importOriginal()),
   getReport: vi.fn(async (section) => DATA[section]),
+  exportReport: vi.fn(async () => ({ blob: new Blob(['x']), filename: 'kapekonek-report-2026-11-27.pdf' })),
 }))
+vi.mock('@/lib/download', () => ({ fetchFile: vi.fn(), saveDownload: vi.fn() }))
 vi.mock('@/services/association.service', async (importOriginal) => ({ ...(await importOriginal()), listAssociationOptions: vi.fn(async () => [{ id: 'a1', name: 'Santa Cruz Growers' }]) }))
 vi.mock('@/services/dashboard.service', async (importOriginal) => ({ ...(await importOriginal()), getOrgCard: vi.fn(async () => ({ association: { name: 'Santa Cruz Growers' } })) }))
 
@@ -62,9 +65,18 @@ describe('Reports', () => {
     const table = await screen.findByRole('region', { name: 'By association' })
     expect(await within(table).findByRole('rowheader', { name: 'Kaluppa farms' })).toBeTruthy()
     expect(within(table).getByText('₱2,160')).toBeTruthy()
-    expect(within(table).getByRole('link', { name: 'Export CSV' }).getAttribute('href')).toMatch(/\/reports\/export\.csv\?period=last_12_months&section=breakdown/)
-    expect(screen.getByRole('link', { name: 'Export all (CSV)' }).getAttribute('href')).toMatch(/section=all/)
     expect(screen.getByRole('button', { name: /All associations/ })).toBeTruthy()
+
+    // Export: the table's button opens the modal with what's on screen; PDF sends the same filters with scope=table.
+    fireEvent.click(within(table).getByRole('button', { name: 'Export' }))
+    const modal = screen.getByRole('dialog', { name: 'Export “By association”' })
+    expect(within(modal).getByRole('list', { name: 'Filters' }).textContent).toBe('Period:Last 12 monthsAssociation:All associations')
+    expect(within(modal).getByRole('button', { name: 'Export CSV' })).toBeTruthy()
+    fireEvent.click(within(modal).getByRole('radio', { name: /PDF/ }))
+    fireEvent.click(within(modal).getByRole('button', { name: 'Export PDF' }))
+    await waitFor(() => expect(saveDownload).toHaveBeenCalled())
+    expect(exportReport).toHaveBeenCalledWith('pdf', 'table', { period: 'last_12_months' })
+    expect(screen.queryByRole('dialog', { name: 'Export “By association”' })).toBeNull()
   })
 
   it('a Group Manager: no sales request, no association filter, its association in the copy', async () => {

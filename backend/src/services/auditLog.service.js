@@ -1,10 +1,10 @@
 import { findAuditEntryById, listAuditForExport, listAuditPage, listEntityHistory } from '../repositories/audit.repository.js';
 import { findUserIdsByName } from '../repositories/user.repository.js';
-import { toCsv } from '../utils/csv.js';
 import { containsPattern } from '../utils/escapeRegex.js';
 import { AppError } from '../utils/AppError.js';
 import { getAssociation } from './association.service.js';
 import { getListing } from './bean.service.js';
+import { buildExport } from './export.service.js';
 import { loadFarm } from './farm.service.js';
 import { getFarmer } from './farmer.service.js';
 import { getGroupManager } from './groupManager.service.js';
@@ -63,7 +63,7 @@ export async function getEntityHistory(actor, { entityType, entityId, cursor, li
 }
 
 /** Areas and actor roles the audit log filters by (every `area` that `audit.record` is called with). */
-export const AUDIT_AREAS = ['associations', 'beans', 'farmers', 'farms', 'group_managers', 'harvests', 'hub', 'inventory', 'orders', 'reviews', 'settings', 'trees'];
+export const AUDIT_AREAS = ['associations', 'audit_log', 'beans', 'farmers', 'farms', 'group_managers', 'harvests', 'hub', 'inventory', 'orders', 'reports', 'reviews', 'settings', 'trees'];
 export const AUDIT_ROLES = ['kaluppa', 'group_manager', 'farmer', 'buyer', 'system'];
 const EXPORT_MAX = 10_000;
 
@@ -117,17 +117,41 @@ export async function getAuditEntry(id) {
 
 const valueText = (v) => (v == null || v === '' ? '—' : typeof v === 'object' ? JSON.stringify(v) : String(v));
 
-/** The filtered entries as CSV (at most 10,000, newest first). */
-export async function exportAuditLog(query) {
+const AREA_LABELS = { audit_log: 'Audit log', group_managers: 'Group Managers' };
+const ROLE_LABELS = { kaluppa: 'Kaluppa', group_manager: 'Group Manager', farmer: 'Farmer', buyer: 'Buyer', system: 'System' };
+const words = (key) => key.charAt(0).toUpperCase() + key.slice(1).replaceAll('_', ' ');
+const manilaStamp = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila', dateStyle: 'short', timeStyle: 'short', hourCycle: 'h23' });
+
+/**
+ * The filtered entries as CSV or PDF (at most 10,000, newest first; PHASE-2-SPEC §3.17).
+ * @param {object} actor
+ * @param {{ format: 'csv'|'pdf', area?: string, role?: string, from?: string, to?: string, entity?: string, q?: string }} query
+ */
+export async function exportAuditLog(actor, { format, ...query }) {
   const rows = (await listAuditForExport(await filtersOf(query), EXPORT_MAX)).map(toEntry).map((e) => [
     e.code,
-    e.at.toISOString(),
+    manilaStamp.format(e.at).replace(',', ''),
     e.actor?.name ?? 'System',
-    e.actorRole,
-    e.area,
-    e.action,
+    ROLE_LABELS[e.actorRole] ?? e.actorRole,
+    AREA_LABELS[e.area] ?? words(e.area),
+    words(e.action),
     e.entityLabel || e.entityId,
     e.changes.map((c) => `${c.field}: ${valueText(c.from)} → ${valueText(c.to)}`).join('; '),
   ]);
-  return toCsv(['Entry', 'When', 'Who', 'Role', 'Area', 'Action', 'Record', 'Changes'], rows);
+  const filters = [
+    ...(query.area ? [['Area', AREA_LABELS[query.area] ?? words(query.area)]] : []),
+    ...(query.role ? [['Role', ROLE_LABELS[query.role]]] : []),
+    ...(query.from ? [['From', query.from]] : []),
+    ...(query.to ? [['To', query.to]] : []),
+    ...(query.entity ? [['Record', query.entity]] : []),
+    ...(query.q ? [['Search', query.q]] : []),
+  ];
+  return buildExport(actor, format, {
+    name: 'audit-log',
+    title: 'Audit log',
+    filters,
+    landscape: true,
+    kpis: [{ label: 'Entries', value: rows.length.toLocaleString('en-PH') }],
+    tables: [{ title: 'Entries', header: ['Entry', 'When', 'Who', 'Role', 'Area', 'Action', 'Record', 'Changes'], rows }],
+  }, 'audit_log');
 }

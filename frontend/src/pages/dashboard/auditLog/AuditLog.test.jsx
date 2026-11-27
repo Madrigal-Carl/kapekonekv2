@@ -46,7 +46,10 @@ describe('AuditLog', () => {
     expect(screen.getAllByText('status, expiresAt').length).toBeGreaterThan(0)
     expect(screen.getAllByText('System').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Expired the listing after 7 days').length).toBeGreaterThan(0)
-    expect(screen.getByRole('link', { name: 'Export CSV' }).getAttribute('href')).toMatch(/\/audit-logs\/export\.csv/)
+    fireEvent.click(screen.getByRole('button', { name: 'Export' }))
+    const modal = screen.getByRole('dialog', { name: 'Export audit log' })
+    expect(within(modal).getByText('Uses the search, date range and filters applied to the table right now.')).toBeTruthy()
+    expect(within(modal).getByRole('radio', { name: /CSV/ }).checked).toBe(true)
   })
 
   it('opens the diff drawer from ?open=', async () => {

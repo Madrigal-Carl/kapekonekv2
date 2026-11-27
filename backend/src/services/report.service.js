@@ -8,14 +8,14 @@ import { harvestReport } from '../repositories/harvest.repository.js';
 import { soldRows } from '../repositories/order.repository.js';
 import { treeReport } from '../repositories/treeGroup.repository.js';
 import { AppError } from '../utils/AppError.js';
-import { toCsv } from '../utils/csv.js';
 import { compare, reportRange } from '../utils/period.js';
 import { groupOrKaluppa } from '../utils/reportQuery.js';
+import { buildExport } from './export.service.js';
 import { userCan } from './permission.service.js';
 import { seesEveryAssociation } from './policy.service.js';
 
 export const REPORT_SECTIONS = ['summary', 'harvest', 'beans', 'sales', 'trees', 'breakdown'];
-export const EXPORT_SECTIONS = ['harvest', 'beans', 'sales', 'trees', 'breakdown', 'all'];
+export const EXPORT_SCOPES = ['all', 'table'];
 
 const STAGE_LABELS = { newly_planted: 'Newly planted', growing: 'Growing', flowering: 'Flowering', fruiting: 'Fruiting', damaged: 'Damaged' };
 const KALUPPA = 'kaluppa';
@@ -180,18 +180,49 @@ const TABLES = {
       },
 };
 
+const PERIOD_LABELS = { last_12_months: 'Last 12 months', this_year: 'This year', last_year: 'Last year', last_30_days: 'Last 30 days' };
+const kgText = (kg) => `${kg.toLocaleString('en-PH', { maximumFractionDigits: 2 })} kg`;
+const pesoText = (centavos) => `PHP ${(centavos / 100).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const countText = (n) => n.toLocaleString('en-PH');
+
 /**
- * The CSV for one section, or every section the actor may see stacked under their titles ("Export all").
- * @param {object} actor @param {{ section: string, period?: string, association?: string }} query
- * @returns {Promise<{ filename: string, csv: string }>}
+ * Reports → Export (PHASE-2-SPEC §3.17): the whole report (`scope=all`: KPI tiles, the charts and every table) or only the
+ * "By association" / "By farmer" table (`scope=table`), as CSV or PDF, for exactly the period and association on screen.
+ * The scope is re-checked here: a Group Manager always gets its own association, whatever the query says.
+ * @param {object} actor @param {{ format: 'csv'|'pdf', scope: 'all'|'table', period?: string, association?: string }} query
  */
-export async function exportReport(actor, { section, ...query }) {
-  if (section === 'sales') await requireSales(actor);
+export async function exportReport(actor, { format, scope, ...query }) {
   const ctx = await contextFor(actor, query);
-  const names = section === 'all' ? ['harvest', 'beans', ...((await salesAllowed(actor)) ? ['sales'] : []), 'trees', 'breakdown'] : [section];
-  const tables = await Promise.all(names.map(async (name) => TABLES[name](await SECTIONS[name](actor, ctx), ctx)));
-  const csv = section === 'all'
-    ? tables.map((t) => toCsv([t.title], []) + toCsv(t.header, t.rows)).join('\r\n')
-    : toCsv(tables[0].header, tables[0].rows);
-  return { filename: `report-${section}-${ctx.range.period}.csv`, csv };
+  const sales = scope === 'all' && (await salesAllowed(actor));
+  const names = scope === 'table' ? ['breakdown'] : ['summary', 'harvest', 'beans', ...(sales ? ['sales'] : []), 'trees', 'breakdown'];
+  const data = Object.fromEntries(await Promise.all(names.map(async (name) => [name, await SECTIONS[name](actor, ctx)])));
+  const tables = names.filter((n) => n !== 'summary').map((n) => TABLES[n](data[n], ctx));
+
+  const associationId = ctx.byAssociation ? ctx.scope : actor.associationId && String(actor.associationId);
+  const association = associationId ? (await listActiveOptions()).find((a) => String(a._id) === associationId)?.name ?? 'Unknown association' : 'All associations';
+  const filters = [['Period', PERIOD_LABELS[ctx.range.period]], ['Association', association]];
+  const isTable = scope === 'table';
+  const report = {
+    name: isTable ? `report-${ctx.byAssociation ? 'by-association' : 'by-farmer'}` : 'report',
+    title: isTable ? tables[0].title : 'Reports',
+    subtitle: isTable ? null : ctx.byAssociation ? 'Harvests, beans, sales and trees across all associations.' : `Harvests, beans and trees in ${association}.`,
+    filters,
+    tables,
+  };
+  if (!isTable) {
+    const s = data.summary;
+    report.kpis = [
+      { label: 'Harvest', value: kgText(s.harvest.kg) },
+      { label: ctx.byAssociation ? 'Beans bought' : 'Beans sold to Kaluppa', value: kgText(s.beans.kg), sub: `${pesoText(s.beans.paidCentavos)} paid to farmers` },
+      ...(s.sales ? [{ label: 'Store sales', value: pesoText(s.sales.centavos), sub: `${countText(s.sales.count)} sold orders` }] : [{ label: 'Farms', value: countText(s.farms.count), sub: `${s.farms.ha} ha` }]),
+      { label: 'Farmers', value: countText(s.farmers.count), sub: `+${countText(s.farmers.newInPeriod)} this period` },
+    ];
+    report.charts = [
+      { title: 'Harvest, kg per month', labels: data.harvest.labels, values: data.harvest.labels.map((_, i) => round(data.harvest.series.reduce((sum, x) => sum + x.values[i], 0))), format: countText },
+      { title: ctx.byAssociation ? 'Beans bought by Kaluppa, kg' : 'Beans sold to Kaluppa, kg', labels: data.beans.labels, values: data.beans.values, format: countText },
+      ...(sales ? [{ title: 'Store sales, PHP', labels: data.sales.labels, values: data.sales.values.map((c) => Math.round(c / 100)), format: countText }] : []),
+      { title: `Trees by stage (${countText(data.trees.total)})`, labels: data.trees.byStage.map((x) => STAGE_LABELS[x.stage]), values: data.trees.byStage.map((x) => x.count), format: countText },
+    ];
+  }
+  return buildExport(actor, format, report, 'reports');
 }

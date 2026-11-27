@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { format, parseISO, startOfYear, subDays } from 'date-fns'
 import { DataTable } from '@/components/dashboard/DataTable'
 import { Drawer } from '@/components/dashboard/Drawer'
 import { fieldLabel, fieldValue, historyPhrase } from '@/components/dashboard/historyText'
+import { ExportModal } from '@/components/dashboard/ExportModal'
 import { PageHeader } from '@/components/dashboard/PageHeader'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
@@ -12,7 +14,7 @@ import { useAuditEntry, useAuditLog } from '@/hooks/useHistory'
 import { useTableParams } from '@/hooks/useTableParams'
 import { formatDateTime } from '@/lib/date'
 import { todayKey } from '@/schemas/rules'
-import { auditCsvUrl } from '@/services/auditLog.service'
+import { exportAuditLog } from '@/services/auditLog.service'
 import { DashPage } from '../overview/Overview'
 
 const PAGE_SIZE = 10
@@ -30,6 +32,8 @@ const AREAS = {
   reviews: ['Reviews', 'amber'],
   settings: ['Settings', 'amber'],
   trees: ['Trees', 'green'],
+  reports: ['Reports', 'gray'],
+  audit_log: ['Audit log', 'gray'],
 }
 const ROLES = { ...ROLE_LABELS, system: 'System' }
 const AVATAR_BG = { kaluppa: 'bg-espresso', group_manager: 'bg-caramel-ink', farmer: 'bg-avatar-green', buyer: 'bg-roast', system: 'bg-ink-5' }
@@ -158,6 +162,7 @@ export function AuditLog() {
     entity: params.entity || undefined,
   }
   const list = useAuditLog({ ...filters, page: params.page, limit: PAGE_SIZE })
+  const [exporting, setExporting] = useState(false)
   const close = () => set({ open: null, mode: null })
 
   return (
@@ -167,10 +172,18 @@ export function AuditLog() {
         title="Audit log"
         description="Who changed what and when. Read-only."
         actions={
-          <Button as="a" variant="outline" href={auditCsvUrl(filters)} download leftIcon={<IconDownload aria-hidden="true" className="size-4" strokeWidth={2} />}>
-            Export CSV
+          <Button variant="outline" onClick={() => setExporting(true)} leftIcon={<IconDownload aria-hidden="true" className="size-4" strokeWidth={2} />}>
+            Export
           </Button>
         }
+      />
+      <ExportModal
+        open={exporting}
+        title="Export audit log"
+        text="Download the entries in the table."
+        note="Uses the search, date range and filters applied to the table right now."
+        download={(format) => exportAuditLog(format, filters)}
+        onClose={() => setExporting(false)}
       />
       {params.entity && (
         <p className="flex flex-wrap items-center gap-2 text-[13px] text-ink-2">

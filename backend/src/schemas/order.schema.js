@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { EWALLET_PROVIDERS, FULFILLMENT_METHODS, ORDER_GROUPS, ORDER_STATUSES, PAYMENT_METHODS } from '../constants/orderStatus.js';
+import { EXPORT_FORMATS } from '../services/export.service.js';
 import { csvOf, objectIdRule, pageQuery, pageQuerySchema } from './common.schema.js';
 import { phoneRule } from './rules.js';
 
@@ -42,6 +43,8 @@ export const adminOrderFilters = z.object({
   payment: z.enum(PAYMENT_METHODS, 'Unknown payment').optional(),
 });
 export const adminOrderListQuery = adminOrderFilters.extend(pageQuerySchema.shape);
+/** GET /admin/orders/export?format=csv|pdf with the table's filters (PHASE-2-SPEC §3.17). */
+export const adminOrderExportQuery = adminOrderFilters.extend({ format: z.enum(EXPORT_FORMATS, 'Choose CSV or PDF') });
 
 /** Buyer pages page by cursor; the farmer's dashboard table sends `page` for numbered pages. */
 export const orderListQuery = pageQuery(20, 10).extend({

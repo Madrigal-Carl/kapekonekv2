@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { BarChart } from '@/components/dashboard/BarChart'
 import { KpiTile } from '@/components/dashboard/KpiTile'
+import { ExportModal } from '@/components/dashboard/ExportModal'
 import { PageHeader } from '@/components/dashboard/PageHeader'
 import { StageBar } from '@/components/dashboard/StageBar'
 import { Button } from '@/components/ui/Button'
@@ -13,7 +15,7 @@ import { useOrgCard } from '@/hooks/useDashboard'
 import { useReport } from '@/hooks/useReports'
 import { useTableParams } from '@/hooks/useTableParams'
 import { formatKg, formatPesoShort } from '@/lib/format'
-import { reportCsvUrl } from '@/services/report.service'
+import { exportReport } from '@/services/report.service'
 import { ChartCard, DashPage, KpiRow } from '../overview/Overview'
 
 const PERIOD_OPTIONS = [
@@ -82,13 +84,13 @@ const cell = (key, value) => {
   return count(value)
 }
 
-function Breakdown({ query, csvUrl, isKaluppa }) {
+function Breakdown({ query, onExport, isKaluppa }) {
   const title = isKaluppa ? 'By association' : 'By farmer'
   return (
     <section aria-label={title} className="rounded-card border border-sand bg-white">
       <div className="flex items-center justify-between gap-3 border-b border-sand-soft px-[18px] py-4">
         <h2 className="text-[15.5px] font-semibold">{title}</h2>
-        <Button as="a" variant="outline" size="sm" href={csvUrl} download leftIcon={download} className="text-[13px]">Export CSV</Button>
+        <Button variant="outline" size="sm" onClick={onExport} leftIcon={download} className="text-[13px]">Export</Button>
       </div>
       {query.isPending || query.isError ? (
         <div className="p-[18px]">
@@ -140,6 +142,12 @@ export function Reports() {
   const sales = useReport('sales', filters, { enabled: sees.sales })
   const trees = useReport('trees', filters)
   const breakdown = useReport('breakdown', filters)
+  const [exporting, setExporting] = useState(null) // 'all' | 'table'
+  const tableTitle = isKaluppa ? 'By association' : 'By farmer'
+  const exportChips = [
+    { k: 'Period', v: PERIOD_OPTIONS.find((p) => p.value === params.period)?.label ?? 'Last 12 months' },
+    { k: 'Association', v: isKaluppa ? (associations.data?.find((a) => a.id === params.association)?.name ?? 'All associations') : (org.data?.association?.name ?? 'Your association') },
+  ]
 
   const selects = [
     { key: 'period', label: 'Period', options: PERIOD_OPTIONS },
@@ -152,7 +160,7 @@ export function Reports() {
         eyebrow="Insights"
         title="Reports"
         description={isKaluppa ? 'Harvests, beans, sales and trees across all associations.' : `Harvests, beans and trees in ${org.data?.association?.name ?? 'your association'}.`}
-        actions={<Button as="a" variant="outline" href={reportCsvUrl('all', filters)} download leftIcon={download}>Export all (CSV)</Button>}
+        actions={<Button variant="outline" onClick={() => setExporting('all')} leftIcon={download}>Export</Button>}
       />
       <div className="flex flex-wrap gap-2.5">
         {selects.map((f) => (
@@ -196,7 +204,17 @@ export function Reports() {
           </Loaded>
         </ChartCard>
       </div>
-      <Breakdown query={breakdown} csvUrl={reportCsvUrl('breakdown', filters)} isKaluppa={isKaluppa} />
+      <Breakdown query={breakdown} onExport={() => setExporting('table')} isKaluppa={isKaluppa} />
+      <ExportModal
+        key={exporting}
+        open={Boolean(exporting)}
+        title={exporting === 'table' ? `Export “${tableTitle}”` : 'Export report'}
+        text={exporting === 'table' ? 'Download this table.' : 'Download the whole report: totals, charts and the table below.'}
+        filters={exportChips}
+        note="The file has only this data. Change the filters on the page to export something else."
+        download={(format) => exportReport(format, exporting, filters)}
+        onClose={() => setExporting(null)}
+      />
     </DashPage>
   )
 }

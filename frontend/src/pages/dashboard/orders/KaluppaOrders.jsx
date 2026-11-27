@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { DataTable } from '@/components/dashboard/DataTable'
+import { ExportModal } from '@/components/dashboard/ExportModal'
 import { PageHeader } from '@/components/dashboard/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { IconDownload } from '@/components/ui/icons'
@@ -8,7 +10,7 @@ import { useAdminOrders, useOrder } from '@/hooks/useOrders'
 import { useTableParams } from '@/hooks/useTableParams'
 import { formatPesoShort } from '@/lib/format'
 import { NotFound } from '@/pages/errors/NotFound'
-import { adminOrdersCsvUrl } from '@/services/order.service'
+import { exportAdminOrders } from '@/services/order.service'
 import { DashPage } from '../overview/Overview'
 import { OrderManage } from './OrderManage'
 import { methodText, stamp } from './orderText'
@@ -44,6 +46,7 @@ export function KaluppaOrders() {
   const filters = { status: params.status, q: params.q, type: params.type, method: params.method, payment: params.payment }
   const list = useAdminOrders({ ...filters, page: params.page, limit: PAGE_SIZE })
   const opened = useOrder(params.open)
+  const [exporting, setExporting] = useState(false)
   const close = () => set({ open: null, mode: null })
 
   if (opened.error?.response?.status === 404) return <NotFound />
@@ -55,10 +58,18 @@ export function KaluppaOrders() {
         title="Orders"
         description="Buyer and farmer orders. Confirm within 3 days or they expire."
         actions={
-          <Button as="a" variant="outline" href={adminOrdersCsvUrl(filters)} download leftIcon={<IconDownload aria-hidden="true" className="size-4" strokeWidth={2} />}>
-            Export CSV
+          <Button variant="outline" onClick={() => setExporting(true)} leftIcon={<IconDownload aria-hidden="true" className="size-4" strokeWidth={2} />}>
+            Export
           </Button>
         }
+      />
+      <ExportModal
+        open={exporting}
+        title="Export orders"
+        text="Download the orders in the table."
+        note="Uses the search, status and filters applied to the table right now."
+        download={(format) => exportAdminOrders(format, filters)}
+        onClose={() => setExporting(false)}
       />
       <DataTable
         query={query}

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { startMemoryDb, stopMemoryDb } from './helpers/db.js';
 import { makeOrder } from './helpers/orders.js';
 import { dayKey, setUpRecords } from './helpers/records.js';
@@ -12,8 +12,9 @@ vi.mock('../src/config/valkey.js', async () => {
 vi.mock('../src/queues/email.queue.js', () => ({ enqueueEmail: vi.fn() }));
 
 const { default: app } = await import('../src/app.js');
+const { getValkey } = await import('../src/config/valkey.js');
 const { runSeeders } = await import('../src/database/seeders/index.js');
-const { BeanListing, FarmerProfile, User } = await import('../src/models/index.js');
+const { AuditLog, BeanListing, FarmerProfile, User } = await import('../src/models/index.js');
 
 let r;
 let listing = 0;
@@ -126,37 +127,61 @@ describe('reports for a Group Manager', () => {
 
   it('has no store sales section; farmers have no reports', async () => {
     expect((await r.manager.get('/api/reports/sales')).status).toBe(403);
-    expect((await r.manager.get('/api/reports/export.csv?section=sales')).status).toBe(403);
     expect((await r.ana.agent.get('/api/reports/summary')).status).toBe(403);
   });
 });
 
-describe('CSV export', () => {
-  it('exports one section as CSV', async () => {
-    const res = await r.kaluppa.get('/api/reports/export.csv?section=breakdown').expect(200);
+const pdfBody = (res, done) => {
+  const chunks = [];
+  res.on('data', (c) => chunks.push(c));
+  res.on('end', () => done(null, Buffer.concat(chunks)));
+};
+
+describe('Export (CSV / PDF)', () => {
+  beforeEach(() => getValkey().flushall()); // 5 exports a minute per user
+
+  it('exports the table as CSV with a BOM and a dated file name', async () => {
+    const res = await r.kaluppa.get('/api/reports/export?format=csv&scope=table').expect(200);
     expect(res.headers['content-type']).toMatch(/text\/csv/);
-    expect(res.headers['content-disposition']).toMatch(/report-breakdown/);
-    const lines = res.text.trim().split('\r\n');
+    expect(res.headers['content-disposition']).toMatch(/kapekonek-report-by-association-\d{4}-\d{2}-\d{2}\.csv/);
+    expect(res.text.startsWith('\uFEFF')).toBe(true);
+    const lines = res.text.slice(1).trim().split('\r\n');
     expect(lines[0]).toBe('Association,Farmers,Farms,Trees,Harvest (kg),Beans sold (kg),Paid (PHP)');
     expect(lines).toContain('Santa Cruz Growers,1,2,60,100,12,2160.00');
   });
 
-  it('Export all stacks every section the user may see', async () => {
-    const all = (await r.kaluppa.get('/api/reports/export.csv?section=all').expect(200)).text;
+  it('the whole report stacks every section the user may see; a Group Manager stays in its association', async () => {
+    const all = (await r.kaluppa.get('/api/reports/export?format=csv&scope=all').expect(200)).text;
     for (const title of ['Harvest by variety', 'Beans bought by Kaluppa', 'Store sales', 'Trees by stage', 'By association']) expect(all).toContain(title);
-    const gm = (await r.manager.get('/api/reports/export.csv?section=all').expect(200)).text;
+    const gm = (await r.manager.get(`/api/reports/export?format=csv&association=${r.a.boac.id}`).expect(200)).text;
     expect(gm).not.toContain('Store sales');
     expect(gm).toContain('By farmer');
+    expect(gm).toContain('Ana Farmer');
+    expect(gm).not.toContain('Ben Farmer');
+  });
+
+  it('makes an A4 PDF, audits the export and allows 5 a minute', async () => {
+    const res = await r.kaluppa.get('/api/reports/export?format=pdf&period=this_year').buffer(true).parse(pdfBody).expect(200);
+    expect(res.headers['content-type']).toBe('application/pdf');
+    expect(res.headers['content-disposition']).toMatch(/kapekonek-report-\d{4}-\d{2}-\d{2}\.pdf/);
+    expect(res.body.subarray(0, 5).toString()).toBe('%PDF-');
+    expect(res.body.toString('latin1')).toMatch(/\/MediaBox \[0 0 595\.28 841\.89\]/);
+    const entry = await AuditLog.findOne({ action: 'export' }).sort({ at: -1 }).lean();
+    expect(entry).toMatchObject({ area: 'reports', entityType: 'export', entityLabel: 'Reports (PDF)' });
+    expect(entry.changes.find((c) => c.field === 'filters').to).toBe('Period: This year; Association: All associations');
+    for (let i = 0; i < 4; i += 1) await r.kaluppa.get('/api/reports/export?format=csv&scope=table').expect(200);
+    expect((await r.kaluppa.get('/api/reports/export?format=csv&scope=table')).status).toBe(429);
   });
 
   it('keeps a formula-looking name as text', async () => {
     await r.kaluppa.post('/api/associations').send({ name: '=HYPERLINK("x")', municipality: 'Mogpog' }).expect(201);
-    const text = (await r.kaluppa.get('/api/reports/export.csv?section=breakdown').expect(200)).text;
+    const text = (await r.kaluppa.get('/api/reports/export?format=csv&scope=table').expect(200)).text;
     expect(text).toContain(`"'=HYPERLINK(""x"")"`);
   });
 
-  it('rejects an unknown section or period', async () => {
-    expect((await r.kaluppa.get('/api/reports/export.csv?section=secrets')).status).toBe(400);
+  it('rejects an unknown format, scope or period', async () => {
+    expect((await r.kaluppa.get('/api/reports/export?format=xlsx')).status).toBe(400);
+    expect((await r.kaluppa.get('/api/reports/export?format=csv&scope=secrets')).status).toBe(400);
     expect((await r.kaluppa.get('/api/reports/summary?period=forever')).status).toBe(400);
     expect((await r.kaluppa.get('/api/reports/whatever')).status).toBe(400);
   });

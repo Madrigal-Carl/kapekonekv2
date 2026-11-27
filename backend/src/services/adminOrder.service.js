@@ -1,7 +1,7 @@
 import { STATUS_LABELS } from '../constants/orderStatus.js';
 import { findUserIdsByName, findUserIdsWithRole } from '../repositories/user.repository.js';
-import { toCsv } from '../utils/csv.js';
 import { containsPattern } from '../utils/escapeRegex.js';
+import { buildExport } from './export.service.js';
 import { listOrderTable } from './order.service.js';
 
 const EXPORT_MAX = 5000;
@@ -29,8 +29,20 @@ export async function listAdminOrders(query) {
   return listOrderTable(scope, { group: query.status, q: query.q, page: query.page, limit: query.limit }, orIds);
 }
 
-/** The same filters as a CSV file (up to 5,000 orders, newest first). */
-export async function exportAdminOrders(query) {
+const GROUP_LABELS = { to_confirm: 'To confirm', preparing: 'Preparing', on_the_way: 'On the way', completed: 'Completed', closed: 'Closed', all: 'All' };
+const FILTER_LABELS = {
+  type: { buyer: 'Buyers', farmer: 'Farmers' },
+  method: { delivery: 'Delivery', pickup: 'Pickup' },
+  payment: { e_wallet: 'E-wallet', cash: 'Cash' },
+};
+const peso = (centavos) => `PHP ${(centavos / 100).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+/**
+ * The table's filters as CSV or PDF (up to 5,000 orders, newest first; PHASE-2-SPEC §3.17).
+ * @param {object} actor
+ * @param {{ format: 'csv'|'pdf', status: string, q: string, type?: string, method?: string, payment?: string }} query
+ */
+export async function exportAdminOrders(actor, { format, ...query }) {
   const { scope, orIds } = await scopeFor(query);
   const { items } = await listOrderTable(scope, { group: query.status, q: query.q, page: 1, limit: EXPORT_MAX }, orIds);
   const rows = items.map((o) => [
@@ -44,5 +56,18 @@ export async function exportAdminOrders(query) {
     o.payment.method === 'cash' ? 'Cash' : o.payment.provider,
     STATUS_LABELS[o.status],
   ]);
-  return toCsv(['Order', 'Placed', 'Customer', 'Customer type', 'Items', 'Total (PHP)', 'Delivery', 'Payment', 'Status'], rows);
+  const filters = [
+    ['Status', GROUP_LABELS[query.status] ?? STATUS_LABELS[query.status] ?? query.status],
+    ...(query.q ? [['Search', query.q]] : []),
+    ...['type', 'method', 'payment'].filter((k) => query[k]).map((k) => [{ type: 'Customer', method: 'Delivery', payment: 'Payment' }[k], FILTER_LABELS[k][query[k]] ?? query[k]]),
+  ];
+  const total = items.reduce((sum, o) => sum + o.totalCentavos, 0);
+  return buildExport(actor, format, {
+    name: 'orders',
+    title: 'Orders',
+    filters,
+    landscape: true,
+    kpis: [{ label: 'Orders', value: items.length.toLocaleString('en-PH') }, { label: 'Total', value: peso(total) }],
+    tables: [{ title: 'Orders', header: ['Order', 'Placed', 'Customer', 'Customer type', 'Items', 'Total (PHP)', 'Delivery', 'Payment', 'Status'], rows }],
+  }, 'orders');
 }

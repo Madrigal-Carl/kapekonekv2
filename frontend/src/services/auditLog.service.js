@@ -1,4 +1,5 @@
 import { api } from '@/api/axios'
+import { fetchFile } from '@/lib/download'
 
 /**
  * A record's history for its drawer, newest first (PHASE-2-SPEC §3.15).
@@ -13,5 +14,5 @@ const page = (r) => ({ items: r.data.data, meta: r.data.meta })
 /** The audit log (Kaluppa): `?area&role&from&to&entity&q&page&limit` → `{ items, meta: { page, limit, total } }`. */
 export const listAuditLog = (params) => api.get('/audit-logs', { params }).then(page)
 export const getAuditEntry = (id) => api.get(`/audit-logs/${id}`).then((r) => r.data.data)
-/** The CSV download link for the same filters (the cookie session goes with the navigation). */
-export const auditCsvUrl = (params) => api.getUri({ url: '/audit-logs/export.csv', params })
+/** Export the table's filters as CSV or PDF. */
+export const exportAuditLog = (format, params) => fetchFile('/audit-logs/export', { ...params, format })
