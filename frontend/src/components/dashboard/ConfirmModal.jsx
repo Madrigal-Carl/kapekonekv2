@@ -16,6 +16,7 @@ const VARIANTS = {
   delete: { tone: 'red', icon: IconTrash },
   hide: { tone: 'red', icon: IconHide, reason: true },
   temporary_password: { tone: 'green', icon: IconApprove },
+  discard: { tone: 'red', icon: null }, // HubCreatePost: a plain question, no icon
 }
 const TONES = {
   red: { tile: 'bg-danger-soft text-logout', confirm: 'bg-logout text-white hover:bg-danger-ink hover:text-white' },
@@ -81,10 +82,12 @@ export function ConfirmModal({
 
   return (
     <Modal open={open} onClose={close} labelledBy={`${id}-t`} describedBy={children ? `${id}-d` : undefined} initialFocus={safe} className="max-w-[440px] p-[22px]">
-      <span aria-hidden="true" className={cn('grid size-[42px] place-items-center rounded-full', tone.tile)}>
-        <v.icon className="size-[19px]" />
-      </span>
-      <h2 id={`${id}-t`} className="mt-3 text-[17px] font-semibold">{title}</h2>
+      {v.icon && (
+        <span aria-hidden="true" className={cn('grid size-[42px] place-items-center rounded-full', tone.tile)}>
+          <v.icon className="size-[19px]" />
+        </span>
+      )}
+      <h2 id={`${id}-t`} className={cn('text-[17px] font-semibold', v.icon && 'mt-3')}>{title}</h2>
       {children && <p id={`${id}-d`} className="mt-1.5 text-[13.5px] leading-[1.6] text-ink-2">{children}</p>}
       {password && <CopyBox value={password} />}
       {reasonOptions && (

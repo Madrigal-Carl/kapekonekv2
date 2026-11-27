@@ -1,10 +1,7 @@
 // @vitest-environment jsdom
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { useAuthStore } from '@/stores/auth.store'
 import { MediaGrid } from './MediaGrid'
-import { PostComposer } from './PostComposer'
 
 afterEach(cleanup)
 
@@ -38,33 +35,4 @@ describe('MediaGrid (fixed 16:10 frame)', () => {
     const { container } = render(<MediaGrid media={[]} onOpen={() => {}} />)
     expect(container.innerHTML).toBe('')
   })
-})
-
-describe('PostComposer', () => {
-  it('expands on focus and disables the other tags once 3 are picked', () => {
-    useAuthStore.setState({ session: { user: { id: 'me', initials: 'RM' }, roles: ['farmer'], permissions: ['posts.create'] }, status: 'ready' })
-    render(<QueryClientProvider client={new QueryClient()}><PostComposer /></QueryClientProvider>)
-    expect(screen.queryByText(/up to 3/)).toBeNull()
-    fireEvent.focus(screen.getByLabelText('Share an update'))
-    for (const tag of ['#pruning', '#soil', '#advisory']) fireEvent.click(screen.getByRole('button', { name: tag }))
-    expect(screen.getByText(/3\/3/)).toBeTruthy()
-    expect(screen.getByRole('button', { name: '#harvesting' }).disabled).toBe(true)
-    expect(screen.getByRole('button', { name: '#soil' }).getAttribute('aria-pressed')).toBe('true')
-    expect(screen.getByRole('button', { name: 'Post' }).disabled).toBe(true)
-  })
-
-  it('shows the count near 5,000 and, past it, the rule and a disabled Post', () => {
-    useAuthStore.setState({ session: { user: { id: 'me', initials: 'RM' }, roles: ['farmer'], permissions: ['posts.create'] }, status: 'ready' })
-    render(<QueryClientProvider client={new QueryClient()}><PostComposer /></QueryClientProvider>)
-    const box = screen.getByLabelText('Share an update')
-    fireEvent.change(box, { target: { value: 'a'.repeat(3999) } })
-    expect(screen.queryByText(/\/ 5,000/)).toBeNull()
-    fireEvent.change(box, { target: { value: 'a'.repeat(4200) } })
-    expect(screen.getByText('4,200 / 5,000')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Post' }).disabled).toBe(false)
-    fireEvent.change(box, { target: { value: 'a'.repeat(5001) } })
-    expect(screen.getByText('Use 5,000 characters or fewer · 5,001 / 5,000')).toBeTruthy()
-    expect(box.getAttribute('aria-invalid')).toBe('true')
-    expect(screen.getByRole('button', { name: 'Post' }).disabled).toBe(true)
-  }, 20_000) // typing 5,000+ characters is slow under the full parallel run
 })

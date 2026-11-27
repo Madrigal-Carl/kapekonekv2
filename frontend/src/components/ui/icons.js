@@ -38,6 +38,7 @@ import {
   LuHistory,
   LuHourglass,
   LuHouse,
+  LuHash,
   LuImage,
   LuImageUp,
   LuVideo,
@@ -159,6 +160,7 @@ export const IconFileText = LuFileText
 export const IconHeart = LuHeart
 export const IconHourglass = LuHourglass
 export const IconHome = LuHouse
+export const IconHash = LuHash
 export const IconImage = LuImage
 export const IconImageUp = LuImageUp
 export const IconVideo = LuVideo

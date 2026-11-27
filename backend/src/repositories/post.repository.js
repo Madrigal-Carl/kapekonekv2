@@ -56,6 +56,16 @@ async function commentPage(filter, { cursor, limit }) {
 }
 
 /** Oldest-first page of a post's top-level comments. */
+/** Each post's newest top-level comment, with its author (the feed card's preview). */
+export async function latestTopLevelComments(postIds) {
+  const rows = await PostComment.aggregate([
+    { $match: { post: { $in: postIds }, parent: null } },
+    { $sort: { createdAt: -1 } },
+    { $group: { _id: '$post', id: { $first: '$_id' } } },
+  ]);
+  return PostComment.find({ _id: { $in: rows.map((r) => r.id) } }).populate('author', AUTHOR).lean();
+}
+
 export const listTopLevelComments = (postId, page) => commentPage({ post: postId, parent: null }, page);
 
 /** Oldest-first page of a comment's replies. */

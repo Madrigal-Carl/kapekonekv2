@@ -135,6 +135,9 @@ describe('reactions and comments', () => {
     const reply = (await manager.post(`/api/posts/${post._id}/comments`).send({ body: 'Prune first.', parentId: comment._id }).expect(201)).body.data;
     await farmer.post(`/api/posts/${post._id}/comments`).send({ body: 'Nested', parentId: reply._id }).expect(400);
     expect((await reloaded(farmer)).commentCount).toBe(2);
+    // The feed card previews the newest top-level comment (Change 07); replies don't replace it.
+    const inFeed = async () => (await farmer.get('/api/hub/posts').expect(200)).body.data.find((p) => p._id === String(post._id));
+    expect((await inFeed()).lastComment).toMatchObject({ _id: comment._id, body: 'Does copper help?', author: { name: expect.any(String) } });
     expect((await notificationsOf('farmer.approved', 'post_activity')).map((n) => n.title)).toContain('Liza Ramos replied to your comment');
 
     await manager.patch(`/api/comments/${comment._id}`).send({ body: 'Hijack' }).expect(403);

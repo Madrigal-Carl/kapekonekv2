@@ -14,8 +14,8 @@ export const postKeys = {
 export const useTopPosts = () => useQuery({ queryKey: postKeys.top(), queryFn: posts.topPosts })
 
 /** One post; a 403 (not in the top 3, for guests and buyers) or 404 isn't retried. */
-export const usePost = (id) =>
-  useQuery({ queryKey: postKeys.detail(id), queryFn: () => posts.getPost(id), enabled: Boolean(id), retry: (n, error) => ![403, 404].includes(error?.response?.status) && n < 2 })
+export const usePost = (id, placeholderData) =>
+  useQuery({ queryKey: postKeys.detail(id), queryFn: () => posts.getPost(id), enabled: Boolean(id), placeholderData, retry: (n, error) => ![403, 404].includes(error?.response?.status) && n < 2 })
 
 const pages = (fetchPage) => ({
   queryFn: ({ pageParam }) => fetchPage(pageParam),
@@ -24,7 +24,7 @@ const pages = (fetchPage) => ({
 })
 
 export const useComments = (postId, enabled = true) =>
-  useInfiniteQuery({ queryKey: postKeys.comments(postId), ...pages((cursor) => posts.listComments(postId, { cursor, limit: 3 })), enabled })
+  useInfiniteQuery({ queryKey: postKeys.comments(postId), ...pages((cursor) => posts.listComments(postId, { cursor, limit: 10 })), enabled })
 
 /** The rest of a comment's replies, starting after the preview the comment came with. */
 export const useMoreReplies = (commentId, startCursor, enabled) =>

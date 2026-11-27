@@ -23,7 +23,6 @@ const KaluppaSettings = page(() => import('@/pages/dashboard/settings/Settings')
 const Farms = page(() => import('@/pages/dashboard/records/Farms'), 'Farms')
 const Inbox = page(() => import('@/pages/dashboard/inbox/Inbox'), 'Inbox')
 const Hub = page(() => import('@/pages/dashboard/hub/Hub'), 'Hub')
-const HubPost = page(() => import('@/pages/dashboard/hub/Hub'), 'HubPost')
 const Harvests = page(() => import('@/pages/dashboard/records/Harvests'), 'Harvests')
 const Trees = page(() => import('@/pages/dashboard/records/Trees'), 'Trees')
 const FarmMap = page(() => import('@/pages/dashboard/map/FarmMap'), 'FarmMap')
@@ -66,7 +65,7 @@ const RECORD_PAGES = [
   ['inbox', 'inbox.use', <Inbox key="inbox" />],
   ['inbox/:conversationId', 'inbox.use', <Inbox key="inbox-chat" />],
   ['hub', 'dashboard.view', <Hub key="hub" />],
-  ['hub/posts/:id', 'dashboard.view', <HubPost key="hub-post" />],
+  ['hub/posts/:id', 'dashboard.view', <Hub key="hub" />], // same key: the feed stays mounted under the post viewer
   ['farm-map', 'map.view', <FarmMap key="farm-map" />],
   ['reports', 'reports.view', <Reports key="reports" />],
   ['audit-log', 'audit.view', <AuditLog key="audit-log" />],

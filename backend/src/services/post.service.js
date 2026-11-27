@@ -135,14 +135,19 @@ export async function listCommentReplies(commentId, page, user) {
 }
 
 /**
- * `GET /hub/posts`: newest first, optionally one tag, with the user's reaction and the landing-page badge.
+ * `GET /hub/posts`: newest first, optionally one tag, with the user’s reaction, the landing-page badge and the newest comment.
  * @param {object} user
  * @param {{ tag?: string, cursor?: string, limit: number }} query
  */
 export async function listFeed(user, query) {
   const { items, meta } = await repo.listFeed(query);
-  const [mine, top] = await Promise.all([repo.reactionsOf(user._id, 'post', items.map((p) => p._id)), topIds()]);
-  return { items: items.map((p) => presentPost(p, { full: true, myReaction: mine[String(p._id)] ?? null, top })), meta };
+  const ids = items.map((p) => p._id);
+  const [mine, top, latest] = await Promise.all([repo.reactionsOf(user._id, 'post', ids), topIds(), repo.latestTopLevelComments(ids)]);
+  const last = new Map(latest.map((c) => [String(c.post), presentComment(c, { full: true })]));
+  return {
+    items: items.map((p) => ({ ...presentPost(p, { full: true, myReaction: mine[String(p._id)] ?? null, top }), lastComment: last.get(String(p._id)) ?? null })),
+    meta,
+  };
 }
 
 /** Posts per tag, every tag listed (the Hub's Tags card). */

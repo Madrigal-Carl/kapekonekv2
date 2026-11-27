@@ -50,6 +50,7 @@
   --color-manager: #2F6690; --color-manager-tint: #E3EEF8; --color-manager-ink: #1F4E79;
   --color-caramel-badge: #7A4A10; /* text on caramel-tint badges */
   --color-media: #1E130D;         /* media viewer backdrop */
+  --color-media-deep: #120B07;    /* Hub post viewer stage */
   --color-sold-out-bg: #EEEAE6; --color-sold-out-ink: #6E635B; --color-sold-out-label: #5E534B;
 
   /* map */

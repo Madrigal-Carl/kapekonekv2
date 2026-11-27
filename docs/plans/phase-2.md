@@ -373,10 +373,10 @@ frontend/src/
 - [x] Tests: backend `beanCap` (capLeftKg 0 / null); frontend Beans (disabled + description + banner; picker disabled option); e2e `beans.spec` (Dario reaches 5 kg → disabled, the Group Manager can't pick him, a cancel unlocks it) and `layout.spec` (bar at top after scrolling at 1440/390 and under a drawer; Reports 2 / 1 columns; Hub full width with the aside at 88px; Inbox full width).
 
 ### Task C07.B: Hub Create post modal and post viewer (PHASE-2-SPEC §3.10)
-- [ ] Trigger card + `CreatePostModal` (create and edit, discard confirm, phone full screen).
-- [ ] `PostViewer` at `/dashboard/hub/posts/:id?media=n` (media: 400px panel + dark stage; text-only: 640px dialog; phones: stage 56% on top).
-- [ ] Feed card: last comment, "View all N comments", "Write a comment…", captions cut at 240 with "See more"; no inline thread.
-- [ ] Tests and Playwright.
+- [x] Trigger card ("What’s on your mind, {first name}?", Photo / video, Tags) + `CreatePostModal` (560px, centered title + round close, author + audience chip, borderless 19/15px textarea, dropzone with drag and drop, media grid with remove buttons, tag chips + picker, "Add to your post" bar, full-width Post; "Edit post" / "Save"; "Discard this post?" / "Discard your changes?" with Keep editing / Discard; full screen ≤ 720px). `PostComposer` deleted; `TagChip` has its own file.
+- [x] `PostViewer` at `/dashboard/hub/posts/:id?media=n` (0-based, omitted for the first item; `?tag=` rides along): both routes render `Hub` with one key, so the feed stays mounted and the Modal returns focus to the opener. Media: 400px panel (header, caption, tags, counts, React / Comment, full thread, pinned `CommentBox`) + `media-deep` stage (contain, "2 / 5", prev / next, ← / →, thumbnails, close). Text-only: 640px dialog titled "{First}’s post". Phones: stage 56vh on top, panel below. A tag closes it and filters the feed; Back closes it; a missing post shows "We couldn't find that post".
+- [x] Feed card: last comment (`GET /hub/posts` items carry `lastComment`, the newest top-level comment), "View all N comments" (over 1), "Write a comment…", captions over 240 cut at a word with "See more"; the time, counts and Comment open the viewer; no inline thread or inline editor.
+- [x] Tests: backend `hub` (lastComment); frontend `components/post/Hub.test.jsx` (modal start modes, 3-tag limit, length rule, discard flow, edit title; card cut / preview / opens; viewer counter, prev / next / arrows, text dialog, tag); e2e `hub.spec` (post with tags, comment in the viewer with focus back on Comment, paging 6 photos at 1440/390 with Esc / Back, photo + tags + edit + discard + text dialog + phone full screen, See more) and `a11y.spec` (axe on the modal and both viewers at 1440/390).
 
 ## Milestone summaries
 

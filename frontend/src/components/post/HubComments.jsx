@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { ConfirmModal } from '@/components/dashboard/ConfirmModal'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
-import { IconRefresh } from '@/components/ui/icons'
+import { IconRefresh, IconSend } from '@/components/ui/icons'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useCan } from '@/hooks/useCan'
 import { useMe } from '@/hooks/useMe'
@@ -141,14 +141,58 @@ function Thread({ comment, postId, replying, onReplyToggle, onAsk }) {
 }
 
 /**
- * The comments under a Hub post (Hub.dc.html): comments with one level of replies, Like, Reply, the author's Edit / Delete,
- * Kaluppa's Remove with a reason, "Load more comments" and the comment box.
+ * The comment box pinned under the post viewer's panel (HubPostView.dc.html). Enter sends; Shift+Enter starts a new line.
+ * @param {{ postId: string, ref?: React.Ref<HTMLTextAreaElement> }} props
+ */
+export function CommentBox({ postId, ref }) {
+  const me = useMe()
+  const id = useId()
+  const add = useAddComment()
+  const [text, setText] = useState('')
+  const tooLong = text.trim().length > COMMENT_MAX
+  const send = () => {
+    const parsed = commentBodyRule.safeParse(text)
+    if (!parsed.success || add.isPending) return
+    add.mutate({ postId, body: parsed.data }, { onSuccess: () => setText(''), onError })
+  }
+  return (
+    <div className="shrink-0 border-t border-sand-soft bg-white px-[18px] pb-4 pt-3">
+      <div className="flex items-end gap-2">
+        <Avatar person={me} className="size-8 text-[11px]" />
+        <label htmlFor={id} className="sr-only">Write a comment</label>
+        <textarea
+          ref={ref}
+          id={id}
+          rows={1}
+          value={text}
+          aria-invalid={tooLong}
+          aria-describedby={`${id}-len`}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              send()
+            }
+          }}
+          placeholder={`Comment as ${me.name}…`}
+          className="min-h-10 min-w-0 flex-1 resize-none rounded-[5px] border border-sand-strong bg-white px-3 py-[9px] text-[13.5px] focus:border-roast focus:outline-none focus:ring-[3px] focus:ring-roast/20 aria-invalid:border-logout"
+        />
+        <Button iconOnly aria-label="Send comment" onClick={send} disabled={!text.trim() || tooLong} loading={add.isPending} className="size-10 shrink-0 rounded-[5px]">
+          <IconSend aria-hidden="true" className="size-[17px]" strokeWidth={2} />
+        </Button>
+      </div>
+      <LengthHint id={`${id}-len`} value={text} max={COMMENT_MAX} />
+    </div>
+  )
+}
+
+/**
+ * The full thread in the post viewer (HubPostView.dc.html): comments with one level of replies, Like, Reply, the author's
+ * Edit / Delete, Kaluppa's Remove with a reason and "Load more comments". The comment box is `CommentBox`, pinned below.
  * @param {{ postId: string, total: number }} props
  */
 export function HubComments({ postId, total }) {
-  const me = useMe()
   const { data, isPending, isError, refetch, hasNextPage, fetchNextPage, isFetchingNextPage } = useComments(postId)
-  const add = useAddComment()
   const del = useDeleteComment()
   const remove = useRemoveComment()
   const [replyTo, setReplyTo] = useState(null)
@@ -158,7 +202,7 @@ export function HubComments({ postId, total }) {
   const close = () => setAsk(null)
 
   return (
-    <div className="flex flex-col gap-3 border-t border-sand-soft px-[18px] pb-4 pt-3">
+    <div className="flex flex-col gap-3 px-[18px] pb-[18px] pt-3.5">
       {isPending && [1, 2].map((i) => <div key={i} className="flex gap-2.5"><Skeleton className="size-8 rounded-full" /><Skeleton className="h-12 flex-1 rounded-xl" /></div>)}
       {isError && (
         <p className="m-0 flex items-center gap-2 text-[13px] text-ink-2">
@@ -166,6 +210,7 @@ export function HubComments({ postId, total }) {
           <Button variant="link" leftIcon={<IconRefresh aria-hidden="true" className="size-3.5" />} onClick={() => refetch()} className="h-auto text-[13px]">Try again</Button>
         </p>
       )}
+      {data && !comments.length && <p className="m-0 py-[18px] text-center text-[13px] text-ink-3">No comments yet. Be the first to comment.</p>}
       {comments.map((comment) => (
         <Thread
           key={comment._id}
@@ -181,16 +226,6 @@ export function HubComments({ postId, total }) {
           {isFetchingNextPage ? 'Loading comments…' : `Load more comments (${shown} of ${total})`}
         </Button>
       )}
-      <div className="flex items-center gap-2">
-        <Avatar person={me} className="size-8 text-[11px]" />
-        <LineInput
-          className="flex-1"
-          label="Write a comment"
-          placeholder="Write a comment…"
-          pending={add.isPending}
-          onSubmit={(body, clear) => add.mutate({ postId, body }, { onSuccess: clear, onError })}
-        />
-      </div>
       <ConfirmModal
         open={ask?.kind === 'delete'}
         variant="delete"

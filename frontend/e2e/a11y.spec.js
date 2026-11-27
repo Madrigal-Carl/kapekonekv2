@@ -148,3 +148,22 @@ test('keyboard: a view drawer traps focus, Esc closes it and focus returns to it
   await expect(drawer).toBeHidden()
   await expect(view).toBeFocused()
 })
+
+test('Hub: the Create post modal and both post viewers have no WCAG A/AA violations', async ({ page }) => {
+  await signIn(page, 'farmer.approved', '/dashboard/hub')
+  const problems = []
+  for (const width of WIDTHS) {
+    await page.setViewportSize({ width, height: 900 })
+    await page.goto('/dashboard/hub')
+    await page.getByRole('region', { name: 'Create a post' }).getByRole('button', { name: 'Tags' }).click()
+    for (const line of await violations(page)) problems.push(`[${width}] create ${line}`)
+    await page.keyboard.press('Escape')
+    await page.getByRole('article').filter({ hasText: 'Fresh Liberica roasts are in!' }).getByRole('button', { name: /Open photo 1 of/ }).click()
+    for (const line of await violations(page)) problems.push(`[${width}] viewer ${line}`)
+    await page.keyboard.press('Escape')
+    await page.getByRole('article').filter({ hasText: 'Group meeting this Saturday' }).getByRole('button', { name: /^View all \d+ comments$/ }).click()
+    for (const line of await violations(page)) problems.push(`[${width}] text viewer ${line}`)
+    await page.keyboard.press('Escape')
+  }
+  expect(problems).toEqual([])
+})
