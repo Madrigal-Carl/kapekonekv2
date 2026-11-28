@@ -118,18 +118,28 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
           <input class="kk-f" id="cpw" type="{{ pwType }}" autocomplete="new-password" style="margin-top: 8px; width: 100%; border: 1px solid #DCCBB5; border-radius: 5px; padding: 11px 12px; font: inherit; font-size: 14px">
         </div>
 
-        <a href="{{ next }}" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: #7B4A2A; color: #FFFFFF; text-decoration: none; padding: 13px; border-radius: 5px; font-size: 14.5px; font-weight: 600">Create account</a>
+        <div>
+          <div style="display: flex; gap: 10px; align-items: flex-start">
+            <input id="agree" type="checkbox" checked="{{ agreed }}" onChange="{{ toggleAgree }}" aria-invalid="{{ agreeErr }}" aria-describedby="agree-err" style="margin: 2px 0 0; width: 18px; height: 18px; flex-shrink: 0; accent-color: #7B4A2A; outline: {{ agreeOutline }}; outline-offset: 2px; border-radius: 3px">
+            <span style="font-size: 13.5px; line-height: 1.55; color: #2B1A12"><label for="agree" style="cursor: pointer">I agree to KapeKonek’s</label> <button type="button" onClick="{{ openTerms }}" style="border: 0; background: transparent; padding: 0; font: inherit; font-size: 13.5px; font-weight: 600; color: #7B4A2A; text-decoration: underline; text-underline-offset: 2px; cursor: pointer">Terms and Conditions</button> and <button type="button" onClick="{{ openPrivacy }}" style="border: 0; background: transparent; padding: 0; font: inherit; font-size: 13.5px; font-weight: 600; color: #7B4A2A; text-decoration: underline; text-underline-offset: 2px; cursor: pointer">Privacy Policy</button>.</span>
+          </div>
+          <sc-if value="{{ agreeErr }}" hint-placeholder-val="{{ false }}"><p id="agree-err" role="alert" style="margin: 6px 0 0 28px; display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: #9B2C24; font-weight: 500"><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>Please agree to the Terms and Conditions to create your account.</p></sc-if>
+        </div>
+
+        <sc-if value="{{ agreed }}" hint-placeholder-val="{{ false }}"><a href="{{ next }}" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: #7B4A2A; color: #FFFFFF; text-decoration: none; padding: 13px; border-radius: 5px; font-size: 14.5px; font-weight: 600">Create account</a></sc-if>
+        <sc-if value="{{ notAgreed }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ tryCreate }}" style="display: flex; width: 100%; align-items: center; justify-content: center; gap: 8px; border: 0; background: #7B4A2A; color: #FFFFFF; padding: 13px; border-radius: 5px; font: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer">Create account</button></sc-if>
       </form>
       <p style="margin: 22px 0 0; padding-top: 18px; border-top: 1px solid #EFE6DA; font-size: 14px; color: #4A3A30; text-align: center">Already have an account? <a href="Login.dc.html" style="font-weight: 600; text-decoration: none">Sign in</a></p>
     </div>
   </section>
+  <sc-if value="{{ termsOpen }}" hint-placeholder-val="{{ false }}"><dc-import name="TermsModal" mode="read" tab="{{ termsTab }}" on-close="{{ closeTerms }}" on-agree="{{ agreeFromTerms }}" hint-size="100%,100%"></dc-import></sc-if>
 </main>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1150}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1150},"start":{"editor":"enum","options":["","terms","error"],"default":""}}'>
 class Component extends DCLogic {
-  constructor(props) { super(props); this.state = { role: 'buyer', username: 'juanadc', pw: '', show: false }; }
+  constructor(props) { super(props); const st = props.start || ''; this.state = { role: 'buyer', username: 'juanadc', pw: '', show: false, agreed: false, agreeErr: st === 'error', terms: st === 'terms' ? 'terms' : null }; }
   renderVals() {
-    const { role, username, pw, show } = this.state;
+    const { role, username, pw, show, agreed, agreeErr, terms } = this.state;
     const taken = ['juana', 'juanadelacruz'];
     const valid = /^[a-z0-9._]{3,30}$/.test(username);
     const isTaken = taken.includes(username);
@@ -155,7 +165,13 @@ class Component extends DCLogic {
       pwType: show ? 'text' : 'password',
       eyeLabel: show ? 'Hide passwords' : 'Show passwords',
       toggle: () => this.setState({ show: !show }),
-      next: role === 'buyer' ? 'VerifyEmail.dc.html' : 'Dashboard.dc.html'
+      next: role === 'buyer' ? 'VerifyEmail.dc.html' : 'Dashboard.dc.html',
+      agreed, notAgreed: !agreed, agreeErr: agreeErr && !agreed, agreeOutline: agreeErr && !agreed ? '2px solid #C62828' : 'none',
+      toggleAgree: () => this.setState({ agreed: !agreed, agreeErr: false }),
+      tryCreate: () => this.setState({ agreeErr: true }),
+      termsOpen: !!terms, termsTab: terms || 'terms',
+      openTerms: () => this.setState({ terms: 'terms' }), openPrivacy: () => this.setState({ terms: 'privacy' }),
+      closeTerms: () => this.setState({ terms: null }), agreeFromTerms: () => this.setState({ terms: null, agreed: true, agreeErr: false })
     };
   }
 }

@@ -163,6 +163,7 @@ Each one is a single Claude Code session. Copy the updated kit files in first (C
 | 06 · phone layouts, overview date filter, history in drawers, thumbnail star, Settings + Inbox fidelity, GCash only (**run after M11, before M12**) | `Read CLAUDE.md and docs/prompts/CHANGE-06-MOBILE-DATES-HISTORY-INBOX-GCASH.md, then carry out Change 06.` |
 | 07 · sticky top bar, Sell beans disabled at the 5 kg limit, agreed layouts (full-width Inbox/Hub, sticky Hub aside, 2×2 Reports), Hub Create post modal + post viewer (**run after Change 06, before M12**) | `Read CLAUDE.md and docs/prompts/CHANGE-07-STICKY-LIMIT-LAYOUT-HUB.md, then carry out Change 07.` |
 | 08 · save/delete confirmations, CSV+PDF export with filters, default password + reset, verify email for created accounts, no lot number, Beans category, best-sellers carousel, default product image, association map, chat while pending, Hub mentions, Contact us, address-book race fix (**run after Change 07**) | `Read CLAUDE.md and docs/prompts/CHANGE-08-CONFIRM-EXPORT-ACCOUNTS-MENTIONS-CONTACT.md, then carry out Change 08.` |
+| 09 · Terms and Conditions: required checkbox at sign-up, Terms / Privacy modal, first-sign-in agreement for created accounts, re-agree when the version changes (**run after Change 08**) | `Read CLAUDE.md and docs/prompts/CHANGE-09-TERMS-AND-CONDITIONS.md, then carry out Change 09.` |
 
 ## Phase 2 — the dashboard (farmer, Group Manager, Kaluppa)
 

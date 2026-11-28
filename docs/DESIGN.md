@@ -280,6 +280,10 @@ The dashboard screens are the canvas rows titled "Dashboard". Each page has a **
   - **Drawers**: full width, body padding 20/18, every field grid one column, footer buttons stretch.
   - **No horizontal page scroll anywhere.**
 
+### 8.8 Terms (Change 09)
+- **Sign up**: the terms checkbox sits above Create account. The document names are underlined roast buttons. The error line is red 12.5 px with an icon, indented 28 px.
+- **`TermsModal`**: 640 px; underline tabs 44 px tall; the body scrolls; footer buttons on the right. In accept mode there's a checkbox above the buttons and the primary button stays muted until it's ticked. Full screen on phones.
+
 ### 8.7 Layout rules to keep (Change 07)
 - The dashboard top bar is sticky on every page.
 - Inbox and Hub are full width (no 1240px cap). The Hub feed is 680px and centered, with a **sticky 340px aside**.

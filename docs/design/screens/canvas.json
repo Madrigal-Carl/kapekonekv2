@@ -526,7 +526,7 @@
       "expand": "fill",
       "h": 1150,
       "is_interactive": true,
-      "title": "Sign up",
+      "title": "Sign up (terms checkbox required; tweak: start)",
       "w": 1440,
       "x": 1520,
       "y": 8640
@@ -764,6 +764,46 @@
       "h": 1600,
       "title": "Contact us — validation errors",
       "is_interactive": true
+    },
+    "RegisterTerms.dc.html": {
+      "x": 15200,
+      "y": 27330,
+      "w": 1440,
+      "h": 1150,
+      "title": "Sign up — Terms and Conditions / Privacy Policy modal",
+      "is_interactive": true
+    },
+    "RegisterTermsError.dc.html": {
+      "x": 16720,
+      "y": 27330,
+      "w": 1440,
+      "h": 1150,
+      "title": "Sign up — “Create account” without ticking the terms",
+      "is_interactive": true
+    },
+    "RegisterTermsMobile.dc.html": {
+      "x": 18240,
+      "y": 27330,
+      "w": 390,
+      "h": 844,
+      "title": "Phone — terms modal goes full screen",
+      "is_interactive": true
+    },
+    "TermsAccept.dc.html": {
+      "x": 18710,
+      "y": 27330,
+      "w": 1440,
+      "h": 1000,
+      "title": "First sign-in — accounts made by Kaluppa / a Group Manager agree before starting",
+      "is_interactive": true
+    },
+    "TermsModal.dc.html": {
+      "x": 20230,
+      "y": 27330,
+      "w": 1440,
+      "h": 1000,
+      "title": "TermsModal (component) — tweaks: mode read / accept, tab",
+      "is_interactive": true
     }
   },
   "createdOnFiles": {
@@ -789,7 +829,8 @@
     "row10",
     "row11",
     "row12",
-    "row13"
+    "row13",
+    "row14"
   ],
   "notes": {
     "dashrules": {
@@ -909,6 +950,13 @@
       "text": "Change 08 — confirmations, exports, accounts, mentions, contact",
       "kind": "title1",
       "maxW": 15120
+    },
+    "row14": {
+      "x": 15200,
+      "y": 27030,
+      "text": "Change 09 — Terms and Conditions",
+      "kind": "title1",
+      "maxW": 6470
     }
   },
   "order": [
@@ -1000,7 +1048,12 @@
     "HubMention.dc.html",
     "VerifyEmailCreated.dc.html",
     "ContactUsErrors.dc.html",
-    "ContactUs.dc.html"
+    "ContactUs.dc.html",
+    "RegisterTerms.dc.html",
+    "RegisterTermsError.dc.html",
+    "RegisterTermsMobile.dc.html",
+    "TermsAccept.dc.html",
+    "TermsModal.dc.html"
   ],
   "pages": [],
   "title": "KapeKonek — Phase 1 Pages"

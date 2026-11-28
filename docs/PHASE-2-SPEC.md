@@ -292,6 +292,12 @@ The handover happens at the branch, outside the system.
 - **Contact us**: a public page and form (`ContactMessage`), using the new Settings → Branch contact email.
 - **Address book**: atomic 10-address limit and an `addressesVersion` check ("Your addresses changed in another tab. Refresh and try again.").
 
+### 3.17 Terms and Conditions (Change 09)
+- Sign-up needs a ticked "I agree to KapeKonek's Terms and Conditions and Privacy Policy" checkbox. The API requires `acceptTerms: true`.
+- Accounts made by Kaluppa or a Group Manager agree on their first sign-in (`TermsModal` in accept mode).
+- Users store `termsAcceptedAt` and `termsVersion`. Raising `TERMS_VERSION` asks everyone again.
+- The text lives in versioned markdown files served by `GET /legal/current`. It's a draft until Kaluppa has it reviewed.
+
 ## 4. Data models (new or changed)
 
 **Accounts and associations**
