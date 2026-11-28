@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -27,7 +27,7 @@ function Field({ id, label, extra, error, children }) {
         {extra}
       </Label>
       {children}
-      <FieldHint id={`${id}-e`} error={error} />
+      <FieldHint id={`${id}-e`} error={error} className="mt-[5px] text-xs" />
     </div>
   )
 }
@@ -35,6 +35,9 @@ function Field({ id, label, extra, error, children }) {
 /** The dark branch card, map and FAQ link (ContactUs.dc.html aside). Everything comes from Settings → Branch. */
 function BranchAside() {
   const info = useDeliveryInfo()
+  const spot = info.data?.pickup.location
+  // Stable map props: a new `flyTo` object would fly the map back on every render.
+  const map = useMemo(() => spot && { pins: [{ id: 'kaluppa', ...spot, tone: 'kaluppa', label: 'Kaluppa' }], flyTo: { ...spot, zoom: 13 }, focus: {} }, [spot])
   if (info.isPending) return <Skeleton className="h-[420px] w-full rounded-[10px]" />
   if (info.isError) return null
   const { pickup, contact } = info.data
@@ -45,7 +48,6 @@ function BranchAside() {
     contact.email && { k: 'Email', v: contact.email, href: `mailto:${contact.email}`, Icon: IconMail },
   ].filter(Boolean)
   const { lat, lng } = pickup.location
-  const town = pickup.address.split(', ').at(-2)
 
   return (
     <>
@@ -78,7 +80,12 @@ function BranchAside() {
       </section>
       <section className="overflow-hidden rounded-[10px] border border-sand bg-white">
         <Suspense fallback={<div className="aspect-[600/440] animate-pulse bg-water" />}>
-          <MapPicker value={pickup.location} pinLabel={pickup.name} ariaLabel={`Map showing ${pickup.name} in ${pickup.address.split(', ').slice(0, 2).join(', ')}`} focus={{ municipality: town }} />
+          <MapPicker
+            value={null}
+            {...map}
+            flush
+            ariaLabel={`Map showing ${pickup.name} in ${pickup.address.split(', ').slice(0, 2).join(', ')}`}
+          />
         </Suspense>
         <div className="flex items-center justify-between gap-2.5 px-4 py-3">
           <span className="text-[13px] text-ink-2">Pickup orders are collected here.</span>
@@ -124,18 +131,18 @@ export function Contact() {
 
   return (
     <div className="w-full bg-white">
-      <section className="bg-crema pb-14 pt-16 max-[640px]:pb-10 max-[640px]:pt-11">
-        <div className="mx-auto max-w-[1180px] px-8 max-[640px]:px-4">
+      <section className="bg-crema pb-14 pt-16">
+        <div className="mx-auto max-w-[1180px] px-8">
           <p className="m-0 text-[11px] font-medium uppercase tracking-[0.16em] text-ink-3">Contact us</p>
-          <h1 className="m-0 mt-3 max-w-[640px] text-[42px] font-medium leading-[1.1] tracking-[-0.02em] max-[640px]:text-[30px]">Questions about coffee, orders or selling? Ask Kaluppa.</h1>
+          <h1 className="m-0 mt-3 max-w-[640px] text-[42px] font-medium leading-[1.1] tracking-[-0.02em] [text-wrap:wrap]">Questions about coffee, orders or selling? Ask Kaluppa.</h1>
           <p className="m-0 mt-3.5 max-w-[600px] text-base leading-[1.65] text-ink-2">
             Send us a message and we’ll reply by email within 1–2 business days. For an order, include your order number so we can find it fast.
           </p>
         </div>
       </section>
-      <section className="pb-24 pt-14 max-[640px]:pt-8">
-        <div className="mx-auto flex max-w-[1180px] flex-wrap items-start gap-8 px-8 max-[640px]:px-4">
-          <div className="min-w-0 flex-[1_1_560px] rounded-[10px] border border-sand bg-white p-7 max-[640px]:p-5">
+      <section className="pb-24 pt-14">
+        <div className="mx-auto flex max-w-[1180px] flex-wrap items-start gap-8 px-8">
+          <div className="min-w-0 flex-[1_1_560px] rounded-[10px] border border-sand bg-white p-7">
             {sent ? (
               <div role="status" className="px-1 py-6 text-center">
                 <span aria-hidden="true" className="mx-auto grid size-14 place-items-center rounded-full bg-tone-green-bg text-tone-green-ink">
@@ -147,7 +154,7 @@ export function Contact() {
                   <strong>{sent.email}</strong>
                   {' and will reply within 1–2 business days.'}
                 </p>
-                <Button variant="outline" onClick={again} className="mt-5">Send another message</Button>
+                <Button variant="outline" onClick={again} className="mt-5 px-[18px]">Send another message</Button>
               </div>
             ) : (
               <>
@@ -198,7 +205,7 @@ export function Contact() {
                       className={cn(inputClasses, 'mt-1.5 min-h-11 resize-y leading-[1.55]')}
                       {...register('message')}
                     />
-                    <div className="mt-1.5 flex justify-between gap-2.5 text-xs">
+                    <div className="mt-[5px] flex justify-between gap-2.5 text-xs">
                       <span id="cmsg-e" className="text-danger-ink">{errors.message?.message}</span>
                       <span id="cmsg-c" className="shrink-0 text-ink-3">{`${message.length.toLocaleString()} / 1,000`}</span>
                     </div>
@@ -208,7 +215,7 @@ export function Contact() {
                     <span className="max-w-[360px] text-xs leading-normal text-ink-3">
                       We use your details only to reply. See our <Link to="/">Privacy policy</Link>.
                     </span>
-                    <Button type="submit" size="lg" loading={send.isPending} leftIcon={<IconSend aria-hidden="true" className="size-4" strokeWidth={2} />}>
+                    <Button type="submit" loading={send.isPending} className="h-[46px] px-[22px] text-[14.5px]" leftIcon={<IconSend aria-hidden="true" className="size-4" strokeWidth={2} />}>
                       Send message
                     </Button>
                   </div>

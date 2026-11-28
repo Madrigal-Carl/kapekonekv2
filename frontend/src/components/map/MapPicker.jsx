@@ -48,9 +48,10 @@ const areaLabel = ({ municipality, barangay, label }) =>
  *   focus: { municipality?: string|null, barangay?: string|null, fit?: boolean, label?: string },
  *   origin?: { lat: number, lng: number }, error?: string|null, busy?: boolean, note?: string|null,
  *   pinLabel?: string, ariaLabel?: string, searchable?: boolean, hints?: { empty: string, placed: string },
- *   preview?: boolean,
+ *   preview?: boolean, flush?: boolean,
  * }} props
  * `preview`: a still thumbnail that fills its parent (address cards): no controls, no area label, not interactive.
+ * `flush`: framed by its parent card (Contact us, MiniMap `flush`): no border or radius, no area label.
  * Farm Map (MiniMap.dc.html pins): `pins` draws one pin per farm (`tone` farmer roast / kaluppa espresso), the selected one
  * larger with a caramel ring and `popup` above it; `onPin(id)` reports a pin click; a new `flyTo` object flies there.
  */
@@ -67,6 +68,7 @@ export function MapPicker({
   searchable = true,
   hints,
   preview = false,
+  flush = false,
   pins,
   selectedId,
   onPin,
@@ -185,12 +187,12 @@ export function MapPicker({
         </div>
       )}
 
-      <div className={cn('relative overflow-hidden bg-water', preview ? 'h-full' : 'aspect-[600/440] rounded-card border border-sand')}>
+      <div className={cn('relative overflow-hidden bg-water', preview ? 'h-full' : flush ? 'aspect-[600/440]' : 'aspect-[600/440] rounded-card border border-sand')}>
         {TOKEN ? (
           <MapGL
             ref={map}
             mapboxAccessToken={TOKEN}
-            initialViewState={value ? { latitude: value.lat, longitude: value.lng, zoom: 15 } : { bounds: ISLAND, fitBoundsOptions: FIT }}
+            initialViewState={value ? { latitude: value.lat, longitude: value.lng, zoom: 15 } : flyTo ? { latitude: flyTo.lat, longitude: flyTo.lng, zoom: flyTo.zoom ?? 14 } : { bounds: ISLAND, fitBoundsOptions: FIT }}
             mapStyle="mapbox://styles/mapbox/streets-v12"
             cursor={pickable ? 'crosshair' : 'grab'}
             interactive={!preview}
@@ -279,7 +281,7 @@ export function MapPicker({
             {error}
           </div>
         )}
-        {!preview && <span aria-live="polite" className="pointer-events-none absolute bottom-3 left-3 rounded-[4px] bg-white/92 px-2 py-[3px] text-[11px] text-ink-2">
+        {!preview && !flush && <span aria-live="polite" className="pointer-events-none absolute bottom-3 left-3 rounded-[4px] bg-white/92 px-2 py-[3px] text-[11px] text-ink-2">
           {ownLabel ?? areaLabel(focus)}
         </span>}
       </div>
