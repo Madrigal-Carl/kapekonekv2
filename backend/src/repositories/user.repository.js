@@ -141,7 +141,7 @@ export async function resetToDefaultPassword(userId, password) {
 
 /** A username-only account adds its first email (unverified); null when it already has one. */
 export const addFirstEmail = (userId, email) =>
-  User.findOneAndUpdate({ _id: userId, email: null }, { $set: { email, emailVerifiedAt: null } }, { new: true });
+  User.findOneAndUpdate({ _id: userId, email: null }, { $set: { email, emailVerifiedAt: null } }, { returnDocument: 'after' });
 
 export const findGroupManagerById = (id) => User.findOne({ _id: id, roles: 'group_manager' }).lean();
 

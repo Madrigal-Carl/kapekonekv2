@@ -6,7 +6,6 @@ const point = new mongoose.Schema({ type: { type: String, enum: ['Point'], requi
 const farmSchema = new mongoose.Schema(
   {
     propertyNumber: { type: String, required: true, unique: true }, // TCT-<year>-<NNNN>
-    lotNumber: { type: String, required: true, trim: true },
     owner: { type: ObjectId, ref: 'User', required: true }, // the farmer, or the Kaluppa account for Kaluppa farms
     ownerType: { type: String, enum: ['farmer', 'kaluppa'], required: true },
     association: { type: ObjectId, ref: 'Association', default: null }, // the farmer's, or the managing Group Manager's
@@ -22,8 +21,6 @@ const farmSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
-// A lot number is unique per owner among active farms; an archived farm frees it.
-farmSchema.index({ owner: 1, lotNumber: 1 }, { unique: true, partialFilterExpression: { archivedAt: { $type: 'null' } } });
 farmSchema.index({ location: '2dsphere' });
 farmSchema.index({ association: 1, archivedAt: 1 });
 farmSchema.index({ managedBy: 1 });

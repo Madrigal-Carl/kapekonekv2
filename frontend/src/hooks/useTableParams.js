@@ -44,10 +44,17 @@ export function useTableParams(defaults = {}) {
     [setSearch, base],
   )
 
+  // react-router's setSearchParams(prev => …) sees the params of the render that made it, so the debounced search
+  // calls the latest `apply`: closing a drawer and then typing must not bring `open` back.
+  const latestApply = useRef(apply)
+  useEffect(() => {
+    latestApply.current = apply
+  }, [apply])
+
   const set = useCallback(
     (patch) => {
       clearTimeout(timer.current)
-      if ('q' in patch) timer.current = setTimeout(() => apply(patch), 300)
+      if ('q' in patch) timer.current = setTimeout(() => latestApply.current(patch), 300)
       else apply(patch)
     },
     [apply],

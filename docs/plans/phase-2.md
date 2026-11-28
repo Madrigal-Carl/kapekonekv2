@@ -398,9 +398,9 @@ Source: `docs/prompts/CHANGE-08-CONFIRM-EXPORT-ACCOUNTS-MENTIONS-CONTACT.md`, PH
 - [x] Seeds: `farmer.unverified`, `manager.unverified` (replacing `farmer.nomail`).
 
 ### Task C08.D: Farms and Farmers
-- [ ] Lot number removed everywhere (migration drops the field and index); property number only as a note / title.
-- [ ] Size: 0.01–500, 2 decimals, shown as "1.25 ha"; Farms sorted by property number ascending (`aria-sort`).
-- [ ] Farmers: Farms owned column.
+- [x] Lot number removed everywhere (migration drops the field and index); property number only as a note / title.
+- [x] Size: 0.01–500, 2 decimals, shown as "1.25 ha"; Farms sorted by property number ascending (`aria-sort`).
+- [x] Farmers: Farms owned column.
 
 ### Task C08.E: Inventory and the storefront
 - [ ] Seedlings → Beans (migration, seeds, copy); Featured removed (migration).

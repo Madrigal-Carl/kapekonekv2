@@ -47,7 +47,6 @@ export async function mapFarms(actor, { association, municipality, variety }) {
       return {
         id: String(farm._id),
         propertyNumber: farm.propertyNumber,
-        lotNumber: farm.lotNumber,
         ownerType: farm.ownerType,
         owner: person(farm.owner),
         association: farm.association ? { id: String(farm.association._id), name: farm.association.name } : null,

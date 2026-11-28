@@ -1,7 +1,7 @@
 // The same table runs in backend/tests/rules.test.js — keep them identical.
 import { describe, expect, it } from 'vitest';
 import {
-  associationDescriptionRule, associationNameRule, beanAmountRule, beanFinalWeightRule, beanPhotosRule, beanPriceRule, beanWeightRule, cancelReasonRule, farmSizeRule, lotNumberRule, pastDateRule, todayKey, treeCountRule, yieldRule, customLabelRule, kindForFormat, passwordRule, phoneRule, quantityRule, ratingRule, recipientNameRule, reviewCommentRule, streetRule, uploadRule, usernameRule,
+  associationDescriptionRule, associationNameRule, beanAmountRule, beanFinalWeightRule, beanPhotosRule, beanPriceRule, beanWeightRule, cancelReasonRule, farmSizeRule, pastDateRule, todayKey, treeCountRule, yieldRule, customLabelRule, kindForFormat, passwordRule, phoneRule, quantityRule, ratingRule, recipientNameRule, reviewCommentRule, streetRule, uploadRule, usernameRule,
 } from './rules.js';
 
 const ok = (rule, value) => rule.safeParse(value).success;
@@ -92,17 +92,15 @@ describe('UPLOAD_RULES', () => {
 
 describe('record rules (PHASE-2-SPEC §7)', () => {
   it.each([
-    ['Lot 12-B', true],
-    ['', false],
-    ['x'.repeat(41), false],
-  ])('lot number %s → %s', (value, expected) => expect(ok(lotNumberRule, value)).toBe(expected));
-
-  it.each([
     [0.01, true],
     [500, true],
     [0, false],
     [500.5, false],
     ['1.2', false],
+    [1.25, true],
+    [1.15, true], // 1.15 * 100 is 114.99999999999999: still 2 decimals
+    [0.29, true],
+    [1.255, false],
   ])('farm size %s → %s', (value, expected) => expect(ok(farmSizeRule, value)).toBe(expected));
 });
 

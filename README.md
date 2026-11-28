@@ -49,6 +49,7 @@ npm run dev                            # API on :5000, web on :5173
 | `npm test` | Vitest in both apps. The backend uses an in-memory MongoDB and ioredis-mock, so it needs no services. |
 | `npm run test:e2e` | Playwright. Starts its own API on :5100 and web on :5174 against the seeded database in `backend/.env`. Stop anything already on those ports first. |
 | `npm --prefix backend run migrate:fresh -- --seed` | Drop the database, rebuild indexes, then seed |
+| `npm --prefix backend run migrate` | Run the pending data migrations (`backend/src/database/migrations`) on an existing database |
 | `npm --prefix backend run db:seed` | Seed again without dropping. Safe to run twice: everything is upserted. |
 
 ## Seed accounts

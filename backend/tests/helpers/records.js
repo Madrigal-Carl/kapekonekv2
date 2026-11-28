@@ -2,7 +2,7 @@ import { registerFarmer, setUpAssociations, signedIn } from './farmers.js';
 
 export const SANTA_CRUZ = { lat: 13.4778, lng: 122.03 };
 export const BOAC = { lat: 13.4467, lng: 121.8406 };
-export const farmBody = (fields = {}) => ({ lotNumber: 'Lot 1', sizeHa: 1.2, municipality: 'Santa Cruz', barangay: 'Pantayin', street: '', location: SANTA_CRUZ, ...fields });
+export const farmBody = (fields = {}) => ({ sizeHa: 1.2, municipality: 'Santa Cruz', barangay: 'Pantayin', street: '', location: SANTA_CRUZ, ...fields });
 
 /** Manila "YYYY-MM-DD", `days` from today. */
 export const dayKey = (days = 0) =>
@@ -26,11 +26,11 @@ export async function setUpRecords(app, { User, FarmerProfile }) {
   const add = async (agent, body) => (await agent.post('/api/farms').send(farmBody(body)).expect(201)).body.data;
   const managerId = String((await User.findOne({ username: 'manager.santacruz' }))._id);
   const farms = {
-    ana: await add(ana.agent, { lotNumber: 'Ana 1' }),
-    ana2: await add(ana.agent, { lotNumber: 'Ana 2', barangay: 'Matalaba' }),
-    ben: await add(ben.agent, { lotNumber: 'Ben 1', municipality: 'Boac', barangay: 'Tumagabok', location: BOAC }),
-    kalManaged: await add(a.kaluppa, { lotNumber: 'Kaluppa Demo Farm', managedById: managerId }),
-    kalOpen: await add(a.kaluppa, { lotNumber: 'Torrijos Nursery', municipality: 'Torrijos', barangay: 'Bonliw', location: { lat: 13.3189, lng: 122.0819 } }),
+    ana: await add(ana.agent, {}),
+    ana2: await add(ana.agent, { barangay: 'Matalaba' }),
+    ben: await add(ben.agent, { municipality: 'Boac', barangay: 'Tumagabok', location: BOAC }),
+    kalManaged: await add(a.kaluppa, { managedById: managerId }),
+    kalOpen: await add(a.kaluppa, { municipality: 'Torrijos', barangay: 'Bonliw', location: { lat: 13.3189, lng: 122.0819 } }),
   };
   return { a, kaluppa: a.kaluppa, manager, boacManager, ana, ben, farms };
 }

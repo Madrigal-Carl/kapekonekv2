@@ -159,7 +159,7 @@ function stats(p) {
     const r = p.records
     return [
       { k: 'Selling limit', v: 'No limit', n: p.approvedAt ? `Approved ${formatDate(p.approvedAt)}` : 'Approved', tone: 'text-tone-green-ink' },
-      { k: 'Your farms', v: plural(r.farms, 'farm'), n: `${+r.hectares.toFixed(2)} ha in total` },
+      { k: 'Your farms', v: plural(r.farms, 'farm'), n: `${r.hectares.toFixed(2)} ha in total` },
       { k: 'Harvest this year', v: formatKg(r.harvestKgThisYear), n: `${formatKg(r.soldKgThisYear)} sold to Kaluppa` },
       { k: 'Member since', v: p.approvedAt ? new Date(p.approvedAt).toLocaleDateString('en-PH', { month: 'short', year: 'numeric' }) : '—', n: p.association.name },
     ]

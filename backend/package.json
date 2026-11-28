@@ -10,6 +10,7 @@
     "start": "node src/server.js",
     "lint": "eslint .",
     "test": "vitest run",
+    "migrate": "node src/database/commands/migrate.js",
     "migrate:fresh": "node src/database/commands/migrateFresh.js",
     "db:seed": "node src/database/commands/dbSeed.js"
   },

@@ -14,7 +14,9 @@ const { runSeeders } = await import('../src/database/seeders/index.js');
 const { FarmerProfile, User } = await import('../src/models/index.js');
 
 let r;
-const lots = (body) => body.data.farms.map((f) => f.lotNumber).sort();
+// Farms are named by their key in `r.farms`.
+const nameOf = (f) => Object.keys(r.farms).find((k) => r.farms[k].id === f.id);
+const lots = (body) => body.data.farms.map(nameOf).sort();
 const map = async (agent, query = '') => (await agent.get(`/api/map/farms${query}`).expect(200)).body;
 
 beforeAll(async () => {
@@ -32,22 +34,22 @@ afterAll(stopMemoryDb);
 
 describe('GET /map/farms', () => {
   it('a farmer sees only their own farms', async () => {
-    expect(lots(await map(r.ana.agent))).toEqual(['Ana 1', 'Ana 2']);
+    expect(lots(await map(r.ana.agent))).toEqual(['ana', 'ana2']);
   });
 
   it('a Group Manager sees its association’s farms and the Kaluppa farm it manages', async () => {
-    expect(lots(await map(r.manager))).toEqual(['Ana 1', 'Ana 2', 'Kaluppa Demo Farm']);
+    expect(lots(await map(r.manager))).toEqual(['ana', 'ana2', 'kalManaged']);
   });
 
   it('Kaluppa sees every farm, with Kaluppa farms marked', async () => {
     const body = await map(r.kaluppa);
-    expect(lots(body)).toEqual(['Ana 1', 'Ana 2', 'Ben 1', 'Kaluppa Demo Farm', 'Torrijos Nursery']);
-    expect(body.data.farms.filter((f) => f.ownerType === 'kaluppa').map((f) => f.lotNumber).sort()).toEqual(['Kaluppa Demo Farm', 'Torrijos Nursery']);
+    expect(lots(body)).toEqual(['ana', 'ana2', 'ben', 'kalManaged', 'kalOpen']);
+    expect(body.data.farms.filter((f) => f.ownerType === 'kaluppa').map(nameOf).sort()).toEqual(['kalManaged', 'kalOpen']);
   });
 
   it('carries the popover fields: trees by variety, main stages, last harvest, Managed by', async () => {
     const { farms } = (await map(r.kaluppa)).data;
-    const ana = farms.find((f) => f.lotNumber === 'Ana 1');
+    const ana = farms.find((f) => nameOf(f) === 'ana');
     expect(ana).toMatchObject({
       propertyNumber: r.farms.ana.propertyNumber,
       owner: { name: 'Ana Farmer' },
@@ -62,26 +64,26 @@ describe('GET /map/farms', () => {
       lastHarvest: { yieldKg: 110, harvestedAt: dayKey(-3) },
       managedBy: null,
     });
-    expect(farms.find((f) => f.lotNumber === 'Kaluppa Demo Farm').managedBy).toMatchObject({ name: expect.stringMatching(/\w/) });
-    expect(farms.find((f) => f.lotNumber === 'Ana 2')).toMatchObject({ treeCount: 0, varieties: [], stages: [], lastHarvest: null });
+    expect(farms.find((f) => nameOf(f) === 'kalManaged').managedBy).toMatchObject({ name: expect.stringMatching(/\w/) });
+    expect(farms.find((f) => nameOf(f) === 'ana2')).toMatchObject({ treeCount: 0, varieties: [], stages: [], lastHarvest: null });
   });
 
   it('filters by variety (farms with active trees of it) and municipality', async () => {
-    expect(lots(await map(r.kaluppa, '?variety=robusta'))).toEqual(['Ben 1']);
-    expect(lots(await map(r.kaluppa, '?municipality=Torrijos'))).toEqual(['Torrijos Nursery']);
+    expect(lots(await map(r.kaluppa, '?variety=robusta'))).toEqual(['ben']);
+    expect(lots(await map(r.kaluppa, '?municipality=Torrijos'))).toEqual(['kalOpen']);
     expect(lots(await map(r.ana.agent, '?variety=robusta'))).toEqual([]);
   });
 
   it('filters by association for Kaluppa; a Group Manager stays in its own scope', async () => {
-    expect(lots(await map(r.kaluppa, `?association=${r.a.boac.id}`))).toEqual(['Ben 1']);
-    expect(lots(await map(r.manager, `?association=${r.a.boac.id}`))).toEqual(['Ana 1', 'Ana 2', 'Kaluppa Demo Farm']);
+    expect(lots(await map(r.kaluppa, `?association=${r.a.boac.id}`))).toEqual(['ben']);
+    expect(lots(await map(r.manager, `?association=${r.a.boac.id}`))).toEqual(['ana', 'ana2', 'kalManaged']);
   });
 
   it('includes the Kaluppa branch pin; archived farms are left out', async () => {
     const body = await map(r.kaluppa);
     expect(body.data.branch).toMatchObject({ name: expect.any(String), location: { lat: expect.any(Number), lng: expect.any(Number) } });
     await r.ana.agent.post(`/api/farms/${r.farms.ana2.id}/archive`).expect(200);
-    expect(lots(await map(r.ana.agent))).toEqual(['Ana 1']);
+    expect(lots(await map(r.ana.agent))).toEqual(['ana']);
   });
 
   it('needs a signed-in user with map.view', async () => {

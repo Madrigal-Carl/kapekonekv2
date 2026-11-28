@@ -52,10 +52,10 @@ function toRow(f) {
   return {
     id: f.id,
     label: f.propertyNumber,
-    farm: { main: f.propertyNumber, sub: f.lotNumber },
+    farm: { main: f.propertyNumber, sub: `${f.barangay}, ${f.municipality}` },
     owner: ownerCell(f.owner, f),
     loc: { main: `${f.barangay}, ${f.municipality}`, sub: f.street || '—' },
-    size: `${f.sizeHa.toFixed(1)} ha`,
+    size: `${f.sizeHa.toFixed(2)} ha`,
     trees: { main: f.treeCount.toLocaleString('en-PH'), sub: `${f.groupCount} ${f.groupCount === 1 ? 'group' : 'groups'}` },
     last: f.lastHarvest ? `${formatDay(f.lastHarvest.harvestedAt, 'MMM d')} · ${f.lastHarvest.yieldKg} kg` : '—',
     managed: kaluppa ? (f.managedBy ? { main: f.managedBy.name } : { main: 'Not assigned', sub: 'Assign a Group Manager' }) : { main: '—' },
@@ -143,7 +143,8 @@ export function Farms() {
         error={list.isError}
         onRetry={() => list.refetch()}
         emptyState={params.status === 'archived' ? { title: 'No archived farms' } : { title: 'No farms yet', text: 'Add a farm to start recording its trees and harvests.' }}
-        searchPlaceholder="Search property no., lot or barangay"
+        searchPlaceholder="Search property no. or barangay"
+        sortKey="farm"
         minWidth={audience === 'farmer' ? 760 : 980}
         selectedId={params.open}
       />
@@ -168,7 +169,7 @@ export function Farms() {
         onClose={() => setModal(null)}
         onConfirm={confirm}
       >
-        <strong>{modal && `${modal.farm.propertyNumber} · ${modal.farm.lotNumber}`}</strong> and its {modal?.farm.groupCount ?? 0} tree groups move to Archived. Harvest records stay. You can
+        <strong>{modal?.farm.propertyNumber}</strong> ({modal && `${modal.farm.barangay}, ${modal.farm.municipality}`}) and its {modal?.farm.groupCount ?? 0} tree groups move to Archived. Harvest records stay. You can
         restore it any time.
       </ConfirmModal>
       <ConfirmModal

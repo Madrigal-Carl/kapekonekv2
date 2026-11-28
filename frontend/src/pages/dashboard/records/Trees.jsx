@@ -30,7 +30,7 @@ function toRow(g, audience) {
   return {
     id: g.id,
     label: `${g.count} ${varietyLabel(g.variety)}`,
-    farm: { main: g.farm.propertyNumber, sub: g.farm.lotNumber },
+    farm: { main: g.farm.propertyNumber, sub: `${g.farm.barangay}, ${g.farm.municipality}` },
     owner: audience === 'farmer' ? null : ownerCell(g.owner, g.farm),
     variety: varietyLabel(g.variety),
     stage: { label: stage.label, tone: STAGE_TONE[g.stage] },

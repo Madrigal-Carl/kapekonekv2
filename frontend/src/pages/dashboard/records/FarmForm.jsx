@@ -6,7 +6,6 @@ import { toast } from 'sonner'
 import { Drawer } from '@/components/dashboard/Drawer'
 import { ConfirmChangesModal } from '@/components/ui/ConfirmChangesModal'
 import { TextField } from '@/components/dashboard/RecordParts'
-import { Label } from '@/components/ui/Input'
 import { SearchSelect } from '@/components/ui/SearchSelect'
 import { Spinner } from '@/components/ui/Spinner'
 import { useGroupManagers } from '@/hooks/useAssociations'
@@ -22,7 +21,7 @@ import { FormFooter } from '../farmers/FarmerForm'
 // mapbox-gl is large: load it only when a farm form opens.
 const MapPicker = lazy(() => import('@/components/map/MapPicker').then((m) => ({ default: m.MapPicker })))
 
-const FIELDS = ['farmerId', 'managedById', 'lotNumber', 'sizeHa', 'municipality', 'barangay', 'street', 'location']
+const FIELDS = ['farmerId', 'managedById', 'sizeHa', 'municipality', 'barangay', 'street', 'location']
 const OUTSIDE = 'Put the pin on the farm, inside Marinduque.'
 const HINTS = {
   empty: 'Pick the municipality and barangay to zoom in, or click the map to drop the pin.',
@@ -35,7 +34,6 @@ const OPTION_LIMIT = 50
 const toForm = (farm) => ({
   farmerId: '',
   managedById: farm?.managedBy?.id ?? ASSIGN_LATER,
-  lotNumber: farm?.lotNumber ?? '',
   sizeHa: farm?.sizeHa ?? '',
   municipality: farm?.municipality ?? '',
   barangay: farm?.barangay ?? '',
@@ -126,7 +124,6 @@ function FarmFields({ formId, farm, create, update, actsForFarmers, isKaluppa, o
   const managerName = (id) => (id === farm?.managedBy?.id ? farm.managedBy.name : managerOptions.find((o) => o.value === id)?.label.split(' · ')[0] ?? 'Assign later')
   const changes = useDirtyDiff(initial, useWatch({ control }), {
     ...(isKaluppa && { managedById: { label: 'Managed by', format: managerName } }),
-    lotNumber: 'Lot number',
     sizeHa: { label: 'Size', format: (v) => `${Number(v).toFixed(2)} ha` },
     municipality: 'Municipality',
     barangay: 'Barangay',
@@ -201,29 +198,22 @@ function FarmFields({ formId, farm, create, update, actsForFarmers, isKaluppa, o
           )}
         />
       )}
-      <div className="grid gap-5 min-[720px]:grid-cols-2">
-        <TextField id="farm-lot" label="Lot number" placeholder="e.g. Lot 12-B" autoComplete="off" error={errors.lotNumber?.message} {...register('lotNumber')} />
-        <div>
-          <Label htmlFor="farm-pn">Property number</Label>
-          <input
-            id="farm-pn"
-            readOnly
-            value={farm?.propertyNumber ?? ''}
-            placeholder="TCT-····-····"
-            aria-describedby="farm-pn-hint"
-            className="mt-2 min-h-[42px] w-full rounded-control border border-sand-soft bg-cream px-3 py-[9px] font-mono text-sm text-ink-2"
-          />
-          <span id="farm-pn-hint" className="mt-[5px] block text-xs text-ink-3">Made automatically when you save.</span>
-        </div>
-      </div>
+      {/* Change 08: the property number is never an input. */}
+      <p className="rounded-md border border-sand-soft bg-cream px-3 py-2.5 text-[12.5px] text-ink-2">
+        {editing
+          ? `Property number ${farm.propertyNumber} was made automatically and can’t be changed.`
+          : 'The property number is made automatically when you save (e.g. TCT-2026-0025).'}
+      </p>
       <TextField
         id="farm-size"
         label="Size (hectares)"
         type="number"
         inputMode="decimal"
         step="0.01"
-        min="0"
-        placeholder="0.0"
+        min="0.01"
+        max="500"
+        placeholder="0.00"
+        hint="Up to 2 decimal places, e.g. 1.25."
         error={errors.sizeHa?.message}
         {...register('sizeHa', { setValueAs: (v) => (v === '' || v == null ? undefined : Number(v)) })}
       />

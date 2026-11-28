@@ -22,6 +22,7 @@ import {
   LuChartColumn,
   LuCheck,
   LuChevronDown,
+  LuChevronUp,
   LuChevronLeft,
   LuChevronRight,
   LuCircleAlert,
@@ -148,6 +149,7 @@ export const IconCalendar = LuCalendarDays
 export const IconCamera = LuCamera
 export const IconCheck = LuCheck
 export const IconChevronDown = LuChevronDown
+export const IconChevronUp = LuChevronUp
 export const IconChevronLeft = LuChevronLeft
 export const IconChevronRight = LuChevronRight
 export const IconCircleAlert = LuCircleAlert

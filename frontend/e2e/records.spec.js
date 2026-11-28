@@ -1,8 +1,7 @@
 import { expect, test } from '@playwright/test'
 
-// M9 flows (PHASE-2-SPEC §3.6): needs `npm run migrate:fresh -- --seed` (records seeder: Kaluppa Demo Farm managed by
-// manager.santacruz, Lot 21 owned by nestor.perez).
-const unique = () => `${Date.now().toString(36)}${Math.floor(Math.random() * 1e4)}`
+// M9 flows (PHASE-2-SPEC §3.6): needs `npm run migrate:fresh -- --seed` (records seeder: the Pantayin Kaluppa farm managed by
+// manager.santacruz, a Lipa farm owned by nestor.perez).
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila' }).format(new Date())
 
 async function signIn(page, identifier, password = 'KapeKonek@123') {
@@ -18,7 +17,6 @@ const pick = async (page, scope, field, option) => {
 }
 
 test('farmer adds a farm, adds trees on it, then records a harvest of that variety', async ({ page }) => {
-  const lot = `E2E ${unique()}`
   await signIn(page, 'farmer.approved')
   await page.goto('/dashboard/farms')
   await expect(page.getByRole('heading', { name: 'My farms' })).toBeVisible()
@@ -26,8 +24,13 @@ test('farmer adds a farm, adds trees on it, then records a harvest of that varie
   await page.getByRole('button', { name: 'Add farm' }).click()
   const form = page.getByRole('dialog', { name: 'Add a farm' })
   await expect(form.getByRole('button', { name: /^Farmer/ })).toHaveCount(0)
-  await form.getByLabel('Lot number').fill(lot)
-  await form.getByLabel('Size (hectares)').fill('0.8')
+  // Change 08: no lot number; the property number is a note, never an input.
+  await expect(form.getByLabel('Lot number')).toHaveCount(0)
+  await expect(form.getByText('The property number is made automatically when you save (e.g. TCT-2026-0025).')).toBeVisible()
+  await form.getByLabel('Size (hectares)').fill('1.255')
+  await form.getByRole('button', { name: 'Save farm' }).click()
+  await expect(form.getByText('Use at most 2 decimal places, e.g. 1.25')).toBeVisible()
+  await form.getByLabel('Size (hectares)').fill('1.25')
   await pick(page, form, /^Municipality/, 'Mogpog') // places the pin at the town
   await pick(page, form, /^Barangay/, 'Bocboc')
   await form.getByRole('button', { name: 'Save farm' }).click()
@@ -35,9 +38,11 @@ test('farmer adds a farm, adds trees on it, then records a harvest of that varie
   await expect(saved).toBeVisible()
   const code = (await saved.textContent()).match(/TCT-\d{4}-\d{4}/)[0]
 
-  await page.getByPlaceholder('Search property no., lot or barangay').fill(lot)
+  await expect(page.getByRole('columnheader', { name: 'Farm' })).toHaveAttribute('aria-sort', 'ascending')
+  await page.getByPlaceholder('Search property no. or barangay').fill(code)
+  await expect(page.getByRole('row', { name: new RegExp(code) })).toContainText('1.25 ha')
   await page.getByRole('button', { name: `View ${code}` }).click()
-  const view = page.getByRole('dialog', { name: new RegExp(lot) })
+  const view = page.getByRole('dialog', { name: `${code} · Bocboc, Mogpog` })
   await view.getByRole('tab', { name: 'Trees (0)' }).click()
   await view.getByRole('button', { name: 'Add tree group' }).click()
   await pick(page, view, /^Variety/, 'Liberica')
@@ -53,7 +58,7 @@ test('farmer adds a farm, adds trees on it, then records a harvest of that varie
   await page.getByRole('button', { name: 'Add harvest' }).click()
   const record = page.getByRole('dialog', { name: 'Record a harvest' })
   await expect(record.getByRole('button', { name: /^Variety/ })).toBeDisabled()
-  await pick(page, record, /^Farm/, `${code} · ${lot}`)
+  await pick(page, record, /^Farm/, `${code} · Bocboc, Mogpog`)
   await expect(record.getByText('This farm has Liberica trees, so only those varieties are listed.')).toBeVisible()
   await record.getByRole('button', { name: /^Variety/ }).click()
   await expect(page.getByRole('option')).toHaveText(['Liberica'])
@@ -64,7 +69,7 @@ test('farmer adds a farm, adds trees on it, then records a harvest of that varie
   await expect(page.getByText('Harvest saved.')).toBeVisible()
 
   // Clean up: archive the farm (its tree group goes with it).
-  await page.goto(`/dashboard/farms?q=${encodeURIComponent(lot)}`)
+  await page.goto(`/dashboard/farms?q=${code}`)
   await page.getByRole('button', { name: `Archive ${code}` }).click()
   await page.getByRole('dialog', { name: 'Archive this farm?' }).getByRole('button', { name: 'Archive farm' }).click()
   await expect(page.getByText(`${code} was archived.`)).toBeVisible()
@@ -79,9 +84,10 @@ test('Group Manager: Farmer comes first in the form; the managed Kaluppa farm is
   await expect(form.getByRole('button', { name: /^Farmer/ })).toBeVisible()
   await form.getByRole('button', { name: 'Cancel' }).click()
 
-  await page.getByPlaceholder('Search property no., lot or barangay').fill('Kaluppa Demo Farm')
-  await page.getByRole('row', { name: /Kaluppa Demo Farm/ }).getByRole('button', { name: /^View TCT-/ }).click()
-  const view = page.getByRole('dialog', { name: /Kaluppa Demo Farm/ })
+  await page.getByPlaceholder('Search property no. or barangay').fill('Pantayin')
+  await expect(page).toHaveURL(/q=Pantayin/) // the debounced search has re-rendered the table
+  await page.getByRole('row', { name: /Kaluppa farm/ }).getByRole('button', { name: /^View TCT-/ }).click()
+  const view = page.getByRole('dialog', { name: /^TCT-\d{4}-\d{4} · Pantayin, Santa Cruz$/ })
   await expect(view.getByText('Farmers working on it')).toBeVisible()
   await expect(view.getByText('Nestor Perez')).toBeVisible()
   await expect(view.getByRole('button', { name: 'Assign a farmer' })).toBeVisible()
@@ -101,8 +107,8 @@ test('Kaluppa: Owner filter, and “Managed by” on its farm form', async ({ pa
 test('guard: a farmer opening another farmer’s farm link gets the 404 page', async ({ page, browser }) => {
   const manager = await browser.newPage()
   await signIn(manager, 'manager.santacruz')
-  await manager.goto('/dashboard/farms?q=Lot%2021')
-  await manager.getByRole('row', { name: /Lot 21/ }).getByRole('button', { name: /^View TCT-/ }).click()
+  await manager.goto('/dashboard/farms?q=Lipa')
+  await manager.getByRole('row', { name: /Nestor Perez/ }).getByRole('button', { name: /^View TCT-/ }).click()
   await expect(manager).toHaveURL(/open=/)
   const link = new URL(manager.url())
 

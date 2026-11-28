@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { associationDescriptionRule, associationNameRule, emailRule, farmSizeRule, farmStreetRule, lotNumberRule, nameRule, optionalNameRule, pastDateRule, phoneRule, recordNoteRule, treeCountRule, usernameRule, yieldRule } from './rules.js'
+import { associationDescriptionRule, associationNameRule, emailRule, farmSizeRule, farmStreetRule, nameRule, optionalNameRule, pastDateRule, phoneRule, recordNoteRule, treeCountRule, usernameRule, yieldRule } from './rules.js'
 
 // Mirror backend/src/schemas/{farmer,groupManager,association}.schema.js. Documents and pickers are sent beside these.
 
@@ -38,7 +38,6 @@ export const farmFormSchema = ({ needsFarmer = false } = {}) =>
   z.object({
     farmerId: needsFarmer ? z.string('Choose the farmer who owns this farm').min(1, 'Choose the farmer who owns this farm') : z.string().optional(),
     managedById: z.string().nullable().optional(),
-    lotNumber: lotNumberRule,
     sizeHa: farmSizeRule,
     municipality: z.string('Choose a municipality in Marinduque').min(1, 'Choose a municipality in Marinduque'),
     barangay: z.string('Choose a barangay').min(1, 'Choose a barangay'),

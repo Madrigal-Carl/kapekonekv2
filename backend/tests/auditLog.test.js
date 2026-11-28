@@ -71,11 +71,11 @@ describe('every Phase 2 mutation writes one audit entry', () => {
   });
   once('farmer approve', () => r.manager.post(`/api/farmers/${ids.joy.user._id}/approve`));
   once('farm create', async () => {
-    const res = await r.ana.agent.post('/api/farms').send(farmBody({ lotNumber: 'Ana 9' }));
+    const res = await r.ana.agent.post('/api/farms').send(farmBody());
     ids.farm = res.body.data?.id;
     return res;
   });
-  once('farm edit', () => r.ana.agent.patch(`/api/farms/${ids.farm}`).send(farmBody({ lotNumber: 'Ana 9', sizeHa: 2.5 })));
+  once('farm edit', () => r.ana.agent.patch(`/api/farms/${ids.farm}`).send(farmBody({ sizeHa: 2.5 })));
   once('tree group add', async () => {
     const res = await r.ana.agent.post('/api/tree-groups').send({ farmId: ids.farm, variety: 'liberica', stage: 'growing', count: 50, plantedAt: dayKey(-300) });
     ids.tree = res.body.data?.id;

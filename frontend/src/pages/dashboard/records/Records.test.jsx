@@ -10,7 +10,7 @@ import { HarvestForm } from './HarvestForm'
 import { Trees } from './Trees'
 
 const FARM = {
-  id: 'farm1', propertyNumber: 'TCT-2026-0001', lotNumber: 'Lot 1', ownerType: 'farmer', owner: { id: 'u1', name: 'Ana Farmer' },
+  id: 'farm1', propertyNumber: 'TCT-2026-0001', ownerType: 'farmer', owner: { id: 'u1', name: 'Ana Farmer' },
   association: { id: 'a1', name: 'Santa Cruz Coffee Growers' }, managedBy: null, assignedFarmers: [], sizeHa: 1.2,
   municipality: 'Santa Cruz', barangay: 'Pantayin', street: '', location: { lat: 13.47, lng: 122.03 }, status: 'active',
   canEdit: true, canAssignFarmers: false, canManageRecords: true, treeCount: 80, groupCount: 2, varieties: ['excelsa', 'liberica'], lastHarvest: null,
@@ -86,7 +86,7 @@ describe('HarvestForm', () => {
     expect(date.value).toBe(todayKey())
     expect(date.max).toBe(todayKey())
     fireEvent.click(screen.getByRole('button', { name: /^Farm/ }))
-    fireEvent.click(screen.getByRole('option', { name: 'TCT-2026-0001 · Lot 1' }))
+    fireEvent.click(screen.getByRole('option', { name: 'TCT-2026-0001 · Pantayin, Santa Cruz' }))
     expect(await screen.findByText('This farm has Excelsa and Liberica trees, so only those varieties are listed.')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: /Variety/ }))
     expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['Excelsa', 'Liberica'])

@@ -75,7 +75,7 @@ const FIELDS = {
   contactNumber: 'contact number',
   managedBy: 'managed by',
   groupManager: 'Group Manager',
-  lotNumber: 'lot',
+  lotNumber: 'lot', // removed in Change 08; older audit entries still name it
   plantedAt: 'planted',
   harvestedAt: 'harvested',
   isFeatured: 'featured',

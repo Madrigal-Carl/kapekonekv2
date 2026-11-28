@@ -26,7 +26,7 @@ const STATUS_OPTIONS = [
 const COLUMNS = [
   { key: 'farmer', label: 'Farmer', kind: 'person' },
   { key: 'contact', label: 'Contact' },
-  { key: 'farms', label: 'Farms', align: 'right' },
+  { key: 'farms', label: 'Farms owned' },
   { key: 'harvest', label: 'Harvest this year', align: 'right' },
   { key: 'status', label: 'Status', kind: 'pill' },
   { key: 'since', label: 'Since', kind: 'muted' },
@@ -51,8 +51,9 @@ function toRow(f, association) {
     label: f.name,
     farmer: { name: f.name, sub: `@${f.username}`, initials: f.initials, avatarClassName: avatarFor(f.id) },
     contact: f.contactNumber,
-    // shortcut: farm and harvest totals arrive with M9's farms and harvests.
-    farms: null,
+    farms: f.farms?.count
+      ? { main: f.farms.first, sub: f.farms.count > 1 ? `+${f.farms.count - 1} more · owner` : 'Owner' }
+      : { main: '—', sub: 'No farms yet' },
     harvest: null,
     status: { label: STATUS[status][0], tone: STATUS[status][1] },
     since,

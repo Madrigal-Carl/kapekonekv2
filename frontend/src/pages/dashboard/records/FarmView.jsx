@@ -31,7 +31,7 @@ const stageOf = (key) => TREE_STAGES.find((s) => s.key === key)
 const lastHarvest = (farm) => (farm.lastHarvest ? `${formatDay(farm.lastHarvest.harvestedAt, 'MMM d')} · ${farm.lastHarvest.yieldKg} kg` : 'No harvest yet')
 const iconButton = 'size-[34px] hover:bg-crema'
 
-const farmTitle = (farm) => `${farm.lotNumber} · ${farm.barangay}, ${farm.municipality}`
+const farmTitle = (farm) => `${farm.propertyNumber} · ${farm.barangay}, ${farm.municipality}`
 
 /**
  * One farm (Farms.dc.html, FarmView board): Details with the map, Trees with inline add/edit, recent Harvests.
@@ -119,7 +119,7 @@ function Details({ farm }) {
         rows={[
           { k: 'Owner', v: kaluppa ? 'Kaluppa' : farm.owner.name },
           { k: 'Association', v: farm.association?.name ?? 'None' },
-          { k: 'Size', v: `${farm.sizeHa} hectares` },
+          { k: 'Size', v: `${farm.sizeHa.toFixed(2)} hectares` },
           { k: 'Location', v: [farm.street, farm.barangay, farm.municipality].filter(Boolean).join(', ') },
           { k: 'Varieties', v: farm.varieties.length ? farm.varieties.map(variety).join(', ') : 'No trees yet' },
           { k: 'Last harvest', v: lastHarvest(farm) },

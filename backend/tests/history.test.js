@@ -42,7 +42,7 @@ describe('record history', () => {
 
   it('pages newest first, 5 at a time, with the changed fields', async () => {
     for (let size = 2; size <= 7; size += 1) {
-      await r.ana.agent.patch(`/api/farms/${r.farms.ana2.id}`).send(farmBody({ lotNumber: 'Ana 2', barangay: 'Matalaba', sizeHa: size })).expect(200);
+      await r.ana.agent.patch(`/api/farms/${r.farms.ana2.id}`).send(farmBody({ barangay: 'Matalaba', sizeHa: size })).expect(200);
     }
     const first = (await history(r.ana.agent, 'farm', r.farms.ana2.id).expect(200)).body;
     expect(first.data).toHaveLength(5);

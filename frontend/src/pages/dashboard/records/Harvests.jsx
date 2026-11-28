@@ -35,7 +35,7 @@ function toRow(h, showOwner) {
     id: h.id,
     label: `${kg(h.yieldKg)} ${varietyLabel(h.variety)}`,
     date: formatDay(h.harvestedAt),
-    farm: { main: h.farm.propertyNumber, sub: h.farm.lotNumber },
+    farm: { main: h.farm.propertyNumber, sub: `${h.farm.barangay}, ${h.farm.municipality}` },
     owner: showOwner ? ownerCell(h.owner, h.farm) : null,
     variety: varietyLabel(h.variety),
     kg: kg(h.yieldKg),

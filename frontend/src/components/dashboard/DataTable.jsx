@@ -1,4 +1,4 @@
-import { IconApprove, IconArchive, IconChevronLeft, IconChevronRight, IconCircleX, IconEdit, IconHide, IconReject, IconReply, IconRestore, IconReview, IconSearch, IconShow, IconTree, IconView } from '@/components/ui/icons'
+import { IconApprove, IconArchive, IconChevronLeft, IconChevronRight, IconChevronUp, IconCircleX, IconEdit, IconHide, IconReject, IconReply, IconRestore, IconReview, IconSearch, IconShow, IconTree, IconView } from '@/components/ui/icons'
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { SearchSelect } from '@/components/ui/SearchSelect'
@@ -95,6 +95,7 @@ function CardHead({ column, value }) {
  *   actions?: string[] | ((row: object) => string[]), onAction?: (action: string, row: object) => void,
  *   total?: number, pageSize?: number, loading?: boolean, error?: unknown, onRetry?: () => void,
  *   emptyState?: { title: string, text?: string }, searchPlaceholder?: string, minWidth?: number, selectedId?: string, ariaLabel?: string,
+ *   sortKey?: string, // the column the server sorts by, ascending (Change 08): up arrow + aria-sort
  * }} props
  */
 export function DataTable({
@@ -115,6 +116,7 @@ export function DataTable({
   minWidth = 760,
   selectedId,
   ariaLabel = 'Records',
+  sortKey,
 }) {
   const { params, set, clear } = query
   const [draft, setDraft] = useState(params.q)
@@ -225,8 +227,14 @@ export function DataTable({
             <thead>
               <tr className="bg-cream">
                 {columns.map((c) => (
-                  <th key={c.key} scope="col" className={cn('whitespace-nowrap border-b border-sand-soft px-3.5 py-[11px] text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-3', c.align === 'right' ? 'text-right' : 'text-left')}>
+                  <th
+                    key={c.key}
+                    scope="col"
+                    aria-sort={sortKey ? (c.key === sortKey ? 'ascending' : 'none') : undefined}
+                    className={cn('whitespace-nowrap border-b border-sand-soft px-3.5 py-[11px] text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-3', c.align === 'right' ? 'text-right' : 'text-left')}
+                  >
                     {c.label}
+                    {c.key === sortKey && <IconChevronUp aria-hidden="true" className="ml-1 inline size-3 align-[-1px] text-roast" strokeWidth={2.4} />}
                   </th>
                 ))}
                 <th scope="col" className="border-b border-sand-soft px-3.5 py-[11px] text-right text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-3">Actions</th>

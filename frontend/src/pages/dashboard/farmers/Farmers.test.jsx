@@ -6,10 +6,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useAuthStore } from '@/stores/auth.store'
 import { Farmers } from './Farmers'
 
+const farmer = (id, name, farms) => ({ id, name, firstName: name.split(' ')[0], username: id, initials: 'XX', contactNumber: '09170000000', status: 'approved', since: '2026-01-05T00:00:00Z', createdAt: '2026-01-05T00:00:00Z', farms })
+const FARMERS = [farmer('rodel', 'Rodel Mendoza', { count: 3, first: 'TCT-2026-0011' }), farmer('joy', 'Joy Lacsamana', { count: 1, first: 'TCT-2026-0021' }), farmer('pedro', 'Pedro Santos', { count: 0, first: null })]
 const createFarmer = vi.fn(async (body) => ({ id: 'f9', name: `${body.firstName} ${body.lastName}`, firstName: body.firstName }))
 vi.mock('@/services/farmer.service', async (importOriginal) => ({
   ...(await importOriginal()),
-  listFarmers: vi.fn(async () => ({ items: [], meta: { page: 1, limit: 10, total: 0 } })),
+  listFarmers: vi.fn(async () => ({ items: FARMERS, meta: { page: 1, limit: 10, total: 3 } })),
   createFarmer: (body) => createFarmer(body),
 }))
 vi.mock('@/services/auth.service', async (importOriginal) => ({
@@ -39,6 +41,14 @@ const renderPage = () => {
 }
 
 describe('Farmers', () => {
+  it('shows Farms owned: the first property number, then “+N more · owner” (Change 08)', async () => {
+    renderPage()
+    const rodel = (await screen.findAllByText('TCT-2026-0011'))[0].closest('tr')
+    expect(rodel.textContent).toContain('+2 more · owner')
+    expect(screen.getAllByText('TCT-2026-0021')[0].closest('tr').textContent).toContain('Owner')
+    expect(screen.getAllByText('No farms yet').length).toBeGreaterThan(0)
+  })
+
   it('adds a farmer with a required email and the read-only default password (Change 08)', async () => {
     renderPage()
     const add = await screen.findByRole('button', { name: 'Add farmer' })

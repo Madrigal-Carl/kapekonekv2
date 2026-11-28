@@ -11,9 +11,8 @@ import { manilaDateKey } from '../utils/manilaDate.js';
 import { record } from './audit.service.js';
 import { isAssignedManager, isAssociationManager, isGroupManager, isKaluppaFarm, isOwner, seesEveryAssociation } from './policy.service.js';
 
-const AUDITED = ['lotNumber', 'sizeHa', 'municipality', 'barangay', 'street', 'location', 'managedBy'];
+const AUDITED = ['sizeHa', 'municipality', 'barangay', 'street', 'location', 'managedBy'];
 const notFound = () => new AppError(404, 'Farm not found.');
-const lotTaken = (message) => new AppError(409, message, { errors: { lotNumber: 'You already have a farm with this lot number' } });
 const fullName = (user) => (user ? `${user.firstName} ${user.lastName}` : null);
 const person = (user) => (user ? { id: String(user._id), name: fullName(user), username: user.username } : null);
 const idOf = (ref) => ref?._id ?? ref ?? null;
@@ -54,7 +53,6 @@ export const toFarmDto = (farm, actor, stats = {}) => {
   return {
     id: String(farm._id),
     propertyNumber: farm.propertyNumber,
-    lotNumber: farm.lotNumber,
     ownerType: farm.ownerType,
     owner: person(farm.owner),
     association: farm.association ? { id: String(farm.association._id), name: farm.association.name } : null,
@@ -86,7 +84,7 @@ async function withStats(farms, actor) {
 }
 const oneWithStats = async (farm, actor) => (await withStats([farm], actor))[0];
 
-const entity = (farm) => ({ type: 'farm', id: farm._id, label: `${farm.propertyNumber} · ${farm.lotNumber}` });
+const entity = (farm) => ({ type: 'farm', id: farm._id, label: `${farm.propertyNumber} · ${farm.barangay}, ${farm.municipality}` });
 const pin = (location) => (location?.coordinates ? `${location.coordinates[1].toFixed(5)}, ${location.coordinates[0].toFixed(5)}` : null);
 const auditView = (farm) => ({ ...Object.fromEntries(AUDITED.map((k) => [k, farm[k] ?? null])), location: pin(farm.location), managedBy: fullName(farm.managedBy) });
 const toDoc = ({ location, ...fields }) => ({ ...fields, location: { type: 'Point', coordinates: [location.lng, location.lat] } });
@@ -95,16 +93,6 @@ const toDoc = ({ location, ...fields }) => ({ ...fields, location: { type: 'Poin
 async function nextPropertyNumber() {
   const year = manilaDateKey().slice(0, 4);
   return `TCT-${year}-${String(await nextSequence(`farm:${year}`)).padStart(4, '0')}`;
-}
-
-/** A duplicate `{owner, lotNumber}` (partial unique index) becomes a 409 on lotNumber; anything else rethrows. */
-async function guardLot(write, message) {
-  try {
-    return await write();
-  } catch (err) {
-    if (err?.code === 11000 && err.keyPattern?.lotNumber) throw lotTaken(message);
-    throw err;
-  }
 }
 
 /** A farmer approved into the Group Manager's association; 404 otherwise, so other associations don't leak. */
@@ -144,7 +132,7 @@ export const getFarm = async (actor, id) => oneWithStats(await loadFarm(actor, i
 
 /**
  * The farms whose trees and harvests the actor may list: null = every farm (Kaluppa), else their ids, archived
- * farms included. With `q`, only farms whose property or lot number matches.
+ * farms included. With `q`, only farms whose property number matches.
  */
 export const farmIdsFor = (actor, q) => (seesEveryAssociation(actor) && !q ? null : repo.findFarmIdsInScope(scopeOf(actor), q));
 
@@ -165,10 +153,7 @@ export async function createFarm(actor, { farmerId, managedById, ...fields }) {
     owner = farmerId;
     placement = { managedBy: null, association: profile.association };
   }
-  const farm = await guardLot(
-    async () => repo.createFarm(toDoc({ ...fields, ...placement, owner, ownerType, createdBy: actor._id, propertyNumber: await nextPropertyNumber() })),
-    'That owner already has a farm with this lot number.',
-  );
+  const farm = await repo.createFarm(toDoc({ ...fields, ...placement, owner, ownerType, createdBy: actor._id, propertyNumber: await nextPropertyNumber() }));
   await record({ actor, area: 'farms', action: 'create', entity: entity(farm), after: auditView(farm), fields: AUDITED });
   return oneWithStats(farm, actor);
 }
@@ -182,7 +167,7 @@ export async function updateFarm(actor, id, { farmerId: _ignored, managedById, .
   if (isKaluppaFarm(before) && managedById !== undefined && String(managedById) !== String(idOf(before.managedBy))) {
     Object.assign(changes, await managerFor(managedById), { assignedFarmers: [] });
   }
-  const after = await guardLot(() => repo.updateFarm(id, changes), 'That owner already has a farm with this lot number.');
+  const after = await repo.updateFarm(id, changes);
   if ('association' in changes) await moveFarmRecords([after._id], changes.association);
   await record({ actor, area: 'farms', action: 'update', entity: entity(after), before: auditView(before), after: auditView(after), fields: AUDITED });
   return oneWithStats(after, actor);
@@ -200,12 +185,12 @@ export async function archiveFarm(actor, id) {
   return oneWithStats(after, actor);
 }
 
-/** Undo an archive. 409 when the owner has since used the lot number on an active farm. */
+/** Undo an archive: the farm and the tree groups archived with it come back. */
 export async function restoreFarm(actor, id) {
   const farm = await loadFarm(actor, id);
   if (!canEditFarm(actor, farm)) throw forbidden();
   if (!farm.archivedAt) throw new AppError(409, 'This farm isn’t archived.');
-  const after = await guardLot(() => repo.updateFarm(id, { archivedAt: null }), 'An active farm already uses this lot number. Change that one first.');
+  const after = await repo.updateFarm(id, { archivedAt: null });
   await trees.restoreByFarm(after._id, farm.archivedAt); // only the groups archived with the farm
   await record({ actor, area: 'farms', action: 'restore', entity: entity(after), before: { status: 'archived' }, after: { status: 'active' }, fields: ['status'] });
   return oneWithStats(after, actor);
@@ -257,7 +242,6 @@ export async function farmForRecords(actor, farmId) {
 export const recordFarm = (farm) => ({
   id: String(farm._id),
   propertyNumber: farm.propertyNumber,
-  lotNumber: farm.lotNumber,
   ownerType: farm.ownerType,
   barangay: farm.barangay,
   municipality: farm.municipality,

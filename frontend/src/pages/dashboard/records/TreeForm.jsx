@@ -54,7 +54,7 @@ export function FarmPicker({ farms = [], current, actsForFarmers, value, onChang
         icon="pin"
         placeholder="Select farm"
         searchPlaceholder="Search farm"
-        options={shown.map((f) => ({ value: f.id, label: `${f.propertyNumber} · ${f.lotNumber}` }))}
+        options={shown.map((f) => ({ value: f.id, label: `${f.propertyNumber} · ${f.barangay}, ${f.municipality}` }))}
         value={value || null}
         onChange={onChange}
         ref={fieldRef}

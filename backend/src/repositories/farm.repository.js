@@ -28,7 +28,7 @@ export const createFarm = async (data) => findFarmById((await Farm.create(data))
 export const findFarmById = (id) => populated(Farm.findById(id));
 
 /**
- * One page of farms in a scope, newest first.
+ * One page of farms in a scope, by property number (Change 08).
  * @param {{ scope: object, q?: RegExp, status?: string, municipality?: string, ownerType?: string, farmerId?: string, page: number, limit: number }} query
  */
 export function listFarms({ scope, q, status = 'active', municipality, ownerType, farmerId, page, limit }) {
@@ -38,9 +38,9 @@ export function listFarms({ scope, q, status = 'active', municipality, ownerType
     ...(municipality && { municipality }),
     ...(ownerType && { ownerType }),
     ...(farmerId && { owner: farmerId }),
-    ...(q && { $and: [{ $or: [{ propertyNumber: q }, { lotNumber: q }, { barangay: q }, { street: q }] }] }),
+    ...(q && { $and: [{ $or: [{ propertyNumber: q }, { barangay: q }, { street: q }] }] }),
   };
-  return pageList(Farm.find(filter).sort({ createdAt: -1, _id: -1 }).populate(POPULATE), { page, limit });
+  return pageList(Farm.find(filter).sort({ propertyNumber: 1, _id: 1 }).populate(POPULATE), { page, limit });
 }
 
 /** @returns {Promise<object|null>} the updated farm, populated */
@@ -55,12 +55,22 @@ export const setManagedAssociation = (managerId, associationId) => Farm.updateMa
 
 /** Ids of the farms in a scope, archived ones included (their harvests stay visible). null scope = every farm. */
 export const findFarmIdsInScope = (scope, q) =>
-  Farm.find({ ...scopeFilter(scope), ...(q && { $or: [{ propertyNumber: q }, { lotNumber: q }] }) }).distinct('_id');
+  Farm.find({ ...scopeFilter(scope), ...(q && { propertyNumber: q }) }).distinct('_id');
 
 /** A farmer's active farms: how many and their total hectares. */
 export async function ownerTotals(ownerId) {
   const [row] = await Farm.aggregate([{ $match: { owner: new mongoose.Types.ObjectId(String(ownerId)), archivedAt: null } }, { $group: { _id: null, farms: { $sum: 1 }, hectares: { $sum: '$sizeHa' } } }]);
   return { farms: row?.farms ?? 0, hectares: row?.hectares ?? 0 };
+}
+
+/** Farmers page "Farms owned" (Change 08): each owner's active farms, how many and the first property number. */
+export async function ownedFarmsByOwners(ownerIds) {
+  const rows = await Farm.aggregate([
+    { $match: { owner: { $in: ownerIds }, ownerType: 'farmer', archivedAt: null } },
+    { $sort: { propertyNumber: 1 } },
+    { $group: { _id: '$owner', count: { $sum: 1 }, first: { $first: '$propertyNumber' } } },
+  ]);
+  return new Map(rows.map((r) => [String(r._id), { count: r.count, first: r.first }]));
 }
 
 export const countFarmsByAssociation = (associationId) => Farm.countDocuments({ association: associationId, archivedAt: null });

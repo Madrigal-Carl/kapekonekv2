@@ -35,7 +35,7 @@ describe('recording harvests', () => {
   it('the owner records one; recordedBy comes from the actor', async () => {
     const res = await r.ana.agent.post('/api/harvests').send(harvest(r.farms.ana.id, { note: 'Red cherries only' })).expect(201);
     expect(res.body.data).toMatchObject({
-      farm: { id: r.farms.ana.id, lotNumber: 'Ana 1' }, owner: { name: 'Ana Farmer' }, variety: 'liberica', yieldKg: 110,
+      farm: { id: r.farms.ana.id, propertyNumber: r.farms.ana.propertyNumber }, owner: { name: 'Ana Farmer' }, variety: 'liberica', yieldKg: 110,
       harvestedAt: dayKey(-5), recordedBy: { name: 'Ana Farmer' }, status: 'active', canEdit: true,
     });
     ids.ana = res.body.data.id;

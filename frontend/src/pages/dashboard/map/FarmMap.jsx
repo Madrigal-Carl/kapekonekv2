@@ -19,7 +19,7 @@ import { DashPage } from '../overview/Overview'
 const MapPicker = lazy(() => import('@/components/map/MapPicker').then((m) => ({ default: m.MapPicker })))
 
 const label = (list, key) => list.find((x) => x.key === key)?.label ?? key
-const ha = (n) => `${n.toLocaleString('en-PH', { minimumFractionDigits: 1, maximumFractionDigits: 2 })} ha`
+const ha = (n) => `${n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ha`
 const ownerLine = (f) => (f.ownerType === 'kaluppa' ? 'Kaluppa farm' : f.owner?.name ?? 'Deleted account')
 
 /** The popover rows (PHASE-2-SPEC §3.11). */
@@ -39,11 +39,11 @@ function popRows(f) {
 /** The card above the selected pin (MiniMap.dc.html popover). */
 function FarmPopover({ farm, onClose }) {
   return (
-    <div role="dialog" aria-label={`${farm.lotNumber} · ${ownerLine(farm)}`} className="w-[264px] cursor-default rounded-card border border-sand bg-white p-3.5 text-ink shadow-[0_18px_40px_-18px_rgb(43_26_18/0.5)]">
+    <div role="dialog" aria-label={`${farm.barangay}, ${farm.municipality} · ${ownerLine(farm)}`} className="w-[264px] cursor-default rounded-card border border-sand bg-white p-3.5 text-ink shadow-[0_18px_40px_-18px_rgb(43_26_18/0.5)]">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <span className="block font-mono text-[11px] text-ink-3">{farm.propertyNumber}</span>
-          <span className="block text-[14.5px] font-semibold leading-[1.3]">{`${farm.lotNumber} · ${ownerLine(farm)}`}</span>
+          <span className="block text-[14.5px] font-semibold leading-[1.3]">{`${farm.barangay}, ${farm.municipality} · ${ownerLine(farm)}`}</span>
         </div>
         <Button variant="ghost" size="sm" iconOnly aria-label="Close" onClick={onClose} className="size-[30px] min-h-0 shrink-0 text-ink-3">
           <IconX aria-hidden="true" className="size-[15px]" strokeWidth={2} />
@@ -92,7 +92,7 @@ export function FarmMap() {
     () => (current ? { municipality: current.municipality, barangay: current.barangay, label: note } : { municipality: muni, fit: Boolean(muni), label: note }),
     [current, muni, note],
   )
-  const pins = useMemo(() => farms.map((f) => ({ id: f.id, lat: f.location.lat, lng: f.location.lng, tone: f.ownerType, label: `${f.propertyNumber}, ${f.lotNumber}` })), [farms])
+  const pins = useMemo(() => farms.map((f) => ({ id: f.id, lat: f.location.lat, lng: f.location.lng, tone: f.ownerType, label: `${f.propertyNumber}, ${f.barangay}` })), [farms])
 
   const selectFilters = [
     isKaluppa && {

@@ -5,7 +5,7 @@ import { associationMatch } from '../utils/reportQuery.js';
 
 const PEOPLE = 'firstName lastName username';
 export const RECORD_POPULATE = [
-  { path: 'farm', select: 'propertyNumber lotNumber ownerType owner association managedBy barangay municipality archivedAt', populate: { path: 'managedBy', select: PEOPLE } },
+  { path: 'farm', select: 'propertyNumber ownerType owner association managedBy barangay municipality archivedAt', populate: { path: 'managedBy', select: PEOPLE } },
   { path: 'owner', select: PEOPLE },
   { path: 'recordedBy', select: PEOPLE },
 ];

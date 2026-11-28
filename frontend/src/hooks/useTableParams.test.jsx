@@ -41,6 +41,16 @@ describe('useTableParams', () => {
     expect(t.search).toBe('')
   })
 
+  it('a search typed right after closing a drawer doesn’t reopen it', () => {
+    vi.useFakeTimers()
+    const t = harness('/x?open=new')
+    const typed = t.set // the search box's handler, from before the drawer closed
+    act(() => t.set({ open: null }))
+    act(() => typed({ q: 'Pantayin' }))
+    act(() => vi.advanceTimersByTime(300))
+    expect(t.search).toBe('?q=Pantayin')
+  })
+
   it('keeps an "All" choice when the default is narrower', () => {
     const t = harness('/x')
     act(() => t.set({ status: '' }))

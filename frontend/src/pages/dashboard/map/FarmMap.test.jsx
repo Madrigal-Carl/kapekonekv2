@@ -9,13 +9,13 @@ import { FarmMap } from './FarmMap'
 
 const FARMS = [
   {
-    id: 'f1', propertyNumber: 'TCT-2026-0011', lotNumber: 'Lot 12-B', ownerType: 'farmer', owner: { id: 'u1', name: 'Rodel Mendoza' },
+    id: 'f1', propertyNumber: 'TCT-2026-0011', ownerType: 'farmer', owner: { id: 'u1', name: 'Rodel Mendoza' },
     association: { id: 'a1', name: 'Santa Cruz Coffee Growers' }, managedBy: null, sizeHa: 1.2, municipality: 'Santa Cruz', barangay: 'Pantayin',
     location: { lat: 13.47, lng: 122.03 }, treeCount: 240, varieties: [{ variety: 'liberica', count: 140 }, { variety: 'excelsa', count: 100 }],
     stages: [{ stage: 'fruiting', pct: 60 }, { stage: 'growing', pct: 40 }], lastHarvest: { yieldKg: 110, harvestedAt: '2026-11-18' },
   },
   {
-    id: 'f6', propertyNumber: 'TCT-2026-0002', lotNumber: 'Kaluppa Demo Farm', ownerType: 'kaluppa', owner: { id: 'k', name: 'Kaluppa' },
+    id: 'f6', propertyNumber: 'TCT-2026-0002', ownerType: 'kaluppa', owner: { id: 'k', name: 'Kaluppa' },
     association: { id: 'a1', name: 'Santa Cruz Coffee Growers' }, managedBy: { id: 'm', name: 'Liza Ramos' }, sizeHa: 3.5, municipality: 'Santa Cruz',
     barangay: 'Pantayin', location: { lat: 13.46, lng: 122.04 }, treeCount: 0, varieties: [], stages: [], lastHarvest: null,
   },
@@ -61,7 +61,7 @@ describe('FarmMap', () => {
   it('Kaluppa gets the association filter and the side list with totals', async () => {
     renderAs('kaluppa')
     expect(await screen.findByRole('heading', { name: '2 farms' })).toBeTruthy()
-    expect(screen.getByText('4.7 ha · 240 trees')).toBeTruthy()
+    expect(screen.getByText('4.70 ha · 240 trees')).toBeTruthy()
     expect(screen.getByRole('button', { name: /All associations/ })).toBeTruthy()
     expect(screen.getByText('Kaluppa farm · Pantayin, Santa Cruz')).toBeTruthy()
   })
@@ -76,7 +76,7 @@ describe('FarmMap', () => {
   it('picking a farm in the list opens its popover with the details and "Open farm"', async () => {
     renderAs('kaluppa')
     fireEvent.click(await within(screen.getByRole('region', { name: 'Farms' })).findByRole('button', { name: /TCT-2026-0011/ }))
-    const pop = screen.getByRole('dialog', { name: 'Lot 12-B · Rodel Mendoza' })
+    const pop = screen.getByRole('dialog', { name: 'Pantayin, Santa Cruz · Rodel Mendoza' })
     expect(within(pop).getByText('240 · 140 Liberica, 100 Excelsa')).toBeTruthy()
     expect(within(pop).getByText('Fruiting 60% · Growing 40%')).toBeTruthy()
     expect(within(pop).getByText('Nov 18 · 110 kg')).toBeTruthy()
@@ -88,8 +88,8 @@ describe('FarmMap', () => {
 
   it('a Kaluppa farm pin shows Managed by', async () => {
     renderAs('kaluppa')
-    fireEvent.click(await screen.findByRole('button', { name: 'pin TCT-2026-0002, Kaluppa Demo Farm' }))
-    const pop = screen.getByRole('dialog', { name: 'Kaluppa Demo Farm · Kaluppa farm' })
+    fireEvent.click(await screen.findByRole('button', { name: 'pin TCT-2026-0002, Pantayin' }))
+    const pop = screen.getByRole('dialog', { name: 'Pantayin, Santa Cruz · Kaluppa farm' })
     expect(within(pop).getByText('Liza Ramos')).toBeTruthy()
   })
 

@@ -29,7 +29,7 @@ describe('adding tree groups', () => {
   it('the owner adds one; recordedBy comes from the actor', async () => {
     const res = await r.ana.agent.post('/api/tree-groups').send(group(r.farms.ana.id, { note: 'Shade-grown under coconut' })).expect(201);
     expect(res.body.data).toMatchObject({
-      farm: { id: r.farms.ana.id, propertyNumber: r.farms.ana.propertyNumber, lotNumber: 'Ana 1' },
+      farm: { id: r.farms.ana.id, propertyNumber: r.farms.ana.propertyNumber },
       owner: { name: 'Ana Farmer' }, variety: 'liberica', stage: 'fruiting', count: 40, plantedAt: '2022-03-15',
       recordedBy: { name: 'Ana Farmer' }, status: 'active', canEdit: true,
     });

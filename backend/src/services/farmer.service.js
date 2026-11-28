@@ -2,6 +2,7 @@ import { EMAIL_JOBS } from '../queues/email.jobs.js';
 import { DEFAULT_PASSWORD } from '../constants/accounts.js';
 import { BEAN_CAP_KG } from '../constants/beans.js';
 import { capUsedKgByFarmers } from '../repositories/bean.repository.js';
+import { ownedFarmsByOwners } from '../repositories/farm.repository.js';
 import * as profiles from '../repositories/farmerProfile.repository.js';
 import {
   createUser,
@@ -74,11 +75,18 @@ export async function listFarmers(actor, { q, status, associationId: chosen, pag
   const ids = await profiles.findFarmerIdsInScope({ associationId, status });
   const { items, meta } = await listUsersAmong({ ids, words: q ? q.split(/\s+/).map(containsPattern) : [], page, limit });
   const userIds = items.map((u) => u._id);
-  const [found, used] = await Promise.all([profiles.findProfilesByUsers(userIds), capUsedKgByFarmers(userIds)]);
+  const [found, used, owned] = await Promise.all([profiles.findProfilesByUsers(userIds), capUsedKgByFarmers(userIds), ownedFarmsByOwners(userIds)]);
   const byUser = new Map(found.map((p) => [String(p.user), p]));
   // Unapproved farmers carry what's left of the 5 kg cap, so a Group Manager's picker can show who is at the limit.
   const capLeftKg = (id, profile) => (profile?.status === 'approved' ? null : Math.max(0, BEAN_CAP_KG - (used.get(String(id)) ?? 0)));
-  return { items: items.map((u) => ({ ...farmerDto(u, byUser.get(String(u._id))), capLeftKg: capLeftKg(u._id, byUser.get(String(u._id))) })), meta };
+  return {
+    items: items.map((u) => ({
+      ...farmerDto(u, byUser.get(String(u._id))),
+      capLeftKg: capLeftKg(u._id, byUser.get(String(u._id))),
+      farms: owned.get(String(u._id)) ?? { count: 0, first: null },
+    })),
+    meta,
+  };
 }
 
 export async function getFarmer(actor, id) {

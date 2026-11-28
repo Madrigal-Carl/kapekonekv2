@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { insideMarinduque } from '../services/boundary.service.js';
 import { getLocations, isValidBarangay } from '../services/location.service.js';
 import { objectIdRule, pageQuerySchema } from './common.schema.js';
-import { farmSizeRule, farmStreetRule, lotNumberRule } from './rules.js';
+import { farmSizeRule, farmStreetRule } from './rules.js';
 
 const MUNICIPALITIES = getLocations().map((m) => m.name);
 const municipalityRule = z.enum(MUNICIPALITIES, 'Choose a municipality in Marinduque');
@@ -16,7 +16,6 @@ export const farmSchema = z
   .object({
     farmerId: objectIdRule.optional(),
     managedById: objectIdRule.nullable().optional(),
-    lotNumber: lotNumberRule,
     sizeHa: farmSizeRule,
     municipality: municipalityRule,
     barangay: z.string('Choose a barangay').trim().min(1, 'Choose a barangay'),
@@ -37,6 +36,7 @@ export const farmListQuery = pageQuerySchema.extend({
   municipality: municipalityRule.optional(),
   ownerType: z.enum(['farmer', 'kaluppa']).optional(),
   farmerId: objectIdRule.optional(),
+  sort: z.enum(['propertyNumber']).default('propertyNumber'), // Change 08: property number, ascending
 });
 
 /** GET /map/farms (PHASE-2-SPEC §3.11). */
