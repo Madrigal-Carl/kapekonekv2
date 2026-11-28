@@ -1,9 +1,9 @@
-import { Check, TriangleAlert } from 'lucide-react'
+import { IconCheck, IconTriangleAlert } from '@/components/ui/icons'
 import { cn } from '@/lib/cn'
 
 const TONES = {
-  success: { box: 'border-positive-line bg-positive-bg text-positive-ink text-[13px]', Icon: Check, role: 'status' },
-  danger: { box: 'border-danger-line bg-danger-soft text-danger-text text-[12.5px]', Icon: TriangleAlert, role: 'alert' },
+  success: { box: 'border-positive-line bg-positive-bg text-positive-ink text-[13px]', Icon: IconCheck, role: 'status' },
+  danger: { box: 'border-danger-line bg-danger-soft text-danger-text text-[12.5px]', Icon: IconTriangleAlert, role: 'alert' },
 }
 
 /** Inline message box from the auth screens (sent-link status, expired-link error). */

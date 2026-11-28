@@ -49,7 +49,7 @@ export function ForgotPassword() {
           />
           <FieldHint id="email-error" error={errors.email?.message} />
         </div>
-        <Button type="submit" pending={forgot.isPending} className="py-[13px] text-[14.5px]">
+        <Button size="lg" type="submit" loading={forgot.isPending}>
           {forgot.isSuccess ? 'Resend link' : 'Email me a reset link'}
         </Button>
       </form>

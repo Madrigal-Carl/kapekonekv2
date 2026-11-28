@@ -2,15 +2,17 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { Link } from 'react-router-dom'
+import { UsernameField } from '@/components/auth/UsernameField'
+import { TermsModal } from '@/components/legal/TermsModal'
 import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { Eyebrow } from '@/components/ui/Eyebrow'
+import { IconCircleAlert } from '@/components/ui/icons'
 import { FieldHint, Input, Label } from '@/components/ui/Input'
 import { PasswordInput, PasswordRule } from '@/components/ui/PasswordInput'
 import { RadioCard } from '@/components/ui/RadioCard'
-import { useRegister, useUsernameSuggestions } from '@/hooks/useAuth'
-import { useDebouncedValue } from '@/hooks/useDebouncedValue'
-import { useUsernameStatus } from '@/hooks/useUsernameStatus'
+import { useRegister } from '@/hooks/useAuth'
+import { USERNAME_INPUT, useUsernameStatus } from '@/hooks/useUsernameStatus'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
 import { cn } from '@/lib/cn'
@@ -27,26 +29,27 @@ const PANEL = {
 
 const ROLES = [
   { value: 'buyer', title: 'Buy coffee', description: 'Order coffee for delivery or pickup.' },
-  { value: 'farmer', title: 'Sell as a farmer', description: 'Sell beans to Kaluppa. Dashboard access right away.' },
+  { value: 'farmer', title: 'Sell as a farmer', description: 'Record your farms and sell beans to Kaluppa. Verify your email to start.' },
 ]
 
-const FIELDS = ['firstName', 'middleName', 'lastName', 'username', 'email', 'password', 'role']
+const FIELDS = ['firstName', 'middleName', 'lastName', 'username', 'email', 'contactNumber', 'password', 'role', 'acceptTerms']
+const docLink = 'h-auto border-0 p-0 align-baseline text-[13.5px] font-semibold text-roast underline underline-offset-2 hover:text-roast-hover'
 
 export function Register() {
   const signup = useRegister()
   const [showPasswords, setShowPasswords] = useState(false)
-  const { register, control, handleSubmit, setValue, setError, formState: { errors } } = useForm({
+  const [terms, setTerms] = useState(null) // which tab TermsModal opens on, or null
+  const { register, control, handleSubmit, setValue, setError, formState: { errors, isSubmitted } } = useForm({
     resolver: zodResolver(registerSchema),
-    defaultValues: { role: 'buyer', firstName: '', middleName: '', lastName: '', username: '', email: '', password: '', confirmPassword: '' },
+    defaultValues: { role: 'buyer', firstName: '', middleName: '', lastName: '', username: '', email: '', contactNumber: '', password: '', confirmPassword: '', acceptTerms: false },
   })
   const [role, firstName, lastName, username, password] = useWatch({ control, name: ['role', 'firstName', 'lastName', 'username', 'password'] })
   const status = useUsernameStatus(username, errors.username?.message)
-  const suggestions = useUsernameSuggestions(useDebouncedValue(firstName.trim(), 500), useDebouncedValue(lastName.trim(), 500))
 
   // GuestRoute sends buyers to verify their email and farmers to their dashboard once the session is set.
-  // The API's schema drops confirmPassword.
-  const onSubmit = (values) =>
-    signup.mutate(values, { onError: (error) => applyServerErrors(error, setError, FIELDS) })
+  // The API's schema drops confirmPassword; only farmers send a contact number.
+  const onSubmit = ({ contactNumber, ...values }) =>
+    signup.mutate(values.role === 'farmer' ? { ...values, contactNumber } : values, { onError: (error) => applyServerErrors(error, setError, FIELDS) })
   const formError = signup.isError && !Object.keys(signup.error.response?.data?.errors ?? {}).length ? errorMessage(signup.error) : null
 
   return (
@@ -86,54 +89,29 @@ export function Register() {
           </div>
         </div>
 
-        <div>
-          <Label htmlFor="username">Username</Label>
-          <div className="relative mt-2">
-            <span aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-4">@</span>
-            <Input
-              id="username"
-              autoComplete="username"
-              aria-describedby="username-status"
-              invalid={status.tone === 'taken'}
-              className={cn('pl-[30px]', status.tone === 'available' && 'border-success-line')}
-              {...register('username', { setValueAs: (v) => v.toLowerCase(), onChange: (e) => { e.target.value = e.target.value.toLowerCase() } })}
-            />
-          </div>
-          <p
-            id="username-status"
-            aria-live="polite"
-            className={cn(
-              'mt-1.5 flex items-center gap-1.5 text-xs font-medium',
-              { muted: 'text-ink-3', taken: 'text-danger-ink', available: 'text-success-ink' }[status.tone],
-            )}
-          >
-            {status.message}
-          </p>
-          {suggestions.data?.length > 0 && (
-            <div className="mt-2 flex flex-nowrap items-center gap-1.5 overflow-x-auto whitespace-nowrap">
-              <span className="shrink-0 text-xs text-ink-3">Suggestions:</span>
-              {suggestions.data.map((name) => (
-                <button
-                  key={name}
-                  type="button"
-                  onClick={() => setValue('username', name, { shouldValidate: true })}
-                  className={cn(
-                    'min-h-8 shrink-0 cursor-pointer whitespace-nowrap rounded-full border border-sand-strong px-[11px] py-[5px] text-[12.5px] text-ink',
-                    username === name ? 'bg-crema' : 'bg-white',
-                  )}
-                >
-                  @{name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <UsernameField
+          id="username"
+          value={username}
+          status={status}
+          firstName={firstName}
+          lastName={lastName}
+          onPick={(name) => setValue('username', name, { shouldValidate: true })}
+          registration={register('username', USERNAME_INPUT)}
+        />
 
         <div>
           <Label htmlFor="email">Email</Label>
           <Input id="email" type="email" autoComplete="email" placeholder="you@example.com" className="mt-2" invalid={Boolean(errors.email)} aria-describedby="email-error" {...register('email')} />
           <FieldHint id="email-error" error={errors.email?.message} />
         </div>
+
+        {role === 'farmer' && (
+          <div>
+            <Label htmlFor="contactNumber">Contact number</Label>
+            <Input id="contactNumber" type="tel" inputMode="tel" autoComplete="tel" placeholder="09XX XXX XXXX" className="mt-2" invalid={Boolean(errors.contactNumber)} aria-describedby="contactNumber-error" {...register('contactNumber')} />
+            <FieldHint id="contactNumber-error" error={errors.contactNumber?.message} />
+          </div>
+        )}
 
         <div>
           <Label htmlFor="password">Password</Label>
@@ -169,10 +147,45 @@ export function Register() {
           <FieldHint id="confirmPassword-error" error={errors.confirmPassword?.message} />
         </div>
 
-        <Button type="submit" pending={signup.isPending} className="py-[13px] text-[14.5px]">
+        <div>
+          <div className="flex items-start gap-2.5">
+            <input
+              id="acceptTerms"
+              type="checkbox"
+              className={cn('mt-0.5 size-[18px] shrink-0 rounded-[3px] accent-roast', errors.acceptTerms && 'outline-2 outline-offset-2 outline-danger')}
+              aria-invalid={Boolean(errors.acceptTerms) || undefined}
+              aria-describedby="acceptTerms-error"
+              {...register('acceptTerms')}
+            />
+            <span className="text-[13.5px] leading-[1.55] text-ink">
+              <label htmlFor="acceptTerms" className="cursor-pointer">I agree to KapeKonek’s</label>{' '}
+              <Button variant="bare" onClick={() => setTerms('terms')} className={docLink}>Terms and Conditions</Button>
+              {' and '}
+              <Button variant="bare" onClick={() => setTerms('privacy')} className={docLink}>Privacy Policy</Button>.
+            </span>
+          </div>
+          {errors.acceptTerms && (
+            <p id="acceptTerms-error" role="alert" className="m-0 ml-7 mt-1.5 flex items-center gap-1.5 text-[12.5px] font-medium text-danger-ink">
+              <IconCircleAlert aria-hidden="true" className="size-3.5 shrink-0" strokeWidth={2.2} />
+              {errors.acceptTerms.message}
+            </p>
+          )}
+        </div>
+
+        <Button size="lg" type="submit" loading={signup.isPending}>
           Create account
         </Button>
       </form>
+      {terms && <TermsModal
+        key={terms}
+        open
+        tab={terms}
+        onClose={() => setTerms(null)}
+        onAgree={() => {
+          setValue('acceptTerms', true, { shouldValidate: isSubmitted })
+          setTerms(null)
+        }}
+      />}
       <p className="mt-[22px] border-t border-sand-soft pt-[18px] text-center text-sm text-ink-2">
         Already have an account?{' '}
         <Link to="/login" className="font-semibold no-underline">

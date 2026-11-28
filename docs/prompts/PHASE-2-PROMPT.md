@@ -44,7 +44,7 @@ Everything is decided. If something is truly missing, write it in `docs/plans/ph
 
 **Accounts**
 - **FarmerProfile**: the association window, the pending/rejected banners, Account settings → Association (documents, transfer request/withdraw).
-- **Group Manager Farmers page**: tabs; review drawer with approve/reject (reason); add farmer (optional email → invite, or temporary password modal shown once); edit; remove (modal).
+- **Group Manager Farmers page**: tabs; review drawer with approve/reject (reason); add farmer (email required; read-only default password `KapeKonek@123`; verification email; Reset password on edit; see Change 08); edit; remove (modal).
 - **Kaluppa pages**: Group Managers (create, assign association or "Assign later", move, archive/restore) and Associations (create with group chat stub, archive rules).
 - **Notifications and emails** for requests and decisions. **Audit** entries for every action.
 
@@ -75,14 +75,16 @@ Everything is decided. If something is truly missing, write it in `docs/plans/ph
 - **`beans:expire` job** (hourly, idempotent) with notifications. Emails per PHASE-2-SPEC §6. Socket `bean:updated`.
 
 ### M11 — Store for farmers, Kaluppa orders, inventory, settings
+_(Change 05 runs before this milestone: react-icons, `<Button>`, map area highlights, username suggestions, redesigned farmer Association and Addresses pages. Use them from here on.)_
 - **Farmers in the store**: `/products` shows Fertilizer and Seedlings by permission; cart, addresses and checkout work for farmers. After placing an order, go to `/dashboard/orders?open=<id>`.
 - **Farmer Orders page**: table, view drawer, cancel modal.
 - **Kaluppa Orders**: table with tabs and filters; manage drawer (receipt check gate, confirm/reject, next steps, rider, cash collected, refund). Reuse the Phase 1 transition service; don't duplicate it.
-- **Inventory**: product table, drawer (category-dependent fields, units including `sack`, photos ≤ 5 with **thumbnail selection**, featured coffee only, active), archive/restore, low-stock rules.
+- **Inventory**: product table, drawer (category-dependent fields, units including `sack`, photos ≤ 5 with **thumbnail selection**, no Featured flag (best sellers are automatic since Change 08), default image when there's no photo, active), archive/restore, low-stock rules.
 - **Reviews** (Kaluppa): table, review drawer, public reply (edit/delete), hide with reason / show again, ratings recount from visible reviews only, the "Reply from Kaluppa" box on the product page, notifications, audit.
 - **Settings**: branch (map pin, hours), delivery fee (calculator), e-wallet (QR upload). The delivery quote, pickup card and bean instructions read from Settings. Orders keep their saved copy.
 
 ### M12 — Inbox
+_(Change 06 runs before this milestone: phone layouts, the overview date filter, History in drawers, Inbox fidelity (5px inputs, avatars, menu below "…"), GCash-only copy. M12 builds on that Inbox spec.)_
 - Conversation, ConversationMember and Message models, with the auto-created chats:
   - Kaluppa chats on account creation;
   - group chats per association;
@@ -100,7 +102,8 @@ Everything is decided. If something is truly missing, write it in `docs/plans/ph
 - Tests: permissions matrix, cursor maths, edit window, delete for everyone.
 
 ### M13 — Hub and the landing top 3
-- Composer: text, ≤ 10 media (images 5 MB, **videos 50 MB**), ≤ 3 tags.
+- **Create post modal** (Facebook-style; also used for editing, with a discard check): text, ≤ 10 media (images 5 MB, **videos 50 MB**), ≤ 3 tags. Match `HubCreatePost` / `HubMobileCreate`.
+- **Post viewer** (`HubPostView`, `HubPostText`, `HubMobileView`): caption, tags, reactions and the comment thread on the left; the media stage with prev / next and thumbnails on the right; deep link `/dashboard/hub/posts/:id?media=n`.
 - Feed with tag chips and cursor loading; **fixed 16:10 media grid** (1 / 2 / 1+2 / 2×2 +N, cover) and the viewer (contain).
 - Reactions (like / love / celebrate), comments with one level of replies, author edit/delete.
 - Kaluppa **remove with reason**, with notifications.
@@ -132,7 +135,7 @@ Follow Phase 1 §3. In addition:
 - [ ] Association window, banners, approve/reject with reason, resubmit, transfer (approval carries over, chats go read-only), removal (cap applies again) all work and are audited.
 - [ ] Unapproved farmers can't list more than 5 kg in total (also under concurrency). Approved farmers have no limit.
 - [ ] Bean flow: pending → approved (branch and hours in the email) → completed with final values; reject, cancel and **7-day expiry** work.
-- [ ] Farms (auto property number, lot number, size, municipality, barangay, street, map pin with fly-to), trees (5 stages, inside the farm drawer and on the Tree page) and harvests (variety limited to the farm) work for each role's scope. Archive/restore works.
+- [ ] Farms (auto property number, no lot number, size with 2 decimals, municipality, barangay, street, map pin with fly-to), trees (5 stages, inside the farm drawer and on the Tree page) and harvests (variety limited to the farm) work for each role's scope. Archive/restore works.
 - [ ] A Group Manager can do everything for its farmers (with the Farmer field) but can't see their inbox or orders.
 - [ ] Kaluppa: Group Managers, Associations, its own farms and harvests, the bean review, orders (buyers and farmers), inventory (thumbnail pick), review replies and hiding, settings (branch drives fees, pickup and bean instructions), reports with CSV, audit log.
 - [ ] Inbox: allowed contacts only; sent / delivered / seen; typing; reply; edit ≤ 15 min; delete for everyone and for me; older messages load as you scroll; read-only chats; desktop two panes and phone list → chat.

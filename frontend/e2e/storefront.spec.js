@@ -1,20 +1,31 @@
 import { expect, test } from '@playwright/test'
 
-async function signIn(page, identifier, password = 'Password123!') {
+async function signIn(page, identifier, password = 'KapeKonek@123') {
   await page.getByLabel('Email or username').fill(identifier)
   await page.getByLabel('Password', { exact: true }).fill(password)
   await page.getByRole('button', { name: 'Sign in' }).click()
 }
 
-test('landing shows the hero, featured coffee, latest posts and a one-open FAQ', async ({ page }) => {
+test('landing shows the hero, the best sellers carousel, latest posts and a one-open FAQ', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1, name: 'Marinduque coffee, delivered to your door.' })).toBeVisible()
   await expect(page.getByText('01 / 03')).toBeVisible()
   await page.getByRole('button', { name: 'Next slide' }).click()
   await expect(page.getByText('02 / 03')).toBeVisible()
 
-  await expect(page.getByRole('heading', { name: "This week's roasts and green beans" })).toBeVisible()
-  await expect(page.getByRole('button', { name: /^Add .+ to cart$/ })).toHaveCount(4)
+  // Change 08: the top 8 best sellers (coffee for guests), 4 per view, prev / next, dots and arrow keys.
+  await expect(page.getByRole('heading', { name: 'The 8 products people order most' })).toBeVisible()
+  const best = page.getByRole('region', { name: 'The 8 products people order most' })
+  await expect(best.getByRole('group')).toHaveCount(8)
+  await expect(best.getByText('#1 best seller')).toBeVisible()
+  await expect(best.getByText(/· [\d.]+k? sold/).first()).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Previous best sellers' })).toBeDisabled()
+  await page.getByRole('button', { name: 'Next best sellers' }).click()
+  await expect(page.getByRole('button', { name: 'Page 2' })).toHaveAttribute('aria-current', 'true')
+  await best.focus()
+  await page.keyboard.press('ArrowLeft')
+  await expect(page.getByRole('button', { name: 'Page 1' })).toHaveAttribute('aria-current', 'true')
+  await page.screenshot({ path: 'test-results/c08-best-sellers-1440.png' })
 
   const first = page.getByRole('button', { name: 'How does delivery work?' })
   const second = page.getByRole('button', { name: 'How do I pay?' })
@@ -70,14 +81,14 @@ test('guard: a guest who taps Add signs in and comes back to the product', async
   await page.getByRole('button', { name: 'Add to cart' }).click()
 
   await expect(page).toHaveURL('/login?redirect=%2Fproducts%2Fbarako-medium-roast')
-  await signIn(page, 'buyer01@kapekonek.test')
+  await signIn(page, 'kapekonek.buyer01@gmail.com')
   await expect(page).toHaveURL('/products/barako-medium-roast')
   await expect(page.getByRole('button', { name: /^Account menu for / })).toBeVisible()
 })
 
 test('a buyer with a completed order can write, edit and delete their review', async ({ page }) => {
   await page.goto('/login?redirect=/products/arabica-light-roast')
-  await signIn(page, 'buyer@kapekonek.test')
+  await signIn(page, 'kapekonek.buyer@gmail.com')
   await expect(page).toHaveURL('/products/arabica-light-roast')
   const panel = page.locator('#reviews')
   await expect(panel.getByRole('heading', { name: 'Write a review' })).toBeVisible()
@@ -119,7 +130,7 @@ test('mobile: the menu opens, closes with Esc and the account menu works by keyb
 
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto('/login')
-  await signIn(page, 'buyer02@kapekonek.test')
+  await signIn(page, 'kapekonek.buyer02@gmail.com')
   const trigger = page.getByRole('button', { name: /^Account menu for / })
   await trigger.click()
   await expect(page.getByRole('menuitem', { name: 'Profile' })).toBeFocused()

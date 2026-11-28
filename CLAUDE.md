@@ -14,12 +14,12 @@ Precedence when they disagree: the user's latest message → this file → PHASE
 
 A coffee marketplace with a CRM side, built for Kaluppa in Marinduque.
 
-- **Kaluppa is the only seller and does all fulfilment.** Farmers sell beans *to* Kaluppa. Buyers order **coffee** from Kaluppa. Farmers will later order **fertilizer and seedlings**.
+- **Kaluppa is the only seller and does all fulfilment.** Farmers sell beans *to* Kaluppa. Buyers order **coffee** from Kaluppa. Farmers will later order **fertilizer and beans** (the Beans category replaced Seedlings in Change 08).
 - **Fulfilment**:
   - **Delivery** anywhere in Marinduque. The fee is calculated server-side from the Mapbox road distance to Kaluppa, and the order arrives 3–5 business days after confirmation.
   - **Pickup at Kaluppa** (Pantayin, Santa Cruz, Marinduque).
   - There are no pickup stations and no Station Partners.
-- **Payment**: e-wallet (GCash/Maya QR + receipt upload), or cash (cash on delivery / cash on pickup).
+- **Payment**: e-wallet (QR + receipt upload; **only GCash is enabled for now**, providers come from Settings), or cash (cash on delivery / cash on pickup).
 - **Addresses**: buyers keep an address book (up to 10, one default) with a Mapbox map pin that auto-fills the fields; typing it all by hand also works.
 - **No order chat.** Buyers follow their order through statuses, email and in-app notifications. The dashboard **Inbox** (Phase 2) is separate: it's for farmers, Group Managers and Kaluppa, and it's never tied to an order.
 - **Phase 2** (dashboard):
@@ -144,11 +144,22 @@ Zod schema (react-hook-form) → TanStack Query hook → service function → ax
 - Role display names in the UI ("Group Manager", not `group_manager`). English only.
 - Accessible: labelled inputs, focus rings, keyboard-operable menus/drawers/modals (focus trap, Esc closes).
 
+## Icons and buttons (Change 05)
+
+- **Icons**: only `react-icons`, Lucide set (`react-icons/lu`), imported through `components/ui/icons.js`. The only custom SVGs allowed are the logo mark, the reaction badges and map pins.
+- **Buttons**: every button and button-styled link is `<Button variant size …>` from `components/ui/Button.jsx` (see `Buttons.dc.html`). Never style a raw `<button>` outside `components/ui/`.
+
 ## Phase 2 rules (dashboard)
 
 - **Scope by policy, not by role.** Records use the policy helpers in PHASE-2-SPEC §2 (`isOwner`, `isAssociationManager`, `isAssignedManager`, `isKaluppaFarm`). A Group Manager acting for a farmer always sends `farmerId`, and the service checks that the farmer is in the Group Manager's association.
 - **Two farmer states, two words:** "email verified" and "approved farmer". Never call an approved farmer "verified" in code, copy or tests.
 - **The 5 kg bean cap** is enforced in the service inside a transaction (PHASE-2-SPEC §3.5). The UI meter is only a hint.
+- **Every edit of an existing record asks "Save these changes?"** with a before → after list (`ConfirmChangesModal`). Destructive actions always confirm in a modal.
+- **Exports offer CSV and PDF and always follow the filters on screen.**
+- **Don't undo agreed layout**: sticky top bar; full-width Inbox and Hub; sticky Hub aside; 2×2 Reports charts (DESIGN §8.7).
+- **Phones are first-class**: every dashboard page works at 390px with no horizontal scroll (DESIGN §8.6).
+- **Every view drawer ends with History** from the audit log (PHASE-2-SPEC §3.15).
+- **Payment copy is never hard-coded**: build it from the providers enabled in Settings (only GCash for now).
 - **Every management page** = page header + `DataTable` (search left; plain filter dropdowns right, Status first; no tabs; row actions, numbered pages, URL-synced) + right **drawer** for add/edit/view + **modal** for archive/restore/reject/cancel/remove. Archive is a soft delete with Restore.
 - **Maps**: the address/farm/branch pickers share one `MapPicker`. Picking from the dropdowns flies the map and moves the pin without reverse-geocoding. Only a manual click or drag reverse-geocodes.
 - **Media frames are fixed** (16:10 stages and grids; cover in grids, contain in viewers). A tall or wide upload must never change a card's height.

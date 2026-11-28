@@ -17,6 +17,34 @@ a{color:#7B4A2A}a:hover{color:#653B20}
 button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
 .kk-menu{display:none !important}
 @media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+.kk-dt-cards{display:none}
+@media (max-width: 720px){
+.kk-dt-bar{flex-direction:column !important;align-items:stretch !important;padding:12px !important}
+.kk-dt-search{max-width:none !important;flex:1 1 auto !important}
+.kk-dt-filters{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:8px !important}
+.kk-dt-filters > div{width:auto !important}
+.kk-dt-clear{grid-column:1 / -1;justify-self:start}
+.kk-dt-table{display:none !important}
+.kk-dt-cards{display:flex !important}
+.kk-dt-foot{flex-direction:column !important;align-items:stretch !important;text-align:center}
+.kk-dt-foot nav{justify-content:center}
+.kk-g2,.kk-g3{grid-template-columns:minmax(0,1fr) !important}
+.kk-ph-actions{width:100%}
+.kk-ph-actions > *{flex:1 1 auto}
+.kk-seg{width:100%}
+.kk-seg > button{flex:1 1 0}
+.kk-drawer{width:100% !important;border-left:0 !important}
+.kk-drawer-body{padding:20px 18px 28px !important}
+.kk-drawer-head,.kk-drawer-foot{padding-left:18px !important;padding-right:18px !important}
+.kk-drawer-foot > *{flex:1 1 auto}
+.kk-cp{top:0 !important;left:0 !important;transform:none !important;width:100% !important;max-width:none !important;height:100vh;max-height:none !important;border-radius:0 !important}
+.kk-pv{flex-direction:column-reverse !important;overflow-y:auto}
+.kk-pv-side{width:100% !important;flex:1 0 auto !important;min-height:auto !important}
+.kk-pv-stage{flex:0 0 56vh !important;padding:52px 10px 78px !important}
+.kk-pv-nav{width:40px !important;height:40px !important}
+.kk-pv-thumb{width:44px !important;height:44px !important}
+.kk-pv-text{top:0 !important;left:0 !important;transform:none !important;width:100% !important;max-width:none !important;height:100vh;max-height:none !important;border-radius:0 !important}
+}
 </style>
 </helmet>
 <div style="width: 100%; min-height: 1050px"><dc-import name="Reviews" start="view" hint-size="100%,1050px"></dc-import></div>

@@ -50,7 +50,7 @@ export async function getCart(user) {
   for (const { product, quantity } of items) {
     if (!product) continue; // deleted product
     const flags = [];
-    if (!product.isActive) flags.push('INACTIVE');
+    if (!product.isActive || product.archivedAt) flags.push('INACTIVE');
     else if (product.stock <= 0) flags.push('OUT_OF_STOCK');
     else if (!fitsStock(product, quantity)) flags.push('OVER_STOCK');
     const key = String(product.category._id);

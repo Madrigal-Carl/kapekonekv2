@@ -8,7 +8,7 @@
   --color-espresso-2: #3A2419;    /* hero/auth panel base under the photo */
   --color-roast: #7B4A2A;         /* primary buttons, links, active states */
   --color-roast-hover: #653B20;
-  --color-caramel: #C8913A;       /* eyebrow bars, stars, decor (never body text on white) */
+  --color-caramel: #C8913A;       /* icon tiles, stars, decor (never body text on white) */
   --color-caramel-light: #EBC98F; /* caramel text on dark backgrounds */
   --color-caramel-tint: #F3E3C7;  /* icon tiles, role badges */
   --color-caramel-ink: #8A5A12;   /* category labels, small caramel text on white */
@@ -29,6 +29,8 @@
   --color-ink-2: #4A3A30;         /* body */
   --color-ink-3: #6B5A4E;         /* muted, labels */
   --color-ink-4: #7A6A5E;         /* faint, timestamps */
+  --color-ink-5: #8C7A66;         /* decorative only (system avatar); below 4.5:1 for text */
+  --color-typing-1: #B8A08A; --color-typing-2: #9C8470; /* typing dots */
 
   /* feedback */
   --color-success: #2E7D4F;  --color-success-ink: #22633A;  --color-success-bg: #E1F2E4;
@@ -40,6 +42,7 @@
   --color-success-line: #7FB892;  /* available-username input border */
   --color-warning-bg: #FDF1DC; --color-warning-ink: #8A5A00; /* logout icon tile */
   --color-notice-line-strong: #DDBE86; /* button on a notice banner */
+  --color-notice-track: #F1E2C4; /* selling-limit meter track */
   --color-disabled-bg: #E3D6C6; --color-disabled-ink: #6E5A4A;
   --color-stepper-off: #B5A89C; /* stepper + at its cap (on cream) */
 
@@ -47,6 +50,7 @@
   --color-manager: #2F6690; --color-manager-tint: #E3EEF8; --color-manager-ink: #1F4E79;
   --color-caramel-badge: #7A4A10; /* text on caramel-tint badges */
   --color-media: #1E130D;         /* media viewer backdrop */
+  --color-media-deep: #120B07;    /* Hub post viewer stage */
   --color-sold-out-bg: #EEEAE6; --color-sold-out-ink: #6E635B; --color-sold-out-label: #5E534B;
 
   /* map */
@@ -62,6 +66,27 @@
   --color-st-rejected-bg: #FBE4E2; --color-st-rejected-ink: #9B2C24; --color-st-rejected-dot: #C62828;
   --color-st-expired-bg: #E9ECEF; --color-st-expired-ink: #495057; --color-st-expired-dot: #868E96;
   --color-table-line: #F3ECE2;    /* order item table rows */
+
+  /* dashboard (DESIGN §8): status pill tones bg / ink / dot */
+  --color-tone-green-bg: #E1F2E4; --color-tone-green-ink: #1E5A34; --color-tone-green-dot: #2E7D4F;
+  --color-tone-amber-bg: #FBF3E3; --color-tone-amber-ink: #6B4209; --color-tone-amber-dot: #C8913A;
+  --color-tone-red-bg: #FDF0EE; --color-tone-red-ink: #8F2D22; --color-tone-red-dot: #C2554A;
+  --color-tone-blue-bg: #E8F0FA; --color-tone-blue-ink: #1F4E86; --color-tone-blue-dot: #2A78D6;
+  --color-tone-blue-line: #C6D8EE; --color-tone-green-line: #BFDFC6; --color-tone-roast-line: #E2CDB8; /* status banners in view drawers */
+  --color-tone-gray-bg: #F1ECE6; --color-tone-gray-ink: #4A3A30; --color-tone-gray-dot: #8C7A66;
+  --color-tone-roast-bg: #F3E6DA; --color-tone-roast-ink: #5A3218; --color-tone-roast-dot: #7B4A2A;
+  /* chart series (DESIGN §8.3, validated order: don't reorder) */
+  --color-chart-1: #2a78d6; --color-chart-2: #eb6834; --color-chart-3: #1baf7a; --color-chart-4: #eda100; --color-chart-5: #e87ba4;
+  --color-chart-axis: #CDBBA6;
+  /* avatar tiles */
+  --color-avatar-green: #3F6B4E;
+  --color-logout: #A1362B;
+
+  /* Button hovers and borders (Buttons.dc.html) */
+  --color-soft-hover: #F1E2CF;
+  --color-danger-hover: #8A2C22;
+  --color-danger-outline: #E3B3AC;
+  --color-success-hover: #256B42;
 
   --radius-control: 5px;   /* buttons, inputs */
   --radius-card: 8px;

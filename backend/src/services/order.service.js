@@ -1,22 +1,24 @@
 import { env } from '../config/env.js';
 import { getValkey } from '../config/valkey.js';
-import { ORDER_STATUSES } from '../constants/orderStatus.js';
+import { ORDER_GROUPS, ORDER_STATUSES } from '../constants/orderStatus.js';
 import { EMAIL_JOBS } from '../queues/email.jobs.js';
 import { enqueueEmail } from '../queues/email.queue.js';
 import { clearCartItems } from '../repositories/cart.repository.js';
-import { countByStatusForBuyer, createOrder, findOrderById, listByBuyerCursor } from '../repositories/order.repository.js';
-import { updateContactNumber } from '../repositories/user.repository.js';
+import { countByStatusForBuyer, createOrder, findOrderById, listByBuyerCursor, listOrdersPage } from '../repositories/order.repository.js';
+import { findCustomer, updateContactNumber } from '../repositories/user.repository.js';
 import { realtime } from '../sockets/realtime.js';
 import { AppError } from '../utils/AppError.js';
 import { etaWindow } from '../utils/businessDays.js';
+import { escapeRegex } from '../utils/escapeRegex.js';
 import { withLock } from '../utils/lock.js';
 import { nextOrderNumber } from '../utils/orderNumber.js';
 import { getOwnAddress } from './address.service.js';
+import { record } from './audit.service.js';
 import { getCart } from './cart.service.js';
 import { quoteForAddress } from './deliveryQuote.service.js';
 import { notifyKaluppa, notifyUsers } from './notification.service.js';
 import { userCan } from './permission.service.js';
-import { getSetting } from './setting.service.js';
+import { getPaymentSettings, getPickup, getSetting } from './setting.service.js';
 import { assertUploadAllowed, isOwnUpload } from './upload.service.js';
 
 const fieldError = (field, message) => new AppError(400, 'Please check the highlighted fields.', { errors: { [field]: message } });
@@ -57,8 +59,9 @@ export const orderEmailData = (order, eta) => ({
 });
 
 /** E-wallet receipts must be the buyer's own Cloudinary upload. */
-async function receiptFor(user, { paymentMethod, receipt }, now) {
+async function receiptFor(user, { paymentMethod, provider, receipt }, now) {
   if (paymentMethod !== 'e_wallet') return {};
+  if (!(await getPaymentSettings()).providers.includes(provider)) throw fieldError('provider', `${provider} isn’t available right now. Choose another way to pay.`);
   if (!isOwnUpload(user, 'receipt', receipt)) throw fieldError('receipt', 'Upload your receipt again, then place the order.');
   await assertUploadAllowed('receipt', receipt.publicId, 'receipt');
   return { receipt, submittedAt: now };
@@ -85,8 +88,7 @@ async function pickupFor(user, contactPhone) {
   const phone = contactPhone ?? user.contactNumber;
   if (!phone) throw fieldError('contactPhone', 'Enter a contact number so Kaluppa can reach you about your pickup');
   if (phone !== user.contactNumber) await updateContactNumber(user._id, phone);
-  const { name, address, hours, location } = await getSetting('pickup.location');
-  return { feeCentavos: 0, fulfillment: { method: 'pickup', contactName: fullName(user), contactPhone: phone, pickup: { name, address, hours, location } } };
+  return { feeCentavos: 0, fulfillment: { method: 'pickup', contactName: fullName(user), contactPhone: phone, pickup: await getPickup() } };
 }
 
 /** Emails, notifications and the live update after a successful placement. Failures are logged, never undo the order. */
@@ -134,6 +136,7 @@ async function createFromCart(user, body) {
     statusHistory: [{ status: 'pending', at: now, by: user._id, byRole: 'buyer' }],
   });
   await clearCartItems(user._id);
+  await record({ actor: user, area: 'orders', action: 'place', entity: { type: 'order', id: order._id, label: order.orderNumber }, after: { status: 'pending' }, fields: ['status'] });
   await announcePlaced(user, order);
   return presentOrder(order, now);
 }
@@ -150,11 +153,37 @@ export async function placeOrder(user, body) {
   return outcome.result;
 }
 
+/** The order's customer as the dashboard shows it (null for a deleted account). */
+const customerOf = (user) =>
+  user ? { id: user._id, name: fullName(user), role: user.roles.includes('farmer') ? 'farmer' : 'buyer', phone: user.contactNumber ?? null } : null;
+
 /**
- * @param {{ _id: unknown }} user
- * @param {{ status: string[], cursor?: string, limit: number }} query
+ * A numbered page of orders for a dashboard table: `scope` limits whose orders (the farmer's own, or Kaluppa's filters),
+ * `group` is a Status dropdown group, `q` matches the order number, an item name, or any of `orIds` as the customer.
+ * @param {object} scope
+ * @param {{ group: string, q: string, page: number, limit: number }} query
+ * @param {unknown[]} [orIds] customers whose name matched `q`
  */
-export async function listMyOrders(user, { status, cursor, limit }) {
+export async function listOrderTable(scope, { group, q, page, limit }, orIds = []) {
+  const filter = { ...scope };
+  if (group !== 'all') filter.status = { $in: ORDER_GROUPS[group] };
+  if (q) {
+    const pattern = new RegExp(escapeRegex(q), 'i');
+    filter.$or = [{ orderNumber: pattern }, { 'items.name': pattern }, ...(orIds.length ? [{ buyer: { $in: orIds } }] : [])];
+  }
+  const result = await listOrdersPage(filter, { page, limit });
+  const etaDays = await getSetting('delivery.eta');
+  const now = new Date();
+  return { items: result.items.map((o) => withEta({ ...o, buyer: o.buyer?._id ?? null, customer: customerOf(o.buyer) }, etaDays, now)), meta: result.meta };
+}
+
+/**
+ * The user's own orders: by cursor (buyer pages), or numbered pages when `page` is sent (the farmer's dashboard table).
+ * @param {{ _id: unknown }} user
+ * @param {{ status: string[], cursor?: string, limit: number, page?: number, group: string, q: string }} query
+ */
+export async function listMyOrders(user, { status, cursor, limit, page: pageNumber, group, q }) {
+  if (pageNumber) return listOrderTable({ buyer: user._id }, { group, q, page: pageNumber, limit });
   const page = await listByBuyerCursor(user._id, { statuses: status, cursor, limit });
   const etaDays = await getSetting('delivery.eta');
   const now = new Date();
@@ -176,4 +205,9 @@ export async function findOrderFor(user, id) {
   return order;
 }
 
-export const getOrderFor = async (user, id) => presentOrder(await findOrderFor(user, id));
+/** The order; Kaluppa (orders.manage) also gets the customer for the manage drawer. */
+export async function getOrderFor(user, id) {
+  const order = await presentOrder(await findOrderFor(user, id));
+  if (!(await userCan(user, 'orders.manage'))) return order;
+  return { ...order, customer: customerOf(await findCustomer(order.buyer)) };
+}

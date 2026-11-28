@@ -38,7 +38,9 @@ const schema = z
     ORDER_EXPIRY_DAYS: positiveInt(3),
     ORDER_EXPIRY_INTERVAL_MINUTES: positiveInt(5),
     CRON_SECRET: z.string().min(16, 'must be at least 16 characters'),
-    SEED_DEFAULT_PASSWORD: z.string().default('Password123!'),
+    SEED_DEFAULT_PASSWORD: z.string().default('KapeKonek@123'),
+    // Your Gmail: seed accounts become you+<handle>@gmail.com and their emails are really sent. Empty: never email seed accounts.
+    SEED_EMAIL_BASE: z.email().or(z.literal('')).optional().transform((v) => v || undefined),
   })
   .superRefine((env, ctx) => {
     if (env.MAIL_TRANSPORT !== 'brevo') return;

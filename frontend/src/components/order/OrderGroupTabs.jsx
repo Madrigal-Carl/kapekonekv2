@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/Button'
 import { groupCount, ORDER_GROUPS, ORDER_STATUS } from '@/constants/orderStatus'
 import { cn } from '@/lib/cn'
 
@@ -8,9 +9,8 @@ export function OrderGroupTabs({ active, counts, onChange }) {
       {ORDER_GROUPS.map(({ key, label, hint, statuses, icon: Icon }) => {
         const on = key === active
         return (
-          <button
+          <Button variant="bare"
             key={key}
-            type="button"
             role="tab"
             aria-selected={on}
             onClick={() => onChange(key)}
@@ -29,7 +29,7 @@ export function OrderGroupTabs({ active, counts, onChange }) {
               <span className="block text-sm font-semibold">{label}</span>
               <span className="mt-0.5 block text-[11.5px] leading-[1.4] text-ink-3">{hint}</span>
             </span>
-          </button>
+          </Button>
         )
       })}
     </div>
@@ -44,9 +44,8 @@ export function StatusChips({ statuses, active, counts, onChange }) {
       {chips.map((chip) => {
         const on = chip.key === active
         return (
-          <button
+          <Button variant="bare"
             key={chip.key}
-            type="button"
             aria-pressed={on}
             onClick={() => onChange(chip.key)}
             className={cn(
@@ -56,7 +55,7 @@ export function StatusChips({ statuses, active, counts, onChange }) {
           >
             {chip.dot && <span aria-hidden="true" className={cn('size-[7px] rounded-full', chip.dot)} />}
             {chip.label} <span className="opacity-75">{chip.count}</span>
-          </button>
+          </Button>
         )
       })}
     </div>

@@ -1,13 +1,14 @@
+import { refreshBestSellers } from '../../services/catalog.service.js';
 import { SETTING_DEFAULTS } from '../../constants/settings.js';
 import { ROLES } from '../../constants/permissions.js';
 import { listActiveByUser } from '../../repositories/address.repository.js';
 import { insertNotifications } from '../../repositories/notification.repository.js';
-import { getSetting } from '../../services/setting.service.js';
-import { buildBuyerOrders, noticesFor } from './buyerOrders.js';
+import { getPickup, getSetting } from '../../services/setting.service.js';
+import { buildBuyerOrders, FARMER_PLAN, noticesFor } from './buyerOrders.js';
 import { countOrders, insertOrders } from '../../repositories/order.repository.js';
 import { addSoldCount, listProductsByCategoryIds, reserveStock } from '../../repositories/product.repository.js';
 import { insertReviews } from '../../repositories/review.repository.js';
-import { findUserIdsByRole, findUsersByEmails } from '../../repositories/user.repository.js';
+import { findUserIdsByRole, findUsersByUsernames } from '../../repositories/user.repository.js';
 import { categoryIdsBySlug } from '../../repositories/category.repository.js';
 import { getLocations } from '../../services/location.service.js';
 import { recomputeRating } from '../../services/review.service.js';
@@ -16,7 +17,6 @@ import { nextOrderNumber } from '../../utils/orderNumber.js';
 
 const DAY = 86_400_000;
 const FEE = SETTING_DEFAULTS['delivery.fee'];
-const PICKUP = SETTING_DEFAULTS['pickup.location'];
 
 // [rating, comment]. Never mentions messaging or chat (PRODUCT-SPEC §11).
 const REVIEWS = [
@@ -56,16 +56,17 @@ const historyFor = (method, placedAt, soldAt) => [
 
 /**
  * Sold orders and reviews from the extra buyers, so ratings, review lists and "Top rated" have data.
- * Juana (buyer@) gets one sold order without a review, to try "Write a review".
+ * Juana (`buyer`) gets one sold order without a review, to try "Write a review".
  * Skipped once any order exists.
  */
 export async function seedDemo() {
   if ((await countOrders()) > 0) return 'skipped (orders exist)';
+  const pickup = await getPickup();
   const ids = await categoryIdsBySlug();
   const products = Object.fromEntries((await listProductsByCategoryIds([ids.coffee])).map((p) => [p.slug, p]));
   if (!products['barako-medium-roast']) throw new Error('Run the products seeder first.');
-  const emails = ['buyer', ...Array.from({ length: 20 }, (_, i) => `buyer${String(i + 1).padStart(2, '0')}`)];
-  const users = Object.fromEntries((await findUsersByEmails(emails.map((e) => `${e}@kapekonek.test`))).map((u) => [u.email.split('@')[0], u]));
+  const handles = ['buyer', ...Array.from({ length: 20 }, (_, i) => `buyer${String(i + 1).padStart(2, '0')}`)];
+  const users = Object.fromEntries((await findUsersByUsernames(handles)).map((u) => [u.username, u]));
   const towns = getLocations();
   const now = Date.now();
   const orders = [];
@@ -103,8 +104,8 @@ export async function seedDemo() {
           address: { label: 'home', recipientName: contactName, phone: buyer.contactNumber, province: 'Marinduque', municipality: town.name, barangay: town.barangays[i % town.barangays.length], postalCode: town.postalCode },
           etaFrom: new Date(placedAt.getTime() + 3 * DAY), etaTo: new Date(placedAt.getTime() + 5 * DAY),
         }
-        : { method, contactName, contactPhone: buyer.contactNumber, pickup: { name: PICKUP.name, address: PICKUP.address, hours: PICKUP.hours, location: PICKUP.location } },
-      payment: i % 2 ? { method: 'e_wallet', provider: i % 4 === 1 ? 'GCash' : 'Maya', submittedAt: placedAt, verifiedAt: new Date(placedAt.getTime() + DAY / 4) } : { method: 'cash', cashCollectedAt: soldAt },
+        : { method, contactName, contactPhone: buyer.contactNumber, pickup },
+      payment: i % 2 ? { method: 'e_wallet', provider: 'GCash', submittedAt: placedAt, verifiedAt: new Date(placedAt.getTime() + DAY / 4) } : { method: 'cash', cashCollectedAt: soldAt },
       status: 'sold',
       statusHistory: historyFor(method, placedAt, soldAt),
       createdAt: placedAt,
@@ -115,7 +116,7 @@ export async function seedDemo() {
   };
 
   for (let i = 0; i < 20; i += 1) {
-    const buyer = users[emails[i + 1]];
+    const buyer = users[handles[i + 1]];
     const slugs = basketFor(i);
     const { soldAt } = await addOrder(buyer, slugs, i);
     slugs.forEach((slug, j) => {
@@ -131,19 +132,24 @@ export async function seedDemo() {
   for (const [productId, quantity] of sold) await addSoldCount(productId, quantity);
   for (const productId of new Set(reviews.map((r) => r.product))) await recomputeRating(productId);
 
-  const juana = await seedJuanaOrders(users.buyer, products);
-  return `${orders.length} sold orders, ${reviews.length} reviews, ${juana} orders for buyer@ in every status`;
+  const juana = await seedStatusOrders(users.buyer, products, { keys: ADDRESS_KEYS });
+  const [rodel] = await findUsersByUsernames(['farmer.approved']);
+  const supplies = Object.fromEntries((await listProductsByCategoryIds([ids.fertilizer, ids.beans])).map((p) => [p.slug, p]));
+  const farmer = await seedStatusOrders(rodel, supplies, { keys: FARMER_ADDRESS_KEYS, plan: FARMER_PLAN, role: 'farmer' });
+  await refreshBestSellers(); // the landing carousel reflects the seeded sales, not a stale cache
+  return `${orders.length} sold orders, ${reviews.length} reviews, ${juana} orders for buyer in every status, ${farmer} farm-supply orders for farmer.approved`;
 }
 
 const ADDRESS_KEYS = { Home: 'home', Work: 'work', Other: 'mama' };
+const FARMER_ADDRESS_KEYS = { Farm: 'farm', Home: 'home', Other: 'mama' };
 
-/** Juana's orders across all statuses, with notifications; reserved stock and sales are applied to the products. */
-async function seedJuanaOrders(buyer, products) {
-  const addresses = Object.fromEntries((await listActiveByUser(buyer._id)).map((a) => [ADDRESS_KEYS[a.label], a]));
-  if (!addresses.home || !addresses.work || !addresses.mama) throw new Error('Run the addresses seeder first.');
+/** A user's orders across statuses (Juana's by default plan), with notifications; reserved stock and sales are applied to the products. */
+async function seedStatusOrders(buyer, products, { keys, plan, role }) {
+  const addresses = Object.fromEntries((await listActiveByUser(buyer._id)).map((a) => [keys[a.label], a]));
+  if (Object.values(keys).some((k) => !addresses[k])) throw new Error('Run the addresses seeder first.');
   const [kaluppaId] = await findUserIdsByRole(ROLES.KALUPPA);
-  const [fee, eta, pickup] = await Promise.all([getSetting('delivery.fee'), getSetting('delivery.eta'), getSetting('pickup.location')]);
-  const { orders, reserved, sold } = await buildBuyerOrders({ buyer, kaluppaId, addresses, products, fee, eta, pickup });
+  const [fee, eta, pickup] = await Promise.all([getSetting('delivery.fee'), getSetting('delivery.eta'), getPickup()]);
+  const { orders, reserved, sold } = await buildBuyerOrders({ buyer, kaluppaId, addresses, products, fee, eta, pickup, plan, role });
   const inserted = (await insertOrders(orders)).map((o) => o.toObject());
   const kaluppaNotices = inserted.filter((o) => o.status === 'pending').map((o) => ({
     user: kaluppaId, type: 'order_new', title: `New order ${o.orderNumber}`, body: `${buyer.firstName} ${buyer.lastName}`, link: `/orders/${o._id}`,

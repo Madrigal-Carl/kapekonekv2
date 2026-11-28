@@ -1,0 +1,119 @@
+// @vitest-environment jsdom
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { useAuthStore } from '@/stores/auth.store'
+import { Inventory } from './Inventory'
+
+const photo = (n) => ({ url: `https://res.cloudinary.com/test/image/upload/v1/p${n}.jpg`, publicId: `kapekonek/product-photos/k/p${n}`, isThumbnail: n === 0 })
+const BARAKO = {
+  _id: 'p1', name: 'Barako Medium Roast', slug: 'barako-medium-roast', category: { slug: 'coffee', name: 'Coffee' }, variety: 'liberica', coffeeType: 'roasted_beans',
+  unit: 'pack', unitLabel: '250 g', priceCentavos: 26_000, stock: 38, stockState: 'in', description: 'Chocolatey.', photos: [photo(0), photo(1), photo(2)],
+  isActive: true, archivedAt: null,
+}
+const UREA = { ...BARAKO, _id: 'p2', name: 'Urea 46-0-0', category: { slug: 'fertilizer', name: 'Fertilizer' }, variety: null, coffeeType: null, unit: 'sack', unitLabel: '50 kg sack', stock: 6, stockState: 'low', photos: [] }
+const byId = { p1: BARAKO, p2: UREA }
+
+const updateProduct = vi.hoisted(() => vi.fn(async (body) => body))
+const archiveProduct = vi.hoisted(() => vi.fn(async () => ({})))
+vi.mock('@/services/inventory.service', () => ({
+  listInventory: vi.fn(async () => ({ items: [BARAKO, UREA], meta: { page: 1, limit: 10, total: 2 } })),
+  getInventoryProduct: vi.fn(async (id) => byId[id]),
+  createProduct: vi.fn(),
+  updateProduct,
+  archiveProduct,
+  restoreProduct: vi.fn(),
+}))
+
+afterEach(() => {
+  cleanup()
+  vi.clearAllMocks()
+})
+
+function renderAt(url) {
+  useAuthStore.setState({ status: 'ready', session: { user: { id: 'k', firstName: 'Ana', lastName: 'Villanueva', emailVerifiedAt: '2026-01-01' }, roles: ['kaluppa'], permissions: ['dashboard.view'] } })
+  return render(
+    <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+      <MemoryRouter initialEntries={[url]}>
+        <Inventory />
+      </MemoryRouter>
+    </QueryClientProvider>,
+  )
+}
+
+describe('Inventory', () => {
+  it('lists products with photo (or the default image), category, unit and stock state; no Featured column', async () => {
+    renderAt('/dashboard/inventory')
+    const table = await screen.findByRole('region', { name: 'Products' })
+    expect(await within(table).findByText('38 packs')).toBeTruthy()
+    expect(within(table).getByText('6 sacks')).toBeTruthy()
+    expect(within(table).getByText('Low stock')).toBeTruthy()
+    expect(within(table).getByText('pack (250 g)')).toBeTruthy()
+    expect(within(table).queryByText('Featured')).toBeNull()
+    expect(within(table).queryByRole('columnheader', { name: 'Landing' })).toBeNull()
+    expect(table.querySelectorAll('[data-default-image]').length).toBeGreaterThan(0) // Urea has no photo
+    expect(screen.getByRole('button', { name: 'Add product' })).toBeTruthy()
+  })
+
+  it('picks another photo as the thumbnail and saves it', async () => {
+    renderAt('/dashboard/inventory?open=p1&mode=edit')
+    const dialog = await screen.findByRole('dialog', { name: 'Edit Barako Medium Roast' })
+    const third = await within(dialog).findByRole('button', { name: 'Make photo 3 the thumbnail' })
+    expect(within(dialog).getByText('No changes yet')).toBeTruthy()
+    expect(within(dialog).getByRole('button', { name: 'Save changes' }).disabled).toBe(true)
+    expect(third.getAttribute('aria-pressed')).toBe('false')
+    fireEvent.click(third)
+    expect(within(dialog).getByRole('button', { name: 'Photo 3 is the thumbnail' }).getAttribute('aria-pressed')).toBe('true')
+    expect(within(dialog).getByRole('button', { name: 'Make photo 1 the thumbnail' }).getAttribute('aria-pressed')).toBe('false')
+    expect(within(dialog).queryByText('Thumbnail')).toBeNull()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save changes' }))
+    const ask = await screen.findByRole('dialog', { name: 'Save these changes?' })
+    expect(within(ask).getByRole('listitem').textContent).toBe('Photos3 photos, thumbnail 1→3 photos, thumbnail 3')
+    fireEvent.click(within(ask).getByRole('button', { name: 'Save changes' }))
+    await vi.waitFor(() => expect(updateProduct).toHaveBeenCalled())
+    const body = updateProduct.mock.calls[0][0]
+    expect(body).toMatchObject({ id: 'p1', priceCentavos: 26_000, category: 'coffee', unit: 'pack' })
+    expect(body.photos.map((p) => p.isThumbnail)).toEqual([false, false, true])
+  })
+
+  it('removing the thumbnail makes the first remaining photo the thumbnail', async () => {
+    renderAt('/dashboard/inventory?open=p1&mode=edit')
+    const dialog = await screen.findByRole('dialog', { name: 'Edit Barako Medium Roast' })
+    fireEvent.click(await within(dialog).findByRole('button', { name: 'Remove photo 1' }))
+    expect(within(dialog).getByRole('button', { name: 'Photo 1 is the thumbnail' }).getAttribute('aria-pressed')).toBe('true')
+  })
+
+  it('shows no coffee fields for fertilizer, no Featured switch, and explains the default image', async () => {
+    renderAt('/dashboard/inventory?open=p2&mode=edit')
+    const dialog = await screen.findByRole('dialog', { name: 'Edit Urea 46-0-0' })
+    await within(dialog).findByRole('button', { name: /Unit/ })
+    expect(within(dialog).queryByRole('button', { name: /Coffee type/ })).toBeNull()
+    expect(within(dialog).queryByRole('switch', { name: /Featured/ })).toBeNull()
+    expect(dialog.textContent).toContain('No photos yetThe store shows the KapeKonek default image until you add one.')
+    // Editing stock is unaffected by the starting-stock rule.
+    expect(within(dialog).queryByText('Starting stock must be more than 10, the low-stock level.')).toBeNull()
+  })
+
+  it('a new product needs starting stock above 10: the error shows and Add is disabled (Change 08)', async () => {
+    renderAt('/dashboard/inventory?open=new')
+    const dialog = await screen.findByRole('dialog', { name: 'Add a product' })
+    const stock = within(dialog).getByLabelText('Stock')
+    fireEvent.change(stock, { target: { value: '10' } })
+    expect(await within(dialog).findByText('Starting stock must be more than 10, the low-stock level.')).toBeTruthy()
+    expect(within(dialog).getByRole('button', { name: 'Add product' }).disabled).toBe(true)
+    fireEvent.change(stock, { target: { value: '11' } })
+    await vi.waitFor(() => expect(within(dialog).getByRole('button', { name: 'Add product' }).disabled).toBe(false))
+    expect(within(dialog).getByText('Low-stock alert at 10 or fewer. New products need more than 10.')).toBeTruthy()
+  })
+
+  it('archives from the row action after the modal', async () => {
+    renderAt('/dashboard/inventory')
+    const table = await screen.findByRole('region', { name: 'Products' })
+    fireEvent.click((await within(table).findAllByRole('button', { name: /Archive Barako/ }))[0])
+    const modal = await screen.findByRole('dialog')
+    expect(within(modal).getByText('Archive Barako Medium Roast?')).toBeTruthy()
+    fireEvent.click(within(modal).getByRole('button', { name: 'Archive product' }))
+    await vi.waitFor(() => expect(archiveProduct.mock.calls[0]?.[0]).toBe('p1'))
+  })
+})

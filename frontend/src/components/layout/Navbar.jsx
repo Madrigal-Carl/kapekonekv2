@@ -1,4 +1,6 @@
-import { ArrowRight, ShoppingBag } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
+import { IconArrowRight, IconShoppingBag } from '@/components/ui/icons'
+
 import { Link, useLocation } from 'react-router-dom'
 import { CartDrawer } from '@/components/order/CartDrawer'
 import { BeanMark } from '@/components/ui/BeanMark'
@@ -7,23 +9,25 @@ import { useCart } from '@/hooks/useCart'
 import { useRequireAuthAction } from '@/hooks/useRequireAuthAction'
 import { cn } from '@/lib/cn'
 import { useCartDrawer } from '@/stores/cart.store'
+import { accountLinksFor } from './accountLinks'
 import { AvatarMenu } from './AvatarMenu'
 import { MobileMenu } from './MobileMenu'
 import { NotificationMenu } from './NotificationMenu'
 
-const iconButton = 'relative grid size-11 cursor-pointer place-items-center rounded-control border-0 bg-transparent text-ink-2 hover:bg-crema hover:text-ink-2'
+const iconButton = 'relative size-11 text-ink-2 hover:bg-crema hover:text-ink-2'
 
 /** Storefront header for guests and buyers (Navbar.dc.html). */
 export function Navbar() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, roles } = useAuth()
   const requireAuth = useRequireAuthAction()
   const { pathname } = useLocation()
   const onProducts = pathname.startsWith('/products')
+  const onContact = pathname === '/contact'
   const cartCount = useCart().data?.count ?? 0
   const showCart = useCartDrawer((s) => s.show)
 
   return (
-    <header className="sticky top-0 z-40 h-16 w-full border-b border-sand bg-white/94 backdrop-blur">
+    <header data-sticky-bar className="sticky top-0 z-40 h-16 w-full border-b border-sand bg-white/94 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between gap-2 px-4 sm:gap-4 sm:px-8">
         <div className="flex items-center gap-10">
           <Link to="/" aria-label="KapeKonek home" className="flex items-center gap-2.5 text-ink no-underline hover:text-ink">
@@ -43,33 +47,41 @@ export function Navbar() {
               {onProducts && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-roast" />}
             </Link>
             <Link to="/#how" className="py-[22px] text-[13.5px] text-ink-2 no-underline hover:text-roast">How it works</Link>
+            <Link
+              to="/contact"
+              aria-current={onContact ? 'page' : undefined}
+              className={cn('relative py-[22px] text-[13.5px] no-underline hover:text-roast', onContact ? 'font-semibold text-roast' : 'text-ink-2')}
+            >
+              Contact us
+              {onContact && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-roast" />}
+            </Link>
           </nav>
         </div>
 
         <div className="flex items-center gap-1 sm:gap-1.5">
-          <button type="button" aria-label={`Cart, ${cartCount} items`} onClick={() => requireAuth(showCart)} className={iconButton}>
-            <ShoppingBag aria-hidden="true" className="size-5" strokeWidth={1.75} />
+          <Button variant="ghost" iconOnly aria-label={`Cart, ${cartCount} items`} onClick={() => requireAuth(showCart)} className={iconButton}>
+            <IconShoppingBag aria-hidden="true" className="size-5" strokeWidth={1.75} />
             {cartCount > 0 && (
               <span className="absolute right-1 top-1 h-[18px] min-w-[18px] rounded-full bg-roast px-[5px] text-center text-[10.5px] font-semibold leading-[18px] text-white">{cartCount}</span>
             )}
-          </button>
+          </Button>
           {isAuthenticated ? (
             <>
               <NotificationMenu buttonClassName={iconButton} />
               <div className="max-[720px]:hidden">
-                <AvatarMenu />
+                <AvatarMenu links={accountLinksFor(roles)} />
               </div>
             </>
           ) : (
             <>
               <Link to="/login" className="px-3 py-2.5 text-[13.5px] text-ink-2 no-underline hover:text-roast max-[720px]:hidden">Log in</Link>
-              <Link
+              <Button as={Link} size="sm" className="h-10 gap-1.5 px-3 text-[13.5px] font-medium sm:px-3.5"
                 to="/register"
-                className="inline-flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-control bg-roast px-3 sm:px-3.5 py-[9px] text-[13.5px] font-medium text-white no-underline hover:bg-roast-hover hover:text-white"
+                
               >
                 Get started
-                <ArrowRight aria-hidden="true" className="size-3.5 max-[400px]:hidden" strokeWidth={2} />
-              </Link>
+                <IconArrowRight aria-hidden="true" className="size-3.5 max-[400px]:hidden" strokeWidth={2} />
+              </Button>
             </>
           )}
           <MobileMenu />

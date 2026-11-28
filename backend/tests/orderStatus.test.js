@@ -19,7 +19,7 @@ const { ORDER_STATUSES } = await import('../src/constants/orderStatus.js');
 
 async function signedIn(email) {
   const agent = request.agent(app);
-  await agent.post('/api/auth/login').send({ identifier: email, password: 'Password123!' }).expect(200);
+  await agent.post('/api/auth/login').send({ identifier: email, password: 'KapeKonek@123' }).expect(200);
   return agent;
 }
 
@@ -35,8 +35,8 @@ beforeAll(async () => {
   await startMemoryDb();
   await runSeeders({ only: ['roles', 'users'], log: () => {} });
   ({ products } = await seedCatalogFixture());
-  kaluppa = await signedIn('kaluppa@kapekonek.test');
-  buyer = await signedIn('buyer@kapekonek.test');
+  kaluppa = await signedIn('kapekonek.kaluppa@gmail.com');
+  buyer = await signedIn('kapekonek.buyer@gmail.com');
 });
 afterAll(stopMemoryDb);
 beforeEach(async () => {
@@ -161,7 +161,7 @@ describe('buyer cancel and refunds', () => {
   it('lets the buyer cancel only their own pending order, with a reason', async () => {
     const o = await order();
     expect((await buyer.post(`/api/orders/${o._id}/cancel`).send({ reasonCode: 'other' })).body.errors).toHaveProperty('reason');
-    const other = await signedIn('buyer01@kapekonek.test');
+    const other = await signedIn('kapekonek.buyer01@gmail.com');
     expect((await other.post(`/api/orders/${o._id}/cancel`).send({ reasonCode: 'ordered_by_mistake' })).status).toBe(404);
     const res = await buyer.post(`/api/orders/${o._id}/cancel`).send({ reasonCode: 'ordered_by_mistake' });
     expect(res.body.data).toMatchObject({ status: 'cancelled', cancellation: { reasonCode: 'ordered_by_mistake' }, refund: { status: 'not_applicable' } });

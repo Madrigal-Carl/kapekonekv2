@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { BeanMark } from '@/components/ui/BeanMark'
 import { Button } from '@/components/ui/Button'
 import { Eyebrow } from '@/components/ui/Eyebrow'
@@ -16,7 +17,7 @@ export function ErrorPage({ code, title, text }) {
         <Eyebrow className="mt-5">Error {code}</Eyebrow>
         <h1 className="mt-3 text-[28px] font-medium leading-[1.15] tracking-[-0.02em]">{title}</h1>
         <p className="mt-2 text-[14.5px] leading-[1.6] text-ink-2">{text}</p>
-        <Button to={homeFor(roles)} className="mt-6 w-full py-[13px] text-[14.5px]">
+        <Button size="lg" as={Link} to={homeFor(roles)} fullWidth className="mt-6">
           Back to KapeKonek
         </Button>
       </div>

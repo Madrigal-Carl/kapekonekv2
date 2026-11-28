@@ -25,3 +25,6 @@ export const rateLimit = ({ name, limit, windowSec, key = (req) => req.ip, messa
     res.set('Retry-After', String(ttl));
     next(new AppError(429, message));
   };
+
+/** Exports (CSV / PDF): 5 a minute per signed-in user (PHASE-2-SPEC §3.17). Runs after `authenticate`. */
+export const exportLimit = rateLimit({ name: 'export', limit: 5, windowSec: 60, key: (req) => String(req.user._id), message: 'You can export 5 files a minute. Please wait a moment and try again.' });

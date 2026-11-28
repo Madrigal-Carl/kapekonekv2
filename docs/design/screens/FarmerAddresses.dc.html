@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KapeKonek — Account settings — Addresses (farmer)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Poppins',ui-sans-serif,system-ui,sans-serif;color:#2B1A12;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#7B4A2A}a:hover{color:#653B20}
+.kk-f:focus{outline:none;border-color:#7B4A2A !important;box-shadow:0 0 0 3px rgba(123,74,42,.18)}
+button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
+.kk-menu{display:none !important}
+@media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+.kk-dt-cards{display:none}
+@media (max-width: 720px){
+.kk-dt-bar{flex-direction:column !important;align-items:stretch !important;padding:12px !important}
+.kk-dt-search{max-width:none !important;flex:1 1 auto !important}
+.kk-dt-filters{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:8px !important}
+.kk-dt-filters > div{width:auto !important}
+.kk-dt-clear{grid-column:1 / -1;justify-self:start}
+.kk-dt-table{display:none !important}
+.kk-dt-cards{display:flex !important}
+.kk-dt-foot{flex-direction:column !important;align-items:stretch !important;text-align:center}
+.kk-dt-foot nav{justify-content:center}
+.kk-g2,.kk-g3{grid-template-columns:minmax(0,1fr) !important}
+.kk-ph-actions{width:100%}
+.kk-ph-actions > *{flex:1 1 auto}
+.kk-seg{width:100%}
+.kk-seg > button{flex:1 1 0}
+.kk-drawer{width:100% !important;border-left:0 !important}
+.kk-drawer-body{padding:20px 18px 28px !important}
+.kk-drawer-head,.kk-drawer-foot{padding-left:18px !important;padding-right:18px !important}
+.kk-drawer-foot > *{flex:1 1 auto}
+.kk-cp{top:0 !important;left:0 !important;transform:none !important;width:100% !important;max-width:none !important;height:100vh;max-height:none !important;border-radius:0 !important}
+.kk-pv{flex-direction:column-reverse !important;overflow-y:auto}
+.kk-pv-side{width:100% !important;flex:1 0 auto !important;min-height:auto !important}
+.kk-pv-stage{flex:0 0 56vh !important;padding:52px 10px 78px !important}
+.kk-pv-nav{width:40px !important;height:40px !important}
+.kk-pv-thumb{width:44px !important;height:44px !important}
+.kk-pv-text{top:0 !important;left:0 !important;transform:none !important;width:100% !important;max-width:none !important;height:100vh;max-height:none !important;border-radius:0 !important}
+}
+</style>
+</helmet>
+<div style="position: relative; width: 100%; min-height: 1000px; background: #F5F0EA; display: flex; align-items: stretch">
+  <div class="kk-side" style="width: 256px; flex-shrink: 0; background: #FFFFFF">
+    <dc-import name="Sidebar" role="farmer" active="" hint-size="256px,900px"></dc-import>
+  </div>
+  <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
+    <div style="position: sticky; top: 0; z-index: 40"><dc-import name="DashTopbar" role="farmer" active="" crumb-a="Account settings" crumb-b="Addresses" hint-size="100%,64px"></dc-import></div>
+    <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+        <div style="min-width: 0; max-width: 720px">
+          <span style="display: block; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Account settings</span>
+          <h1 style="margin: 8px 0 0; font-weight: 500; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15">Addresses</h1>
+          <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">Where Kaluppa delivers your fertilizer and beans. Your default address is picked first at checkout.</p>
+        </div>
+        <div class="kk-ph-actions" style="display: flex; flex-wrap: wrap; gap: 10px"><a href="AddressModal.dc.html" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #7B4A2A; background: #7B4A2A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Add address</a></div>
+      </div>
+      <nav aria-label="Account settings" style="display: flex; gap: 4px; padding: 5px; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 10px; width: fit-content; max-width: 100%; overflow-x: auto">
+        <sc-for list="{{ accNav }}" as="an" hint-placeholder-count="4"><a href="{{ an.href }}" aria-current="{{ an.current }}" style="display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px; border-radius: 7px; background: {{ an.bg }}; color: {{ an.fg }}; font-size: 13.5px; font-weight: {{ an.fw }}; text-decoration: none; white-space: nowrap"><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="{{ an.ic }}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ an.icon }}"></path></svg>{{ an.label }}</a></sc-for>
+      </nav>
+      <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}"><div role="status" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 8px; background: #E1F2E4; border: 1px solid #BFDFC6; color: #1E5A34; font-size: 13.5px; font-weight: 500">{{ toast }}</div></sc-if>
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+        <span style="font-size: 13.5px; color: #4A3A30"><strong>{{ count }} of 10</strong> addresses saved</span>
+        <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: #6B5A4E"><span aria-hidden="true" style="width: 10px; height: 10px; border-radius: 3px; background: #2B1A12"></span>Kaluppa branch, Pantayin · fees are by road distance</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(520px, 1fr)); gap: 20px">
+        <sc-for list="{{ addrs }}" as="a" hint-placeholder-count="3">
+          <article aria-labelledby="{{ a.hid }}" style="background: #FFFFFF; border: {{ a.border }}; border-radius: 10px; overflow: hidden; display: flex; flex-wrap: wrap">
+            <div style="flex: 0 0 220px; min-height: 100%; background: #DCE7EA; position: relative">
+              <sc-if value="{{ a.hasPin }}" hint-placeholder-val="{{ true }}"><div style="position: relative; z-index: 1"><dc-import name="MiniMap" pins="{{ a.pins }}" focus="{{ a.focus }}" highlight="{{ a.hl }}" controls="{{ false }}" flush="{{ true }}" hint-size="220px,161px"></dc-import></div></sc-if>
+              <sc-if value="{{ a.noPin }}" hint-placeholder-val="{{ false }}"><div style="height: 100%; min-height: 161px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 16px; text-align: center; background: repeating-linear-gradient(135deg, #EFE6D6 0 10px, #F5EEE2 10px 20px)"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#8C7A66" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><path d="m4 4 16 16"></path></svg><span style="font-size: 12.5px; color: #4A3A30; font-weight: 600">No pin yet</span><a href="AddressModal.dc.html" style="font-size: 12.5px; font-weight: 600">Drop a pin</a></div></sc-if>
+            </div>
+            <div style="flex: 1 1 260px; min-width: 0; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px">
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+                <span style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: #F7EFE4; color: #5A3218; font-size: 12px; font-weight: 600"><svg aria-hidden="true" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ a.icon }}"></path></svg>{{ a.label }}</span>
+                <sc-if value="{{ a.isDefault }}" hint-placeholder-val="{{ false }}"><span style="padding: 3px 10px; border-radius: 999px; background: #2B1A12; color: #F7EFE4; font-size: 11.5px; font-weight: 600">Default</span></sc-if>
+              </div>
+              <div><h2 id="{{ a.hid }}" style="margin: 0; font-size: 15px; font-weight: 600">{{ a.name }} <span style="font-weight: 400; color: #6B5A4E">· {{ a.phone }}</span></h2><p style="margin: 4px 0 0; font-size: 13.5px; line-height: 1.55; color: #4A3A30">{{ a.line1 }}<br>{{ a.line2 }}</p></div>
+              <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: {{ a.feeFg }}"><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5M7.5 15a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM17.5 15a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"></path></svg>{{ a.fee }}</span>
+              <div style="margin-top: auto; padding-top: 10px; border-top: 1px solid #F1E9DE; display: flex; flex-wrap: wrap; gap: 6px">
+                <a href="AddressModal.dc.html" style="display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font-size: 13px; font-weight: 600; text-decoration: none"><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>Edit</a>
+                <sc-if value="{{ a.notDefault }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ a.makeDefault }}" style="display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px; border-radius: 5px; border: 1px solid #F7EFE4; background: #F7EFE4; color: #5A3218; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">Set as default</button></sc-if>
+                <span style="flex: 1"></span>
+                <button type="button" aria-label="Delete {{ a.label }} address" onClick="{{ a.askDelete }}" style="display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px; border-radius: 5px; border: 0; background: transparent; color: #A1362B; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer"><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Delete</button>
+              </div>
+            </div>
+          </article>
+        </sc-for>
+        <a href="AddressModal.dc.html" style="min-height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 1.5px dashed #DCCBB5; border-radius: 10px; background: #FBF8F4; color: #4A3A30; text-decoration: none; text-align: center; padding: 20px"><span aria-hidden="true" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 999px; background: #FFFFFF; border: 1px solid #E7DCCD; color: #7B4A2A"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></span><strong style="font-size: 14px; color: #2B1A12">Add a new address</strong><span style="font-size: 12.5px">Pick your municipality and barangay, then drop a pin.</span></a>
+      </div>
+    </main>
+  </div>
+  <sc-if value="{{ isDelete }}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Close dialog" onClick="{{ closeModal }}" style="position: absolute; inset: 0; z-index: 70; border: 0; padding: 0; background: rgba(43,26,18,0.5); cursor: default"></button>
+    <div role="alertdialog" aria-modal="true" aria-labelledby="d-title" style="position: absolute; left: 50%; top: 160px; transform: translateX(-50%); z-index: 71; width: 460px; max-width: calc(100% - 32px); background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 8px; box-shadow: 0 24px 48px -24px rgba(43,26,18,0.5); padding: 24px">
+      <span aria-hidden="true" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 999px; background: #FDF0EE; color: #A1362B"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></span>
+      <h2 id="d-title" style="margin: 14px 0 0; font-size: 18px; font-weight: 600">Delete this address?</h2>
+<p style="margin: 6px 0 0; font-size: 13.5px; color: #4A3A30; line-height: 1.6"><strong>{{ curAddr }}</strong> is removed from your address book. Orders that used it keep their copy.</p>
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" onClick="{{ closeModal }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 1px solid #DCCBB5; background: #FFFFFF; color: #2B1A12; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Keep</button><button type="button" onClick="{{ doDelete }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 5px; border: 0; background: #A1362B; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; ">Delete address</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 1440, "height": 1000}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { def: 'a1', gone: [], modal: null, target: null, toast: '' }; }
+  renderVals() {
+    const s = this.state;
+    const accNav = (active) => [['Profile', 'Profile.dc.html', 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8z'], ['Security', 'Settings.dc.html', 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'], ['Association', 'FarmerAssociation.dc.html', 'M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6'], ['Addresses', 'FarmerAddresses.dc.html', 'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0ZM12 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6z']].map(([label, href, icon]) => { const on = label === active; return { label, href, icon, current: on ? 'page' : undefined, bg: on ? '#F7EFE4' : 'transparent', fg: on ? '#2B1A12' : '#4A3A30', fw: on ? 600 : 500, ic: on ? '#7B4A2A' : '#8C7A66' }; });
+    const A = [
+      { id: 'a1', label: 'Farm', icon: 'M7 20h10M10 20c5.5-2.5.8-6.4 3-10M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z', name: 'Rodel Mendoza', phone: '0917 222 1043', line1: 'Sitio Ilaya, beside the chapel', line2: 'Pantayin, Santa Cruz, Marinduque 4902', fee: '0.4 km from Kaluppa · ₱50 delivery', x: 322, y: 175, muni: 'Santa Cruz', brgy: 'Pantayin' },
+      { id: 'a2', label: 'Home', icon: 'M3 10.5 12 3l9 7.5M5 9.5V21h14V9.5M10 21v-6h4v6', name: 'Rodel Mendoza', phone: '0917 222 1043', line1: 'Purok 2, near the elementary school', line2: 'Bocboc, Mogpog, Marinduque 4901', fee: '21.5 km from Kaluppa · ₱240 delivery', x: 205, y: 140, muni: 'Mogpog', brgy: 'Bocboc' },
+      { id: 'a3', label: 'Mama’s house', icon: 'M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4Z', name: 'Lourdes Mendoza', phone: '0918 777 3310', line1: 'Near the barangay hall', line2: 'Tumagabok, Boac, Marinduque 4900', fee: 'No pin yet · the fee is estimated at checkout', nopin: true, muni: 'Boac', brgy: 'Tumagabok' }
+    ].filter((a) => !s.gone.includes(a.id));
+    const cur = A.find((a) => a.id === s.target) || A[0] || { label: '' };
+    return {
+      accNav: accNav('Addresses'),
+      count: A.length,
+      addrs: A.map((a) => { const d = a.id === s.def; return { ...a, hid: 'ad-' + a.id, isDefault: d, notDefault: !d, border: d ? '2px solid #7B4A2A' : '1px solid #E7DCCD', hasPin: !a.nopin, noPin: !!a.nopin, feeFg: a.nopin ? '#6B4209' : '#4A3A30', pins: a.nopin ? [] : [{ id: a.id, x: a.x, y: a.y, label: a.label, tone: 'farmer' }], focus: a.nopin ? null : { cx: a.x, cy: a.y, z: 3.4 }, hl: { muni: a.muni, brgy: a.nopin ? null : { x: a.x, y: a.y, seed: a.muni + '|' + a.brgy } }, makeDefault: () => this.setState({ def: a.id, toast: a.label + ' is now your default address.' }), askDelete: () => this.setState({ modal: 'delete', target: a.id }) }; }),
+      isDelete: s.modal === 'delete', curAddr: cur.label + ' · ' + (cur.line2 || ''), closeModal: () => this.setState({ modal: null }),
+      doDelete: () => this.setState({ modal: null, gone: s.gone.concat([s.target]), def: s.def === s.target ? (A.find((a) => a.id !== s.target) || {}).id : s.def, toast: 'Address deleted.' }),
+      hasToast: !!s.toast, toast: s.toast
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react'
+import { IconCheck } from '@/components/ui/icons'
 import { cn } from '@/lib/cn'
 
 /** Pill toggle button (`aria-pressed`), e.g. the variety filter. */
@@ -13,7 +13,7 @@ export function ChipToggle({ pressed, onClick, children }) {
         pressed ? 'border-roast bg-roast text-white' : 'border-sand-strong bg-white text-ink hover:bg-cream',
       )}
     >
-      {pressed && <Check aria-hidden="true" className="size-3.5" strokeWidth={2.25} />}
+      {pressed && <IconCheck aria-hidden="true" className="size-3.5" strokeWidth={2.25} />}
       {children}
     </button>
   )

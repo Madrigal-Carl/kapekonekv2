@@ -8,4 +8,4 @@ export const addItemSchema = z.object({ productId: objectIdRule, quantity });
 export const setQuantitySchema = z.object({ quantity });
 export const productIdParams = z.object({ productId: objectIdRule });
 
-export const uploadSignatureSchema = z.object({ purpose: z.enum(['avatar', 'receipt'], 'Choose avatar or receipt') });
+export const uploadSignatureSchema = z.object({ purpose: z.enum(['avatar', 'receipt', 'farmer_document', 'bean_photo', 'product_photo', 'wallet_qr', 'message_attachment', 'post_media'], 'Choose what you are uploading') });

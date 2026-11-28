@@ -1,4 +1,6 @@
-import { Clock, Coffee, MapPin, ShoppingBag, Wallet } from 'lucide-react'
+import { IconClock, IconCoffee, IconMapPin, IconShoppingBag, IconWallet } from '@/components/ui/icons'
+import { paymentPhrase } from '@/lib/payments'
+import { usePaymentProviders } from '@/hooks/useSettings'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ReviewPanel } from '@/components/product/ReviewPanel'
@@ -16,6 +18,7 @@ import { cn } from '@/lib/cn'
 import { formatPeso, quantityWords } from '@/lib/format'
 import { stepFor } from '@/lib/quantity'
 import { imageUrl } from '@/lib/image'
+import { ProductImage } from '@/components/product/ProductImage'
 
 const pill = 'rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.1em]'
 const UNIT_NOUN = { kg: ['kg', 'kg'], pack: ['pack', 'packs'], piece: ['piece', 'pieces'] }
@@ -27,21 +30,20 @@ function Gallery({ images, name }) {
   return (
     <div className="min-w-0 flex-[1_1_480px]">
       <div className="relative aspect-square overflow-hidden rounded-card border border-sand bg-photo">
-        {current && <img src={imageUrl(current.url, 640)} alt={current.alt ?? name} className="size-full object-cover" />}
+        <ProductImage src={current && imageUrl(current.url, 640)} alt={current?.alt ?? name} className="size-full" />
       </div>
       {images.length > 1 && (
         <div role="group" aria-label="Product photos" className="mt-3 grid grid-cols-4 gap-3">
           {images.slice(0, 8).map((image, i) => (
-            <button
+            <Button variant="bare"
               key={image.url}
-              type="button"
               aria-label={`Show photo ${i + 1}`}
               aria-pressed={i === index}
               onClick={() => setIndex(i)}
               className={cn('aspect-square cursor-pointer overflow-hidden rounded-[6px] border-2 bg-photo p-0', i === index ? 'border-roast' : 'border-sand')}
             >
               <img src={imageUrl(image.url, 96)} alt="" loading="lazy" className="size-full object-cover" />
-            </button>
+            </Button>
           ))}
         </div>
       )}
@@ -105,7 +107,7 @@ function PurchasePanel({ product }) {
 
       {!out && inCart > 0 && (
         <p className="mb-0 mt-5 flex items-center gap-2 text-[13px] text-ink-2">
-          <ShoppingBag aria-hidden="true" className="size-[15px] shrink-0 text-roast" strokeWidth={2} />
+          <IconShoppingBag aria-hidden="true" className="size-[15px] shrink-0 text-roast" strokeWidth={2} />
           <span>
             <strong>{quantityWords(inCart, unit)}</strong> already in your cart · {full ? 'that is all we have.' : <>you can add up to <strong>{quantityWords(maxAddable, unit)}</strong> more.</>}
           </span>
@@ -114,10 +116,10 @@ function PurchasePanel({ product }) {
       <Button
         onClick={() => addToCart(product, quantity)}
         disabled={out || full}
-        pending={adding}
+        loading={adding}
         className={cn('w-full py-[15px] text-[15px]', !out && inCart > 0 ? 'mt-3.5' : 'mt-6')}
       >
-        <ShoppingBag aria-hidden="true" className="size-[18px]" strokeWidth={2} />
+        <IconShoppingBag aria-hidden="true" className="size-[18px]" strokeWidth={2} />
         {out ? 'Sold out' : 'Add to cart'}
       </Button>
     </>
@@ -127,6 +129,7 @@ function PurchasePanel({ product }) {
 /** `/products/:slug` (ProductDetail.dc.html). */
 export function ProductDetail() {
   const { slug } = useParams()
+  const providers = usePaymentProviders()
   const { data: product, isPending, isError, error, refetch } = useProduct(slug)
 
   if (isPending) {
@@ -143,9 +146,9 @@ export function ProductDetail() {
       <main className="mx-auto max-w-[720px] px-4 py-16">
         <EmptyState
           tone={missing ? 'neutral' : 'error'}
-          icon={Coffee}
+          icon={IconCoffee}
           title={missing ? "We couldn't find that coffee" : "We couldn't load this coffee"}
-          action={missing ? <Button to="/products">Browse coffee</Button> : <Button variant="outline" onClick={() => refetch()}>Try again</Button>}
+          action={missing ? <Button as={Link} to="/products">Browse coffee</Button> : <Button variant="outline" onClick={() => refetch()}>Try again</Button>}
         >
           {missing ? 'It may have sold out for the season or moved.' : 'Check your connection and try again.'}
         </EmptyState>
@@ -202,9 +205,9 @@ export function ProductDetail() {
           <PurchasePanel key={_id} product={product} />
 
           <ul className="m-0 mt-6 flex list-none flex-col gap-2.5 rounded-card bg-crema px-[18px] py-4 text-[13.5px] text-ink-2">
-            <li className="flex items-start gap-2.5"><MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-roast" strokeWidth={2} />Delivered anywhere in Marinduque, or pick up at Kaluppa in Pantayin, Santa Cruz.</li>
-            <li className="flex items-start gap-2.5"><Wallet aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-roast" strokeWidth={2} />Pay by GCash, Maya or cash on delivery.</li>
-            <li className="flex items-start gap-2.5"><Clock aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-roast" strokeWidth={2} />Arrives in 3–5 business days after Kaluppa confirms your order.</li>
+            <li className="flex items-start gap-2.5"><IconMapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-roast" strokeWidth={2} />Delivered anywhere in Marinduque, or pick up at Kaluppa in Pantayin, Santa Cruz.</li>
+            <li className="flex items-start gap-2.5"><IconWallet aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-roast" strokeWidth={2} />Pay by {paymentPhrase(providers)}.</li>
+            <li className="flex items-start gap-2.5"><IconClock aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-roast" strokeWidth={2} />Arrives in 3–5 business days after Kaluppa confirms your order.</li>
           </ul>
         </div>
       </section>

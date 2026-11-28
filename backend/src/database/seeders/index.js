@@ -1,16 +1,24 @@
 import { seedAddresses } from './addresses.seeder.js';
+import { seedBeans } from './beans.seeder.js';
+import { associationAccounts, seedAssociationsAndFarmers } from './associations.seeder.js';
 import { seedCategories } from './categories.seeder.js';
 import { seedDemo } from './demo.seeder.js';
+import { seedInbox } from './inbox.seeder.js';
 import { seedPosts } from './posts.seeder.js';
 import { seedProducts } from './products.seeder.js';
+import { seedRecords } from './records.seeder.js';
 import { seedRoles } from './roles.seeder.js';
 import { seedSettings } from './settings.seeder.js';
-import { seedUsers } from './users.seeder.js';
+import { seedUsers, signInTable } from './users.seeder.js';
 
 /** Ordered: each seeder runs after the ones it depends on. */
 export const SEEDERS = [
   { name: 'roles', run: seedRoles },
   { name: 'users', run: seedUsers },
+  { name: 'associations', run: seedAssociationsAndFarmers },
+  { name: 'records', run: seedRecords },
+  { name: 'beans', run: seedBeans },
+  { name: 'inbox', run: seedInbox },
   { name: 'categories', run: seedCategories },
   { name: 'products', run: seedProducts },
   { name: 'settings', run: seedSettings },
@@ -30,4 +38,5 @@ export async function runSeeders({ only, fresh = false, log = console.log } = {}
     if (only?.length && !only.includes(seeder.name)) continue;
     log(`[seed] ${seeder.name}: ${await seeder.run({ fresh })}`);
   }
+  if (!only?.length || only.includes('users')) log(signInTable(associationAccounts()));
 }

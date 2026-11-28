@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowRight } from 'lucide-react'
+import { IconArrowRight } from '@/components/ui/icons'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { Alert } from '@/components/ui/Alert'
@@ -75,9 +75,9 @@ export function Login() {
           <input type="checkbox" className="m-[3px_3px_3px_4px] size-[18px] accent-roast" {...register('remember')} />
           Remember me
         </label>
-        <Button type="submit" pending={login.isPending} className="py-[13px] text-[14.5px]">
+        <Button size="lg" type="submit" loading={login.isPending}>
           Sign in
-          {!login.isPending && <ArrowRight aria-hidden="true" className="size-4" strokeWidth={2} />}
+          {!login.isPending && <IconArrowRight aria-hidden="true" className="size-4" strokeWidth={2} />}
         </Button>
       </form>
       <p className="mt-6 border-t border-sand-soft pt-5 text-center text-sm text-ink-2">

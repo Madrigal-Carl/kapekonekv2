@@ -28,7 +28,7 @@ const { manilaDateKey } = await import('../src/utils/manilaDate.js');
 
 async function signedIn(email) {
   const agent = request.agent(app);
-  await agent.post('/api/auth/login').send({ identifier: email, password: 'Password123!' }).expect(200);
+  await agent.post('/api/auth/login').send({ identifier: email, password: 'KapeKonek@123' }).expect(200);
   return agent;
 }
 
@@ -53,8 +53,8 @@ beforeAll(async () => {
   await startMemoryDb();
   await runSeeders({ only: ['roles', 'users'], log: () => {} });
   ({ products } = await seedCatalogFixture());
-  buyer = await signedIn('buyer@kapekonek.test');
-  buyerId = String((await User.findOne({ email: 'buyer@kapekonek.test' }))._id);
+  buyer = await signedIn('kapekonek.buyer@gmail.com');
+  buyerId = String((await User.findOne({ email: 'kapekonek.buyer@gmail.com' }))._id);
   addressId = (await buyer.post('/api/addresses').send(home)).body.data._id;
 });
 afterAll(stopMemoryDb);
@@ -85,13 +85,13 @@ describe('placing an order', () => {
 
     expect((await buyer.get('/api/cart')).body.data.lines).toEqual([]);
     expect(enqueueEmail.mock.calls.map(([job, data]) => [job, data.to])).toEqual([
-      ['order-placed', 'buyer@kapekonek.test'],
+      ['order-placed', 'kapekonek.buyer@gmail.com'],
       ['kaluppa-new-order', 'orders@kapekonek.test'],
     ]);
     const notes = await Notification.find().populate('user', 'email').lean();
     expect(notes.map((n) => [n.user.email, n.type, n.link]).sort()).toEqual([
-      ['buyer@kapekonek.test', 'order_status', `/orders/${order._id}`],
-      ['kaluppa@kapekonek.test', 'order_new', `/orders/${order._id}`],
+      ['kapekonek.buyer@gmail.com', 'order_status', `/orders/${order._id}`],
+      ['kapekonek.kaluppa@gmail.com', 'order_new', `/orders/${order._id}`],
     ]);
   });
 
@@ -116,6 +116,17 @@ describe('placing an order', () => {
     expect(pdf.body.code).toBe('FILE_TYPE_NOT_ALLOWED');
     getUploadedAsset.mockResolvedValueOnce(null);
     expect((await place({ method: 'delivery', addressId, paymentMethod: 'e_wallet', provider: 'GCash', receipt: receiptFor(buyerId, 'gone') })).status).toBe(400);
+    // A provider Kaluppa hides at checkout (Settings → E-wallet) is refused: Maya is off by default…
+    const off = await place({ method: 'delivery', addressId, paymentMethod: 'e_wallet', provider: 'Maya', receipt: receiptFor(buyerId) });
+    expect(off.body.errors.provider).toBe('Maya isn’t available right now. Choose another way to pay.');
+    // …and a value saved before Change 06 still reads its old `enabled` flag.
+    const { Setting } = await import('../src/models/index.js');
+    const { SETTING_DEFAULTS } = await import('../src/constants/settings.js');
+    const ewallet = SETTING_DEFAULTS['payment.ewallet'];
+    await Setting.updateOne({ key: 'payment.ewallet' }, { $set: { value: { ...ewallet, accounts: ewallet.accounts.map((a) => ({ ...a, enabled: a.provider === 'GCash' })) } } }, { upsert: true });
+    const hidden = await place({ method: 'delivery', addressId, paymentMethod: 'e_wallet', provider: 'Maya', receipt: receiptFor(buyerId) });
+    expect(hidden.body.errors.provider).toBe('Maya isn’t available right now. Choose another way to pay.');
+    await Setting.deleteOne({ key: 'payment.ewallet' });
     expect(await Order.countDocuments({ buyer: buyerId })).toBe(0);
 
     const res = await place({ method: 'delivery', addressId, paymentMethod: 'e_wallet', provider: 'GCash', receipt: receiptFor(buyerId) });
@@ -132,8 +143,8 @@ describe('placing an order', () => {
   });
 
   it('pickup needs a contact number (body or profile) and saves it to the profile', async () => {
-    const pickupBuyer = await signedIn('buyer03@kapekonek.test');
-    await User.updateOne({ email: 'buyer03@kapekonek.test' }, { $unset: { contactNumber: 1 } });
+    const pickupBuyer = await signedIn('kapekonek.buyer03@gmail.com');
+    await User.updateOne({ email: 'kapekonek.buyer03@gmail.com' }, { $unset: { contactNumber: 1 } });
     await fillCart(pickupBuyer);
     const missing = await place({ method: 'pickup', paymentMethod: 'cash' }, pickupBuyer);
     expect(missing.status).toBe(400);
@@ -142,10 +153,10 @@ describe('placing an order', () => {
     const res = await place({ method: 'pickup', paymentMethod: 'cash', contactPhone: '0918 222 3333' }, pickupBuyer);
     expect(res.status).toBe(201);
     expect(res.body.data).toMatchObject({ deliveryFeeCentavos: 0, totalCentavos: 52000, fulfillment: { method: 'pickup', contactPhone: '09182223333', pickup: { name: 'Kaluppa' } } });
-    expect((await User.findOne({ email: 'buyer03@kapekonek.test' })).contactNumber).toBe('09182223333');
+    expect((await User.findOne({ email: 'kapekonek.buyer03@gmail.com' })).contactNumber).toBe('09182223333');
 
     await fillCart(pickupBuyer);
-    const fromProfile = await place({ method: 'pickup', paymentMethod: 'e_wallet', provider: 'Maya', receipt: receiptFor(res.body.data.buyer) }, pickupBuyer);
+    const fromProfile = await place({ method: 'pickup', paymentMethod: 'e_wallet', provider: 'GCash', receipt: receiptFor(res.body.data.buyer) }, pickupBuyer);
     expect(fromProfile.status).toBe(201);
     expect(fromProfile.body.data.fulfillment.contactPhone).toBe('09182223333');
   });
@@ -181,15 +192,15 @@ describe('placing an order', () => {
 
   it('refuses an empty cart and another user’s address', async () => {
     expect((await place({ method: 'pickup', paymentMethod: 'cash' })).status).toBe(409);
-    const other = await signedIn('buyer01@kapekonek.test');
+    const other = await signedIn('kapekonek.buyer01@gmail.com');
     await fillCart(other);
     expect((await place({ method: 'delivery', addressId, paymentMethod: 'cash' }, other)).status).toBe(404);
   });
 
   it('needs orders.create and a verified email', async () => {
-    const farmer = await signedIn('farmer1@kapekonek.test');
-    expect((await place({ method: 'pickup', paymentMethod: 'cash' }, farmer)).status).toBe(403);
-    const unverified = await signedIn('buyer.unverified@kapekonek.test');
+    const manager = await signedIn('kapekonek.manager.santacruz@gmail.com');
+    expect((await place({ method: 'pickup', paymentMethod: 'cash' }, manager)).status).toBe(403);
+    const unverified = await signedIn('kapekonek.buyer.unverified@gmail.com');
     expect((await place({ method: 'pickup', paymentMethod: 'cash' }, unverified)).body.code).toBe('EMAIL_NOT_VERIFIED');
   });
 });
@@ -214,9 +225,9 @@ describe('reading orders', () => {
 
     const id = page1.data[0]._id;
     expect((await buyer.get(`/api/orders/${id}`)).body.data._id).toBe(id);
-    const other = await signedIn('buyer02@kapekonek.test');
+    const other = await signedIn('kapekonek.buyer02@gmail.com');
     expect((await other.get(`/api/orders/${id}`)).status).toBe(404);
-    const kaluppa = await signedIn('kaluppa@kapekonek.test');
+    const kaluppa = await signedIn('kapekonek.kaluppa@gmail.com');
     expect((await kaluppa.get(`/api/orders/${id}`)).status).toBe(200);
   });
 });

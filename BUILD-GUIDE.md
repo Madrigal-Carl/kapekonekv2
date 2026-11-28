@@ -159,6 +159,11 @@ Each one is a single Claude Code session. Copy the updated kit files in first (C
 | 02 · no eyebrow bar | done |
 | 03 · search selects, map zoom, upload limits, review rules, cart quantity fix | `Read CLAUDE.md and docs/prompts/CHANGE-03-SELECTS-MAP-ZOOM-UPLOADS-REVIEWS-CART.md, then carry out Change 03.` |
 | 04 · fixed post media frames, Gmail seed accounts (`KapeKonek@123`) | `Read CLAUDE.md and docs/prompts/CHANGE-04-POST-MEDIA-AND-SEED-ACCOUNTS.md, then carry out Change 04.` |
+| 05 · react-icons, one Button, map area highlights, username suggestions, farmer Association + Addresses redesign (**run after M10, before M11**) | `Read CLAUDE.md and docs/prompts/CHANGE-05-ICONS-BUTTONS-AREAS-USERNAMES-ACCOUNT.md, then carry out Change 05.` |
+| 06 · phone layouts, overview date filter, history in drawers, thumbnail star, Settings + Inbox fidelity, GCash only (**run after M11, before M12**) | `Read CLAUDE.md and docs/prompts/CHANGE-06-MOBILE-DATES-HISTORY-INBOX-GCASH.md, then carry out Change 06.` |
+| 07 · sticky top bar, Sell beans disabled at the 5 kg limit, agreed layouts (full-width Inbox/Hub, sticky Hub aside, 2×2 Reports), Hub Create post modal + post viewer (**run after Change 06, before M12**) | `Read CLAUDE.md and docs/prompts/CHANGE-07-STICKY-LIMIT-LAYOUT-HUB.md, then carry out Change 07.` |
+| 08 · save/delete confirmations, CSV+PDF export with filters, default password + reset, verify email for created accounts, no lot number, Beans category, best-sellers carousel, default product image, association map, chat while pending, Hub mentions, Contact us, address-book race fix (**run after Change 07**) | `Read CLAUDE.md and docs/prompts/CHANGE-08-CONFIRM-EXPORT-ACCOUNTS-MENTIONS-CONTACT.md, then carry out Change 08.` |
+| 09 · Terms and Conditions: required checkbox at sign-up, Terms / Privacy modal, first-sign-in agreement for created accounts, re-agree when the version changes (**run after Change 08**) | `Read CLAUDE.md and docs/prompts/CHANGE-09-TERMS-AND-CONDITIONS.md, then carry out Change 09.` |
 
 ## Phase 2 — the dashboard (farmer, Group Manager, Kaluppa)
 
@@ -196,7 +201,7 @@ One milestone per session: `/clear` → send the message → let it finish → c
 | M14 | `Continue … Start M14. Re-read FarmMap, Reports, AuditLog and BarChart first.` | Farm Map, finished overviews, reports + CSV, audit log | As `kaluppa`, filter the map by association; export the Reports CSV; open an audit entry's diff |
 | M15 | `Continue … Start M15.` | All Phase 2 seeds, a Playwright pass for each role, polish, README | `cd backend`, then `npm run migrate:fresh -- --seed`, then sign in as every handle in the printed table |
 
-Seed sign-ins (password `KapeKonek@123`, username or Gmail): `kaluppa`, `manager.santacruz`, `manager.unassigned`, `farmer.approved`, `farmer.pending`, `farmer.new`, `farmer.nomail`, `buyer`.
+Seed sign-ins (password `KapeKonek@123`, username or Gmail): `kaluppa`, `manager.santacruz`, `manager.unassigned`, `farmer.approved`, `farmer.pending`, `farmer.new`, `farmer.unverified`, `manager.unverified`, `buyer`.
 
 ## Tips while it builds
 

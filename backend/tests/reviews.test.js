@@ -15,7 +15,7 @@ const { Order, Product, Review } = await import('../src/models/index.js');
 
 async function signedIn(email) {
   const agent = request.agent(app);
-  await agent.post('/api/auth/login').send({ identifier: email, password: 'Password123!' }).expect(200);
+  await agent.post('/api/auth/login').send({ identifier: email, password: 'KapeKonek@123' }).expect(200);
   return agent;
 }
 
@@ -26,8 +26,8 @@ beforeAll(async () => {
   await startMemoryDb();
   await runSeeders({ only: ['roles', 'users'], log: () => {} });
   ({ products } = await seedCatalogFixture());
-  buyer = await signedIn('buyer@kapekonek.test');
-  other = await signedIn('buyer01@kapekonek.test');
+  buyer = await signedIn('kapekonek.buyer@gmail.com');
+  other = await signedIn('kapekonek.buyer01@gmail.com');
 });
 afterAll(stopMemoryDb);
 
@@ -37,7 +37,7 @@ const reviewsUrl = () => `/api/products/${barako()._id}/reviews`;
 describe('writing reviews', () => {
   it('needs a sign-in and a verified email', async () => {
     expect((await request(app).post(reviewsUrl()).send({ rating: 5, comment: 'Great coffee indeed.' })).status).toBe(401);
-    const unverified = await signedIn('buyer.unverified@kapekonek.test');
+    const unverified = await signedIn('kapekonek.buyer.unverified@gmail.com');
     const res = await unverified.post(reviewsUrl()).send({ rating: 5, comment: 'Great coffee indeed.' });
     expect(res.status).toBe(403);
     expect(res.body.code).toBe('EMAIL_NOT_VERIFIED');
@@ -52,7 +52,7 @@ describe('writing reviews', () => {
   });
 
   it('says when an order of it is still on its way, and links that order', async () => {
-    const open = await createSoldOrder('buyer@kapekonek.test', barako(), { number: '0900' });
+    const open = await createSoldOrder('kapekonek.buyer@gmail.com', barako(), { number: '0900' });
     await Order.updateOne({ _id: open._id }, { status: 'confirmed' });
     const me = (await buyer.get(`${reviewsUrl()}/me`)).body.data;
     expect(me).toMatchObject({ canReview: false, reason: 'not_completed', pendingOrderNumber: 'KK-20261101-0900', pendingOrderId: String(open._id) });
@@ -67,7 +67,7 @@ describe('writing reviews', () => {
   });
 
   it('accepts one review after a sold order and recomputes the rating', async () => {
-    await createSoldOrder('buyer@kapekonek.test', barako(), { number: '0001' });
+    await createSoldOrder('kapekonek.buyer@gmail.com', barako(), { number: '0001' });
     const me = await buyer.get(`${reviewsUrl()}/me`);
     expect(me.body.data).toMatchObject({ review: null, canReview: true, order: { orderNumber: 'KK-20261101-0001', method: 'pickup', soldAt: '2026-11-08T02:00:00.000Z' } });
 
@@ -80,7 +80,7 @@ describe('writing reviews', () => {
     expect(again.body.code).toBe('ALREADY_REVIEWED');
     expect((await buyer.get(`${reviewsUrl()}/me`)).body.data).toMatchObject({ canReview: false, reason: 'already_reviewed', review: { rating: 4 } });
 
-    await createSoldOrder('buyer01@kapekonek.test', barako(), { number: '0002', method: 'delivery' });
+    await createSoldOrder('kapekonek.buyer01@gmail.com', barako(), { number: '0002', method: 'delivery' });
     await other.post(reviewsUrl()).send({ rating: 5, comment: 'Smells amazing when brewed.' }).expect(201);
     expect((await Product.findById(barako()._id)).toObject()).toMatchObject({ ratingAverage: 4.5, ratingCount: 2 });
   });
@@ -132,9 +132,9 @@ describe('removing your review', () => {
     expect((await buyer.delete(`/api/reviews/${mine._id}`)).status).toBe(404);
   });
 
-  it('keeps farmers out until the farmer shop ships', async () => {
-    const farmer = await signedIn('farmer1@kapekonek.test');
-    expect((await farmer.post(reviewsUrl()).send({ rating: 5, comment: 'Great coffee indeed.' })).status).toBe(403);
-    expect((await farmer.delete('/api/reviews/5f0000000000000000000000')).status).toBe(403);
+  it('keeps out roles without review permissions (Group Managers)', async () => {
+    const manager = await signedIn('kapekonek.manager.santacruz@gmail.com');
+    expect((await manager.post(reviewsUrl()).send({ rating: 5, comment: 'Great coffee indeed.' })).status).toBe(403);
+    expect((await manager.delete('/api/reviews/5f0000000000000000000000')).status).toBe(403);
   });
 });

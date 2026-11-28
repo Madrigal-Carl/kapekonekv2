@@ -6,5 +6,7 @@ export default defineConfig({
     setupFiles: ['tests/setup.js'],
     testTimeout: 20_000,
     hookTimeout: 30_000,
+    // Every file shares one in-memory replica set; more workers than this time out its hooks on a 12-thread machine.
+    maxWorkers: 6,
   },
 });

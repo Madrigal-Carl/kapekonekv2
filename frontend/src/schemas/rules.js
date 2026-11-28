@@ -54,6 +54,9 @@ export const streetRule = z
 
 export const customLabelRule = z.string().trim().max(30, 'Use 30 characters or fewer');
 
+export const associationNameRule = z.string().trim().min(2, 'Use at least 2 characters').max(80, 'Use 80 characters or fewer');
+export const associationDescriptionRule = z.string().trim().max(500, 'Use 500 characters or fewer');
+
 /** Quantity steps by unit: kg in 0.5 steps (min 0.5); packs and pieces whole (min 1). */
 export const QUANTITY_STEP = { kg: 0.5, pack: 1, piece: 1 };
 
@@ -94,30 +97,48 @@ export const UPLOAD_RULES = {
     hint: 'JPG, PNG, WebP or HEIC · up to 5 MB',
   },
   file: {
-    formats: ['pdf', 'mp4', 'webm'],
-    mimeTypes: ['application/pdf', 'video/mp4', 'video/webm'],
+    formats: ['pdf'],
+    mimeTypes: ['application/pdf'],
     maxBytes: 10 * MB,
     noun: 'Files',
-    hint: 'PDF, MP4 or WebM · up to 10 MB',
+    hint: 'PDF · up to 10 MB',
+  },
+  video: {
+    formats: ['mp4', 'webm'],
+    mimeTypes: ['video/mp4', 'video/webm'],
+    maxBytes: 50 * MB,
+    noun: 'Videos',
+    hint: 'MP4 or WebM · up to 50 MB',
   },
 };
 
+/** The kinds each upload purpose accepts (PHASE-2-SPEC §5 Uploads). Video is for Hub posts only. */
+export const UPLOAD_PURPOSES = {
+  avatar: ['image'],
+  receipt: ['image'],
+  farmer_document: ['image', 'file'],
+  bean_photo: ['image'],
+  product_photo: ['image'],
+  wallet_qr: ['image'],
+  message_attachment: ['image', 'file'],
+  post_media: ['image', 'video'],
+};
+
 /**
- * Which rule an upload follows. Avatar and receipt are images; the seeder-only product/post media follow
- * the rule of their resource type (`image` or anything else).
- * @param {'avatar'|'receipt'|'product'|'post'} purpose
- * @param {string} [resourceType] Cloudinary resource type, for product/post media
- * @returns {'image'|'file'}
+ * Which rule a file of this format follows for this purpose, or null when the purpose doesn't take it.
+ * @param {keyof typeof UPLOAD_PURPOSES} purpose
+ * @param {string} format extension, e.g. `pdf`
+ * @returns {'image'|'file'|'video'|null}
  */
-export const kindForPurpose = (purpose, resourceType = 'image') =>
-  purpose === 'avatar' || purpose === 'receipt' || resourceType === 'image' ? 'image' : 'file';
+export const kindForFormat = (purpose, format) =>
+  UPLOAD_PURPOSES[purpose]?.find((kind) => UPLOAD_RULES[kind].formats.includes(format.toLowerCase())) ?? null;
 
 /** "7.2 MB" */
 export const formatMegabytes = (bytes) => `${(bytes / MB).toFixed(1)} MB`;
 
 /**
  * The two lines of the "too large" message: `["receipt.png is 7.2 MB.", "Images can be up to 5 MB."]`.
- * @param {'image'|'file'} kind
+ * @param {'image'|'file'|'video'} kind
  */
 export const tooLargeLines = (kind, name, bytes) => [
   // A file just over the limit never reads as the limit ("5.0 MB … up to 5 MB").
@@ -128,7 +149,7 @@ export const tooLargeLines = (kind, name, bytes) => [
 /**
  * A file to upload, described as `{ name, size, format }` (`format` = extension, e.g. `png`), so the browser
  * (File) and the server (Cloudinary `bytes` / `format`) check the same thing.
- * @param {'image'|'file'} kind
+ * @param {'image'|'file'|'video'} kind
  */
 export const uploadRule = (kind) =>
   z
@@ -141,3 +162,144 @@ export const uploadRule = (kind) =>
         ctx.addIssue({ code: 'custom', path: ['size'], message: tooLargeLines(kind, name, size).join(' '), params: { code: 'FILE_TOO_LARGE' } });
       }
     });
+
+// Records (PHASE-2-SPEC §7). Mirrors backend/src/schemas/rules.js.
+export const farmSizeRule = z
+  .number('Enter the size in hectares')
+  .min(0.01, 'Enter at least 0.01 hectares')
+  .max(500, 'Enter 500 hectares or less')
+  // Change 08: at most 2 decimals. Compared with a tolerance: 1.15 * 100 is 114.99999999999999 in floating point.
+  .refine((v) => Math.abs(v * 100 - Math.round(v * 100)) < 1e-6, 'Use at most 2 decimal places, e.g. 1.25');
+export const farmStreetRule = z.string().trim().max(200, 'Use 200 characters or fewer');
+
+/** Manila "YYYY-MM-DD" for today (the server runs in UTC; date inputs send local calendar days). */
+export const todayKey = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila' }).format(new Date());
+export const pastDateRule = z.iso.date('Pick a date').refine((day) => day <= todayKey(), 'Pick today or an earlier date');
+export const treeCountRule = z.number('Enter the number of trees').int('Use a whole number').min(1, 'Enter at least 1 tree').max(100_000, 'Enter 100,000 trees or fewer');
+export const yieldRule = z
+  .number('Enter the yield in kg')
+  .min(0.5, 'Enter at least 0.5 kg')
+  .max(100_000, 'Enter 100,000 kg or less')
+  .refine((kg) => Number.isInteger(kg * 2), 'Use steps of 0.5 kg');
+export const recordNoteRule = z.string().trim().max(500, 'Use 500 characters or fewer');
+
+// Bean listings (PHASE-2-SPEC §7). Mirrors backend/src/schemas/rules.js.
+export const beanWeightRule = z
+  .number('Enter the weight in kg')
+  .min(0.5, 'Enter at least 0.5 kg')
+  .max(10_000, 'Enter 10,000 kg or less')
+  .refine((kg) => Number.isInteger(kg * 2), 'Use steps of 0.5 kg');
+/** Price per kg in centavos: ₱1 to ₱10,000. */
+export const beanPriceRule = z
+  .number('Enter your price per kg')
+  .int('Use whole centavos')
+  .min(100, 'Enter at least ₱1 per kg')
+  .max(1_000_000, 'Enter ₱10,000 per kg or less');
+export const beanPhotosRule = z
+  .array(z.object({ url: z.url().max(500), publicId: z.string().min(1).max(300) }), 'Add at least 1 photo')
+  .min(1, 'Add at least 1 photo')
+  .max(5, 'Add up to 5 photos');
+/** What Kaluppa weighed at the branch: any weight to 2 decimals (the listed weight uses 0.5 kg steps). */
+export const beanFinalWeightRule = z
+  .number('Enter the weight measured at the branch')
+  .gt(0, 'Enter more than 0 kg')
+  .max(10_000, 'Enter 10,000 kg or less')
+  .refine((kg) => Math.abs(kg * 100 - Math.round(kg * 100)) < 1e-6, 'Use up to 2 decimals');
+/** What Kaluppa paid, in centavos: ₱1 to ₱1,000,000. */
+export const beanAmountRule = z
+  .number('Enter the amount paid')
+  .int('Use whole centavos')
+  .min(100, 'Enter at least ₱1')
+  .max(100_000_000, 'Enter ₱1,000,000 or less');
+
+// Inventory (PHASE-2-SPEC §4). Mirrored in the other app's rules.js.
+/** What each store category allows: its units and whether it has a variety / coffee type. */
+export const PRODUCT_CATEGORIES = {
+  coffee: { units: ['pack', 'kg'], variety: true, coffeeType: true },
+  fertilizer: { units: ['sack', 'kg'] },
+  beans: { units: ['kg', 'sack'] }, // Change 08: replaced Seedlings
+};
+/** Price in centavos: ₱1 to ₱100,000. */
+export const productPriceRule = z
+  .number('Enter the price')
+  .int('Use whole centavos')
+  .min(100, 'Enter at least ₱1')
+  .max(10_000_000, 'Enter ₱100,000 or less');
+export const productStockRule = z.number('Enter the stock').min(0, 'Enter 0 or more').max(100_000, 'Enter 100,000 or less');
+/** Low stock means this many or fewer (Change 08: one line for every category). */
+export const LOW_STOCK_LINE = 10;
+export const STARTING_STOCK_MESSAGE = `Starting stock must be more than ${LOW_STOCK_LINE}, the low-stock level.`;
+/** Adding a product only: it must start above the low-stock line. Editing stock is unaffected. */
+export function refineStartingStock(p, ctx) {
+  if (typeof p.stock === 'number' && p.stock <= LOW_STOCK_LINE) ctx.addIssue({ code: 'custom', path: ['stock'], message: STARTING_STOCK_MESSAGE });
+}
+/** Up to five photos, or none (the store shows the default image); at most one marked as the thumbnail (none → the first). */
+export const productPhotosRule = z
+  .array(z.object({ url: z.url().max(500), publicId: z.string().min(1).max(300), isThumbnail: z.boolean().default(false) }))
+  .max(5, 'Add up to 5 photos')
+  .refine((photos) => photos.filter((p) => p.isThumbnail).length <= 1, 'Pick one thumbnail');
+/** The category-dependent checks of a product form (`superRefine`). */
+export function refineProductCategory(p, ctx) {
+  const rules = PRODUCT_CATEGORIES[p.category];
+  if (!rules) return;
+  const issue = (path, message) => ctx.addIssue({ code: 'custom', path: [path], message });
+  if (!rules.units.includes(p.unit)) issue('unit', `Choose ${rules.units.join(' or ')}`);
+  else if (!Number.isInteger(p.unit === 'kg' ? p.stock * 2 : p.stock)) issue('stock', p.unit === 'kg' ? 'Use steps of 0.5 kg' : 'Use whole numbers');
+  if (rules.variety && !p.variety) issue('variety', 'Choose a variety');
+  if (rules.coffeeType && !p.coffeeType) issue('coffeeType', 'Choose a coffee type');
+}
+
+// Settings (PHASE-2-SPEC §3.13). Mirrored in the other app's rules.js.
+const clockRule = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use a time like 08:00');
+/** Monday first, seven days; an open day closes after it opens. */
+export const openingHoursRule = z
+  .array(z.object({ open: z.boolean(), from: clockRule, to: clockRule }), 'Set the opening hours')
+  .length(7, 'Set the hours for every day')
+  .superRefine((days, ctx) =>
+    days.forEach((d, i) => {
+      if (d.open && d.from >= d.to) ctx.addIssue({ code: 'custom', path: [i, 'to'], message: 'Closing time must be after opening time' });
+    }),
+  );
+export const EWALLET_PROVIDERS = ['GCash', 'Maya'];
+/** One account per supported provider, in this order; at least one shown at checkout. */
+export const walletAccountsRule = z
+  .array(
+    z.object({
+      provider: z.enum(EWALLET_PROVIDERS),
+      accountName: z.string('Enter the account name').trim().min(2, 'Enter the account name').max(80, 'Use 80 characters or fewer'),
+      accountNumber: z.string('Enter the account number').trim().min(4, 'Enter the account number').max(30, 'Use 30 characters or fewer'),
+      showAtCheckout: z.boolean(),
+      qr: z.object({ url: z.url().max(500), publicId: z.string().min(1).max(300) }).nullable(),
+    }),
+  )
+  .refine((a) => a.map((x) => x.provider).join() === EWALLET_PROVIDERS.join(), `Set up ${EWALLET_PROVIDERS.join(' and ')}`)
+  .refine((a) => a.some((x) => x.showAtCheckout), 'Show at least one e-wallet at checkout');
+
+// Inbox (PHASE-2-SPEC §3.9): a message is up to 2,000 characters.
+export const MESSAGE_MAX = 2000;
+export const messageBodyRule = z.string().trim().max(MESSAGE_MAX, 'Use 2,000 characters or fewer');
+
+// Hub (PHASE-2-SPEC §3.10, §7): post ≤ 5,000 characters, comment ≤ 1,000, up to 3 tags from the list, up to 10 photos or videos.
+export const POST_TAGS = ['pruning', 'harvesting', 'processing', 'soil', 'advisory', 'announcement'];
+export const POST_MEDIA_MAX = 10;
+export const POST_MAX = 5000;
+export const COMMENT_MAX = 1000;
+export const postBodyRule = z.string('Write something to post').trim().min(1, 'Write something to post').max(POST_MAX, 'Use 5,000 characters or fewer');
+export const commentBodyRule = z.string('Write a comment').trim().min(1, 'Write a comment').max(COMMENT_MAX, 'Use 1,000 characters or fewer');
+export const postTagsRule = z
+  .array(z.enum(POST_TAGS, 'Pick tags from the list'))
+  .max(3, 'Pick up to 3 tags')
+  .refine((tags) => new Set(tags).size === tags.length, 'Pick each tag once');
+
+// Contact us (Change 08, ContactUs.dc.html): the form and POST /contact share this schema.
+export const CONTACT_TOPICS = ['An order', 'Delivery or pickup', 'Payment', 'Selling as a farmer', 'Partnership or bulk order', 'Something else'];
+export const CONTACT_MESSAGE_MAX = 1000;
+export const contactSchema = z.object({
+  name: z.string('Enter your name.').trim().min(1, 'Enter your name.').max(80, 'Use 80 characters or fewer.'),
+  email: z.string('Enter your email so we can reply.').trim().toLowerCase().min(1, 'Enter your email so we can reply.').pipe(z.email('Enter a valid email, like name@gmail.com.')),
+  phone: z.union([z.literal(''), phoneRule]).nullish().transform((v) => v || null),
+  topic: z.enum(CONTACT_TOPICS, 'Choose a topic.'),
+  orderNumber: z.string().trim().max(40, 'Use 40 characters or fewer.').nullish().transform((v) => v || null),
+  message: z.string('Write at least 10 characters.').trim().min(10, 'Write at least 10 characters.').max(CONTACT_MESSAGE_MAX, 'Use 1,000 characters or fewer.'),
+  website: z.string().max(200).optional(), // honeypot: hidden from people, so any value means a bot
+});

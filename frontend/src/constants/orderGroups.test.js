@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CANCEL_REASONS, groupCount, ORDER_GROUPS, ORDER_STATUS, paymentLabel, refundLabel, timelineSteps } from './orderStatus'
+import { CANCEL_REASONS, DASH_ORDER_STATUS, groupCount, ORDER_GROUPS, ORDER_STATUS, paymentLabel, paymentPill, refundLabel, timelineSteps } from './orderStatus'
 
 describe('order groups', () => {
   it('cover every status exactly once outside "All orders"', () => {
@@ -62,5 +62,27 @@ describe('timelineSteps', () => {
     const cancelled = timelineSteps({ ...base, status: 'cancelled', statusHistory: [{ status: 'pending', at }, { status: 'cancelled', at, reason: 'Ordered by mistake' }] })
     expect(cancelled.map((s) => [s.title, s.current])).toEqual([['Order placed', false], ['Cancelled', false]])
     expect(cancelled[1].meta).toMatch(/by you · Ordered by mistake$/)
+  })
+})
+
+describe('dashboard order pills (OrdersFarmer / OrdersKaluppa)', () => {
+  const order = (status, payment, refund = 'not_applicable', method = 'delivery') => ({ status, payment, refund: { status: refund }, fulfillment: { method } })
+
+  it('labels each status in the dashboard’s words and tones', () => {
+    expect(DASH_ORDER_STATUS.pending).toEqual({ label: 'To confirm', tone: 'amber' })
+    expect(DASH_ORDER_STATUS.reserved).toEqual({ label: 'Confirmed', tone: 'blue' })
+    expect(DASH_ORDER_STATUS.out_for_delivery.tone).toBe('roast')
+    expect(DASH_ORDER_STATUS.sold).toEqual({ label: 'Completed', tone: 'green' })
+    expect(DASH_ORDER_STATUS.rejected.tone).toBe('red')
+    expect(Object.keys(DASH_ORDER_STATUS).sort()).toEqual(Object.keys(ORDER_STATUS).sort())
+  })
+
+  it('shows how the order is paid: cash, a receipt to check, verified, or a refund', () => {
+    expect(paymentPill(order('pending', { method: 'cash' }))).toEqual({ label: 'Cash on delivery', tone: 'gray' })
+    expect(paymentPill(order('sold', { method: 'cash' }, 'not_applicable', 'pickup'))).toEqual({ label: 'Cash on pickup', tone: 'gray' })
+    expect(paymentPill(order('pending', { method: 'e_wallet', provider: 'GCash' }))).toEqual({ label: 'GCash · check receipt', tone: 'amber' })
+    expect(paymentPill(order('processing', { method: 'e_wallet', provider: 'Maya' }))).toEqual({ label: 'Maya · verified', tone: 'green' })
+    expect(paymentPill(order('cancelled', { method: 'e_wallet', provider: 'GCash' }, 'pending'))).toEqual({ label: 'Refund pending', tone: 'red' })
+    expect(paymentPill(order('rejected', { method: 'e_wallet', provider: 'GCash' }, 'refunded'))).toEqual({ label: 'Refunded', tone: 'gray' })
   })
 })

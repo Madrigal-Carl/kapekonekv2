@@ -1,3 +1,5 @@
+import { mustAcceptTerms } from '../constants/legal.js';
+import { acceptTerms } from './legal.service.js';
 import { createHash, randomBytes, randomInt } from 'node:crypto';
 import bcrypt from 'bcrypt';
 import { env } from '../config/env.js';
@@ -5,8 +7,12 @@ import { BCRYPT_ROUNDS } from '../models/user.model.js';
 import { TOKEN_PURPOSES } from '../models/token.model.js';
 import { EMAIL_JOBS } from '../queues/email.jobs.js';
 import { enqueueEmail } from '../queues/email.queue.js';
+import { findAssociationById, findAssociationByManager } from '../repositories/association.repository.js';
+import { findProfileScope } from '../repositories/farmerProfile.repository.js';
 import { consumeToken, createToken, deleteUnusedTokens } from '../repositories/token.repository.js';
+import { DEFAULT_PASSWORD } from '../constants/accounts.js';
 import {
+  addFirstEmail as addFirstEmailTo,
   createUser,
   findByIdentifierWithPassword,
   findIdentityConflicts,
@@ -15,11 +21,14 @@ import {
   findUserById,
   markEmailVerified,
   replacePassword,
+  setFirstPassword,
   touchLastLogin,
 } from '../repositories/user.repository.js';
 import { AppError } from '../utils/AppError.js';
 import { verifyAccessToken, verifyRefreshToken } from '../utils/tokens.js';
+import { onboardFarmer } from './farmerProfile.service.js';
 import { resolvePermissions } from './permission.service.js';
+import { mustVerifyEmail } from './policy.service.js';
 
 const VERIFY_TTL_MS = 60 * 60 * 1000; // VerifyEmail.dc.html: "The link works for 60 minutes"
 const RESET_TTL_MS = 60 * 60 * 1000;
@@ -35,20 +44,57 @@ export const publicUser = (user) => ({
   fullName: user.fullName,
   initials: user.initials,
   username: user.username,
-  email: user.email,
+  email: user.email ?? null,
   emailVerifiedAt: user.emailVerifiedAt ?? null,
   contactNumber: user.contactNumber ?? null,
   avatar: user.avatar?.url ? { url: user.avatar.url } : null,
   roles: user.roles,
+  mustChangePassword: Boolean(user.mustChangePassword),
+  mustVerifyEmail: mustVerifyEmail(user),
+  mustAcceptTerms: mustAcceptTerms(user),
+  passwordIsDefault: Boolean(user.passwordIsDefault),
+  associationId: user.associationId ? String(user.associationId) : null,
+  farmerStatus: user.farmerStatus ?? null,
   createdAt: user.createdAt,
 });
+
+/**
+ * Attach the user's scope for policies and the session: `associationId` (a Group Manager's association, or an
+ * approved farmer's) and `farmerStatus` (farmers only).
+ */
+export async function loadScope(user) {
+  user.associationId = null;
+  user.farmerStatus = null;
+  user.requestedAssociationId = null;
+  if (user.roles.includes('group_manager')) user.associationId = (await findAssociationByManager(user._id))?._id ?? null;
+  if (user.roles.includes('farmer')) {
+    const profile = await findProfileScope(user._id);
+    user.farmerStatus = profile?.status ?? 'none';
+    if (profile?.status === 'approved') user.associationId = profile.association;
+    if (profile?.status === 'pending') user.requestedAssociationId = profile.association; // may message its Group Manager (Change 08)
+  }
+  return user;
+}
 
 /**
  * The `/auth/me` payload.
  * @returns {Promise<{ user: object, roles: string[], permissions: string[] }>}
  */
 export async function buildSession(user) {
-  return { user: publicUser(user), roles: user.roles, permissions: await resolvePermissions(user) };
+  if (user.farmerStatus === undefined) await loadScope(user);
+  return { user: { ...publicUser(user), ...(await createdFor(user)) }, roles: user.roles, permissions: await resolvePermissions(user) };
+}
+
+/**
+ * For the Verify email page's "created" variant: who made the account, and the farmer's association.
+ * @returns {Promise<{ createdBy?: { name: string, isKaluppa: boolean }, associationName?: string | null }>}
+ */
+async function createdFor(user) {
+  if (!user.createdBy || !(mustVerifyEmail(user) || mustAcceptTerms(user))) return {};
+  const creator = await findUserById(user.createdBy);
+  const isKaluppa = !creator || creator.roles.includes('kaluppa');
+  const association = user.associationId ? await findAssociationById(user.associationId) : null;
+  return { createdBy: { name: isKaluppa ? 'Kaluppa' : `${creator.firstName} ${creator.lastName}`, isKaluppa }, associationName: association?.name ?? null };
 }
 
 /**
@@ -60,7 +106,7 @@ export async function userFromAccessToken(token) {
   const user = await findUserById(sub);
   if (!user || user.tokenVersion !== tv) throw expired();
   if (user.status !== 'active') throw new AppError(403, 'This account is suspended. Contact Kaluppa for help.');
-  return user;
+  return loadScope(user);
 }
 
 async function issueLink(user, purpose, ttlMs) {
@@ -68,6 +114,28 @@ async function issueLink(user, purpose, ttlMs) {
   await deleteUnusedTokens(user._id, purpose);
   await createToken({ user: user._id, purpose, tokenHash: sha256(raw), email: user.email, expiresAt: new Date(Date.now() + ttlMs) });
   return raw;
+}
+
+/**
+ * A new account made by Kaluppa or a Group Manager: a verification link, plus how to sign in with the default password.
+ * @param {object} user @param {string} creatorName "Kaluppa" or the Group Manager's name
+ */
+export async function sendAccountCreated(user, creatorName) {
+  const token = await issueLink(user, TOKEN_PURPOSES.VERIFY_EMAIL, VERIFY_TTL_MS);
+  await enqueueEmail(EMAIL_JOBS.ACCOUNT_CREATED, {
+    to: user.email,
+    name: user.firstName,
+    creatorName,
+    username: user.username,
+    password: DEFAULT_PASSWORD,
+    url: `${env.CLIENT_URL}/verify-email/confirm?token=${token}`,
+  });
+}
+
+/** Tell the account its password went back to the default (Reset password); no-op without an email. */
+export async function sendPasswordWasReset(user, byName) {
+  if (!user.email) return;
+  await enqueueEmail(EMAIL_JOBS.PASSWORD_RESET_BY_ADMIN, { to: user.email, name: user.firstName, byName, password: DEFAULT_PASSWORD, url: `${env.CLIENT_URL}/login` });
 }
 
 /** Email a fresh verification link to the user's current address. */
@@ -84,7 +152,7 @@ export async function sendVerificationEmail(user) {
  * Create a buyer or farmer account and email a verification link.
  * @param {{ firstName: string, middleName: string|null, lastName: string, username: string, email: string, password: string, role: string }} input
  */
-export async function register({ role, ...fields }) {
+export async function register({ role, acceptTerms: _agreed, ...fields }) {
   const conflicts = await findIdentityConflicts(fields);
   if (conflicts.email || conflicts.username) {
     throw new AppError(409, 'Some details are already in use.', {
@@ -94,12 +162,20 @@ export async function register({ role, ...fields }) {
       },
     });
   }
-  const user = await createUser({ ...fields, roles: [role] });
+  const created = await createUser({ ...fields, roles: [role] });
+  const user = await acceptTerms(created); // the sign-up checkbox (Change 09), audited like the accept step
+  if (role === 'farmer') await onboardFarmer(user._id); // every farmer account has a profile and a Kaluppa chat
   await sendVerificationEmail(user);
   return { user, session: await buildSession(user) };
 }
 
 let dummyHash;
+
+/** The accept step after sign-in (Change 09): agree to `version`, then the fresh session. */
+export async function acceptTermsAndRefresh(user, version) {
+  const updated = await acceptTerms(user, version);
+  return buildSession(await loadScope(updated));
+}
 
 /**
  * Check credentials. The error never says which part was wrong.
@@ -139,8 +215,25 @@ export async function verifyEmail({ token }) {
 
 /** Send a fresh verification link; older links stop working. */
 export async function resendVerification(user) {
+  if (!user.email) throw new AppError(409, 'Add your email first.');
   if (user.emailVerifiedAt) throw new AppError(409, 'Your email is already verified.');
   await sendVerificationEmail(user);
+}
+
+/**
+ * "Add your email" on the Verify email page: a username-only account (made by a Group Manager before Change 08) adds
+ * its first email and gets a verification link.
+ * @throws {AppError} 409 when the account already has an email or the address is taken
+ */
+export async function addFirstEmail(user, { email }) {
+  if (user.email) throw new AppError(409, 'Your account already has an email.');
+  if ((await findIdentityConflicts({ email }, user._id)).email) {
+    throw new AppError(409, 'Some details are already in use.', { code: 'CONFLICT', errors: { email: 'Email is already taken' } });
+  }
+  const updated = await addFirstEmailTo(user._id, email);
+  if (!updated) throw new AppError(409, 'Your account already has an email.');
+  await sendVerificationEmail(updated);
+  return buildSession(updated);
 }
 
 /** Email a reset link if the account exists. The response is the same either way. */
@@ -162,6 +255,16 @@ export async function resetPassword({ token, password }) {
   if (!user) {
     throw new AppError(400, 'This reset link has expired or was already used.', { errors: { token: 'Link expired or used' } });
   }
+}
+
+/**
+ * First sign-in of an account a Group Manager created: replace the temporary password. Other sessions end.
+ * @throws {AppError} 409 when the account has no temporary password to replace
+ */
+export async function setFirstPasswordFor(user, { newPassword }) {
+  const updated = await setFirstPassword(user._id, newPassword);
+  if (!updated) throw new AppError(409, 'Your password is already set. Change it from Account settings.');
+  return { user: updated, session: await buildSession(updated) };
 }
 
 /** @param {{ username: string }} query */

@@ -5,7 +5,7 @@ import { imagesFor, seedMedia } from './media.js';
 const SLIDES = [
   {
     title: 'Marinduque coffee, delivered to your door.',
-    subtitle: 'Green beans, fresh roasts and grounds from local farms. Order online, pay by GCash, Maya or cash on delivery, and get it anywhere in Marinduque in 3–5 business days.',
+    subtitle: 'Green beans, fresh roasts and grounds from local farms. Order online, pay by {payments}, and get it anywhere in Marinduque in 3–5 business days.',
     media: 'roasted-roaster-arm',
     ctaLabel: 'Browse coffee',
     ctaHref: '/products',
@@ -30,6 +30,8 @@ const SLIDES = [
 export async function seedSettings() {
   const media = await seedMedia();
   const heroSlides = SLIDES.map(({ media: key, ...slide }) => ({ ...slide, image: imagesFor(media, [key])[0] ?? null }));
-  await insertMissingSettings({ ...SETTING_DEFAULTS, 'landing.heroSlides': heroSlides });
+  // Contact us shows and emails the branch address; the seed Kaluppa account is never emailed without SEED_EMAIL_BASE.
+  const branch = { ...SETTING_DEFAULTS.branch, contactEmail: 'kapekonek.kaluppa@gmail.com' };
+  await insertMissingSettings({ ...SETTING_DEFAULTS, branch, 'landing.heroSlides': heroSlides });
   return `${await countSettings()} settings`;
 }

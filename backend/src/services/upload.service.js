@@ -1,11 +1,14 @@
 import { destroyImage, getUploadedAsset } from '../clients/cloudinary.client.js';
 import cloudinary from '../config/cloudinary.js';
 import { env } from '../config/env.js';
-import { kindForPurpose, UPLOAD_RULES, uploadRule } from '../schemas/rules.js';
+import { kindForFormat, UPLOAD_PURPOSES, UPLOAD_RULES, uploadRule } from '../schemas/rules.js';
 import { AppError } from '../utils/AppError.js';
 
-/** Upload purposes buyers may sign (product and post media are seeder-only) and their Cloudinary folders. */
-export const UPLOAD_FOLDERS = { avatar: 'avatars', receipt: 'receipts' };
+/** Upload purposes users may sign and their Cloudinary folders (later milestones add theirs). */
+export const UPLOAD_FOLDERS = { avatar: 'avatars', receipt: 'receipts', farmer_document: 'farmer-documents', bean_photo: 'bean-photos', product_photo: 'product-photos', wallet_qr: 'wallet-qr', message_attachment: 'message-attachments', post_media: 'post-media' };
+
+/** "JPG, PNG, WebP or HEIC, or PDF" */
+const acceptedTypes = (kinds) => kinds.map((kind) => UPLOAD_RULES[kind].hint.split(' · ')[0]).join(', or ');
 
 /** Cloudinary folder of a user's uploads for this purpose, e.g. `kapekonek/receipts/<userId>`. */
 export const uploadFolder = (purpose, userId) => `${env.CLOUDINARY_ROOT_FOLDER}/${UPLOAD_FOLDERS[purpose]}/${userId}`;
@@ -13,7 +16,7 @@ export const uploadFolder = (purpose, userId) => `${env.CLOUDINARY_ROOT_FOLDER}/
 /**
  * Whether `{ url, publicId }` is an upload for this purpose from this user's own folder on our Cloudinary cloud.
  * @param {{ _id: unknown }} user
- * @param {'avatar'|'receipt'} purpose
+ * @param {keyof UPLOAD_FOLDERS} purpose
  * @param {{ url: string, publicId: string }} asset
  */
 export const isOwnUpload = (user, purpose, { url, publicId }) =>
@@ -23,15 +26,14 @@ export const isOwnUpload = (user, purpose, { url, publicId }) =>
 
 /**
  * Signed params for a direct browser upload into the user's own folder. The signature fixes the folder and
- * `allowed_formats`; `maxBytes` is for the browser's check (a signed upload can't cap size, so the server
+ * `allowed_formats`; `kinds` is for the browser's size check (a signed upload can't cap size, so the server
  * re-checks the stored asset with `assertUploadAllowed`).
  * @param {{ _id: unknown }} user
- * @param {'avatar'|'receipt'} purpose
+ * @param {keyof UPLOAD_FOLDERS} purpose
  */
 export function createUploadSignature(user, purpose) {
-  const kind = kindForPurpose(purpose);
-  const { formats, maxBytes } = UPLOAD_RULES[kind];
-  const allowedFormats = formats.join(',');
+  const kinds = UPLOAD_PURPOSES[purpose];
+  const allowedFormats = kinds.flatMap((kind) => UPLOAD_RULES[kind].formats).join(',');
   const folder = uploadFolder(purpose, user._id);
   const timestamp = Math.round(Date.now() / 1000);
   const signature = cloudinary.utils.api_sign_request(
@@ -39,7 +41,7 @@ export function createUploadSignature(user, purpose) {
     env.CLOUDINARY_API_SECRET,
   );
   return {
-    url: `https://api.cloudinary.com/v1_1/${env.CLOUDINARY_CLOUD_NAME}/image/upload`,
+    url: `https://api.cloudinary.com/v1_1/${env.CLOUDINARY_CLOUD_NAME}/auto/upload`,
     apiKey: env.CLOUDINARY_API_KEY,
     timestamp,
     signature,
@@ -47,8 +49,7 @@ export function createUploadSignature(user, purpose) {
     allowedFormats,
     useFilename: true,
     uniqueFilename: true,
-    kind,
-    maxBytes,
+    kinds,
   };
 }
 
@@ -56,19 +57,23 @@ export function createUploadSignature(user, purpose) {
  * Re-check an upload the client sent back, from what Cloudinary stored (`bytes`, `format`, `resource_type`).
  * Over the limit or the wrong type: the asset is deleted and the request refused with
  * 422 `FILE_TOO_LARGE` / `FILE_TYPE_NOT_ALLOWED`, the message on `field`.
- * @param {'avatar'|'receipt'} purpose
+ * @param {keyof UPLOAD_FOLDERS} purpose
  * @param {string} publicId
  * @param {string} field form field the error belongs to
  */
 export async function assertUploadAllowed(purpose, publicId, field) {
-  const kind = kindForPurpose(purpose);
-  const asset = await getUploadedAsset(publicId, kind === 'image' ? 'image' : 'raw');
+  const kinds = UPLOAD_PURPOSES[purpose];
+  // A pdf is stored as an image on Cloudinary; only video has its own resource type.
+  let asset = await getUploadedAsset(publicId, 'image');
+  if (!asset && kinds.includes('video')) asset = await getUploadedAsset(publicId, 'video');
   if (!asset) throw new AppError(400, 'Please check the highlighted fields.', { errors: { [field]: 'We couldn’t find that upload. Upload it again.' } });
-  const checked = uploadRule(kind).safeParse({ name: `${asset.originalFilename}.${asset.format}`, size: asset.bytes, format: asset.format });
-  if (checked.success && asset.resourceType === (kind === 'image' ? 'image' : asset.resourceType)) return;
+  const name = `${asset.originalFilename}.${asset.format}`;
+  const kind = kindForFormat(purpose, asset.format);
+  const checked = kind && uploadRule(kind).safeParse({ name, size: asset.bytes, format: asset.format });
+  if (checked?.success) return { kind, bytes: asset.bytes, name, width: asset.width, height: asset.height, durationSec: asset.duration && Math.round(asset.duration) };
   await destroyImage(publicId);
-  const issue = checked.error?.issues[0];
+  const issue = checked?.error.issues[0];
   const code = issue?.params?.code ?? 'FILE_TYPE_NOT_ALLOWED';
-  const message = issue?.message ?? `That upload isn’t an image. Use ${UPLOAD_RULES[kind].hint.split(' · ')[0]}.`;
+  const message = issue?.message ?? `${name} isn’t a supported type. Use ${acceptedTypes(kinds)}.`;
   throw new AppError(422, message, { code, errors: { [field]: message } });
 }

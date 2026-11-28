@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { ADDRESS_LABELS, insideBounds } from '../constants/geo.js';
+import { ADDRESS_LABELS } from '../constants/geo.js';
+import { insideMarinduque } from '../services/boundary.service.js';
 import { getLocations, isValidBarangay } from '../services/location.service.js';
 import { customLabelRule, phoneRule, recipientNameRule, streetRule } from './rules.js';
 
@@ -8,7 +9,7 @@ const MUNICIPALITIES = getLocations().map((m) => m.name);
 /** Add/edit body. Province and postal code are derived on the server; a `location` of null removes the pin. */
 export const addressSchema = z
   .object({
-    label: z.enum(ADDRESS_LABELS, 'Choose Home, Work or Other'),
+    label: z.enum(ADDRESS_LABELS, 'Choose a label'),
     customLabel: customLabelRule.optional().nullable(),
     recipientName: recipientNameRule,
     phone: phoneRule,
@@ -17,7 +18,7 @@ export const addressSchema = z
     street: streetRule,
     location: z
       .object({ lat: z.number(), lng: z.number() })
-      .refine(insideBounds, 'That spot is outside our delivery area. We deliver anywhere in Marinduque.')
+      .refine(insideMarinduque, 'That spot is outside our delivery area. We deliver anywhere in Marinduque.')
       .nullable()
       .optional(),
     isDefault: z.boolean().optional().default(false),

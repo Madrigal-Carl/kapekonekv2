@@ -1,19 +1,15 @@
-import { Heart, Star, ThumbsUp } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 import { useState } from 'react'
 import { cn } from '@/lib/cn'
+import { REACTIONS } from './reactions'
 
-const TYPES = [
-  { key: 'like', label: 'Like', icon: ThumbsUp, tile: 'bg-roast text-white' },
-  { key: 'love', label: 'Love', icon: Heart, tile: 'bg-danger-strong text-white' },
-  { key: 'celebrate', label: 'Celebrate', icon: Star, tile: 'bg-caramel text-espresso' },
-]
 
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`
 
 /** Stacked reaction icons, "N reactions" (expands to a breakdown) and the comment count. */
 export function ReactionSummary({ counts = {}, commentCount = 0 }) {
   const [open, setOpen] = useState(false)
-  const present = TYPES.filter((t) => counts[t.key] > 0)
+  const present = REACTIONS.filter((t) => counts[t.key] > 0)
   const total = present.reduce((sum, t) => sum + counts[t.key], 0)
 
   return (
@@ -30,9 +26,9 @@ export function ReactionSummary({ counts = {}, commentCount = 0 }) {
             </span>
           )}
           {total > 0 ? (
-            <button type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="cursor-pointer border-0 bg-transparent px-0 py-1.5 text-[13.5px] text-ink-2">
+            <Button variant="bare" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="cursor-pointer border-0 bg-transparent px-0 py-1.5 text-[13.5px] text-ink-2">
               {plural(total, 'reaction')}
-            </button>
+            </Button>
           ) : (
             <span className="text-[13.5px] text-ink-3">No reactions yet</span>
           )}

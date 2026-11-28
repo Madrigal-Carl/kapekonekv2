@@ -12,6 +12,12 @@ export const listProducts = ({ variety, coffeeType, ...params }) =>
     .get('/products', { params: { ...params, variety: variety?.join(',') || undefined, coffeeType: coffeeType?.join(',') || undefined } })
     .then(page)
 
+/** Categories the viewer may shop (guests: the public ones). */
+export const listCategories = () => api.get('/categories').then(data)
+
+/** Landing best sellers (Change 08): up to 8, each with `rank` and `soldLast90Days`. */
+export const listBestSellers = () => api.get('/products/best-sellers').then(data)
+
 export const getProduct = (slug) => api.get(`/products/${slug}`).then(data)
 
 export const listReviews = (productId, params) => api.get(`/products/${productId}/reviews`, { params }).then(page)

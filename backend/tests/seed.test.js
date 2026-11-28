@@ -16,9 +16,11 @@ vi.mock('../src/database/seeders/media.js', async (importOriginal) => {
 });
 
 const { runSeeders } = await import('../src/database/seeders/index.js');
+const { seedEmail } = await import('../src/database/seeders/users.seeder.js');
 const { assertCanDropDatabase } = await import('../src/database/commands/migrateFresh.js');
-const { User, Role, Permission, Category, Product, Setting, Post, PostComment, Reaction, Order, Review, Address, Notification } = await import('../src/models/index.js');
+const { User, Role, Permission, Category, Product, Setting, Post, PostComment, PostView, Reaction, Order, Review, Address, Notification } = await import('../src/models/index.js');
 const { ORDER_STATUSES } = await import('../src/constants/orderStatus.js');
+const { refreshTopPosts } = await import('../src/services/post.service.js');
 
 beforeAll(startMemoryDb);
 afterAll(stopMemoryDb);
@@ -35,20 +37,78 @@ describe('runSeeders', () => {
     const first = await counts();
     await runSeeders({ only: ['roles', 'users'], log });
     expect(await counts()).toEqual(first);
-    expect(first).toEqual({ roles: 4, permissions: 18, users: 26 });
+    expect(first).toEqual({ roles: 4, permissions: 39, users: 27 });
 
-    const byEmail = async (local) => User.findOne({ email: `${local}@kapekonek.test` }).select('+password');
+    const byEmail = async (local) => User.findOne({ email: `kapekonek.${local}@gmail.com` }).select('+password');
     expect((await byEmail('kaluppa')).roles).toEqual(['kaluppa']);
-    expect((await byEmail('manager')).roles).toEqual(['group_manager']);
-    expect((await byEmail('farmer1')).emailVerifiedAt).not.toBeNull();
-    expect((await byEmail('farmer2')).emailVerifiedAt).toBeNull();
+    expect((await byEmail('manager.santacruz')).roles).toEqual(['group_manager']);
+    expect((await byEmail('farmer.approved')).emailVerifiedAt).not.toBeNull();
+    expect((await byEmail('farmer.unverified')).emailVerifiedAt).toBeNull();
     expect((await byEmail('buyer')).emailVerifiedAt).not.toBeNull();
     expect((await byEmail('buyer.unverified')).emailVerifiedAt).toBeNull();
-    expect(await (await byEmail('buyer')).comparePassword('Password123!')).toBe(true);
+    expect(await (await byEmail('buyer')).comparePassword('KapeKonek@123')).toBe(true);
+    expect((await byEmail('manager.santacruz')).username).toBe('manager.santacruz');
+    expect(await User.countDocuments({ isSeed: true, email: /@gmail\.com$/ })).toBe(27);
+    expect(await User.exists({ username: 'buyer07', email: 'kapekonek.buyer07@gmail.com' })).toBeTruthy();
+  });
+
+  it('builds seed emails from SEED_EMAIL_BASE when it is set', () => {
+    expect(seedEmail('farmer.approved', 'Carl@gmail.com')).toBe('carl+farmer.approved@gmail.com');
+    expect(seedEmail('buyer', undefined)).toBe('kapekonek.buyer@gmail.com');
   });
 
   it('refuses unknown seeder names', async () => {
     await expect(runSeeders({ only: ['nope'], log: () => {} })).rejects.toThrow(/Unknown seeder: nope/);
+  });
+});
+
+describe('associations seeder (PHASE-2-SPEC §8)', () => {
+  const log = () => {};
+
+  it('seeds 3 associations and farmers in every state, once', async () => {
+    const { Association, FarmerProfile, AuditLog, Conversation, ConversationMember } = await import('../src/models/index.js');
+    await runSeeders({ only: ['roles', 'users', 'associations'], log });
+    const snapshot = async () => [await Association.countDocuments(), await FarmerProfile.countDocuments(), await AuditLog.countDocuments(), await User.countDocuments()];
+    const first = await snapshot();
+    await runSeeders({ only: ['associations'], log });
+    expect(await snapshot()).toEqual(first);
+
+    const user = (username) => User.findOne({ username }).lean();
+    const id = async (username) => (await user(username))._id;
+    const byName = Object.fromEntries((await Association.find().lean()).map((a) => [a.municipality, a]));
+    expect(Object.keys(byName).sort()).toEqual(['Boac', 'Gasan', 'Santa Cruz']);
+    expect(byName['Santa Cruz']).toMatchObject({ name: 'Santa Cruz Coffee Growers', groupManager: await id('manager.santacruz') });
+    expect(byName.Boac.groupManager).toEqual(await id('manager.boac'));
+    expect(byName.Gasan.groupManager ?? null).toBeNull();
+    expect(Object.values(byName).every((a) => a.groupChat)).toBe(true);
+    expect(await Association.exists({ groupManager: await id('manager.unassigned') })).toBeNull();
+
+    const profile = async (username) => FarmerProfile.findOne({ user: await id(username) }).lean();
+    const sc = byName['Santa Cruz']._id;
+    expect(await profile('farmer.approved')).toMatchObject({ status: 'approved', association: sc, approvedBy: await id('manager.santacruz') });
+    expect(await profile('farmer.pending')).toMatchObject({ status: 'pending', association: sc });
+    expect(await profile('farmer.new')).toMatchObject({ status: 'none' });
+    expect((await user('farmer.new')).emailVerifiedAt).not.toBeNull();
+    expect(await profile('farmer.rejected')).toMatchObject({ status: 'rejected', association: sc, rejectionReason: expect.stringMatching(/.{5,}/) });
+    expect(await profile('farmer.transfer')).toMatchObject({ status: 'approved', association: byName.Boac._id, transferRequest: { association: sc } });
+    // Made by a Group Manager / by Kaluppa: an email that isn't verified yet, and the default password (Change 08).
+    expect(await user('farmer.unverified')).toMatchObject({ createdBy: await id('manager.santacruz'), emailVerifiedAt: null, passwordIsDefault: true, email: expect.stringMatching(/@gmail\.com$/) });
+    expect(await profile('farmer.unverified')).toMatchObject({ status: 'approved', association: sc });
+    expect(await user('manager.unverified')).toMatchObject({ roles: ['group_manager'], createdBy: await id('kaluppa'), emailVerifiedAt: null });
+
+    // manager.santacruz lands with 4 waiting (3 requests + 1 transfer in); about 14 farmers in all.
+    const { countWaiting } = await import('../src/repositories/farmerProfile.repository.js');
+    expect(await countWaiting(sc)).toBe(4);
+    expect(await FarmerProfile.countDocuments()).toBeGreaterThanOrEqual(14);
+
+    // Approved farmers are in their group chat; everyone has a chat with Kaluppa.
+    expect(await ConversationMember.exists({ conversation: byName['Santa Cruz'].groupChat, user: await id('farmer.approved'), canPost: true })).toBeTruthy();
+    expect(await Conversation.countDocuments({ type: 'kaluppa' })).toBeGreaterThanOrEqual(16);
+
+    // Seeded decisions are audited, without documents.
+    expect(await AuditLog.countDocuments({ area: 'farmers', action: { $in: ['approve', 'reject', 'request', 'transfer_request', 'create'] } })).toBeGreaterThanOrEqual(10);
+    expect(await AuditLog.countDocuments({ area: 'associations', action: 'create' })).toBe(3);
+    expect(JSON.stringify(await AuditLog.find().lean())).not.toMatch(/documents|validId|landProof/);
   });
 });
 
@@ -58,7 +118,7 @@ describe('catalog, settings, posts and demo seeders', () => {
   it('seeds the catalog, settings, posts and demo activity once', async () => {
     await runSeeders({ log });
     const first = await allCounts();
-    expect(first).toMatchObject({ Category: 3, Product: 21, Setting: 5, Post: 8 });
+    expect(first).toMatchObject({ Category: 3, Product: 21, Setting: 5, Post: 10 });
     expect(first.Order).toBeGreaterThanOrEqual(20);
 
     const bySlug = async (slug) => (await Category.findOne({ slug })).toObject();
@@ -69,7 +129,11 @@ describe('catalog, settings, posts and demo seeders', () => {
     expect(coffeeProducts).toHaveLength(12);
     expect(coffeeProducts.filter((p) => p.stock === 0)).toHaveLength(1);
     expect(coffeeProducts.filter((p) => p.stock > 0 && p.stock <= 5).length).toBeGreaterThanOrEqual(1);
-    expect(coffeeProducts.filter((p) => p.isFeatured).length).toBeGreaterThanOrEqual(4);
+    expect(coffeeProducts.every((p) => !('isFeatured' in p))).toBe(true);
+    const beans = await Product.find({ category: (await bySlug('beans'))._id }).lean();
+    expect(beans.map((p) => p.unit).every((u) => ['kg', 'sack'].includes(u))).toBe(true);
+    expect(beans.some((p) => p.images.length === 0)).toBe(true); // shows the default image
+    expect(await Category.exists({ slug: 'seedlings' })).toBeNull();
     expect(coffeeProducts.every((p) => p.images.length >= 1 && p.images[0].url.startsWith('https://'))).toBe(true);
 
     const slides = (await Setting.findOne({ key: 'landing.heroSlides' })).value;
@@ -80,24 +144,34 @@ describe('catalog, settings, posts and demo seeders', () => {
     expect(posts.some((p) => p.media.length === 0)).toBe(true);
     expect(posts.some((p) => p.media.filter((m) => m.type === 'image').length > 1)).toBe(true);
     expect(posts.some((p) => p.media.some((m) => m.type === 'video'))).toBe(true);
+    const liberica = posts.find((p) => p.body.startsWith('Fresh Liberica roasts are in!'));
+    expect(liberica.media[4].alt).toBe('Kraft coffee bag held in hand'); // the portrait photo e2e/media.spec.js steps to
     for (const post of posts) {
       expect(post.commentCount).toBe(await PostComment.countDocuments({ post: post._id }));
       const reactions = await Reaction.countDocuments({ targetType: 'post', target: post._id });
       expect(Object.values(post.reactionCounts).reduce((a, b) => a + b, 0)).toBe(reactions);
+      expect(post.tags.length).toBeGreaterThanOrEqual(1);
+      expect(post.viewCount).toBe(await PostView.countDocuments({ post: post._id }));
     }
+    // The landing page's top 3 (Main.dc.html): Kaluppa's roast, Liza's leaf rust advisory, Nestor's drying beds.
+    const top = (await refreshTopPosts()).map((t) => posts.find((p) => String(p._id) === t.id).body.slice(0, 20));
+    expect(top).toEqual(['Fresh Liberica roast', 'Leaf rust is showing', 'How we sort and dry ']);
 
     const reviewed = await Product.find({ ratingCount: { $gte: 12 } }).lean();
     expect(reviewed.length).toBeGreaterThanOrEqual(2);
     for (const product of reviewed) expect(product.ratingCount).toBe(await Review.countDocuments({ product: product._id }));
     expect(await Review.countDocuments({ comment: /chat|messag/i })).toBe(0);
+    for (const review of await Review.find().lean()) {
+      expect(await Order.exists({ _id: review.order, buyer: review.buyer, status: 'sold', 'items.product': review.product })).toBeTruthy();
+    }
     const order = await Order.findOne({ status: 'sold' }).lean();
     expect(order.orderNumber).toMatch(/^KK-\d{8}-\d{4}$/);
 
-    const juana = await User.findOne({ email: 'buyer@kapekonek.test' });
+    const juana = await User.findOne({ email: 'kapekonek.buyer@gmail.com' });
     const addresses = await Address.find({ user: juana._id }).sort({ createdAt: 1 }).lean();
     expect(addresses.map((a) => [a.label, a.isDefault, Boolean(a.location)])).toEqual([['Home', true, true], ['Work', false, true], ['Other', false, false]]);
     expect(addresses[2]).toMatchObject({ customLabel: 'Mama’s house', municipality: 'Boac', barangay: 'Caganhao', postalCode: '4900' });
-    const buyer01 = await User.findOne({ email: 'buyer01@kapekonek.test' });
+    const buyer01 = await User.findOne({ email: 'kapekonek.buyer01@gmail.com' });
     expect(await Address.countDocuments({ user: buyer01._id })).toBe(1);
 
     const mine = await Order.find({ buyer: juana._id }).lean();
@@ -116,9 +190,18 @@ describe('catalog, settings, posts and demo seeders', () => {
     expect(await Notification.countDocuments({ user: juana._id })).toBeGreaterThanOrEqual(mine.length - 1);
     expect(await Notification.countDocuments({ title: /undefined/ })).toBe(0);
 
+    // Farmer store orders in several statuses (PHASE-2-SPEC §8): Rodel buys fertilizer and beans only.
+    const rodel = await User.findOne({ username: 'farmer.approved' });
+    const farmerOrders = await Order.find({ buyer: rodel._id }).populate('items.product', 'category').lean();
+    expect(new Set(farmerOrders.map((o) => o.status)).size).toBeGreaterThanOrEqual(4);
+    const coffeeId = String(coffee._id);
+    expect(farmerOrders.flatMap((o) => o.items).every((it) => String(it.product.category) !== coffeeId)).toBe(true);
+    expect(farmerOrders.every((o) => o.statusHistory[0].byRole === 'farmer')).toBe(true);
+    expect(farmerOrders.some((o) => o.fulfillment.address?.label === 'Farm')).toBe(true);
+
     await runSeeders({ log });
     expect(await allCounts()).toEqual(first);
-  });
+  }, 60_000); // every seeder, twice, on a shared mongod while other files run
 
   it('--only=settings touches settings only', async () => {
     await Product.deleteOne({ slug: 'robusta-ground' });
@@ -126,6 +209,67 @@ describe('catalog, settings, posts and demo seeders', () => {
     await runSeeders({ only: ['settings'], log });
     expect(await Setting.countDocuments({ key: 'delivery.eta' })).toBe(1);
     expect(await Product.countDocuments({ slug: 'robusta-ground' })).toBe(0);
+  });
+});
+
+describe('records seeder (PHASE-2-SPEC §8)', () => {
+  const log = () => {};
+
+  it('seeds farms in all 6 towns, both Kaluppa farms, every tree stage and 12 months of harvests, once', async () => {
+    const { Farm, TreeGroup, Harvest, Association } = await import('../src/models/index.js');
+    await runSeeders({ only: ['roles', 'users', 'associations', 'records'], log });
+    const snapshot = async () => [await Farm.countDocuments(), await TreeGroup.countDocuments(), await Harvest.countDocuments()];
+    const first = await snapshot();
+    await runSeeders({ only: ['records'], log });
+    expect(await snapshot()).toEqual(first);
+
+    expect((await Farm.distinct('municipality')).sort()).toEqual(['Boac', 'Buenavista', 'Gasan', 'Mogpog', 'Santa Cruz', 'Torrijos']);
+    const manager = await User.findOne({ username: 'manager.santacruz' }).lean();
+    const kaluppaFarms = await Farm.find({ ownerType: 'kaluppa' }).lean();
+    expect(kaluppaFarms).toHaveLength(2);
+    const managed = kaluppaFarms.find((f) => f.managedBy);
+    expect(String(managed.managedBy)).toBe(String(manager._id));
+    expect(String(managed.association)).toBe(String((await Association.findOne({ groupManager: manager._id }).lean())._id));
+    expect(managed.assignedFarmers.length).toBeGreaterThan(0);
+    expect(kaluppaFarms.filter((f) => !f.managedBy)).toHaveLength(1);
+    expect(await Farm.countDocuments({ archivedAt: { $ne: null } })).toBeGreaterThan(0);
+
+    expect((await TreeGroup.distinct('stage', { archivedAt: null })).sort()).toEqual(['damaged', 'flowering', 'fruiting', 'growing', 'newly_planted']);
+    const months = new Set((await Harvest.find({}, 'harvestedAt').lean()).map((h) => h.harvestedAt.toISOString().slice(0, 7)));
+    expect(months.size).toBeGreaterThanOrEqual(12);
+    expect(await Harvest.countDocuments({ harvestedAt: { $gt: new Date() } })).toBe(0);
+    // Every harvest's variety has trees on its farm (the rule the API enforces).
+    for (const h of await Harvest.find().lean()) {
+      expect(await TreeGroup.exists({ farm: h.farm, variety: h.variety })).toBeTruthy();
+    }
+  });
+});
+
+describe('beans seeder (PHASE-2-SPEC §8)', () => {
+  it('seeds every status, one approved listing expiring within a day and farmer.pending at 3 of 5 kg, once', async () => {
+    const { BeanListing } = await import('../src/models/index.js');
+    await runSeeders({ only: ['roles', 'users', 'associations', 'beans'], log: () => {} });
+    const total = await BeanListing.countDocuments();
+    await runSeeders({ only: ['beans'], log: () => {} });
+    expect(await BeanListing.countDocuments()).toBe(total);
+
+    expect((await BeanListing.distinct('status')).sort()).toEqual(['approved', 'cancelled', 'completed', 'expired', 'pending', 'rejected']);
+    const day = Date.now() + 86_400_000;
+    expect(await BeanListing.countDocuments({ status: 'approved', expiresAt: { $gt: new Date(), $lte: new Date(day) } })).toBe(1);
+    const joy = await User.findOne({ username: 'farmer.pending' }).lean();
+    const { capUsedKg } = await import('../src/repositories/bean.repository.js');
+    expect(await capUsedKg(joy._id)).toBe(3);
+    // Numbers come from the shared counter, so the next real listing can't collide.
+    const numbers = await BeanListing.distinct('listingNumber');
+    expect(numbers.every((n) => /^BN-\d{4}-\d{4}$/.test(n))).toBe(true);
+    const { nextSequence } = await import('../src/repositories/counter.repository.js');
+    const yymm = (await BeanListing.findOne().sort({ createdAt: -1 }).lean()).listingNumber.slice(3, 7);
+    const latest = numbers.filter((n) => n.slice(3, 7) === yymm).sort().at(-1);
+    expect(await nextSequence(`bean:${yymm}`)).toBe(Number(latest.slice(-4)) + 1);
+    for (const l of await BeanListing.find().lean()) {
+      expect(l.photos.length).toBeGreaterThan(0);
+      expect(l.history[0].action).toBe('listed');
+    }
   });
 });
 

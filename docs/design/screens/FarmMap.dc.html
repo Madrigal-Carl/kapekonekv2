@@ -17,6 +17,34 @@ a{color:#7B4A2A}a:hover{color:#653B20}
 button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2A;outline-offset:2px}
 .kk-menu{display:none !important}
 @media (max-width: 960px){.kk-side{display:none !important}.kk-menu{display:grid !important}.kk-hide-sm{display:none !important}.kk-main{padding:20px 16px 40px !important}}
+.kk-dt-cards{display:none}
+@media (max-width: 720px){
+.kk-dt-bar{flex-direction:column !important;align-items:stretch !important;padding:12px !important}
+.kk-dt-search{max-width:none !important;flex:1 1 auto !important}
+.kk-dt-filters{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:8px !important}
+.kk-dt-filters > div{width:auto !important}
+.kk-dt-clear{grid-column:1 / -1;justify-self:start}
+.kk-dt-table{display:none !important}
+.kk-dt-cards{display:flex !important}
+.kk-dt-foot{flex-direction:column !important;align-items:stretch !important;text-align:center}
+.kk-dt-foot nav{justify-content:center}
+.kk-g2,.kk-g3{grid-template-columns:minmax(0,1fr) !important}
+.kk-ph-actions{width:100%}
+.kk-ph-actions > *{flex:1 1 auto}
+.kk-seg{width:100%}
+.kk-seg > button{flex:1 1 0}
+.kk-drawer{width:100% !important;border-left:0 !important}
+.kk-drawer-body{padding:20px 18px 28px !important}
+.kk-drawer-head,.kk-drawer-foot{padding-left:18px !important;padding-right:18px !important}
+.kk-drawer-foot > *{flex:1 1 auto}
+.kk-cp{top:0 !important;left:0 !important;transform:none !important;width:100% !important;max-width:none !important;height:100vh;max-height:none !important;border-radius:0 !important}
+.kk-pv{flex-direction:column-reverse !important;overflow-y:auto}
+.kk-pv-side{width:100% !important;flex:1 0 auto !important;min-height:auto !important}
+.kk-pv-stage{flex:0 0 56vh !important;padding:52px 10px 78px !important}
+.kk-pv-nav{width:40px !important;height:40px !important}
+.kk-pv-thumb{width:44px !important;height:44px !important}
+.kk-pv-text{top:0 !important;left:0 !important;transform:none !important;width:100% !important;max-width:none !important;height:100vh;max-height:none !important;border-radius:0 !important}
+}
 </style>
 </helmet>
 <div style="position: relative; width: 100%; min-height: 1000px; background: #F5F0EA; display: flex; align-items: stretch">
@@ -24,7 +52,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
     <dc-import name="Sidebar" role="{{ role }}" active="Farm Map" hint-size="256px,900px"></dc-import>
   </div>
   <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
-    <dc-import name="DashTopbar" role="{{ role }}" crumb-a="Map" crumb-b="Farm Map" hint-size="100%,64px"></dc-import>
+    <div style="position: sticky; top: 0; z-index: 40"><dc-import name="DashTopbar" role="{{ role }}" active="Farm Map" crumb-a="Map" crumb-b="Farm Map" hint-size="100%,64px"></dc-import></div>
     <main class="kk-main" style="width: 100%; max-width: 1240px; padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px">
       <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
         <div style="min-width: 0; max-width: 720px">
@@ -32,7 +60,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
           <h1 style="margin: 8px 0 0; font-weight: 500; font-size: 30px; letter-spacing: -0.02em; line-height: 1.15">Farm Map</h1>
           <p style="margin: 6px 0 0; font-size: 14px; color: #4A3A30; line-height: 1.6">{{ desc }}</p>
         </div>
-        <div style="display: flex; flex-wrap: wrap; gap: 10px"></div>
+        <div class="kk-ph-actions" style="display: flex; flex-wrap: wrap; gap: 10px"></div>
       </div>
       <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
         <sc-for list="{{ fl }}" as="f" hint-placeholder-count="3"><div style="position: relative; z-index: {{ f.z }}; width: 230px"><dc-import name="SearchSelect" aria-label="{{ f.label }}" icon="{{ f.icon }}" size="sm" options="{{ f.options }}" value="{{ f.value }}" on-pick="{{ f.pick }}" hint-size="100%,40px"></dc-import></div></sc-for>
@@ -41,7 +69,7 @@ button:focus-visible,a:focus-visible,label:focus-within{outline:2px solid #7B4A2
       </div>
       <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
         <div style="flex: 999 1 600px; min-width: 0; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 10px; padding: 8px; position: relative; z-index: 1">
-          <dc-import name="MiniMap" aria-label="Farms on the map of Marinduque" pins="{{ pins }}" selected-id="{{ sel }}" on-pin="{{ onPin }}" focus="{{ focus }}" note="{{ note }}" hint-size="100%,620px"></dc-import>
+          <dc-import name="MiniMap" aria-label="Farms on the map of Marinduque" pins="{{ pins }}" selected-id="{{ sel }}" on-pin="{{ onPin }}" focus="{{ focus }}" highlight="{{ hl }}" note="{{ note }}" hint-size="100%,620px"></dc-import>
         </div>
         <section aria-label="Farms" style="flex: 1 1 300px; max-width: 360px; background: #FFFFFF; border: 1px solid #E7DCCD; border-radius: 10px">
           <div style="padding: 14px 16px; border-bottom: 1px solid #EFE6DA; display: flex; justify-content: space-between; align-items: baseline"><h2 style="margin: 0; font-size: 15px; font-weight: 600">{{ count }} farms</h2><span style="font-size: 12px; color: #6B5A4E">{{ ha }} ha · {{ trees }} trees</span></div>
@@ -61,21 +89,23 @@ class Component extends DCLogic {
   renderVals() {
     const s = this.state;
     const role = this.props.role || 'kaluppa';
-    const FARMS = [{"id": "f1", "code": "TCT-2026-0011", "lot": "Lot 12-B", "owner": "Rodel Mendoza", "oi": "RM", "ob": "#3F6B4E", "assoc": "Santa Cruz Coffee Growers", "muni": "Santa Cruz", "brgy": "Pantayin", "street": "Sitio Ilaya", "size": 1.2, "trees": 240, "groups": 4, "last": "Nov 18 · 110 kg", "varieties": ["Liberica", "Excelsa"], "x": 322, "y": 175, "mine": true, "kal": false, "managed": ""}, {"id": "f2", "code": "TCT-2026-0012", "lot": "Lot 7", "owner": "Rodel Mendoza", "oi": "RM", "ob": "#3F6B4E", "assoc": "Santa Cruz Coffee Growers", "muni": "Santa Cruz", "brgy": "Matalaba", "street": "", "size": 0.8, "trees": 180, "groups": 3, "last": "Nov 2 · 60 kg", "varieties": ["Liberica", "Robusta"], "x": 300, "y": 160, "mine": true, "kal": false, "managed": ""}, {"id": "f3", "code": "TCT-2026-0019", "lot": "Lot 3-A", "owner": "Rodel Mendoza", "oi": "RM", "ob": "#3F6B4E", "assoc": "Santa Cruz Coffee Growers", "muni": "Mogpog", "brgy": "Bocboc", "street": "Purok 2", "size": 0.6, "trees": 220, "groups": 2, "last": "Oct 21 · 40 kg", "varieties": ["Excelsa"], "x": 205, "y": 140, "mine": true, "kal": false, "managed": ""}, {"id": "f4", "code": "TCT-2026-0021", "lot": "Lot 4", "owner": "Joy Lacsamana", "oi": "JL", "ob": "#8A5A12", "assoc": "Santa Cruz Coffee Growers", "muni": "Santa Cruz", "brgy": "Napo", "street": "", "size": 0.5, "trees": 90, "groups": 2, "last": "Nov 10 · 25 kg", "varieties": ["Liberica"], "x": 335, "y": 165, "mine": false, "kal": false, "managed": ""}, {"id": "f5", "code": "TCT-2026-0007", "lot": "Lot 21", "owner": "Nestor Perez", "oi": "NP", "ob": "#4A3A30", "assoc": "Santa Cruz Coffee Growers", "muni": "Santa Cruz", "brgy": "Lipa", "street": "Sitio Bato", "size": 2.1, "trees": 610, "groups": 5, "last": "Nov 19 · 380 kg", "varieties": ["Excelsa", "Liberica", "Robusta"], "x": 288, "y": 140, "mine": false, "kal": false, "managed": ""}, {"id": "f6", "code": "TCT-2026-0002", "lot": "Kaluppa Demo Farm", "owner": "Kaluppa", "oi": "KP", "ob": "#2B1A12", "assoc": "Santa Cruz Coffee Growers", "muni": "Santa Cruz", "brgy": "Pantayin", "street": "Kaluppa compound", "size": 3.5, "trees": 1250, "groups": 6, "last": "Nov 20 · 640 kg", "varieties": ["Liberica", "Excelsa", "Arabica"], "x": 330, "y": 150, "mine": false, "kal": true, "managed": "Liza Ramos"}, {"id": "f7", "code": "TCT-2026-0004", "lot": "Torrijos Nursery", "owner": "Kaluppa", "oi": "KP", "ob": "#2B1A12", "assoc": "Gasan Coffee Circle", "muni": "Torrijos", "brgy": "Bonliw", "street": "", "size": 1.4, "trees": 800, "groups": 3, "last": "Oct 30 · 120 kg", "varieties": ["Robusta", "Liberica"], "x": 345, "y": 225, "mine": false, "kal": true, "managed": "Not assigned"}, {"id": "f8", "code": "TCT-2026-0015", "lot": "Lot 9", "owner": "Celia Dizon", "oi": "CD", "ob": "#7B4A2A", "assoc": "Boac Highland Farmers", "muni": "Boac", "brgy": "Tumagabok", "street": "", "size": 1.0, "trees": 300, "groups": 3, "last": "Nov 15 · 150 kg", "varieties": ["Arabica", "Robusta"], "x": 178, "y": 165, "mine": false, "kal": false, "managed": ""}, {"id": "f9", "code": "TCT-2026-0016", "lot": "Lot 2", "owner": "Danilo Reyes", "oi": "DR", "ob": "#3F6B4E", "assoc": "Boac Highland Farmers", "muni": "Boac", "brgy": "Mainit", "street": "", "size": 0.9, "trees": 260, "groups": 2, "last": "Nov 1 · 90 kg", "varieties": ["Robusta"], "x": 190, "y": 185, "mine": false, "kal": false, "managed": ""}, {"id": "f10", "code": "TCT-2026-0023", "lot": "Lot 5", "owner": "Teresa Lim", "oi": "TL", "ob": "#8A5A12", "assoc": "Gasan Coffee Circle", "muni": "Gasan", "brgy": "Bahi", "street": "", "size": 0.7, "trees": 200, "groups": 2, "last": "Oct 28 · 70 kg", "varieties": ["Liberica"], "x": 195, "y": 240, "mine": false, "kal": false, "managed": ""}, {"id": "f11", "code": "TCT-2026-0024", "lot": "Lot 1", "owner": "Pedro Santos", "oi": "PS", "ob": "#4A3A30", "assoc": "Gasan Coffee Circle", "muni": "Buenavista", "brgy": "Sihi", "street": "", "size": 1.6, "trees": 420, "groups": 3, "last": "Nov 12 · 210 kg", "varieties": ["Excelsa", "Liberica"], "x": 240, "y": 300, "mine": false, "kal": false, "managed": ""}];
+    const FARMS = [{"id": "f1", "code": "TCT-2026-0011", "lot": "Pantayin, Santa Cruz", "owner": "Rodel Mendoza", "oi": "RM", "ob": "#3F6B4E", "assoc": "Santa Cruz Coffee Growers", "muni": "Santa Cruz", "brgy": "Pantayin", "street": "Sitio Ilaya", "size": 1.2, "trees": 240, "groups": 4, "last": "Nov 18 · 110 kg", "varieties": ["Liberica", "Excelsa"], "x": 322, "y": 175, "mine": true, "kal": false, "managed": ""}, {"id": "f2", "code": "TCT-2026-0012", "lot": "Matalaba, Santa Cruz", "owner": "Rodel Mendoza", "oi": "RM", "ob": "#3F6B4E", "assoc": "Santa Cruz Coffee Growers", "muni": "Santa Cruz", "brgy": "Matalaba", "street": "", "size": 0.8, "trees": 180, "groups": 3, "last": "Nov 2 · 60 kg", "varieties": ["Liberica", "Robusta"], "x": 300, "y": 160, "mine": true, "kal": false, "managed": ""}, {"id": "f3", "code": "TCT-2026-0019", "lot": "Bocboc, Mogpog", "owner": "Rodel Mendoza", "oi": "RM", "ob": "#3F6B4E", "assoc": "Santa Cruz Coffee Growers", "muni": "Mogpog", "brgy": "Bocboc", "street": "Purok 2", "size": 0.6, "trees": 220, "groups": 2, "last": "Oct 21 · 40 kg", "varieties": ["Excelsa"], "x": 205, "y": 140, "mine": true, "kal": false, "managed": ""}, {"id": "f4", "code": "TCT-2026-0021", "lot": "Napo, Santa Cruz", "owner": "Joy Lacsamana", "oi": "JL", "ob": "#8A5A12", "assoc": "Santa Cruz Coffee Growers", "muni": "Santa Cruz", "brgy": "Napo", "street": "", "size": 0.5, "trees": 90, "groups": 2, "last": "Nov 10 · 25 kg", "varieties": ["Liberica"], "x": 335, "y": 165, "mine": false, "kal": false, "managed": ""}, {"id": "f5", "code": "TCT-2026-0007", "lot": "Lipa, Santa Cruz", "owner": "Nestor Perez", "oi": "NP", "ob": "#4A3A30", "assoc": "Santa Cruz Coffee Growers", "muni": "Santa Cruz", "brgy": "Lipa", "street": "Sitio Bato", "size": 2.1, "trees": 610, "groups": 5, "last": "Nov 19 · 380 kg", "varieties": ["Excelsa", "Liberica", "Robusta"], "x": 288, "y": 140, "mine": false, "kal": false, "managed": ""}, {"id": "f6", "code": "TCT-2026-0002", "lot": "Pantayin, Santa Cruz", "owner": "Kaluppa", "oi": "KP", "ob": "#2B1A12", "assoc": "Santa Cruz Coffee Growers", "muni": "Santa Cruz", "brgy": "Pantayin", "street": "Kaluppa compound", "size": 3.5, "trees": 1250, "groups": 6, "last": "Nov 20 · 640 kg", "varieties": ["Liberica", "Excelsa", "Arabica"], "x": 330, "y": 150, "mine": false, "kal": true, "managed": "Liza Ramos"}, {"id": "f7", "code": "TCT-2026-0004", "lot": "Bonliw, Torrijos", "owner": "Kaluppa", "oi": "KP", "ob": "#2B1A12", "assoc": "Gasan Coffee Circle", "muni": "Torrijos", "brgy": "Bonliw", "street": "", "size": 1.4, "trees": 800, "groups": 3, "last": "Oct 30 · 120 kg", "varieties": ["Robusta", "Liberica"], "x": 345, "y": 225, "mine": false, "kal": true, "managed": "Not assigned"}, {"id": "f8", "code": "TCT-2026-0015", "lot": "Tumagabok, Boac", "owner": "Celia Dizon", "oi": "CD", "ob": "#7B4A2A", "assoc": "Boac Highland Farmers", "muni": "Boac", "brgy": "Tumagabok", "street": "", "size": 1.0, "trees": 300, "groups": 3, "last": "Nov 15 · 150 kg", "varieties": ["Arabica", "Robusta"], "x": 178, "y": 165, "mine": false, "kal": false, "managed": ""}, {"id": "f9", "code": "TCT-2026-0016", "lot": "Mainit, Boac", "owner": "Danilo Reyes", "oi": "DR", "ob": "#3F6B4E", "assoc": "Boac Highland Farmers", "muni": "Boac", "brgy": "Mainit", "street": "", "size": 0.9, "trees": 260, "groups": 2, "last": "Nov 1 · 90 kg", "varieties": ["Robusta"], "x": 190, "y": 185, "mine": false, "kal": false, "managed": ""}, {"id": "f10", "code": "TCT-2026-0023", "lot": "Bahi, Gasan", "owner": "Teresa Lim", "oi": "TL", "ob": "#8A5A12", "assoc": "Gasan Coffee Circle", "muni": "Gasan", "brgy": "Bahi", "street": "", "size": 0.7, "trees": 200, "groups": 2, "last": "Oct 28 · 70 kg", "varieties": ["Liberica"], "x": 195, "y": 240, "mine": false, "kal": false, "managed": ""}, {"id": "f11", "code": "TCT-2026-0024", "lot": "Sihi, Buenavista", "owner": "Pedro Santos", "oi": "PS", "ob": "#4A3A30", "assoc": "Gasan Coffee Circle", "muni": "Buenavista", "brgy": "Sihi", "street": "", "size": 1.6, "trees": 420, "groups": 3, "last": "Nov 12 · 210 kg", "varieties": ["Excelsa", "Liberica"], "x": 240, "y": 300, "mine": false, "kal": false, "managed": ""}];
     const scope = FARMS.filter((f) => role === 'kaluppa' ? true : (role === 'farmer' ? f.mine : f.assoc === 'Santa Cruz Coffee Growers'));
     const A = s.assoc && !s.assoc.startsWith('All') ? s.assoc : null, M = s.muni && !s.muni.startsWith('All') ? s.muni : null, V = s.variety && !s.variety.startsWith('All') ? s.variety : null;
     const farms = scope.filter((f) => (!A || f.assoc === A) && (!M || f.muni === M) && (!V || f.varieties.includes(V)));
     const pins = farms.map((f) => ({ id: f.id, x: f.x, y: f.y, label: f.code + ', ' + f.lot, tone: f.kal ? 'kaluppa' : 'farmer', pop: { code: f.code, title: f.lot + ' · ' + (f.kal ? 'Kaluppa farm' : f.owner), href: 'FarmView.dc.html', rows: [{ k: 'Association', v: f.assoc }, { k: 'Location', v: f.brgy + ', ' + f.muni }, { k: 'Size', v: f.size.toFixed(1) + ' ha' }, { k: 'Trees', v: f.trees + ' · ' + f.varieties.join(', ') }, { k: 'Stages', v: 'Fruiting 40% · Growing 35%' }, { k: 'Last harvest', v: f.last }].concat(f.kal ? [{ k: 'Managed by', v: f.managed }] : []) } }));
     const fl = [];
     if (role === 'kaluppa') fl.push({ label: 'Association', icon: 'tag', options: ['All associations', 'Santa Cruz Coffee Growers', 'Boac Highland Farmers', 'Gasan Coffee Circle'], value: s.assoc || 'All associations', pick: (v) => this.setState({ assoc: v }) });
-    fl.push({ label: 'Municipality', icon: 'pin', options: ['All towns', 'Boac', 'Buenavista', 'Gasan', 'Mogpog', 'Santa Cruz', 'Torrijos'], value: s.muni || 'All towns', pick: (v) => this.setState({ muni: v }) });
+    fl.push({ label: 'Municipality', icon: 'pin', options: ['All towns', 'Boac', 'Buenavista', 'Gasan', 'Mogpog', 'Santa Cruz', 'Torrijos'], value: s.muni || 'All towns', pick: (v) => this.setState({ muni: v, focus: null }) });
     fl.push({ label: 'Variety', icon: 'tag', options: ['All varieties', 'Liberica', 'Excelsa', 'Robusta', 'Arabica'], value: s.variety || 'All varieties', pick: (v) => this.setState({ variety: v }) });
     return {
       role,
       desc: role === 'kaluppa' ? 'Every farm on KapeKonek, including Kaluppa’s own. Click a pin for details.' : (role === 'farmer' ? 'Your farms on the map. Click a pin for details.' : 'Farms in Santa Cruz Coffee Growers and the Kaluppa farm you manage.'),
       fl: fl.map((f, i) => ({ ...f, z: 20 - i })),
       pins, sel: s.sel, onPin: (id) => this.setState({ sel: id }),
-      focus: s.focus, note: farms.length + ' farms shown',
+      focus: s.focus || (M ? { cx: { Boac: 185, Mogpog: 210, 'Santa Cruz': 320, Torrijos: 350, Buenavista: 255, Gasan: 190 }[M], cy: { Boac: 190, Mogpog: 125, 'Santa Cruz': 160, Torrijos: 245, Buenavista: 310, Gasan: 250 }[M], z: 2.2 } : null),
+      hl: (() => { const sf = farms.find((f) => f.id === s.sel); return { muni: M || (sf ? sf.muni : null), brgy: sf ? { x: sf.x, y: sf.y, seed: sf.muni + '|' + sf.brgy } : null }; })(),
+      note: farms.length + ' farms shown' + (M ? ' · ' + M + ' highlighted' : ''),
       count: farms.length, ha: farms.reduce((a, f) => a + f.size, 0).toFixed(1), trees: farms.reduce((a, f) => a + f.trees, 0).toLocaleString(),
       list: farms.map((f) => ({ code: f.code, sub: (f.kal ? 'Kaluppa farm' : f.owner) + ' · ' + f.brgy + ', ' + f.muni, size: f.size.toFixed(1) + ' ha', dot: f.kal ? '#2B1A12' : '#7B4A2A', on: f.id === s.sel, line: f.id === s.sel ? '#7B4A2A' : 'transparent', bg: f.id === s.sel ? '#FBF6F0' : '#FFFFFF', pick: () => this.setState({ sel: f.id, focus: { cx: f.x, cy: f.y, z: 2.6 } }) }))
     };

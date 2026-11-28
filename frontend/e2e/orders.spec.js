@@ -7,7 +7,7 @@ const RECEIPT = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0l
 async function signIn(page, identifier, redirect = '/') {
   await page.goto(`/login?redirect=${encodeURIComponent(redirect)}`)
   await page.getByLabel('Email or username').fill(identifier)
-  await page.getByLabel('Password', { exact: true }).fill('Password123!')
+  await page.getByLabel('Password', { exact: true }).fill('KapeKonek@123')
   await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(page).toHaveURL(redirect)
 }
@@ -34,7 +34,7 @@ async function placeOrder(page) {
 
 test('delivery: pin a new address, check out with cash on delivery, then cancel with a reason', async ({ page }) => {
   const street = `E2E Lot ${Date.now() % 1000}, near the plaza`
-  await signIn(page, 'buyer03@kapekonek.test', '/addresses')
+  await signIn(page, 'kapekonek.buyer03@gmail.com', '/addresses')
 
   await page.getByRole('button', { name: 'Add new address' }).first().click()
   const modal = page.getByRole('dialog', { name: 'Add new address' })
@@ -78,11 +78,11 @@ test('delivery: pin a new address, check out with cash on delivery, then cancel 
 })
 
 test('pickup: GCash with an uploaded receipt is placed as pending', async ({ page }) => {
-  await signIn(page, 'buyer04@kapekonek.test')
+  await signIn(page, 'kapekonek.buyer04@gmail.com')
   await addAndCheckout(page, 'barako-medium-roast')
   await page.getByRole('radio', { name: /Pick up at Kaluppa/ }).check()
   await page.getByLabel('Contact number').fill('0917 555 0199')
-  await expect(page.getByRole('radio', { name: /GCash or Maya/ })).toBeChecked()
+  await expect(page.getByRole('radio', { name: /^GCash/ })).toBeChecked() // labelled from Settings: only GCash is shown at checkout
   await expect(page.getByRole('img', { name: 'Sample GCash QR code' })).toBeVisible()
   // A 6 MB image is stopped in the browser before anything uploads.
   await page.locator('input[type="file"]').setInputFiles({ name: 'big-receipt.png', mimeType: 'image/png', buffer: Buffer.alloc(6 * 1024 * 1024, 1) })
@@ -97,8 +97,8 @@ test('pickup: GCash with an uploaded receipt is placed as pending', async ({ pag
 
 test('guard: an unverified buyer opening /checkout is sent to verify their email', async ({ page }) => {
   await page.goto('/login')
-  await page.getByLabel('Email or username').fill('buyer.unverified@kapekonek.test')
-  await page.getByLabel('Password', { exact: true }).fill('Password123!')
+  await page.getByLabel('Email or username').fill('kapekonek.buyer.unverified@gmail.com')
+  await page.getByLabel('Password', { exact: true }).fill('KapeKonek@123')
   await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(page).toHaveURL('/verify-email')
   await page.goto('/checkout')

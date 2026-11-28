@@ -23,7 +23,7 @@ export function ConfirmDialog({
   description,
   cancelLabel = 'Cancel',
   confirmLabel = 'Confirm',
-  confirmVariant = 'primary',
+  confirmVariant = 'solid',
   pending = false,
 }) {
   const id = useId()
@@ -48,7 +48,7 @@ export function ConfirmDialog({
           <Button ref={cancel} variant="outline" className="flex-1" onClick={onClose} disabled={pending}>
             {cancelLabel}
           </Button>
-          <Button variant={confirmVariant} className="flex-1" onClick={onConfirm} pending={pending}>
+          <Button variant={confirmVariant} className="flex-1" onClick={onConfirm} loading={pending}>
             {confirmLabel}
           </Button>
         </div>

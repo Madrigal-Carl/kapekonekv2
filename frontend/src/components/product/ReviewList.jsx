@@ -1,4 +1,5 @@
-import { Check, MessageSquareText, RotateCw } from 'lucide-react'
+import { IconCheck, IconMessageText, IconRefresh } from '@/components/ui/icons'
+
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -26,14 +27,14 @@ export function ReviewList({ productId, total }) {
   }
   if (isError) {
     return (
-      <EmptyState tone="error" icon={RotateCw} title="We couldn't load the reviews" action={<Button variant="outline" onClick={() => refetch()}>Try again</Button>}>
+      <EmptyState tone="error" icon={IconRefresh} title="We couldn't load the reviews" action={<Button variant="outline" onClick={() => refetch()}>Try again</Button>}>
         Check your connection and try again.
       </EmptyState>
     )
   }
   const reviews = data.pages.flatMap((p) => p.items)
   if (!reviews.length) {
-    return <EmptyState icon={MessageSquareText} title="No reviews yet">Buyers can review this coffee after their order is completed.</EmptyState>
+    return <EmptyState icon={IconMessageText} title="No reviews yet">Buyers can review this coffee after their order is completed.</EmptyState>
   }
 
   return (
@@ -47,7 +48,7 @@ export function ReviewList({ productId, total }) {
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-semibold">{review.author.name}</span>
                   <span className="inline-flex items-center gap-1 rounded-full bg-success-bg px-2 py-0.5 text-[11px] font-semibold text-success-ink">
-                    <Check aria-hidden="true" className="size-3" strokeWidth={2.5} />
+                    <IconCheck aria-hidden="true" className="size-3" strokeWidth={2.5} />
                     Verified purchase
                   </span>
                 </div>
@@ -59,12 +60,18 @@ export function ReviewList({ productId, total }) {
               <StarRating value={review.rating} />
             </div>
             <p className="mb-0 ml-[52px] mt-3 text-sm leading-[1.65] text-ink-2">{review.comment}</p>
+            {review.reply && (
+              <div className="ml-[52px] mt-3 rounded-lg border-l-[3px] border-roast bg-crema px-3.5 py-3">
+                <span className="block text-[12.5px] font-semibold">Reply from Kaluppa</span>
+                <p className="mb-0 mt-1 text-[13.5px] leading-normal text-ink-2">{review.reply.body}</p>
+              </div>
+            )}
           </li>
         ))}
       </ul>
       <div className="mt-6 flex flex-col items-center gap-2">
         {hasNextPage && (
-          <Button variant="outline" pending={isFetchingNextPage} onClick={() => fetchNextPage()} className="px-[22px] font-medium">
+          <Button variant="outline" loading={isFetchingNextPage} onClick={() => fetchNextPage()} className="px-[22px] font-medium">
             Load more reviews
           </Button>
         )}

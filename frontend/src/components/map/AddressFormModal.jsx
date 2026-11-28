@@ -1,15 +1,19 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { MapPin, X } from 'lucide-react'
-import { lazy, Suspense, useId, useState } from 'react'
+import { IconMapPin, IconX } from '@/components/ui/icons'
+
+import { lazy, Suspense, useId, useMemo, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
+import { ConfirmChangesModal, NoChangesNote } from '@/components/ui/ConfirmChangesModal'
 import { FieldHint, Input, Label } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { SearchSelect } from '@/components/ui/SearchSelect'
 import { Spinner } from '@/components/ui/Spinner'
-import { useCreateAddress, useUpdateAddress } from '@/hooks/useAddresses'
-import { useFindBarangay, usePointQuote, useReverseGeocode } from '@/hooks/useGeo'
+import { useAddressErrorToast, useCreateAddress, useUpdateAddress } from '@/hooks/useAddresses'
+import { useCan } from '@/hooks/useCan'
+import { useDirtyDiff, useSaveConfirm } from '@/hooks/useDirtyDiff'
+import { useBarangayPoint, usePointQuote, useReverseGeocode } from '@/hooks/useGeo'
 import { useDeliveryInfo, useLocations } from '@/hooks/useSettings'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
 import { cn } from '@/lib/cn'
@@ -21,11 +25,21 @@ const MapPicker = lazy(() => import('./MapPicker').then((m) => ({ default: m.Map
 
 const FIELDS = ['label', 'customLabel', 'recipientName', 'phone', 'municipality', 'barangay', 'street', 'location', 'isDefault']
 const OUTSIDE = 'That spot is outside our delivery area. We deliver anywhere in Marinduque.'
-const BARANGAY_NOT_FOUND = 'Couldn’t find that barangay on the map. Drag the pin to your spot.'
 // Camera zoom for the selects (PRODUCT-SPEC §8): a municipality, then closer for a barangay.
-const ZOOM = { municipality: 12.5, barangay: 15 }
-const ISLAND_FOCUS = { label: 'All of Marinduque' }
+const ISLAND_FOCUS = {}
 const readOnlyClasses = 'w-full rounded-control border border-sand-soft bg-cream px-3 py-2.5 text-sm text-ink-2'
+
+const LABELS = {
+  label: 'Label',
+  customLabel: 'Label name',
+  recipientName: 'Recipient name',
+  phone: 'Contact number',
+  municipality: 'Municipality',
+  barangay: 'Barangay',
+  street: 'Street, house number or landmark',
+  location: { label: 'Map pin', format: (p) => `${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}` },
+  isDefault: { label: 'Default address', format: (v) => (v ? 'Yes' : 'No') },
+}
 
 const emptyAddress = (user) => ({
   label: 'Home',
@@ -54,7 +68,7 @@ function FeePreview({ point }) {
   }
   return (
     <div aria-live="polite" className="flex items-start gap-2.5 rounded-[6px] bg-crema px-3.5 py-3 text-[13px] text-ink-2">
-      <MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-roast" strokeWidth={2} />
+      <IconMapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-roast" strokeWidth={2} />
       <span>{text}</span>
     </div>
   )
@@ -71,22 +85,26 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
   const locations = useLocations()
   const delivery = useDeliveryInfo()
   const reverse = useReverseGeocode()
-  const findBarangay = useFindBarangay()
+  const barangayPoint = useBarangayPoint()
   const create = useCreateAddress()
   const update = useUpdateAddress()
+  const addressError = useAddressErrorToast()
   const [pinError, setPinError] = useState(null)
   const [pinNote, setPinNote] = useState(null)
-  // Where the map should look. Edit opens on the saved pin at barangay zoom; a new address shows the whole island.
-  const [focus, setFocus] = useState(() =>
-    address?.location ? { label: `${address.barangay}, ${address.municipality} · zoomed to barangay` } : ISLAND_FOCUS,
-  )
+  // The highlighted area. Edit opens on the saved pin with its barangay highlighted; a new address shows the whole island.
+  const [focus, setFocus] = useState(() => (address ? { municipality: address.municipality, barangay: address.barangay, fit: !address.location } : ISLAND_FOCUS))
 
+  const farmer = useCan('farms.manage') // the Farm label (server checks it too)
+  const initial = useMemo(
+    () => (address ? { ...emptyAddress(), ...address, customLabel: address.customLabel ?? '', phone: formatPhone(address.phone) } : emptyAddress(user)),
+    [address, user],
+  )
   const { register, control, handleSubmit, setValue, getValues, setError, getFieldState, formState: { errors } } = useForm({
     resolver: zodResolver(addressSchema),
-    defaultValues: address
-      ? { ...emptyAddress(), ...address, customLabel: address.customLabel ?? '', phone: formatPhone(address.phone) }
-      : emptyAddress(user),
+    defaultValues: initial,
   })
+  const changes = useDirtyDiff(initial, useWatch({ control }), LABELS)
+  const unchanged = editing && changes.length === 0
   const [label, municipality, location] = useWatch({ control, name: ['label', 'municipality', 'location'] })
   const town = locations.data?.find((t) => t.name === municipality)
 
@@ -105,6 +123,7 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
         setValue('municipality', place.municipality, { shouldValidate: true })
         setValue('barangay', place.barangay ?? '', { shouldValidate: Boolean(place.barangay) })
         if (place.street && !getFieldState('street').isDirty) setValue('street', place.street)
+        setFocus({ municipality: place.municipality, barangay: place.barangay }) // highlight where the pin landed, no camera move
       },
       onError: (error) => setPinError(errorMessage(error)),
     })
@@ -114,24 +133,19 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
     const center = locations.data.find((t) => t.name === name).center
     if (name !== municipality) setValue('barangay', '')
     movePin(center, 'select')
-    setFocus({ label: `${name} · zoomed to municipality`, center, zoom: ZOOM.municipality })
+    setFocus({ municipality: name, fit: true })
   }
 
+  // The pin goes to the barangay's label point (inside its polygon); no geocoding.
   const pickBarangay = async (name) => {
     const town = municipality
-    setPinNote(`Finding ${name} on the map…`)
-    const spot = await findBarangay(town, name).catch(() => null)
+    const spot = await barangayPoint(town, name).catch(() => null)
     if (getValues('barangay') !== name) return // picked another one meanwhile
-    if (!spot) {
-      setPinNote(BARANGAY_NOT_FOUND)
-      return setFocus({ label: `${town} · zoomed to municipality`, center: locations.data.find((t) => t.name === town).center, zoom: ZOOM.municipality })
-    }
-    movePin({ lat: spot.lat, lng: spot.lng }, 'select')
-    setFocus({ label: `${name}, ${town} · zoomed to barangay`, center: { lat: spot.lat, lng: spot.lng }, zoom: ZOOM.barangay, area: true })
+    if (spot) movePin(spot, 'select')
+    setFocus({ municipality: town, barangay: name, fit: true })
   }
 
-  const save = handleSubmit((values) => {
-    const body = { ...values, customLabel: values.label === 'Other' ? values.customLabel : null }
+  const send = (body) => {
     const mutation = editing ? update : create
     mutation.mutate(editing ? { id: address._id, ...body } : body, {
       onSuccess: (saved) => {
@@ -141,10 +155,12 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
       },
       onError: (error) => {
         if (error.response?.data?.errors?.location) setPinError(error.response.data.errors.location)
-        if (!applyServerErrors(error, setError, FIELDS)) toast.error(errorMessage(error))
+        if (!applyServerErrors(error, setError, FIELDS)) addressError(error)
       },
     })
-  })
+  }
+  const confirm = useSaveConfirm(editing, send)
+  const save = handleSubmit((values) => confirm.submit({ ...values, customLabel: values.label === 'Other' ? values.customLabel : null }))
   const saving = create.isPending || update.isPending
 
   return (
@@ -156,9 +172,9 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
             {editing ? 'Edit address' : 'Add new address'}
           </h2>
         </div>
-        <button type="button" aria-label="Close" onClick={onClose} className="grid size-10 cursor-pointer place-items-center rounded-control border-0 bg-transparent text-ink-3 hover:bg-crema">
-          <X aria-hidden="true" className="size-[18px]" strokeWidth={2} />
-        </button>
+        <Button variant="ghost" iconOnly aria-label="Close" onClick={onClose} className="size-10 text-ink-3 hover:bg-crema hover:text-ink-3">
+          <IconX aria-hidden="true" className="size-[18px]" strokeWidth={2} />
+        </Button>
       </div>
 
       <div className="flex flex-wrap gap-6 overflow-y-auto px-6 py-5">
@@ -175,11 +191,10 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
         <form id={`${id}-form`} onSubmit={save} noValidate className="flex min-w-0 flex-[1_1_380px] flex-col gap-3.5">
           <fieldset className="m-0 border-0 p-0">
             <legend className="p-0 text-[10.5px] font-medium uppercase tracking-[0.16em] text-ink-2">Label</legend>
-            <div className="mt-2 flex gap-2">
-              {ADDRESS_LABELS.map((name) => (
-                <button
+            <div className="mt-2 flex flex-wrap gap-2">
+              {ADDRESS_LABELS.filter((name) => name !== 'Farm' || farmer || label === 'Farm').map((name) => (
+                <Button variant="bare"
                   key={name}
-                  type="button"
                   aria-pressed={label === name}
                   onClick={() => setValue('label', name, { shouldValidate: true })}
                   className={cn(
@@ -188,7 +203,7 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
                   )}
                 >
                   {name}
-                </button>
+                </Button>
               ))}
             </div>
           </fieldset>
@@ -288,9 +303,11 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
       </div>
 
       <div className="flex justify-end gap-2.5 border-t border-sand-soft bg-cream px-6 py-4">
+        {unchanged && <NoChangesNote id={`${id}-nochange`} />}
         <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
-        <Button type="submit" form={`${id}-form`} pending={saving} disabled={!locations.data}>Save address</Button>
+        <Button type="submit" form={`${id}-form`} loading={saving} disabled={!locations.data || unchanged} aria-describedby={unchanged ? `${id}-nochange` : undefined}>Save address</Button>
       </div>
+      <ConfirmChangesModal {...confirm.modal} changes={changes} pending={update.isPending} />
     </Modal>
   )
 }

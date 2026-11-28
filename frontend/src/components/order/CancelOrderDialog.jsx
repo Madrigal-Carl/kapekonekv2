@@ -105,7 +105,7 @@ export function CancelOrderDialog({ order, onClose }) {
           <Button variant="outline" onClick={onClose} disabled={cancel.isPending}>
             Keep my order
           </Button>
-          <Button type="submit" variant="danger" pending={cancel.isPending}>
+          <Button type="submit" variant="danger" loading={cancel.isPending}>
             Cancel order
           </Button>
         </div>

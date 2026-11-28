@@ -1,5 +1,7 @@
-import { Plus } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
+import { IconPlus } from '@/components/ui/icons'
 import { Link } from 'react-router-dom'
+import { ProductImage } from '@/components/product/ProductImage'
 import { Star } from '@/components/ui/StarRating'
 import { COFFEE_TYPES, LOW_STOCK, VARIETIES } from '@/constants/catalog'
 import { useAddToCart } from '@/hooks/useCart'
@@ -8,11 +10,15 @@ import { imageUrl } from '@/lib/image'
 
 const badge = 'absolute left-2.5 top-2.5 rounded-[4px] px-2 py-1 text-[10.5px] font-semibold uppercase tracking-[0.1em]'
 
+const soldText = (n) => (n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k` : String(n))
+
 /**
- * Product tile (Main "Featured" and Products grid). `featured` shows the Featured badge and the shorter category line.
- * @param {{ product: object, featured?: boolean }} props
+ * Product tile (Main best sellers and the Products grid). `rank` (best sellers, Change 08) shows "#N best seller",
+ * the shorter category line and `sold` (quantity over 90 days).
+ * @param {{ product: object, rank?: number, sold?: number }} props
  */
-export function ProductCard({ product, featured = false }) {
+export function ProductCard({ product, rank, sold = 0 }) {
+  const featured = Boolean(rank)
   const { add: addToCart } = useAddToCart()
   const { name, slug, shortDescription, priceCentavos, unit, stock, images, ratingAverage, ratingCount, variety, coffeeType, category } = product
   const href = `/products/${slug}`
@@ -24,8 +30,8 @@ export function ProductCard({ product, featured = false }) {
   return (
     <article className="flex flex-col overflow-hidden rounded-card border border-sand bg-white transition-shadow hover:shadow-card-hover">
       <Link to={href} tabIndex={-1} aria-hidden="true" className="relative block aspect-[4/3] overflow-hidden bg-photo">
-        {image && <img src={imageUrl(image.url, 320)} alt="" loading="lazy" className="size-full object-cover" />}
-        {featured && <span className={`${badge} bg-espresso font-medium text-crema`}>Featured</span>}
+        <ProductImage src={image && imageUrl(image.url, 320)} loading="lazy" className="size-full" />
+        {featured && <span className={`${badge} bg-espresso font-medium text-crema`}>#{rank} best seller</span>}
         {!featured && out && (
           <>
             <span className="absolute inset-0 bg-white/55" />
@@ -48,6 +54,7 @@ export function ProductCard({ product, featured = false }) {
           ) : (
             <span className="text-ink-4">No reviews yet</span>
           )}
+          {featured && sold > 0 && <span className="text-ink-4">· {soldText(sold)} sold</span>}
         </div>
         <div className="mt-auto flex items-center justify-between gap-2 pt-3">
           <div>
@@ -55,17 +62,17 @@ export function ProductCard({ product, featured = false }) {
             <span className="text-[12.5px] text-ink-4"> / {unit}</span>
           </div>
           {out ? (
-            <button type="button" disabled className="min-h-10 rounded-control bg-sold-out-bg px-3 py-[9px] text-[13px] font-medium text-sold-out-ink">Sold out</button>
+            <Button size="sm" disabled className="h-10 border-sold-out-bg bg-sold-out-bg font-medium text-sold-out-ink opacity-100 disabled:opacity-100">Sold out</Button>
           ) : (
-            <button
-              type="button"
+            <Button
+              size="sm"
               aria-label={`Add ${name} to cart`}
               onClick={() => addToCart(product)}
-              className="inline-flex min-h-10 cursor-pointer items-center gap-1.5 rounded-control bg-roast px-3 py-[9px] text-[13px] font-medium text-white hover:bg-roast-hover"
+              leftIcon={<IconPlus aria-hidden="true" className="size-[15px]" strokeWidth={2} />}
+              className="h-10 gap-1.5 font-medium"
             >
-              <Plus aria-hidden="true" className="size-[15px]" strokeWidth={2} />
               Add
-            </button>
+            </Button>
           )}
         </div>
       </div>

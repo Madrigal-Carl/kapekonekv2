@@ -1,4 +1,4 @@
-// Juana's (buyer@) demo orders: every status, both methods, both payments, refunds and notifications (PRODUCT-SPEC §11).
+// Juana's (`buyer`) demo orders: every status, both methods, both payments, refunds and notifications (PRODUCT-SPEC §11).
 import { MUNICIPALITY_CENTERS } from '../../constants/geo.js';
 import { BUYER_CANCEL_REASONS, REJECT_REASONS } from '../../constants/orderStatus.js';
 import { quoteForPoint } from '../../services/deliveryQuote.service.js';
@@ -11,7 +11,7 @@ const DAY = 86_400_000;
 const RIDER = { name: 'Jun R.', phone: '09175550102' };
 
 /**
- * [days ago, status, method ('home'|'work'|'mama'|'pickup'), payment ('cash'|'GCash'|'Maya'), items [slug, qty][], extra].
+ * [days ago, status, method ('home'|'work'|'mama'|'pickup'), payment ('cash'|'GCash'; Maya is off at checkout, so no seeded order uses it), items [slug, qty][], extra].
  * Pending orders stay younger than 2 days so the expiry sweep leaves them alone after seeding.
  */
 const PLAN = [
@@ -20,16 +20,26 @@ const PLAN = [
   [2.5, 'reserved', 'home', 'GCash', [['robusta-green-beans', 2]]],
   [3, 'out_for_delivery', 'home', 'cash', [['arabica-light-roast', 2]]],
   [4, 'ready_for_pickup', 'pickup', 'cash', [['robusta-dark-roast', 2]]],
-  [5, 'processing', 'work', 'Maya', [['robusta-dark-roast', 3]]],
+  [5, 'processing', 'work', 'GCash', [['robusta-dark-roast', 3]]],
   [9, 'cancelled', 'work', 'GCash', [['arabica-ground', 1]], { reasonCode: 'wrong_receipt' }],
   [12, 'rejected', 'home', 'cash', [['excelsa-medium-roast', 2]], { reasonCode: 'out_of_stock' }],
   [14, 'sold', 'work', 'cash', [['barako-medium-roast', 3]]],
   [18, 'expired', 'home', 'GCash', [['excelsa-ground', 2]]],
   [20, 'sold', 'pickup', 'GCash', [['arabica-green-beans', 1]]],
-  [21, 'rejected', 'pickup', 'Maya', [['arabica-ground', 1]], { reasonCode: 'invalid_receipt', refundRef: '7023118842' }],
+  [21, 'rejected', 'pickup', 'GCash', [['arabica-ground', 1]], { reasonCode: 'invalid_receipt', refundRef: '7023118842' }],
   [25, 'cancelled', 'home', 'cash', [['robusta-dark-roast', 2]], { reasonCode: 'ordered_by_mistake' }],
-  [30, 'sold', 'home', 'Maya', [['liberica-green-beans', 2]]],
+  [30, 'sold', 'home', 'GCash', [['liberica-green-beans', 2]]],
   [45, 'sold', 'mama', 'cash', [['robusta-ground', 2], ['barako-medium-roast', 1]]],
+];
+
+/** Rodel's (`farmer.approved`) farm-supply orders (PHASE-2-SPEC §8: farmer store orders in several statuses). Addresses: farm, home, mama. */
+export const FARMER_PLAN = [
+  [0.3, 'pending', 'farm', 'GCash', [['complete-fertilizer-14-14-14', 2]]],
+  [2, 'processing', 'farm', 'cash', [['liberica-dried-cherry', 50]]],
+  [3, 'ready_for_pickup', 'pickup', 'cash', [['organic-fertilizer', 4]]],
+  [10, 'cancelled', 'home', 'cash', [['excelsa-dried-cherry', 20]], { reasonCode: 'ordered_by_mistake' }],
+  [16, 'sold', 'farm', 'GCash', [['urea-46-0-0', 1], ['robusta-parchment', 30]]],
+  [35, 'sold', 'pickup', 'cash', [['vermicast', 2]]],
 ];
 
 const PATH = {
@@ -50,17 +60,17 @@ async function quoteFor(address, origin, rules) {
 }
 
 /**
- * @param {{ buyer: object, kaluppaId: unknown, addresses: Record<'home'|'work'|'mama', object>, products: Record<string, object>, fee: object, eta: object, pickup: object, now?: number }} input
+ * @param {{ buyer: object, kaluppaId: unknown, addresses: Record<string, object>, products: Record<string, object>, fee: object, eta: object, pickup: object, now?: number, plan?: Array, role?: 'buyer'|'farmer' }} input
  * @returns {Promise<{ orders: object[], notices: Array<(order: object) => object>, reserved: Array<[unknown, number]>, sold: Array<[unknown, number]> }>}
  */
-export async function buildBuyerOrders({ buyer, kaluppaId, addresses, products, fee, eta, pickup, now = Date.now() }) {
+export async function buildBuyerOrders({ buyer, kaluppaId, addresses, products, fee, eta, pickup, now = Date.now(), plan = PLAN, role = 'buyer' }) {
   const quotes = {};
-  for (const key of Object.keys(addresses)) quotes[key] = await quoteFor(addresses[key], fee.origin, fee);
+  for (const key of Object.keys(addresses)) quotes[key] = await quoteFor(addresses[key], pickup.location, fee);
   const orders = [];
   const reserved = [];
   const sold = [];
 
-  for (const [daysAgo, status, where, pay, lines, extra = {}] of PLAN) {
+  for (const [daysAgo, status, where, pay, lines, extra = {}] of plan) {
     const placedAt = new Date(now - daysAgo * DAY);
     const at = (step) => new Date(placedAt.getTime() + STEP_AFTER[step] * DAY);
     const method = where === 'pickup' ? 'pickup' : 'delivery';
@@ -83,7 +93,7 @@ export async function buildBuyerOrders({ buyer, kaluppaId, addresses, products, 
       status: step,
       at: step === 'pending' ? placedAt : at(step),
       by: step === 'pending' || step === 'cancelled' ? buyer._id : step === 'expired' ? null : kaluppaId,
-      byRole: step === 'pending' || step === 'cancelled' ? 'buyer' : step === 'expired' ? 'system' : 'kaluppa',
+      byRole: step === 'pending' || step === 'cancelled' ? role : step === 'expired' ? 'system' : 'kaluppa',
       ...(['cancelled', 'rejected'].includes(step) && reason),
       ...(step === 'out_for_delivery' && { note: `Rider: ${RIDER.name} · ${RIDER.phone}` }),
     }));

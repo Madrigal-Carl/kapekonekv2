@@ -15,7 +15,7 @@ const { isValidBarangay } = await import('../src/services/location.service.js');
 
 async function signedIn(email) {
   const agent = request.agent(app);
-  await agent.post('/api/auth/login').send({ identifier: email, password: 'Password123!' }).expect(200);
+  await agent.post('/api/auth/login').send({ identifier: email, password: 'KapeKonek@123' }).expect(200);
   return agent;
 }
 
@@ -48,9 +48,12 @@ describe('GET /delivery/info', () => {
     const res = await request(app).get('/api/delivery/info');
     expect(res.status).toBe(200);
     expect(res.body.data).toEqual({
-      pickup: { name: 'Kaluppa', address: 'Pantayin, Santa Cruz, Marinduque', hours: expect.any(String), location: { lat: expect.any(Number), lng: expect.any(Number) } },
+      pickup: { name: 'Kaluppa', address: 'Pantayin, Santa Cruz, Marinduque', hours: expect.any(String), phone: '0917 800 1122', location: { lat: expect.any(Number), lng: expect.any(Number) } },
       fee: { baseFeeCentavos: 5000, baseKm: 3, perKmCentavos: 1000, roundUpToCentavos: 500, maxKm: 60 },
       eta: { minBusinessDays: 3, maxBusinessDays: 5 },
+      payment: { providers: ['GCash'] }, // Maya is saved but off at checkout
+      // Change 08: the Contact us card. No contact email until Kaluppa sets one; hours as rows.
+      contact: { email: null, hours: [{ days: 'Mon – Sat', time: '8:00 AM – 5:00 PM' }, { days: 'Sunday', time: 'Closed' }] },
     });
     expect(JSON.stringify(res.body.data)).not.toMatch(/origin|roadFactor/);
   });
@@ -71,10 +74,11 @@ describe('settings', () => {
 
   it('shows e-wallet details only to a verified, signed-in user', async () => {
     expect((await request(app).get('/api/settings/payment')).status).toBe(401);
-    const unverified = await signedIn('buyer.unverified@kapekonek.test');
+    const unverified = await signedIn('kapekonek.buyer.unverified@gmail.com');
     expect((await unverified.get('/api/settings/payment')).body.code).toBe('EMAIL_NOT_VERIFIED');
-    const res = await (await signedIn('buyer@kapekonek.test')).get('/api/settings/payment');
+    const res = await (await signedIn('kapekonek.buyer@gmail.com')).get('/api/settings/payment');
     expect(res.status).toBe(200);
-    expect(res.body.data).toMatchObject({ providers: ['GCash', 'Maya'], isSample: true, accountName: expect.any(String), accountNumber: expect.any(String) });
+    expect(res.body.data).toMatchObject({ providers: ['GCash'], isSample: true, accounts: { GCash: { accountName: expect.any(String), accountNumber: expect.any(String) } } });
+    expect(res.body.data.accounts.Maya).toBeUndefined(); // saved, off at checkout
   });
 });

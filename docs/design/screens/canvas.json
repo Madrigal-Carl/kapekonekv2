@@ -1,592 +1,962 @@
 {
   "v": 3,
-  "createdOnFiles": {
-    "v": 1,
-    "at": "2026-11-21T10:26:22Z"
+  "attachments": {},
+  "boards": {
+    "AddressModal.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "title": "Add / edit address — zooms to municipality, then barangay",
+      "w": 1440,
+      "x": 9120,
+      "y": 6120
+    },
+    "Addresses.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "is_interactive": true,
+      "title": "Addresses",
+      "w": 1440,
+      "x": 7600,
+      "y": 6120
+    },
+    "AssociationForm.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "is_interactive": true,
+      "title": "Associations — add drawer",
+      "w": 1440,
+      "x": 4560,
+      "y": 21670
+    },
+    "AssociationModal.dc.html": {
+      "expand": "fill",
+      "h": 1420,
+      "is_interactive": true,
+      "title": "Farmer onboarding — join your association, pick on the map (tweak: new / rejected)",
+      "w": 1440,
+      "x": 1520,
+      "y": 13820
+    },
+    "Associations.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "is_interactive": true,
+      "title": "Associations — Kaluppa",
+      "w": 1440,
+      "x": 4560,
+      "y": 15660
+    },
+    "AuditLog.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "is_interactive": true,
+      "title": "Audit log — Kaluppa",
+      "w": 1440,
+      "x": 6550,
+      "y": 18950
+    },
+    "BarChart.dc.html": {
+      "h": 280,
+      "is_interactive": true,
+      "title": "BarChart (component) — hover, legend, table view",
+      "w": 640,
+      "x": 1600,
+      "y": 12400
+    },
+    "BeansFarmer.dc.html": {
+      "expand": "fill",
+      "h": 1250,
+      "is_interactive": true,
+      "title": "Beans — farmer / Group Manager (tweaks: role, status incl. limit reached)",
+      "w": 1440,
+      "x": 0,
+      "y": 17280
+    },
+    "BeansKaluppa.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "is_interactive": true,
+      "title": "Beans — Kaluppa review queue",
+      "w": 1440,
+      "x": 3040,
+      "y": 17280
+    },
+    "BeansReview.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "is_interactive": true,
+      "title": "Beans — Kaluppa review drawer",
+      "w": 1440,
+      "x": 4560,
+      "y": 17280
+    },
+    "BeansSell.dc.html": {
+      "expand": "fill",
+      "h": 1250,
+      "is_interactive": true,
+      "title": "Beans — list beans drawer",
+      "w": 1440,
+      "x": 1520,
+      "y": 17280
+    },
+    "Buttons.dc.html": {
+      "h": 1100,
+      "title": "Button (component) — variants, sizes, states",
+      "w": 1440,
+      "x": 4520,
+      "y": 12400
+    },
+    "CartDrawer.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "Cart drawer",
+      "w": 1440,
+      "x": 4560,
+      "y": 0
+    },
+    "Checkout.dc.html": {
+      "expand": "fill",
+      "h": 2150,
+      "is_interactive": true,
+      "title": "Checkout — delivery or pickup, e-wallet or cash",
+      "w": 1440,
+      "x": 0,
+      "y": 6120
+    },
+    "Components.dc.html": {
+      "h": 1560,
+      "is_interactive": true,
+      "title": "Shared components — search select, uploads, review states",
+      "w": 1440,
+      "x": 6080,
+      "y": 10210
+    },
+    "DashModals.dc.html": {
+      "h": 1000,
+      "title": "Dashboard confirm modals",
+      "w": 1440,
+      "x": 3000,
+      "y": 12400
+    },
+    "DashTopbar.dc.html": {
+      "h": 64,
+      "is_interactive": true,
+      "title": "Dashboard top bar (component)",
+      "w": 1184,
+      "x": 336,
+      "y": 12400
+    },
+    "Dashboard.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "Dashboard placeholder (Phase 1, replaced by the Phase 2 screens below)",
+      "w": 1440,
+      "x": 4560,
+      "y": 10210
+    },
+    "DataTable.dc.html": {
+      "h": 560,
+      "is_interactive": true,
+      "title": "DataTable (component) — tabs, search, filters, actions, pages",
+      "w": 1100,
+      "x": 336,
+      "y": 12544
+    },
+    "FarmForm.dc.html": {
+      "expand": "fill",
+      "h": 1200,
+      "is_interactive": true,
+      "title": "Farm add/edit drawer — map zooms to municipality, then barangay",
+      "w": 1440,
+      "x": 7600,
+      "y": 15660
+    },
+    "FarmMap.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "is_interactive": true,
+      "title": "Farm Map (tweak: role)",
+      "w": 1440,
+      "x": 3510,
+      "y": 18950
+    },
+    "FarmView.dc.html": {
+      "expand": "fill",
+      "h": 1200,
+      "is_interactive": true,
+      "title": "Farm view drawer — Trees tab",
+      "w": 1440,
+      "x": 9120,
+      "y": 15660
+    },
+    "FarmerAddresses.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "is_interactive": true,
+      "title": "Farmer account — Addresses (map cards)",
+      "w": 1440,
+      "x": 7600,
+      "y": 13820
+    },
+    "FarmerAssociation.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "is_interactive": true,
+      "title": "Farmer account — Association (redesigned; tweak: status)",
+      "w": 1440,
+      "x": 3040,
+      "y": 13820
+    },
+    "FarmerForm.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "is_interactive": true,
+      "title": "Farmers — add farmer drawer (Group Manager)",
+      "w": 1440,
+      "x": 1520,
+      "y": 21670
+    },
+    "FarmerReview.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "is_interactive": true,
+      "title": "Farmers — approval review drawer",
+      "w": 1440,
+      "x": 1520,
+      "y": 15660
+    },
+    "Farmers.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "is_interactive": true,
+      "title": "Farmers — Group Manager (Farms owned column; approve, add, remove)",
+      "w": 1440,
+      "x": 0,
+      "y": 15660
+    },
+    "Farms.dc.html": {
+      "expand": "fill",
+      "h": 1200,
+      "is_interactive": true,
+      "title": "Farms — sorted by property number (tweak: role)",
+      "w": 1440,
+      "x": 6080,
+      "y": 15660
+    },
+    "Footer.dc.html": {
+      "h": 340,
+      "is_interactive": true,
+      "title": "Footer (component)",
+      "w": 1440,
+      "x": 1520,
+      "y": 10210
+    },
+    "ForgotPassword.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "Forgot password",
+      "w": 1440,
+      "x": 3040,
+      "y": 8640
+    },
+    "GroupManagerForm.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "is_interactive": true,
+      "title": "Group Managers — add drawer",
+      "w": 1440,
+      "x": 3040,
+      "y": 21670
+    },
+    "GroupManagers.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "is_interactive": true,
+      "title": "Group Managers — Kaluppa",
+      "w": 1440,
+      "x": 3040,
+      "y": 15660
+    },
+    "HarvestForm.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "is_interactive": true,
+      "title": "Harvests — record harvest drawer",
+      "w": 1440,
+      "x": 7600,
+      "y": 21670
+    },
+    "Harvests.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "is_interactive": true,
+      "title": "Harvests (tweak: role)",
+      "w": 1440,
+      "x": 12160,
+      "y": 15660
+    },
+    "Hub.dc.html": {
+      "expand": "fill",
+      "h": 2300,
+      "is_interactive": true,
+      "title": "Hub — feed; “What’s on your mind?” opens Create post; posts open the viewer (tweaks: role, start)",
+      "w": 1440,
+      "x": 1990,
+      "y": 18950
+    },
+    "Inbox.dc.html": {
+      "expand": "fill",
+      "h": 980,
+      "is_interactive": true,
+      "title": "Inbox — desktop (tweak: conversation)",
+      "w": 1440,
+      "x": 0,
+      "y": 18950
+    },
+    "InboxMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "Inbox — mobile (list → chat)",
+      "w": 390,
+      "x": 1520,
+      "y": 18950
+    },
+    "Inventory.dc.html": {
+      "expand": "fill",
+      "h": 1050,
+      "is_interactive": true,
+      "title": "Inventory — Kaluppa products (default image when a product has no photo)",
+      "w": 1440,
+      "x": 10640,
+      "y": 17280
+    },
+    "InventoryForm.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "is_interactive": true,
+      "title": "Inventory — add product drawer",
+      "w": 1440,
+      "x": 0,
+      "y": 21670
+    },
+    "Login.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "Sign in",
+      "w": 1440,
+      "x": 0,
+      "y": 8640
+    },
+    "Main.dc.html": {
+      "expand": "fill",
+      "h": 5700,
+      "is_interactive": true,
+      "title": "Landing — guest (best sellers: top 8 carousel)",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "MiniMap.dc.html": {
+      "h": 440,
+      "is_interactive": true,
+      "title": "MiniMap (component) — pins, popover, zoom, fly-to",
+      "w": 600,
+      "x": 2320,
+      "y": 12400
+    },
+    "MobileFarmForm.dc.html": {
+      "h": 1900,
+      "is_interactive": true,
+      "title": "Phone — drawer goes full width, fields stack",
+      "w": 390,
+      "x": 940,
+      "y": 23190
+    },
+    "MobileFarms.dc.html": {
+      "h": 1900,
+      "is_interactive": true,
+      "title": "Phone — table becomes cards, filters in a 2-column grid",
+      "w": 390,
+      "x": 470,
+      "y": 23190
+    },
+    "MobileNav.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "Phone — menu button opens the sidebar as a drawer",
+      "w": 390,
+      "x": 1410,
+      "y": 23190
+    },
+    "MobileOverview.dc.html": {
+      "h": 2300,
+      "is_interactive": true,
+      "title": "Phone — farmer overview (date filter, banner)",
+      "w": 390,
+      "x": 0,
+      "y": 23190
+    },
+    "Modals.dc.html": {
+      "h": 1000,
+      "title": "Confirmation modals",
+      "w": 1440,
+      "x": 3040,
+      "y": 10210
+    },
+    "Navbar.dc.html": {
+      "h": 64,
+      "is_interactive": true,
+      "title": "Navbar (component)",
+      "w": 1440,
+      "x": 0,
+      "y": 10210
+    },
+    "OrderDetail.dc.html": {
+      "expand": "fill",
+      "h": 1750,
+      "is_interactive": true,
+      "title": "Order detail — delivery, COD",
+      "w": 1440,
+      "x": 3040,
+      "y": 6120
+    },
+    "OrderManage.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "is_interactive": true,
+      "title": "Orders — Kaluppa manage drawer",
+      "w": 1440,
+      "x": 9120,
+      "y": 17280
+    },
+    "Orders.dc.html": {
+      "expand": "fill",
+      "h": 2100,
+      "is_interactive": true,
+      "title": "My orders",
+      "w": 1440,
+      "x": 1520,
+      "y": 6120
+    },
+    "OrdersFarmer.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "is_interactive": true,
+      "title": "Orders — farmer",
+      "w": 1440,
+      "x": 6080,
+      "y": 17280
+    },
+    "OrdersKaluppa.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "is_interactive": true,
+      "title": "Orders — Kaluppa (buyers + farmers)",
+      "w": 1440,
+      "x": 7600,
+      "y": 17280
+    },
+    "OverviewFarmer.dc.html": {
+      "expand": "fill",
+      "h": 1420,
+      "is_interactive": true,
+      "title": "Overview — farmer (banner + 5 kg meter; tweak: status)",
+      "w": 1440,
+      "x": 0,
+      "y": 13820
+    },
+    "OverviewGM.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "is_interactive": true,
+      "title": "Overview — Group Manager",
+      "w": 1440,
+      "x": 4560,
+      "y": 13820
+    },
+    "OverviewKaluppa.dc.html": {
+      "expand": "fill",
+      "h": 1250,
+      "is_interactive": true,
+      "title": "Overview — Kaluppa",
+      "w": 1440,
+      "x": 6080,
+      "y": 13820
+    },
+    "PostDetail.dc.html": {
+      "expand": "fill",
+      "h": 2500,
+      "is_interactive": true,
+      "title": "Post detail — guests & buyers (view only)",
+      "w": 1440,
+      "x": 6080,
+      "y": 0
+    },
+    "ProductDetail.dc.html": {
+      "expand": "fill",
+      "h": 2500,
+      "is_interactive": true,
+      "title": "Product detail + reviews (edit / delete your own)",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "Products.dc.html": {
+      "expand": "fill",
+      "h": 2800,
+      "is_interactive": true,
+      "title": "Products — infinite scroll",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "Profile.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "is_interactive": true,
+      "title": "Profile",
+      "w": 1440,
+      "x": 4560,
+      "y": 6120
+    },
+    "Register.dc.html": {
+      "expand": "fill",
+      "h": 1150,
+      "is_interactive": true,
+      "title": "Sign up (terms checkbox required; tweak: start)",
+      "w": 1440,
+      "x": 1520,
+      "y": 8640
+    },
+    "Reports.dc.html": {
+      "expand": "fill",
+      "h": 1700,
+      "is_interactive": true,
+      "title": "Reports — charts in a 2×2 grid (tweak: role)",
+      "w": 1440,
+      "x": 5030,
+      "y": 18950
+    },
+    "ResetPassword.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "Reset password",
+      "w": 1440,
+      "x": 4560,
+      "y": 8640
+    },
+    "ReviewView.dc.html": {
+      "expand": "fill",
+      "h": 1050,
+      "is_interactive": true,
+      "title": "Reviews — review drawer with reply",
+      "w": 1440,
+      "x": 13680,
+      "y": 17280
+    },
+    "Reviews.dc.html": {
+      "expand": "fill",
+      "h": 1050,
+      "is_interactive": true,
+      "title": "Reviews — Kaluppa (reply, hide / show)",
+      "w": 1440,
+      "x": 12160,
+      "y": 17280
+    },
+    "SearchSelect.dc.html": {
+      "h": 440,
+      "is_interactive": true,
+      "title": "SearchSelect (component)",
+      "w": 400,
+      "x": 7600,
+      "y": 10210
+    },
+    "Settings.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "is_interactive": true,
+      "title": "Settings — security",
+      "w": 1440,
+      "x": 6080,
+      "y": 6120
+    },
+    "SettingsKaluppa.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "is_interactive": true,
+      "title": "Settings — branch, delivery fee, e-wallet",
+      "w": 1440,
+      "x": 8070,
+      "y": 18950
+    },
+    "Sidebar.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "Sidebar (component) — role + active item",
+      "w": 256,
+      "x": 0,
+      "y": 12400
+    },
+    "TreeForm.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "is_interactive": true,
+      "title": "Trees — add tree group drawer",
+      "w": 1440,
+      "x": 6080,
+      "y": 21670
+    },
+    "Trees.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "is_interactive": true,
+      "title": "Trees (tweak: role)",
+      "w": 1440,
+      "x": 10640,
+      "y": 15660
+    },
+    "VerifyEmail.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "Verify email",
+      "w": 1440,
+      "x": 6080,
+      "y": 8640
+    },
+    "HubCreatePost.dc.html": {
+      "x": 0,
+      "y": 25910,
+      "w": 1440,
+      "h": 1000,
+      "title": "Hub — Create post modal (photos, tags, discard check)",
+      "is_interactive": true
+    },
+    "HubPostView.dc.html": {
+      "x": 1520,
+      "y": 25910,
+      "w": 1440,
+      "h": 1000,
+      "title": "Hub — post viewer: caption, tags, reactions, comments on the left; media on the right",
+      "is_interactive": true
+    },
+    "HubPostText.dc.html": {
+      "x": 3040,
+      "y": 25910,
+      "w": 1440,
+      "h": 1000,
+      "title": "Hub — text-only post opens as a centered dialog",
+      "is_interactive": true
+    },
+    "HubMobileCreate.dc.html": {
+      "x": 4560,
+      "y": 25910,
+      "w": 390,
+      "h": 844,
+      "title": "Phone — Create post goes full screen",
+      "is_interactive": true
+    },
+    "HubMobileView.dc.html": {
+      "x": 5030,
+      "y": 25910,
+      "w": 390,
+      "h": 844,
+      "title": "Phone — viewer: media on top, details and comments below",
+      "is_interactive": true
+    },
+    "BeansLimit.dc.html": {
+      "x": 15200,
+      "y": 17280,
+      "w": 1440,
+      "h": 1250,
+      "title": "Beans — farmer at the 5 kg limit (Sell beans disabled)",
+      "is_interactive": true
+    },
+    "ContactUs.dc.html": {
+      "x": 7600,
+      "y": 0,
+      "w": 1440,
+      "h": 1600,
+      "title": "Contact us — form + Kaluppa branch (tweaks: variant, state)",
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    "InboxDeleteConfirm.dc.html": {
+      "x": 0,
+      "y": 27330,
+      "w": 1440,
+      "h": 980,
+      "title": "Inbox — “Delete message?” before deleting",
+      "is_interactive": true
+    },
+    "ReportsExport.dc.html": {
+      "x": 1520,
+      "y": 27330,
+      "w": 1440,
+      "h": 1000,
+      "title": "Reports — export as CSV or PDF, with the current filters",
+      "is_interactive": true
+    },
+    "GroupManagerCreate.dc.html": {
+      "x": 3040,
+      "y": 27330,
+      "w": 1440,
+      "h": 1100,
+      "title": "Group Managers — add: default password, read-only",
+      "is_interactive": true
+    },
+    "GroupManagerReset.dc.html": {
+      "x": 4560,
+      "y": 27330,
+      "w": 1440,
+      "h": 1000,
+      "title": "Group Managers — edit: reset to the default password",
+      "is_interactive": true
+    },
+    "FarmerCreate.dc.html": {
+      "x": 6080,
+      "y": 27330,
+      "w": 1440,
+      "h": 1150,
+      "title": "Farmers — add: default password, read-only; email required",
+      "is_interactive": true
+    },
+    "FarmEditConfirm.dc.html": {
+      "x": 7600,
+      "y": 27330,
+      "w": 1440,
+      "h": 1200,
+      "title": "Global — “Save these changes?” before saving any edit",
+      "is_interactive": true
+    },
+    "InventoryLowStock.dc.html": {
+      "x": 9120,
+      "y": 27330,
+      "w": 1440,
+      "h": 1100,
+      "title": "Inventory — add blocked when starting stock is at or below the low-stock level",
+      "is_interactive": true
+    },
+    "HubMention.dc.html": {
+      "x": 10640,
+      "y": 27330,
+      "w": 1440,
+      "h": 1000,
+      "title": "Hub — @mention people you’re allowed to mention",
+      "is_interactive": true
+    },
+    "VerifyEmailCreated.dc.html": {
+      "x": 12160,
+      "y": 27330,
+      "w": 1440,
+      "h": 900,
+      "title": "Verify email — accounts made by Kaluppa or a Group Manager",
+      "is_interactive": true
+    },
+    "ContactUsErrors.dc.html": {
+      "x": 13680,
+      "y": 27330,
+      "w": 1440,
+      "h": 1600,
+      "title": "Contact us — validation errors",
+      "is_interactive": true
+    },
+    "RegisterTerms.dc.html": {
+      "x": 15200,
+      "y": 27330,
+      "w": 1440,
+      "h": 1150,
+      "title": "Sign up — Terms and Conditions / Privacy Policy modal",
+      "is_interactive": true
+    },
+    "RegisterTermsError.dc.html": {
+      "x": 16720,
+      "y": 27330,
+      "w": 1440,
+      "h": 1150,
+      "title": "Sign up — “Create account” without ticking the terms",
+      "is_interactive": true
+    },
+    "RegisterTermsMobile.dc.html": {
+      "x": 18240,
+      "y": 27330,
+      "w": 390,
+      "h": 844,
+      "title": "Phone — terms modal goes full screen",
+      "is_interactive": true
+    },
+    "TermsAccept.dc.html": {
+      "x": 18710,
+      "y": 27330,
+      "w": 1440,
+      "h": 1000,
+      "title": "First sign-in — accounts made by Kaluppa / a Group Manager agree before starting",
+      "is_interactive": true
+    },
+    "TermsModal.dc.html": {
+      "x": 20230,
+      "y": 27330,
+      "w": 1440,
+      "h": 1000,
+      "title": "TermsModal (component) — tweaks: mode read / accept, tab",
+      "is_interactive": true
+    }
   },
-  "title": "KapeKonek — Phase 1 Pages",
+  "createdOnFiles": {
+    "at": "2026-11-21T10:26:22Z",
+    "v": 1
+  },
+  "designSystems": [],
   "launch": {
     "view": "canvas"
   },
-  "pages": [],
-  "boards": {
-    "Main.dc.html": {
+  "noteOrder": [
+    "row1",
+    "row2",
+    "row3",
+    "row4",
+    "palette",
+    "row5",
+    "row6",
+    "row7",
+    "row8",
+    "row9",
+    "dashrules",
+    "row10",
+    "row11",
+    "row12",
+    "row13",
+    "row14"
+  ],
+  "notes": {
+    "dashrules": {
+      "fill": "blue",
+      "size": 24,
+      "text": "Dashboard rules\n\nEvery list page: page header → DataTable (tabs, search, filter dropdowns, row actions, numbered pages).\nAdd / edit / view open in a right drawer. Archive, restore, reject, cancel, remove confirm in a modal.\n\nRole changes use permissions + tweaks: open a board’s Tweaks to switch farmer / Group Manager / Kaluppa.\n\nChart colors (validated): varieties Liberica #2a78d6, Excelsa #eb6834, Robusta #1baf7a, Arabica #eda100. Stages: Newly planted #2a78d6, Growing #eb6834, Flowering #1baf7a, Fruiting #eda100, Damaged #e87ba4. One-series charts use Roast #7B4A2A. Always show a legend + table view.",
+      "w": 500,
+      "x": -620,
+      "y": 12400
+    },
+    "palette": {
+      "fill": "orange",
+      "size": 24,
+      "text": "Look: AgriCentral's layout language in coffee tones.\n\nEspresso #2B1A12 — headings, dark bands\nRoast #7B4A2A — buttons, links, focus\nCaramel #C8913A — icon tiles, stars, decor (never body text)\nCrema #F7EFE4 — soft sections\nFoam #F5F0EA — app background\nSand #E7DCCD — borders\n\nType: Poppins. 5px controls, 8px cards, thin borders, long soft hover shadows.\n\nPhoto boxes are placeholders: the seeder fills them with real stock photos.",
+      "w": 500,
+      "x": -620,
+      "y": 0
+    },
+    "row1": {
+      "kind": "title1",
+      "maxW": 9040,
+      "text": "Storefront — guests & buyers",
+      "w": 240,
       "x": 0,
-      "y": 0,
-      "w": 1440,
-      "h": 5700,
-      "title": "Landing — guest",
-      "expand": "fill",
-      "is_interactive": true
+      "y": -300
     },
-    "Products.dc.html": {
-      "x": 1520,
-      "y": 0,
-      "w": 1440,
-      "h": 2800,
-      "title": "Products — infinite scroll",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "ProductDetail.dc.html": {
-      "x": 3040,
-      "y": 0,
-      "w": 1440,
-      "h": 2500,
-      "title": "Product detail + reviews (edit / delete your own)",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "CartDrawer.dc.html": {
-      "x": 4560,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Cart drawer",
-      "is_interactive": true
-    },
-    "Checkout.dc.html": {
+    "row10": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "Dashboard — add drawers (open)",
+      "w": 240,
       "x": 0,
-      "y": 6120,
-      "w": 1440,
-      "h": 2150,
-      "title": "Checkout — delivery or pickup, e-wallet or cash",
-      "expand": "fill",
-      "is_interactive": true
+      "y": 21370
     },
-    "Orders.dc.html": {
-      "x": 1520,
-      "y": 6120,
-      "w": 1440,
-      "h": 2100,
-      "title": "My orders",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "OrderDetail.dc.html": {
-      "x": 3040,
-      "y": 6120,
-      "w": 1440,
-      "h": 1750,
-      "title": "Order detail — delivery, COD",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "Profile.dc.html": {
-      "x": 4560,
-      "y": 6120,
-      "w": 1440,
-      "h": 1300,
-      "title": "Profile",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "Settings.dc.html": {
-      "x": 6080,
-      "y": 6120,
-      "w": 1440,
-      "h": 1500,
-      "title": "Settings — security",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "Login.dc.html": {
+    "row11": {
+      "kind": "title1",
+      "maxW": 1800,
+      "text": "Dashboard — phone (390px)",
+      "w": 240,
       "x": 0,
-      "y": 8640,
-      "w": 1440,
-      "h": 900,
-      "title": "Sign in",
-      "expand": "fill",
-      "is_interactive": true
+      "y": 22890
     },
-    "Register.dc.html": {
-      "x": 1520,
-      "y": 8640,
-      "w": 1440,
-      "h": 1150,
-      "title": "Sign up",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "ForgotPassword.dc.html": {
-      "x": 3040,
-      "y": 8640,
-      "w": 1440,
-      "h": 900,
-      "title": "Forgot password",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "ResetPassword.dc.html": {
-      "x": 4560,
-      "y": 8640,
-      "w": 1440,
-      "h": 900,
-      "title": "Reset password",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "VerifyEmail.dc.html": {
-      "x": 6080,
-      "y": 8640,
-      "w": 1440,
-      "h": 900,
-      "title": "Verify email",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "Navbar.dc.html": {
+    "row2": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "Buying & account — verified buyers",
+      "w": 240,
       "x": 0,
-      "y": 10210,
-      "w": 1440,
-      "h": 64,
-      "title": "Navbar (component)",
-      "is_interactive": true
+      "y": 5820
     },
-    "Footer.dc.html": {
-      "x": 1520,
-      "y": 10210,
-      "w": 1440,
-      "h": 340,
-      "title": "Footer (component)",
-      "is_interactive": true
-    },
-    "Modals.dc.html": {
-      "x": 3040,
-      "y": 10210,
-      "w": 1440,
-      "h": 1000,
-      "title": "Confirmation modals"
-    },
-    "Dashboard.dc.html": {
-      "x": 4560,
-      "y": 10210,
-      "w": 1440,
-      "h": 900,
-      "title": "Dashboard placeholder (Phase 1, replaced by the Phase 2 screens below)",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "PostDetail.dc.html": {
-      "x": 6080,
-      "y": 0,
-      "w": 1440,
-      "h": 2500,
-      "title": "Post detail — guests & buyers (view only)",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "Addresses.dc.html": {
-      "x": 7600,
-      "y": 6120,
-      "w": 1440,
-      "h": 1100,
-      "title": "Addresses",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "AddressModal.dc.html": {
-      "x": 9120,
-      "y": 6120,
-      "w": 1440,
-      "h": 1000,
-      "title": "Add / edit address — zooms to municipality, then barangay",
-      "is_interactive": true
-    },
-    "Components.dc.html": {
-      "x": 6080,
-      "y": 10210,
-      "w": 1440,
-      "h": 1560,
-      "title": "Shared components — search select, uploads, review states",
-      "is_interactive": true
-    },
-    "SearchSelect.dc.html": {
-      "x": 7600,
-      "y": 10210,
-      "w": 400,
-      "h": 440,
-      "title": "SearchSelect (component)",
-      "is_interactive": true
-    },
-    "Sidebar.dc.html": {
+    "row3": {
+      "kind": "title1",
+      "maxW": 7520,
+      "text": "Auth — split layout, forms swap on the right",
+      "w": 240,
       "x": 0,
-      "y": 12400,
-      "w": 256,
-      "h": 900,
-      "title": "Sidebar (component) — role + active item",
-      "is_interactive": true
+      "y": 8340
     },
-    "DashTopbar.dc.html": {
-      "x": 336,
-      "y": 12400,
-      "w": 1184,
-      "h": 64,
-      "title": "Dashboard top bar (component)",
-      "is_interactive": true
-    },
-    "DataTable.dc.html": {
-      "x": 336,
-      "y": 12544,
-      "w": 1100,
-      "h": 560,
-      "title": "DataTable (component) — tabs, search, filters, actions, pages",
-      "is_interactive": true
-    },
-    "BarChart.dc.html": {
-      "x": 1600,
-      "y": 12400,
-      "w": 640,
-      "h": 280,
-      "title": "BarChart (component) — hover, legend, table view",
-      "is_interactive": true
-    },
-    "MiniMap.dc.html": {
-      "x": 2320,
-      "y": 12400,
-      "w": 600,
-      "h": 440,
-      "title": "MiniMap (component) — pins, popover, zoom, fly-to",
-      "is_interactive": true
-    },
-    "DashModals.dc.html": {
-      "x": 3000,
-      "y": 12400,
-      "w": 1440,
-      "h": 1000,
-      "title": "Dashboard confirm modals"
-    },
-    "OverviewFarmer.dc.html": {
+    "row4": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "Shared components & other roles",
+      "w": 240,
       "x": 0,
-      "y": 13820,
-      "w": 1440,
-      "h": 1420,
-      "title": "Overview — farmer (banner + 5 kg meter; tweak: status)",
-      "expand": "fill",
-      "is_interactive": true
+      "y": 9910
     },
-    "AssociationModal.dc.html": {
-      "x": 1520,
-      "y": 13820,
-      "w": 1440,
-      "h": 1000,
-      "title": "Farmer onboarding — join your association (tweak: new / rejected)",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "FarmerAssociation.dc.html": {
-      "x": 3040,
-      "y": 13820,
-      "w": 1440,
-      "h": 1100,
-      "title": "Farmer account settings — association & transfer",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "OverviewGM.dc.html": {
-      "x": 4560,
-      "y": 13820,
-      "w": 1440,
-      "h": 1300,
-      "title": "Overview — Group Manager",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "OverviewKaluppa.dc.html": {
-      "x": 6080,
-      "y": 13820,
-      "w": 1440,
-      "h": 1250,
-      "title": "Overview — Kaluppa",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "Farmers.dc.html": {
+    "row5": {
+      "kind": "title1",
+      "maxW": 5960,
+      "text": "Dashboard (Phase 2) — shared pieces",
+      "w": 240,
       "x": 0,
-      "y": 15660,
-      "w": 1440,
-      "h": 1000,
-      "title": "Farmers — Group Manager (approve, add, remove)",
-      "expand": "fill",
-      "is_interactive": true
+      "y": 12100
     },
-    "FarmerReview.dc.html": {
-      "x": 1520,
-      "y": 15660,
-      "w": 1440,
-      "h": 1000,
-      "title": "Farmers — approval review drawer",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "GroupManagers.dc.html": {
-      "x": 3040,
-      "y": 15660,
-      "w": 1440,
-      "h": 1000,
-      "title": "Group Managers — Kaluppa",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "Associations.dc.html": {
-      "x": 4560,
-      "y": 15660,
-      "w": 1440,
-      "h": 1000,
-      "title": "Associations — Kaluppa",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "Farms.dc.html": {
-      "x": 6080,
-      "y": 15660,
-      "w": 1440,
-      "h": 1200,
-      "title": "Farms (tweak: role)",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "FarmForm.dc.html": {
-      "x": 7600,
-      "y": 15660,
-      "w": 1440,
-      "h": 1200,
-      "title": "Farm add/edit drawer — map zooms to municipality, then barangay",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "FarmView.dc.html": {
-      "x": 9120,
-      "y": 15660,
-      "w": 1440,
-      "h": 1200,
-      "title": "Farm view drawer — Trees tab",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "Trees.dc.html": {
-      "x": 10640,
-      "y": 15660,
-      "w": 1440,
-      "h": 1100,
-      "title": "Trees (tweak: role)",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "Harvests.dc.html": {
-      "x": 12160,
-      "y": 15660,
-      "w": 1440,
-      "h": 1100,
-      "title": "Harvests (tweak: role)",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "BeansFarmer.dc.html": {
+    "row6": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "Dashboard — onboarding & overviews",
+      "w": 240,
       "x": 0,
-      "y": 17280,
-      "w": 1440,
-      "h": 1250,
-      "title": "Beans — farmer / Group Manager (tweaks: role, status)",
-      "expand": "fill",
-      "is_interactive": true
+      "y": 13520
     },
-    "BeansSell.dc.html": {
-      "x": 1520,
-      "y": 17280,
-      "w": 1440,
-      "h": 1250,
-      "title": "Beans — list beans drawer",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "BeansKaluppa.dc.html": {
-      "x": 3040,
-      "y": 17280,
-      "w": 1440,
-      "h": 1100,
-      "title": "Beans — Kaluppa review queue",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "BeansReview.dc.html": {
-      "x": 4560,
-      "y": 17280,
-      "w": 1440,
-      "h": 1100,
-      "title": "Beans — Kaluppa review drawer",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "OrdersFarmer.dc.html": {
-      "x": 6080,
-      "y": 17280,
-      "w": 1440,
-      "h": 1000,
-      "title": "Orders — farmer",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "OrdersKaluppa.dc.html": {
-      "x": 7600,
-      "y": 17280,
-      "w": 1440,
-      "h": 1100,
-      "title": "Orders — Kaluppa (buyers + farmers)",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "OrderManage.dc.html": {
-      "x": 9120,
-      "y": 17280,
-      "w": 1440,
-      "h": 1100,
-      "title": "Orders — Kaluppa manage drawer",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "Inventory.dc.html": {
-      "x": 10640,
-      "y": 17280,
-      "w": 1440,
-      "h": 1050,
-      "title": "Inventory — Kaluppa products",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "Inbox.dc.html": {
+    "row7": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "Dashboard — accounts & records",
+      "w": 240,
       "x": 0,
-      "y": 18950,
-      "w": 1440,
-      "h": 980,
-      "title": "Inbox — desktop (tweak: conversation)",
-      "expand": "fill",
-      "is_interactive": true
+      "y": 15360
     },
-    "InboxMobile.dc.html": {
-      "x": 1520,
-      "y": 18950,
-      "w": 390,
-      "h": 844,
-      "title": "Inbox — mobile (list → chat)",
-      "is_interactive": true
-    },
-    "Hub.dc.html": {
-      "x": 1990,
-      "y": 18950,
-      "w": 1440,
-      "h": 2300,
-      "title": "Hub — feed, composer, tags, reactions, comments (tweak: role)",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "FarmMap.dc.html": {
-      "x": 3510,
-      "y": 18950,
-      "w": 1440,
-      "h": 1000,
-      "title": "Farm Map (tweak: role)",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "Reports.dc.html": {
-      "x": 5030,
-      "y": 18950,
-      "w": 1440,
-      "h": 1700,
-      "title": "Reports (tweak: role)",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "AuditLog.dc.html": {
-      "x": 6550,
-      "y": 18950,
-      "w": 1440,
-      "h": 1000,
-      "title": "Audit log — Kaluppa",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "SettingsKaluppa.dc.html": {
-      "x": 8070,
-      "y": 18950,
-      "w": 1440,
-      "h": 1100,
-      "title": "Settings — branch, delivery fee, e-wallet",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "InventoryForm.dc.html": {
+    "row8": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "Dashboard — marketplace",
+      "w": 240,
       "x": 0,
-      "y": 21670,
-      "w": 1440,
-      "h": 1100,
-      "title": "Inventory — add product drawer",
-      "expand": "fill",
-      "is_interactive": true
+      "y": 16980
     },
-    "FarmerForm.dc.html": {
-      "x": 1520,
-      "y": 21670,
-      "w": 1440,
-      "h": 1000,
-      "title": "Farmers — add farmer drawer (Group Manager)",
-      "expand": "fill",
-      "is_interactive": true
+    "row9": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "Dashboard — community, map & system",
+      "w": 240,
+      "x": 0,
+      "y": 18650
     },
-    "GroupManagerForm.dc.html": {
-      "x": 3040,
-      "y": 21670,
-      "w": 1440,
-      "h": 1000,
-      "title": "Group Managers — add drawer",
-      "expand": "fill",
-      "is_interactive": true
+    "row12": {
+      "x": 0,
+      "y": 25610,
+      "text": "Dashboard — Hub posting & viewing",
+      "kind": "title1",
+      "maxW": 5420
     },
-    "AssociationForm.dc.html": {
-      "x": 4560,
-      "y": 21670,
-      "w": 1440,
-      "h": 1000,
-      "title": "Associations — add drawer",
-      "expand": "fill",
-      "is_interactive": true
+    "row13": {
+      "x": 0,
+      "y": 27030,
+      "text": "Change 08 — confirmations, exports, accounts, mentions, contact",
+      "kind": "title1",
+      "maxW": 15120
     },
-    "TreeForm.dc.html": {
-      "x": 6080,
-      "y": 21670,
-      "w": 1440,
-      "h": 1100,
-      "title": "Trees — add tree group drawer",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "HarvestForm.dc.html": {
-      "x": 7600,
-      "y": 21670,
-      "w": 1440,
-      "h": 1100,
-      "title": "Harvests — record harvest drawer",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "Reviews.dc.html": {
-      "x": 12160,
-      "y": 17280,
-      "w": 1440,
-      "h": 1050,
-      "title": "Reviews — Kaluppa (reply, hide / show)",
-      "expand": "fill",
-      "is_interactive": true
-    },
-    "ReviewView.dc.html": {
-      "x": 13680,
-      "y": 17280,
-      "w": 1440,
-      "h": 1050,
-      "title": "Reviews — review drawer with reply",
-      "expand": "fill",
-      "is_interactive": true
+    "row14": {
+      "x": 15200,
+      "y": 27030,
+      "text": "Change 09 — Terms and Conditions",
+      "kind": "title1",
+      "maxW": 6470
     }
   },
   "order": [
@@ -655,95 +1025,36 @@
     "TreeForm.dc.html",
     "HarvestForm.dc.html",
     "Reviews.dc.html",
-    "ReviewView.dc.html"
+    "ReviewView.dc.html",
+    "Buttons.dc.html",
+    "FarmerAddresses.dc.html",
+    "MobileOverview.dc.html",
+    "MobileFarms.dc.html",
+    "MobileFarmForm.dc.html",
+    "MobileNav.dc.html",
+    "HubCreatePost.dc.html",
+    "HubPostView.dc.html",
+    "HubPostText.dc.html",
+    "HubMobileCreate.dc.html",
+    "HubMobileView.dc.html",
+    "BeansLimit.dc.html",
+    "InboxDeleteConfirm.dc.html",
+    "ReportsExport.dc.html",
+    "GroupManagerCreate.dc.html",
+    "GroupManagerReset.dc.html",
+    "FarmerCreate.dc.html",
+    "FarmEditConfirm.dc.html",
+    "InventoryLowStock.dc.html",
+    "HubMention.dc.html",
+    "VerifyEmailCreated.dc.html",
+    "ContactUsErrors.dc.html",
+    "ContactUs.dc.html",
+    "RegisterTerms.dc.html",
+    "RegisterTermsError.dc.html",
+    "RegisterTermsMobile.dc.html",
+    "TermsAccept.dc.html",
+    "TermsModal.dc.html"
   ],
-  "notes": {
-    "row1": {
-      "x": 0,
-      "y": -300,
-      "text": "Storefront — guests & buyers",
-      "kind": "title1",
-      "maxW": 7520
-    },
-    "row2": {
-      "x": 0,
-      "y": 5820,
-      "text": "Buying & account — verified buyers",
-      "kind": "title1",
-      "maxW": 10560
-    },
-    "row3": {
-      "x": 0,
-      "y": 8340,
-      "text": "Auth — split layout, forms swap on the right",
-      "kind": "title1",
-      "maxW": 7520
-    },
-    "row4": {
-      "x": 0,
-      "y": 9910,
-      "text": "Shared components & other roles",
-      "kind": "title1",
-      "maxW": 8000
-    },
-    "palette": {
-      "x": -620,
-      "y": 0,
-      "w": 500,
-      "fill": "orange",
-      "size": "m",
-      "text": "Look: AgriCentral's layout language in coffee tones.\n\nEspresso #2B1A12 — headings, dark bands\nRoast #7B4A2A — buttons, links, focus\nCaramel #C8913A — icon tiles, stars, decor (never body text)\nCrema #F7EFE4 — soft sections\nFoam #F5F0EA — app background\nSand #E7DCCD — borders\n\nType: Poppins. 5px controls, 8px cards, thin borders, long soft hover shadows.\n\nPhoto boxes are placeholders: the seeder fills them with real stock photos."
-    },
-    "row5": {
-      "x": 0,
-      "y": 12100,
-      "text": "Dashboard (Phase 2) — shared pieces",
-      "kind": "title1",
-      "maxW": 4440
-    },
-    "row6": {
-      "x": 0,
-      "y": 13520,
-      "text": "Dashboard — onboarding & overviews",
-      "kind": "title1",
-      "maxW": 7520
-    },
-    "row7": {
-      "x": 0,
-      "y": 15360,
-      "text": "Dashboard — accounts & records",
-      "kind": "title1",
-      "maxW": 13600
-    },
-    "row8": {
-      "x": 0,
-      "y": 16980,
-      "text": "Dashboard — marketplace",
-      "kind": "title1",
-      "maxW": 15120
-    },
-    "row9": {
-      "x": 0,
-      "y": 18650,
-      "text": "Dashboard — community, map & system",
-      "kind": "title1",
-      "maxW": 9590
-    },
-    "dashrules": {
-      "x": -620,
-      "y": 12400,
-      "w": 500,
-      "fill": "blue",
-      "size": "m",
-      "text": "Dashboard rules\n\nEvery list page: page header → DataTable (tabs, search, filter dropdowns, row actions, numbered pages).\nAdd / edit / view open in a right drawer. Archive, restore, reject, cancel, remove confirm in a modal.\n\nRole changes use permissions + tweaks: open a board’s Tweaks to switch farmer / Group Manager / Kaluppa.\n\nChart colors (validated): varieties Liberica #2a78d6, Excelsa #eb6834, Robusta #1baf7a, Arabica #eda100. Stages: Newly planted #2a78d6, Growing #eb6834, Flowering #1baf7a, Fruiting #eda100, Damaged #e87ba4. One-series charts use Roast #7B4A2A. Always show a legend + table view."
-    },
-    "row10": {
-      "x": 0,
-      "y": 21370,
-      "text": "Dashboard — add drawers (open)",
-      "kind": "title1",
-      "maxW": 9040
-    }
-  },
-  "designSystems": []
+  "pages": [],
+  "title": "KapeKonek — Phase 1 Pages"
 }

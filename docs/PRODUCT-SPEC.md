@@ -5,7 +5,7 @@ Phase 1 builds everything a **guest** and a **buyer** use, plus the backend piec
 **Business model in one paragraph:**
 - Kaluppa is the only seller and does all fulfilment.
 - A buyer chooses **delivery** (anywhere in Marinduque; fee from road distance) or **pickup at Kaluppa** (Pantayin, Santa Cruz, Marinduque; no fee).
-- They pay by **e-wallet** (GCash/Maya QR + receipt upload) or **cash** (cash on delivery, or cash on pickup).
+- They pay by **e-wallet** (QR + receipt upload; only **GCash** is enabled for now, Maya stays saved but hidden) or **cash** (cash on delivery, or cash on pickup).
 - Kaluppa confirms orders within 3 days or they expire. Delivery arrives in **3–5 business days** after confirmation.
 - There are no pickup stations and no Station Partners.
 
@@ -252,17 +252,17 @@ seed values: ₱50 base for the first 3 km, ₱10 per km after, round up to ₱5
   - `GuestRoute`; `ProtectedRoute` with `permissions` and `requireVerified`; `RoleRedirect`.
   - `?redirect=` is only followed for internal paths.
 - **Landing**:
-  - hero carousel and featured coffee;
+  - hero carousel (top 3 best sellers) and the **Best sellers carousel** (top 8 by completed orders, last 90 days; no manual Featured flag since Change 08);
   - varieties, then "How ordering works" (3–5 business days, 3-day confirmation note);
   - latest posts, for farmers, what KapeKonek does, FAQ (delivery, payment, arrival time, expiry, cancel), closing call to action, footer.
 - **Products, Product detail, Post detail**:
   - Same as the screens.
-  - The product page notes say: delivery anywhere in Marinduque or pickup at Kaluppa; GCash, Maya or cash on delivery; arrives in 3–5 business days after confirmation.
+  - The product page notes say: delivery anywhere in Marinduque or pickup at Kaluppa; the enabled e-wallets (GCash for now) or cash on delivery; arrives in 3–5 business days after confirmation.
 - **Cart drawer**: stacked Checkout/Clear buttons, with confirmations.
 - **Checkout**:
   1. **Delivery method** cards: deliver to my address / pick up at Kaluppa.
   2. **Delivery**: saved addresses as radio cards (default pre-selected), each showing distance and fee, with Edit and **Add new address** (opens the address window). **Pickup**: the Kaluppa card plus a required contact number.
-  3. **Payment** cards: "GCash or Maya" or "Cash on delivery" / "Cash on pickup". E-wallet shows the QR tabs, account details, exact amount and receipt upload; cash shows a "prepare ₱X" note.
+  3. **Payment** cards: the enabled e-wallets ("GCash" for now) or "Cash on delivery" / "Cash on pickup". E-wallet shows the QR tabs, account details, exact amount and receipt upload; cash shows a "prepare ₱X" note.
   4. Optional note.
 
   The summary shows subtotal, delivery fee with km (or "Pickup · Free"), total, destination, **estimated delivery date range**, payment, and "Place order" (with confirmation).

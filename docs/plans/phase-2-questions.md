@@ -1,0 +1,23 @@
+# Phase 2 — open questions and the choices made
+
+Each item was missing or contradictory in the docs. The choice is applied; change it if you disagree.
+
+| # | Question | Choice |
+|---|---|---|
+| 1 | The screens' `DataTable` still has `tabs` (Farmers: All / Waiting / Approved / Rejected …), and PHASE-2-PROMPT M8 says "tabs"; DESIGN §8.2 and CLAUDE.md say no tabs, Status dropdown first. | No tabs. Each screen's tab list becomes the **Status** dropdown (same labels and order), first in the filter group. CLAUDE.md outranks the prompt. |
+| 2 | Kaluppa's sidebar in `Sidebar.dc.html` puts Reports, Audit log and Settings under **System**; DESIGN §8.1 lists an "Insights" section. | Follow the screen: Group Manager → **Insights › Reports**; Kaluppa → **System › Reports, Audit log, Settings**. |
+| 3 | Page-based list shape: PHASE-2-SPEC §5 says `{items, page, limit, total}`; CLAUDE.md's envelope puts paging in `meta`. | `data` = the items array, `meta` = `{ page, limit, total }`. Same envelope as cursor lists. |
+| 4 | Rows per page. The screens show 6 (the `DataTable` `pageSize` default for the canvas). | Default `limit=10`, `?limit` up to 50. The footer reads "Showing 1–10 of N" as in the screen's format. |
+| 5 | Associations get a group chat in M8, but the Inbox (models, messages) is M12. | `Conversation` and `ConversationMember` models plus a small `chat.service` (create kaluppa/group chats, add/end memberships) land in **M8**, so every M8 flow (approval, transfer, removal, Group Manager moves) sets memberships correctly from day one. `Message` and the Inbox UI stay in M12. |
+| 6 | Audit entries start in M8, the Audit log page is M14. | `AuditLog` model and `audit.record()` land in M8; every Phase 2 service writes entries from its first milestone. |
+| 7 | Bean approval emails need the branch address and hours (M10), but the branch setting and its UI are M11. | The `branch` setting key (replacing `pickup.location`, with a one-time data migration in the seeder and a read fallback) lands in **M10**; its Settings UI stays in M11. |
+| 8 | Phase 1 `UPLOAD_RULES.file` allows pdf/mp4/webm at 10 MB; Phase 2 says file = pdf 10 MB and video = 50 MB (Hub only). | `file` becomes pdf only; a new `video` kind (mp4, webm, 50 MB) is allowed only for `post_media`. No Phase 1 flow uploads a file, so nothing breaks. |
+| 9 | Seeds are listed in M15, but every milestone ends with `migrate:fresh --seed` and a Playwright pass per role that needs data. | Each milestone seeds the collections it adds (enough for its screens and roles); M15 completes the state coverage in PHASE-2-SPEC §8. |
+| 10 | Sidebar badges (Farmers waiting, Beans to review, Orders to confirm, Inbox unread, Reviews needing reply) have no endpoint. | `GET /dashboard/badges` returns only the keys the user's permissions allow; each milestone adds its key. Refreshed on `notification:new` and on the matching socket events. |
+| 11 | Overview aggregates have no endpoint. | `GET /dashboard/overview` returns the role's tiles and chart data, scoped by policy. Charts for data that arrives later (beans, sales) show their empty state until then. |
+| 12 | Unverified Phase 1 farmers and the `farmer.unverified` seed handle. | Kept: it is the test case for "farmers must verify" (lands on `/verify-email`). |
+| 13 | Email-less farmers (created by a Group Manager) and every email path (notifications, forgot password, mail worker). | `email` is sparse-unique and optional only when `createdBy` is a Group Manager. Email jobs skip a recipient with no email (logged). Forgot-password by username for an email-less user answers the same generic 200 and sends nothing. |
+| 14 | An archived Group Manager "can't sign in"; existing sessions. | Archive sets `status: 'suspended'` and bumps `tokenVersion`, so open sessions end on the next request (Phase 1 already checks both). |
+| 15 | Phase 1 check (old plan's M4–M7 alignment) was paused after M3. | Phase 2 starts on `phase-2` branched from `phase-1` (`dd4b9aa`). The Phase 1 suites (unit + e2e) run in every Phase 2 wrap-up, so a Phase 1 regression still blocks a milestone. |
+| 16 | PHASE-2-SPEC §3.1 requires a contact number at farmer sign-up, but `Register.dc.html` has no such field. | A "Contact number" input appears under Email only when the Farmer card is picked, styled like the other inputs (placeholder `09XX XXX XXXX`). Buyers don't see or send it. |
+| 17 | Forgot-password for email-less farmers (Review Focus 2). | The Forgot password screen asks for an email, so it stays email-only: an email-less account can't be found and the answer is the usual generic 200. `enqueueEmail` also drops any job without a recipient. Their Group Manager resets them (edit → new temporary password, M8.4). |

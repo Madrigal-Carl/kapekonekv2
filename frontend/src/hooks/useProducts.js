@@ -4,15 +4,23 @@ import { useAuth } from './useAuth'
 
 export const productKeys = {
   all: ['products'],
+  categories: ['products', 'categories'],
   list: (filters) => ['products', 'list', filters],
   detail: (slug) => ['products', 'detail', slug],
+  best: ['products', 'best'],
   reviews: (id) => ['products', id, 'reviews'],
   summary: (id) => ['products', id, 'reviews', 'summary'],
   myReview: (id) => ['products', id, 'reviews', 'me'],
 }
 
+/** The categories this viewer shops (buyers Coffee, farmers Beans and Fertilizer). */
+export function useCategories() {
+  const { user } = useAuth()
+  return useQuery({ queryKey: [...productKeys.categories, user?._id ?? null], queryFn: catalog.listCategories, staleTime: 5 * 60_000 })
+}
+
 /** Infinite product list for the given filters (the session is part of the key: `purchasable` depends on it). */
-export function useProducts(filters) {
+export function useProducts(filters, { enabled = true } = {}) {
   const { user } = useAuth()
   return useInfiniteQuery({
     queryKey: [...productKeys.list(filters), user?._id ?? null],
@@ -20,7 +28,14 @@ export function useProducts(filters) {
     initialPageParam: undefined,
     getNextPageParam: (last) => (last.meta.hasMore ? last.meta.nextCursor : undefined),
     placeholderData: keepPreviousData,
+    enabled,
   })
+}
+
+/** The landing best sellers for this viewer's categories (ranked daily on the server). */
+export function useBestSellers() {
+  const { user } = useAuth()
+  return useQuery({ queryKey: [...productKeys.best, user?._id ?? null], queryFn: catalog.listBestSellers, staleTime: 5 * 60_000 })
 }
 
 export function useProduct(slug) {

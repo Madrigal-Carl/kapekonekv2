@@ -1,4 +1,4 @@
-import { MapPin, Plus, Trash2, TriangleAlert } from 'lucide-react'
+import { IconMapPin, IconPlus, IconTrash, IconTriangleAlert } from '@/components/ui/icons'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { AddressCard } from '@/components/map/AddressCard'
@@ -7,20 +7,20 @@ import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { useAddresses, useDeleteAddress, useSetDefaultAddress } from '@/hooks/useAddresses'
+import { useAddressErrorToast, useAddresses, useDeleteAddress, useSetDefaultAddress } from '@/hooks/useAddresses'
 import { useAuth } from '@/hooks/useAuth'
 import { AccountHeading } from '@/layouts/AccountLayout'
 import { addressLabel } from '@/lib/address'
-import { errorMessage } from '@/lib/applyServerErrors'
 
 const MAX_ADDRESSES = 10
 
-/** /addresses (Addresses.dc.html). */
+/** /addresses (Addresses.dc.html): the buyer's address book. Farmers use FarmerAddresses in the dashboard. */
 export function Addresses() {
   const { user } = useAuth()
   const addresses = useAddresses()
   const setDefault = useSetDefaultAddress()
   const remove = useDeleteAddress()
+  const addressError = useAddressErrorToast()
   const [editing, setEditing] = useState(undefined) // undefined = closed, null = new, object = edit
   const [deleting, setDeleting] = useState(null)
   const list = addresses.data ?? []
@@ -32,7 +32,7 @@ export function Addresses() {
         toast.success('Address deleted')
         setDeleting(null)
       },
-      onError: (error) => toast.error(errorMessage(error)),
+      onError: (error) => addressError(error),
     })
 
   return (
@@ -42,7 +42,7 @@ export function Addresses() {
           Where we deliver your orders. We deliver anywhere in Marinduque.
         </AccountHeading>
         <Button onClick={() => setEditing(null)} disabled={full || addresses.isPending} className="px-[18px] py-3 font-semibold">
-          <Plus aria-hidden="true" className="size-4" strokeWidth={2} />
+          <IconPlus aria-hidden="true" className="size-4" strokeWidth={2} />
           Add new address
         </Button>
       </div>
@@ -62,7 +62,7 @@ export function Addresses() {
           </ul>
         ) : addresses.isError ? (
           <EmptyState
-            icon={TriangleAlert}
+            icon={IconTriangleAlert}
             tone="error"
             title="We couldn’t load your addresses"
             action={<Button variant="outline" onClick={() => addresses.refetch()}>Try again</Button>}
@@ -71,7 +71,7 @@ export function Addresses() {
             Check your connection and try again.
           </EmptyState>
         ) : list.length === 0 ? (
-          <EmptyState icon={MapPin} title="No saved addresses yet" action={<Button onClick={() => setEditing(null)}>Add new address</Button>} className="bg-white">
+          <EmptyState icon={IconMapPin} title="No saved addresses yet" action={<Button onClick={() => setEditing(null)}>Add new address</Button>} className="bg-white">
             Add one to get your coffee delivered anywhere in Marinduque.
           </EmptyState>
         ) : (
@@ -82,7 +82,7 @@ export function Addresses() {
                 address={address}
                 busy={setDefault.isPending}
                 onEdit={() => setEditing(address)}
-                onMakeDefault={() => setDefault.mutate(address._id, { onError: (e) => toast.error(errorMessage(e)) })}
+                onMakeDefault={() => setDefault.mutate(address._id, { onError: (e) => addressError(e) })}
                 onDelete={() => setDeleting(address)}
               />
             ))}
@@ -99,7 +99,7 @@ export function Addresses() {
         onClose={() => setDeleting(null)}
         onConfirm={confirmDelete}
         pending={remove.isPending}
-        icon={Trash2}
+        icon={IconTrash}
         tone="danger"
         title="Delete this address?"
         description={deleting && `${addressLabel(deleting)} (${deleting.street}, ${deleting.barangay}) will be removed.${deleting.isDefault ? ' Your newest other address becomes the default.' : ''}`}

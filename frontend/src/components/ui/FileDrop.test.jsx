@@ -19,7 +19,8 @@ describe('FileDrop', () => {
       detail: 'Images can be up to 5 MB. Try a screenshot instead.',
     })
     expect(checkFile('image', fileOf('menu.pdf', 1000, 'application/pdf')).title).toBe('menu.pdf isn’t a supported type.')
-    expect(checkFile('file', fileOf('clip.mp4', 10 * MB, 'video/mp4'))).toBeNull()
+    expect(checkFile('file', fileOf('clip.mp4', 10 * MB, 'video/mp4')).title).toBe('clip.mp4 isn’t a supported type.') // file = pdf only
+    expect(checkFile('video', fileOf('clip.mp4', 50 * MB, 'video/mp4'))).toBeNull()
   })
 
   it('stops a file that is too large and shows the reason in the drop zone', () => {

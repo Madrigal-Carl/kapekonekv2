@@ -1,9 +1,15 @@
 import { Worker } from 'bullmq';
-import { sendMail } from '../../config/mail.js';
+import { env } from '../../config/env.js';
+import { logMail, sendMail } from '../../config/mail.js';
 import { createValkeyConnection } from '../../config/valkey.js';
+import { isSeedEmail } from '../../repositories/user.repository.js';
+import { accountCreated, passwordResetByAdmin } from '../../templates/email/account.templates.js';
+import { farmerDecision, farmerRequest, transferDecision } from '../../templates/email/farmer.templates.js';
 import { emailChangedNotice } from '../../templates/email/emailChangedNotice.template.js';
 import { kaluppaNewOrder } from '../../templates/email/kaluppaNewOrder.template.js';
 import { orderPlaced } from '../../templates/email/orderPlaced.template.js';
+import { beanStatus } from '../../templates/email/beanStatus.template.js';
+import { contactCopy, contactMessage } from '../../templates/email/contact.templates.js';
 import { orderStatusChanged } from '../../templates/email/orderStatusChanged.template.js';
 import { resetPassword } from '../../templates/email/resetPassword.template.js';
 import { testEmail } from '../../templates/email/test.template.js';
@@ -16,20 +22,30 @@ const handlers = {
   [EMAIL_JOBS.TEST]: testEmail,
   [EMAIL_JOBS.VERIFY_EMAIL]: verifyEmail,
   [EMAIL_JOBS.RESET_PASSWORD]: resetPassword,
+  [EMAIL_JOBS.ACCOUNT_CREATED]: accountCreated,
+  [EMAIL_JOBS.PASSWORD_RESET_BY_ADMIN]: passwordResetByAdmin,
+  [EMAIL_JOBS.FARMER_REQUEST]: farmerRequest,
+  [EMAIL_JOBS.FARMER_DECISION]: farmerDecision,
+  [EMAIL_JOBS.TRANSFER_DECISION]: transferDecision,
   [EMAIL_JOBS.EMAIL_CHANGED_NOTICE]: emailChangedNotice,
   [EMAIL_JOBS.ORDER_PLACED]: orderPlaced,
   [EMAIL_JOBS.KALUPPA_NEW_ORDER]: kaluppaNewOrder,
   [EMAIL_JOBS.ORDER_STATUS_CHANGED]: orderStatusChanged,
+  [EMAIL_JOBS.BEAN_STATUS]: beanStatus,
+  [EMAIL_JOBS.CONTACT_MESSAGE]: contactMessage,
+  [EMAIL_JOBS.CONTACT_COPY]: contactCopy,
 };
 
 /**
- * Render and send one email job.
+ * Render and send one email job. Seed accounts are never emailed unless SEED_EMAIL_BASE points them at your own inbox.
  * @param {{ name: string, data: { to: string } }} job
  */
 export async function processEmailJob({ name, data }) {
   const render = handlers[name];
   if (!render) throw new Error(`Unknown email job: ${name}`);
-  return sendMail({ to: data.to, ...render(data) });
+  const message = { to: data.to, ...render(data) };
+  if (!env.SEED_EMAIL_BASE && (await isSeedEmail(data.to))) return logMail(message, 'skipped-seed');
+  return sendMail(message);
 }
 
 let worker;

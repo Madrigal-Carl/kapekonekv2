@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { orList } from '@/lib/payments'
 import { format } from 'date-fns'
-import { Banknote, CalendarDays, MapPin, Plus, ShoppingBag, TriangleAlert, Wallet } from 'lucide-react'
+import { IconBanknote, IconCalendar, IconMapPin, IconPlus, IconShoppingBag, IconTriangleAlert, IconWallet } from '@/components/ui/icons'
 import { QRCodeSVG } from 'qrcode.react'
 import { useEffect, useId, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
@@ -15,6 +16,7 @@ import { FieldHint, inputClasses, Label } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useAddresses } from '@/hooks/useAddresses'
+import { homeFor } from '@/constants/roles'
 import { useAuth } from '@/hooks/useAuth'
 import { useCart } from '@/hooks/useCart'
 import { usePointQuote } from '@/hooks/useGeo'
@@ -27,6 +29,7 @@ import { formatPeso, formatPhone, quantityWords } from '@/lib/format'
 import { checkoutSchema } from '@/schemas/order.schema'
 import { useCartDrawer } from '@/stores/cart.store'
 import { imageUrl } from '@/lib/image'
+import { ProductImage } from '@/components/product/ProductImage'
 
 const FIELDS = ['addressId', 'contactPhone', 'provider', 'receipt', 'note']
 const etaText = (eta) => (eta ? `${format(new Date(eta.from), 'MMM d')} – ${format(new Date(eta.to), 'MMM d')}` : null)
@@ -102,7 +105,7 @@ function PlaceOrderDialog({ open, onClose, onConfirm, pending, rows, ewallet }) 
         <Button variant="outline" onClick={onClose} disabled={pending}>
           Go back
         </Button>
-        <Button onClick={onConfirm} pending={pending}>
+        <Button onClick={onConfirm} loading={pending}>
           Place order
         </Button>
       </div>
@@ -130,7 +133,8 @@ function CheckoutSkeleton() {
 
 /** /checkout (Checkout.dc.html): method, address or pickup, payment, note, and the live summary. */
 export function Checkout() {
-  const { user } = useAuth()
+  const { user, roles } = useAuth()
+  const addressesPath = homeFor(roles) === '/' ? '/addresses' : '/dashboard/account/addresses'
   const navigate = useNavigate()
   const showCart = useCartDrawer((s) => s.show)
   const cart = useCart()
@@ -143,7 +147,7 @@ export function Checkout() {
 
   const { register, control, handleSubmit, setValue, setError, formState: { errors } } = useForm({
     resolver: zodResolver(checkoutSchema),
-    defaultValues: { method: 'delivery', addressId: '', contactPhone: formatPhone(user?.contactNumber ?? ''), paymentMethod: 'e_wallet', provider: 'GCash', receipt: null, note: '' },
+    defaultValues: { method: 'delivery', addressId: '', contactPhone: formatPhone(user?.contactNumber ?? ''), paymentMethod: 'e_wallet', provider: '', receipt: null, note: '' },
   })
   const [method, addressId, paymentMethod, provider, receipt] = useWatch({ control, name: ['method', 'addressId', 'paymentMethod', 'provider', 'receipt'] })
 
@@ -153,6 +157,13 @@ export function Checkout() {
     if (!addressId && saved?.length) setValue('addressId', (saved.find((a) => a.isDefault) ?? saved[0])._id)
   }, [addressId, addresses.data, setValue])
   const list = addresses.data ?? []
+  // Kaluppa may hide a provider in Settings → E-wallet: fall back to the first one shown.
+  const providers = payment.data?.providers ?? []
+  useEffect(() => {
+    const shown = payment.data?.providers
+    if (shown?.length && !shown.includes(provider)) setValue('provider', shown[0])
+  }, [payment.data, provider, setValue])
+  const account = payment.data?.accounts?.[provider]
 
   const isDelivery = method === 'delivery'
   const ewallet = paymentMethod === 'e_wallet'
@@ -168,7 +179,7 @@ export function Checkout() {
   if (cart.isError || addresses.isError || delivery.isError) {
     return (
       <CheckoutShell>
-        <EmptyState icon={TriangleAlert} tone="error" title="We couldn’t load checkout" action={<Button variant="outline" onClick={() => window.location.reload()}>Try again</Button>} className="bg-white">
+        <EmptyState icon={IconTriangleAlert} tone="error" title="We couldn’t load checkout" action={<Button variant="outline" onClick={() => window.location.reload()}>Try again</Button>} className="bg-white">
           Check your connection and try again.
         </EmptyState>
       </CheckoutShell>
@@ -178,7 +189,7 @@ export function Checkout() {
   if (!lines.length) {
     return (
       <CheckoutShell>
-        <EmptyState icon={ShoppingBag} title="Your cart is empty" action={<Button to="/products">Browse coffee</Button>} className="bg-white">
+        <EmptyState icon={IconShoppingBag} title="Your cart is empty" action={<Button as={Link} to="/products">Browse coffee</Button>} className="bg-white">
           Add coffee to your cart, then come back to check out.
         </EmptyState>
       </CheckoutShell>
@@ -203,7 +214,8 @@ export function Checkout() {
     place.mutate(body, {
       onSuccess: (order) => {
         toast.success(`Order ${order.orderNumber} placed`)
-        navigate(`/orders/${order._id}`, { replace: true })
+        // Farmers follow their orders in the dashboard (PHASE-2-SPEC §3.7).
+        navigate(homeFor(roles) === '/' ? `/orders/${order._id}` : `/dashboard/orders?open=${order._id}`, { replace: true })
       },
       onError: (error) => {
         setConfirming(false)
@@ -250,10 +262,9 @@ export function Checkout() {
             title={isDelivery ? 'Delivery address' : `Pickup at ${pickup.name}`}
             action={
               isDelivery && list.length < 10 && (
-                <button type="button" onClick={() => setAddingAddress(true)} className="inline-flex min-h-10 cursor-pointer items-center gap-1.5 whitespace-nowrap border-0 bg-transparent text-[13.5px] font-semibold text-roast hover:text-roast-hover">
-                  <Plus aria-hidden="true" className="size-[15px]" strokeWidth={2} />
+                <Button variant="link" onClick={() => setAddingAddress(true)} leftIcon={<IconPlus aria-hidden="true" className="size-[15px]" strokeWidth={2} />} className="h-10 gap-1.5 text-[13.5px]">
                   Add new address
-                </button>
+                </Button>
               )
             }
           >
@@ -261,7 +272,7 @@ export function Checkout() {
               <fieldset className="m-0 border-0 px-[22px] py-5">
                 <legend className="sr-only">Choose a delivery address</legend>
                 {list.length === 0 ? (
-                  <EmptyState icon={MapPin} title="No saved addresses yet" action={<Button onClick={() => setAddingAddress(true)}>Add new address</Button>} className="py-10">
+                  <EmptyState icon={IconMapPin} title="No saved addresses yet" action={<Button onClick={() => setAddingAddress(true)}>Add new address</Button>} className="py-10">
                     Add where we should deliver. We deliver anywhere in Marinduque.
                   </EmptyState>
                 ) : (
@@ -277,11 +288,11 @@ export function Checkout() {
                           </span>
                           <span className="mt-1 block text-[13.5px] leading-[1.55] text-ink-2">{addressLine(a)}</span>
                           <span className={cn('mt-1.5 inline-flex items-center gap-1.5 text-xs', a.quoteError ? 'text-danger-ink' : 'text-ink-3')}>
-                            <MapPin aria-hidden="true" className="size-[13px] shrink-0" strokeWidth={2} />
+                            <IconMapPin aria-hidden="true" className="size-[13px] shrink-0" strokeWidth={2} />
                             {a.quote ? `${a.quote.distanceKm} km by road from Kaluppa · delivery ${formatPeso(a.quote.feeCentavos)}` : quoteErrorText(a.quoteError)}
                           </span>
                         </span>
-                        <Link to="/addresses" className="py-1 text-[12.5px] font-semibold no-underline">
+                        <Link to={addressesPath} className="py-1 text-[12.5px] font-semibold no-underline">
                           Edit
                         </Link>
                       </Choice>
@@ -291,7 +302,7 @@ export function Checkout() {
                 <FieldHint error={errors.addressId?.message} />
                 <p className="mt-3 text-[12.5px] text-ink-3">
                   Manage saved addresses in{' '}
-                  <Link to="/addresses" className="font-semibold no-underline">
+                  <Link to={addressesPath} className="font-semibold no-underline">
                     Addresses
                   </Link>
                   . We deliver anywhere in Marinduque.
@@ -301,7 +312,7 @@ export function Checkout() {
               <div className="flex flex-col gap-4 px-[22px] py-5">
                 <div className="flex items-start gap-3.5 rounded-card bg-crema p-4">
                   <span className="grid size-10 shrink-0 place-items-center rounded-card bg-white text-roast">
-                    <MapPin aria-hidden="true" className="size-[18px]" strokeWidth={1.9} />
+                    <IconMapPin aria-hidden="true" className="size-[18px]" strokeWidth={1.9} />
                   </span>
                   <div>
                     <span className="block text-[15px] font-semibold">{pickup.name}</span>
@@ -336,7 +347,7 @@ export function Checkout() {
                 <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-3">
                   <Choice name="paymentMethod" value="e_wallet" checked={ewallet} onChange={() => setValue('paymentMethod', 'e_wallet')}>
                     <span>
-                      <span className="block text-[15px] font-semibold">GCash or Maya</span>
+                      <span className="block text-[15px] font-semibold">{orList(providers) || 'E-wallet'}</span>
                       <span className="mt-0.5 block text-[12.5px] text-ink-3">Pay now and upload your receipt.</span>
                     </span>
                   </Choice>
@@ -352,23 +363,25 @@ export function Checkout() {
               {ewallet ? (
                 <div className="flex flex-wrap gap-7 pt-1">
                   <div className="flex flex-none flex-col items-center gap-2.5 max-sm:w-full">
+                    {/* One provider shown: no tabs (Change 06F). */}
+                    {providers.length > 1 && (
                     <div role="tablist" aria-label="E-wallet" className="inline-flex rounded-[6px] bg-foam p-[3px]">
-                      {(payment.data?.providers ?? ['GCash', 'Maya']).map((name) => (
-                        <button
+                      {providers.map((name) => (
+                        <Button variant="bare"
                           key={name}
-                          type="button"
                           role="tab"
                           aria-selected={provider === name}
                           onClick={() => setValue('provider', name)}
                           className={cn('min-h-9 cursor-pointer rounded-control border-0 px-[18px] py-2 text-[13px] font-semibold', provider === name ? 'bg-white text-ink' : 'bg-transparent text-ink-3')}
                         >
                           {name}
-                        </button>
+                        </Button>
                       ))}
                     </div>
+                    )}
                     <div className="relative size-[200px] rounded-card border border-sand bg-white p-3.5">
-                      {payment.data?.qrImageUrl ? (
-                        <img src={imageUrl(payment.data.qrImageUrl, 240)} alt={`${provider} QR code for Kaluppa`} className="size-full object-contain" />
+                      {account?.qrImageUrl ? (
+                        <img src={imageUrl(account.qrImageUrl, 240)} alt={`${provider} QR code for Kaluppa`} className="size-full object-contain" />
                       ) : payment.data ? (
                         <QRCodeSVG value={`${payment.data.qrPayload}:${provider}`} role="img" aria-label={`Sample ${provider} QR code`} className="size-full" />
                       ) : (
@@ -383,9 +396,9 @@ export function Checkout() {
                   <div className="flex min-w-0 flex-[1_1_280px] flex-col gap-3.5">
                     <dl className="m-0 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
                       <dt className="text-ink-3">Account name</dt>
-                      <dd className="m-0 font-semibold">{payment.data?.accountName ?? '…'}</dd>
+                      <dd className="m-0 font-semibold">{account?.accountName ?? '…'}</dd>
                       <dt className="text-ink-3">{provider} number</dt>
-                      <dd className="m-0 font-semibold">{payment.data?.accountNumber ?? '…'}</dd>
+                      <dd className="m-0 font-semibold">{account?.accountNumber ?? '…'}</dd>
                       <dt className="text-ink-3">Amount to pay</dt>
                       <dd className="m-0 text-lg font-bold text-roast">{formatPeso(total)}</dd>
                     </dl>
@@ -394,7 +407,7 @@ export function Checkout() {
                 </div>
               ) : (
                 <div className="flex items-start gap-3 rounded-card bg-crema px-4 py-3.5">
-                  <Banknote aria-hidden="true" className="mt-0.5 size-[18px] shrink-0 text-roast" strokeWidth={1.9} />
+                  <IconBanknote aria-hidden="true" className="mt-0.5 size-[18px] shrink-0 text-roast" strokeWidth={1.9} />
                   <p className="m-0 text-[13.5px] leading-[1.6] text-ink-2">
                     {isDelivery ? `Please prepare ${formatPeso(total)} in cash for the rider. No receipt upload needed.` : `Pay ${formatPeso(total)} in cash at Kaluppa when you pick up your order.`}
                   </p>
@@ -440,7 +453,7 @@ export function Checkout() {
             {lines.map(({ product, quantity, lineTotalCentavos }) => (
               <li key={product._id} className="flex gap-3 border-b border-sand-soft py-3">
                 <span aria-hidden="true" className="size-12 shrink-0 overflow-hidden rounded-[6px] bg-photo">
-                  {product.image && <img src={imageUrl(product.image, 64)} alt="" loading="lazy" className="size-full object-cover" />}
+                  <ProductImage src={product.image && imageUrl(product.image, 64)} loading="lazy" className="size-full" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <span className="block text-[13.5px] font-semibold">{product.name}</span>
@@ -466,29 +479,29 @@ export function Checkout() {
               <span className="text-2xl font-semibold">{formatPeso(total)}</span>
             </div>
             <dl className="m-0 mt-4 flex flex-col gap-2.5 rounded-[6px] bg-crema px-3.5 py-3 text-[13px] text-ink-2">
-              <SummaryRow icon={MapPin} label="Destination">{destination}</SummaryRow>
-              <SummaryRow icon={CalendarDays} label="Estimated arrival">
+              <SummaryRow icon={IconMapPin} label="Destination">{destination}</SummaryRow>
+              <SummaryRow icon={IconCalendar} label="Estimated arrival">
                 <strong>{eta ? `${isDelivery ? 'Estimated delivery' : 'Ready for pickup'} ${etaText(eta)}` : isDelivery ? 'Estimated delivery' : 'Ready for pickup'}</strong>
                 <span className="block text-xs text-ink-3">
                   {delivery.data.eta.minBusinessDays}–{delivery.data.eta.maxBusinessDays} business days after Kaluppa confirms
                 </span>
               </SummaryRow>
-              <SummaryRow icon={Wallet} label="Payment">{ewallet ? `${provider} · receipt required` : cashLabel}</SummaryRow>
+              <SummaryRow icon={IconWallet} label="Payment">{ewallet ? `${provider} · receipt required` : cashLabel}</SummaryRow>
             </dl>
             {blockedReason && (
               <p role="alert" className="mt-4 flex items-start gap-2 rounded-control border border-notice-line bg-notice-bg px-2.5 py-2 text-[12.5px] text-caramel-badge">
-                <TriangleAlert aria-hidden="true" className="mt-px size-[15px] shrink-0" strokeWidth={2} />
+                <IconTriangleAlert aria-hidden="true" className="mt-px size-[15px] shrink-0" strokeWidth={2} />
                 <span>
                   {blockedReason}{' '}
                   {!canCheckout && (
-                    <button type="button" onClick={showCart} className="cursor-pointer border-0 bg-transparent p-0 font-semibold text-roast underline">
+                    <Button variant="link" onClick={showCart} className="h-auto p-0 text-[length:inherit] underline">
                       Open your cart
-                    </button>
+                    </Button>
                   )}
                 </span>
               </p>
             )}
-            <Button type="submit" form="checkout" disabled={Boolean(blockedReason)} className="mt-4 w-full py-[15px] text-[15px]">
+            <Button type="submit" size="lg" fullWidth form="checkout" disabled={Boolean(blockedReason)} className="mt-4 h-[52px]">
               Place order
             </Button>
             <p className="mt-3 text-xs leading-[1.6] text-ink-3">
@@ -511,9 +524,9 @@ function CheckoutShell({ children }) {
   return (
     <>
       <div className="mx-auto max-w-[1280px] px-4 pt-8 sm:px-8">
-        <button type="button" onClick={showCart} className="cursor-pointer border-0 bg-transparent p-0 text-[13px] text-ink-3 hover:text-roast">
+        <Button variant="bare" onClick={showCart} className="cursor-pointer border-0 bg-transparent p-0 text-[13px] text-ink-3 hover:text-roast">
           ← Back to cart
-        </button>
+        </Button>
         <div className="mt-4 text-[11px] font-medium uppercase tracking-[0.16em] text-ink-3">Order</div>
         <h1 className="mt-2.5 text-[28px] font-medium tracking-[-0.02em] sm:text-4xl">Checkout</h1>
       </div>

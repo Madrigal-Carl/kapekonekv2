@@ -17,8 +17,11 @@
       <rect x="-600" y="-440" width="1800" height="1320" fill="#DCE7EA"></rect>
       <path d="M542.6 -22.0L542.6 89.3L536.7 86.9L531.6 77.0L521.3 64.6L477.7 64.6L477.7 54.7L464.8 49.7L441.7 48.5L431.4 42.3L428.9 36.1L426.3 23.7L421.2 16.3L416.0 10.1L396.4 -22.0Z" fill="#E8DFCF" stroke="#BFAF95" stroke-width="1.2" vector-effect="non-scaling-stroke"></path>
       <path d="M364.7 193.4L367.2 199.6L380.1 208.2L385.2 215.7L377.5 236.7L336.4 280.1L321.0 301.1L328.7 316.0L321.0 329.6L297.9 348.2L287.6 350.6L277.3 342.0L267.1 332.1L259.3 325.9L251.6 322.2L228.5 301.1L220.8 298.6L210.5 298.6L202.8 296.2L197.7 290.0L184.9 271.4L161.8 247.9L159.2 240.4L161.8 223.1L161.8 218.1L159.2 207.0L159.2 168.6L161.8 157.5L166.9 151.3L187.4 116.6L187.4 109.2L190.0 89.4L192.6 84.4L202.8 81.9L213.1 91.8L228.5 115.4L231.1 110.4L238.8 104.2L243.9 99.3L254.2 110.4L269.6 114.1L285.0 109.2L290.2 94.3L300.4 100.5L308.1 107.9L310.7 115.4L305.6 125.3L315.9 121.6L326.1 125.3L328.7 132.7L321.0 140.1L323.6 142.6L331.3 147.6L336.4 150.0L346.7 142.6L362.1 146.3L374.9 157.5L380.1 169.8L377.5 173.6L372.4 174.8L364.7 174.8L364.7 181.0L364.7 193.4Z" fill="#EFE6D6" stroke="#B49C7B" stroke-width="1.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>
-      <sc-if value="{{ showArea }}" hint-placeholder-val="{{ false }}">
-        <circle cx="{{ area.cx }}" cy="{{ area.cy }}" r="{{ area.r }}" fill="rgba(200,145,58,0.16)" stroke="#C8913A" stroke-width="1.5" stroke-dasharray="5 4" vector-effect="non-scaling-stroke"></circle>
+      <sc-if value="{{ hasMuni }}" hint-placeholder-val="{{ false }}">
+        <path d="{{ muniD }}" fill="rgba(200,145,58,0.16)" stroke="#C8913A" stroke-width="2.2" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>
+      </sc-if>
+      <sc-if value="{{ hasBrgy }}" hint-placeholder-val="{{ false }}">
+        <path d="{{ brgyD }}" fill="rgba(123,74,42,0.24)" stroke="#7B4A2A" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>
       </sc-if>
       <sc-for list="{{ towns }}" as="t" hint-placeholder-count="6">
         <circle cx="{{ t.x }}" cy="{{ t.y }}" r="{{ t.r }}" fill="#8C7A66"></circle>
@@ -59,7 +62,7 @@
   </sc-if>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"pins":{"editor":null},"focus":{"editor":null},"selectedId":{"editor":null},"onPin":{"editor":null},"onMapClick":{"editor":null},"area":{"editor":null},"note":{"editor":null},"controls":{"editor":"boolean","default":true},"ratio":{"editor":null},"$preview":{"width":600,"height":440}}'>
+<script type="text/x-dc" data-dc-script data-props='{"pins":{"editor":null},"focus":{"editor":null},"selectedId":{"editor":null},"onPin":{"editor":null},"onMapClick":{"editor":null},"area":{"editor":null},"highlight":{"editor":null},"note":{"editor":null},"controls":{"editor":"boolean","default":true},"ratio":{"editor":null},"$preview":{"width":600,"height":440}}'>
 class Component extends DCLogic {
   constructor(props) {
     super(props);
@@ -74,8 +77,11 @@ class Component extends DCLogic {
   }
   renderVals() {
     const p = this.props;
+    const MUNI = {"Boac": [[161.8, 219.5], [161.8, 218.1], [159.2, 207.0], [159.2, 168.6], [161.8, 157.5], [166.9, 151.3], [172.8, 141.4], [248.9, 179.4], [255.5, 212.3]], "Mogpog": [[248.9, 179.4], [172.8, 141.4], [187.4, 116.6], [187.4, 109.2], [190.0, 89.4], [192.6, 84.4], [202.8, 81.9], [213.1, 91.8], [228.5, 115.4], [231.1, 110.4], [238.8, 104.2], [243.9, 99.3], [254.2, 110.4], [269.6, 114.1], [273.4, 112.9]], "Santa Cruz": [[255.5, 212.3], [248.9, 179.4], [273.4, 112.9], [285.0, 109.2], [290.2, 94.3], [300.4, 100.5], [308.1, 107.9], [310.7, 115.4], [305.6, 125.3], [315.9, 121.6], [326.1, 125.3], [328.7, 132.7], [321.0, 140.1], [323.6, 142.6], [331.3, 147.6], [336.4, 150.0], [346.7, 142.6], [362.1, 146.3], [374.9, 157.5], [380.1, 169.8], [377.5, 173.6], [372.4, 174.8], [364.7, 174.8], [364.7, 181.0], [364.7, 187.2], [266.9, 227.5]], "Torrijos": [[364.7, 193.4], [367.2, 199.6], [380.1, 208.2], [385.2, 215.7], [377.5, 236.7], [336.4, 280.1], [321.0, 301.1], [322.9, 304.8], [267.2, 237.1], [266.9, 227.5], [364.7, 187.2]], "Buenavista": [[322.9, 304.8], [328.7, 316.0], [321.0, 329.6], [297.9, 348.2], [287.6, 350.6], [277.3, 342.0], [267.1, 332.1], [259.3, 325.9], [251.6, 322.2], [228.5, 301.1], [220.8, 298.6], [210.5, 298.6], [210.2, 298.5], [267.2, 237.1]], "Gasan": [[210.2, 298.5], [202.8, 296.2], [197.7, 290.0], [184.9, 271.4], [161.8, 247.9], [159.2, 240.4], [161.8, 223.1], [161.8, 219.5], [255.5, 212.3], [266.9, 227.5], [267.2, 237.1]]};
     const DOTS = { Boac: [179.4, 171.1, -29, 19], Mogpog: [194.4, 150.9, -26, -11], 'Santa Cruz': [314.4, 148.3, -22, -10], Torrijos: [351, 264.9, -11, 19], Buenavista: [251.4, 310.2, -29, 20], Gasan: [183, 260.5, -15, 20] };
     const clamp = (cx, cy, z) => { z = Math.max(1, Math.min(6, z)); const hw = 300 / z, hh = 220 / z; return { cx: Math.max(hw, Math.min(600 - hw, cx)), cy: Math.max(hh, Math.min(440 - hh, cy)), z }; };
+    const hl = p.highlight || {};
+    const brgyShape = (b) => { let h = 2166136261; const k = String(b.seed || (b.x + ',' + b.y)); for (let i = 0; i < k.length; i++) { h ^= k.charCodeAt(i); h = Math.imul(h, 16777619); } h >>>= 0; const pts = []; for (let i = 0; i < 7; i++) { const a = (i / 7) * Math.PI * 2 + (h % 7) * 0.2; const r = 6 + ((h >>> (i * 3)) % 5); pts.push((b.x + Math.cos(a) * r).toFixed(1) + ' ' + (b.y + Math.sin(a) * r * 0.85).toFixed(1)); } return 'M' + pts.join('L') + 'Z'; };
     const v = clamp(this.state.view.cx, this.state.view.cy, this.state.view.z);
     const z = v.z, inv = 1 / z, Tx = 300 - z * v.cx, Ty = 220 - z * v.cy;
     const pins = p.pins || [
@@ -94,7 +100,8 @@ class Component extends DCLogic {
       tx: (Tx / 600 * 100).toFixed(3) + '%', ty: (Ty / 440 * 100).toFixed(3) + '%', z: z.toFixed(3), inv: inv.toFixed(4),
       towns: Object.keys(DOTS).map((t) => { const [x, y, dx, dy] = DOTS[t]; return { name: t, x, y, r: 3 * inv, lx: x + dx * inv, ly: y + dy * inv, fs: (10.5 * inv).toFixed(3) }; }),
       kal: { x: 324 - 5 * inv, y: 156 - 5 * inv, s: 10 * inv, rx: 2 * inv },
-      showArea: !!p.area, area: p.area || { cx: 0, cy: 0, r: 0 },
+      hasMuni: !!(hl.muni && MUNI[hl.muni]), muniD: hl.muni && MUNI[hl.muni] ? 'M' + MUNI[hl.muni].map((q) => q.join(' ')).join('L') + 'Z' : '',
+      hasBrgy: !!hl.brgy, brgyD: hl.brgy ? brgyShape(hl.brgy) : '',
       pinList: pins.map((x) => { const on = x.id === sel; return { left: (x.x / 600 * 100).toFixed(3) + '%', top: (x.y / 440 * 100).toFixed(3) + '%', scale: (inv * (on ? 1.15 : 1)).toFixed(4), fill: TONES[x.tone] || TONES.farmer, ring: on ? '#C8913A' : '#FFFFFF', ringW: on ? 2.4 : 1.5, on, aria: x.label, pick: (e) => { e.stopPropagation(); this.setState({ sel: x.id }); if (p.onPin) p.onPin(x.id); } }; }),
       hasPop: !!sp,
       pop: sp ? { ...sp.pop, left: pct(sp.x, sp.y)[0], top: pct(sp.x, sp.y)[1] } : { title: '', code: '', rows: [], href: '#', left: '0%', top: '0%' },

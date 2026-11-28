@@ -8,8 +8,9 @@ import { authorCard } from '../utils/authorCard.js';
 import { getProductById } from './catalog.service.js';
 import { userCan } from './permission.service.js';
 
-const present = ({ _id, rating, comment, createdAt, editedAt, buyer, order }) => ({
+const present = ({ _id, rating, comment, createdAt, editedAt, buyer, order, reply }) => ({
   _id, rating, comment, createdAt, editedAt, author: authorCard(buyer), fulfillment: order?.fulfillment?.method ?? null,
+  reply: reply ? { body: reply.body, at: reply.at, editedAt: reply.editedAt } : null,
 });
 
 const soldAt = (order) => order.statusHistory.findLast((h) => h.status === 'sold')?.at ?? null;

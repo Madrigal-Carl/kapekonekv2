@@ -12,6 +12,7 @@ import { cancelReasonRule } from '../schemas/rules.js';
 import { realtime } from '../sockets/realtime.js';
 import { AppError } from '../utils/AppError.js';
 import { etaWindow } from '../utils/businessDays.js';
+import { record } from './audit.service.js';
 import { notifyUsers } from './notification.service.js';
 import { findOrderFor, orderEmailData, presentOrder } from './order.service.js';
 import { getSetting } from './setting.service.js';
@@ -52,6 +53,10 @@ function checkReason(rule, { reasonCode, reason }) {
 
 const actorRole = (actor) => (actor ? (actor.roles.includes(ROLES.KALUPPA) ? ROLES.KALUPPA : actor.roles[0]) : 'system');
 
+/** History entry for an order (the drawer's History and the audit log). */
+export const auditOrder = (actor, action, order, before, after) =>
+  record({ actor, area: 'orders', action, entity: { type: 'order', id: order._id, label: order.orderNumber }, before, after, fields: Object.keys(after) });
+
 const sentence = (text) => (/[.!?]$/.test(text) ? text : `${text}.`);
 
 /** Buyer-facing copy for each status change (notification body). */
@@ -64,7 +69,7 @@ function updateText(order) {
     case 'processing': return 'Kaluppa is preparing your order.';
     case 'out_for_delivery': return f.rider?.name ? `Rider: ${f.rider.name} · ${f.rider.phone}.` : 'Your order is on its way.';
     case 'ready_for_pickup': return `Pick it up at ${f.pickup.name}, ${f.pickup.address}. ${f.pickup.hours}.`;
-    case 'sold': return 'Thanks for your order! You can now review your coffee.';
+    case 'sold': return 'Thanks for your order! You can now review what you bought.';
     case 'cancelled': return `${sentence(order.cancellation?.reason ?? 'The order was cancelled')}${refundNote}`;
     case 'rejected': return `${sentence(order.rejection?.reason ?? 'Kaluppa could not accept this order')}${refundNote}`;
     case 'expired': return `Kaluppa didn't confirm it within ${env.ORDER_EXPIRY_DAYS} days.${refundNote}`;
@@ -123,6 +128,8 @@ async function reserve(actor, order, now) {
     throw new AppError(409, `Not enough stock for ${short.join(', ')}. Nothing was reserved.`);
   }
   const eta = etaWindow(now, await getSetting('delivery.eta'));
+  if (order.payment.method === 'e_wallet') await auditOrder(actor, 'receipt_check', order, { receipt: null }, { receiptCheck: 'Matches the total' });
+  await auditOrder(actor, 'reserved', order, { status: 'pending' }, { status: 'reserved' });
   return updateOrderIf(order._id, { status: 'reserved' }, {
     $set: {
       stockReserved: true,
@@ -164,6 +171,11 @@ async function apply(who, actor, order, input, now = new Date()) {
 
   const before = await updateOrderIf(order._id, { status: order.status }, { $set: set, $push: { statusHistory: history } }, 'before');
   if (!before) throw changedMeanwhile();
+  await auditOrder(actor, to, before, { status: before.status }, {
+    status: to,
+    ...(set['fulfillment.rider'] && { rider: `${input.rider.name} · ${input.rider.phone}` }),
+    ...(reason.reason && { reason: reason.reason }),
+  });
   if (ends && before.stockReserved) await Promise.all(before.items.map((item) => returnStock(item.product, item.quantity)));
   if (to === 'sold') await Promise.all(before.items.map((item) => addSoldCount(item.product, item.quantity)));
   return announce(await findOrderById(order._id));
@@ -195,6 +207,7 @@ export async function markRefunded(actor, orderId, { referenceNumber }) {
     $set: { 'refund.status': 'refunded', 'refund.referenceNumber': referenceNumber, 'refund.refundedAt': now, 'refund.refundedBy': actor._id },
   });
   if (!order) throw new AppError(409, "There's no pending refund on this order.");
+  await auditOrder(actor, 'refund', order, { refund: 'pending' }, { refund: 'refunded', refundReference: referenceNumber });
   await notifyUsers([order.buyer], {
     type: 'order_status',
     title: `Refund sent for ${order.orderNumber}`,

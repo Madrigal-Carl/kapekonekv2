@@ -1,5 +1,5 @@
-import { Package, TriangleAlert } from 'lucide-react'
-import { useSearchParams } from 'react-router-dom'
+import { IconPackage, IconTriangleAlert } from '@/components/ui/icons'
+import { useSearchParams, Link } from 'react-router-dom'
 import { OrderCard } from '@/components/order/OrderCard'
 import { OrderGroupTabs, StatusChips } from '@/components/order/OrderGroupTabs'
 import { Button } from '@/components/ui/Button'
@@ -51,14 +51,14 @@ export function Orders() {
             ))}
           </div>
         ) : orders.isError ? (
-          <EmptyState icon={TriangleAlert} tone="error" title="We couldn’t load your orders" action={<Button variant="outline" onClick={() => orders.refetch()}>Try again</Button>} className="bg-white">
+          <EmptyState icon={IconTriangleAlert} tone="error" title="We couldn’t load your orders" action={<Button variant="outline" onClick={() => orders.refetch()}>Try again</Button>} className="bg-white">
             Check your connection and try again.
           </EmptyState>
         ) : list.length === 0 ? (
           <EmptyState
-            icon={Package}
+            icon={IconPackage}
             title={group.key === 'all' ? 'No orders yet' : 'No orders with this status'}
-            action={group.key === 'all' && <Button to="/products">Browse coffee</Button>}
+            action={group.key === 'all' && <Button as={Link} to="/products">Browse coffee</Button>}
             className="bg-white"
           >
             Orders you place will show up here.

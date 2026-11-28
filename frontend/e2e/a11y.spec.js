@@ -7,7 +7,7 @@ const WIDTHS = [1440, 390]
 async function signIn(page, identifier, redirect = '/') {
   await page.goto(`/login?redirect=${encodeURIComponent(redirect)}`)
   await page.getByLabel('Email or username').fill(identifier)
-  await page.getByLabel('Password', { exact: true }).fill('Password123!')
+  await page.getByLabel('Password', { exact: true }).fill('KapeKonek@123')
   await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(page).not.toHaveURL(/\/login/)
 }
@@ -35,7 +35,7 @@ async function audit(page, paths) {
 }
 
 test('guest pages have no WCAG A/AA violations', async ({ page, request }) => {
-  const post = (await (await request.get(`${API}/posts/latest?limit=1`)).json()).data[0]
+  const post = (await (await request.get(`${API}/posts/top`)).json()).data[0]
   const problems = await audit(page, [
     '/',
     '/products',
@@ -52,7 +52,7 @@ test('guest pages have no WCAG A/AA violations', async ({ page, request }) => {
 
 test('buyer pages, drawer, menus and modals have no WCAG A/AA violations', async ({ page }) => {
   test.setTimeout(180_000) // 14 page audits plus 5 overlays
-  await signIn(page, 'buyer@kapekonek.test')
+  await signIn(page, 'kapekonek.buyer@gmail.com')
   const orders = (await (await page.request.get(`${API}/orders?limit=1`)).json()).data
   const problems = await audit(page, ['/', '/orders', `/orders/${orders[0]._id}`, '/addresses', '/profile', '/settings', '/checkout'])
 
@@ -81,16 +81,16 @@ test('buyer pages, drawer, menus and modals have no WCAG A/AA violations', async
 })
 
 test('verify-email and dashboard pages have no WCAG A/AA violations', async ({ page, browser }) => {
-  await signIn(page, 'pedrolopez')
+  await signIn(page, 'buyer.unverified')
   const problems = await audit(page, ['/verify-email'])
   const kaluppa = await (await browser.newContext()).newPage()
-  await signIn(kaluppa, 'kaluppa@kapekonek.test')
+  await signIn(kaluppa, 'kapekonek.kaluppa@gmail.com')
   problems.push(...(await audit(kaluppa, ['/dashboard/overview'])))
   expect(problems, problems.join('\n')).toEqual([])
 })
 
 test('keyboard: cart drawer traps focus and Esc returns it; the bell panel opens and closes by keyboard', async ({ page }) => {
-  await signIn(page, 'buyer@kapekonek.test')
+  await signIn(page, 'kapekonek.buyer@gmail.com')
   await page.request.post(`${API}/cart/items`, {
     data: { productId: (await (await page.request.get(`${API}/products/robusta-dark-roast`)).json()).data._id, quantity: 1 },
   })
@@ -116,4 +116,54 @@ test('keyboard: cart drawer traps focus and Esc returns it; the bell panel opens
   await page.keyboard.press('Escape')
   await expect(page.getByRole('heading', { name: 'Notifications' })).toBeHidden()
   await expect(bell).toBeFocused()
+})
+
+// M15: every sidebar page per dashboard role, at both widths.
+for (const who of ['farmer.approved', 'manager.santacruz', 'kaluppa']) {
+  test(`${who}: every dashboard page has no WCAG A/AA violations`, async ({ page }) => {
+    test.setTimeout(420_000)
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await signIn(page, who, '/dashboard/overview')
+    const nav = page.getByRole('complementary', { name: 'Dashboard navigation' }).getByRole('navigation')
+    await expect(nav.getByRole('link').first()).toBeVisible()
+    const routes = (await nav.getByRole('link').evaluateAll((links) => links.map((a) => a.getAttribute('href')))).filter((href) => href.startsWith('/dashboard/'))
+    const problems = await audit(page, routes)
+    expect(problems, problems.join('\n')).toEqual([])
+  })
+}
+
+test('keyboard: a view drawer traps focus, Esc closes it and focus returns to its row button', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await signIn(page, 'kaluppa', '/dashboard/farms')
+  const view = page.getByRole('button', { name: /^View / }).first()
+  await view.focus()
+  await page.keyboard.press('Enter')
+  const drawer = page.getByRole('dialog')
+  await expect(drawer).toBeVisible()
+  for (let i = 0; i < 25; i += 1) {
+    await page.keyboard.press('Tab')
+    expect(await drawer.evaluate((d) => d.contains(document.activeElement))).toBe(true)
+  }
+  await page.keyboard.press('Escape')
+  await expect(drawer).toBeHidden()
+  await expect(view).toBeFocused()
+})
+
+test('Hub: the Create post modal and both post viewers have no WCAG A/AA violations', async ({ page }) => {
+  await signIn(page, 'farmer.approved', '/dashboard/hub')
+  const problems = []
+  for (const width of WIDTHS) {
+    await page.setViewportSize({ width, height: 900 })
+    await page.goto('/dashboard/hub')
+    await page.getByRole('region', { name: 'Create a post' }).getByRole('button', { name: 'Tags' }).click()
+    for (const line of await violations(page)) problems.push(`[${width}] create ${line}`)
+    await page.keyboard.press('Escape')
+    await page.getByRole('article').filter({ hasText: 'Fresh Liberica roasts are in!' }).getByRole('button', { name: /Open photo 1 of/ }).click()
+    for (const line of await violations(page)) problems.push(`[${width}] viewer ${line}`)
+    await page.keyboard.press('Escape')
+    await page.getByRole('article').filter({ hasText: 'Group meeting this Saturday' }).getByRole('button', { name: /^View all \d+ comments$/ }).click()
+    for (const line of await violations(page)) problems.push(`[${width}] text viewer ${line}`)
+    await page.keyboard.press('Escape')
+  }
+  expect(problems).toEqual([])
 })

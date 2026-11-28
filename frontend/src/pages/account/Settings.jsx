@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Mail } from 'lucide-react'
+import { IconMail } from '@/components/ui/icons'
 import { useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -51,7 +51,7 @@ function ChangeEmailForm({ email }) {
       intro={<>Current: <strong className="text-ink">{email}</strong></>}
       onSubmit={handleSubmit(onSubmit)}
       bodyClassName="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-[18px] px-6 py-[22px]"
-      footer={<Button type="submit" pending={change.isPending} className="px-5">Update email</Button>}
+      footer={<Button type="submit" loading={change.isPending} className="px-5">Update email</Button>}
     >
       <div>
         <Label htmlFor="newEmail">New email</Label>
@@ -64,7 +64,7 @@ function ChangeEmailForm({ email }) {
         <FieldHint id="emailPassword-error" error={errors.currentPassword?.message} />
       </div>
       <div className="col-span-full flex items-start gap-2.5 rounded-[6px] border border-notice-line bg-notice-bg px-3.5 py-3 text-[13px] text-notice-ink">
-        <Mail aria-hidden="true" className="mt-0.5 size-4 shrink-0" strokeWidth={2} />
+        <IconMail aria-hidden="true" className="mt-0.5 size-4 shrink-0" strokeWidth={2} />
         <span>We'll send a verification link to the new address and take you to the verify page. You can't order until it's verified. Your old address gets a notice.</span>
       </div>
     </SettingsCard>
@@ -100,7 +100,7 @@ function ChangePasswordForm() {
       intro="You'll stay signed in here. Your other devices are signed out."
       onSubmit={handleSubmit(onSubmit)}
       bodyClassName="flex max-w-[520px] flex-col gap-[18px] px-6 py-[22px]"
-      footer={<Button type="submit" pending={change.isPending} className="px-5">Update password</Button>}
+      footer={<Button type="submit" loading={change.isPending} className="px-5">Update password</Button>}
     >
       <div>
         <Label htmlFor="currentPassword">Current password</Label>
@@ -136,14 +136,17 @@ function ChangePasswordForm() {
 }
 
 /** /settings (Settings.dc.html). */
-export function Settings() {
+/** Email and password. `embedded`: inside the dashboard's Account settings tabs, which bring their own header and width. */
+export function Settings({ embedded = false }) {
   const { user } = useAuth()
   return (
     <>
-      <div className="mx-auto max-w-[1080px] px-4 pt-9 sm:px-8">
-        <AccountHeading eyebrow="Account" title="Settings" />
-      </div>
-      <div className="mx-auto flex max-w-[1080px] flex-col gap-6 px-4 pb-20 pt-6 sm:px-8">
+      {!embedded && (
+        <div className="mx-auto max-w-[1080px] px-4 pt-9 sm:px-8">
+          <AccountHeading eyebrow="Account" title="Settings" />
+        </div>
+      )}
+      <div className={embedded ? 'flex flex-col gap-6' : 'mx-auto flex max-w-[1080px] flex-col gap-6 px-4 pb-20 pt-6 sm:px-8'}>
         <div className="flex w-full min-w-0 flex-col gap-5">
           <ChangeEmailForm email={user.email} />
           <ChangePasswordForm />

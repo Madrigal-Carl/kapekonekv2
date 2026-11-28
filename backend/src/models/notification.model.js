@@ -1,6 +1,11 @@
 import mongoose from 'mongoose';
 
-export const NOTIFICATION_TYPES = ['order_status', 'order_new', 'system'];
+export const NOTIFICATION_TYPES = [
+  'order_status', 'order_new', 'system',
+  // Phase 2 (PHASE-2-SPEC §4)
+  'farmer_request', 'farmer_decision', 'transfer_decision', 'bean_status', 'message', 'post_activity', 'post_removed', 'review_activity',
+  'mention', // Change 08: Hub @mentions
+];
 
 const notificationSchema = new mongoose.Schema(
   {

@@ -1,6 +1,6 @@
 import { Cart } from '../models/cart.model.js';
 
-const PRODUCT_FIELDS = 'name slug images priceCentavos unit unitLabel stock isActive variety coffeeType category';
+const PRODUCT_FIELDS = 'name slug images priceCentavos unit unitLabel stock isActive archivedAt variety coffeeType category';
 
 /** The user's cart lines with products (and their categories) populated, oldest line first. */
 export async function findCartLines(userId) {

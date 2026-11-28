@@ -11,13 +11,15 @@ async function fillSignup(page, { role, first, last, username, email }) {
   await page.getByLabel('Last name').fill(last)
   await page.getByLabel('Username').fill(username)
   await expect(page.getByText(`@${username} is available`)).toBeVisible()
-  await page.getByLabel('Email').fill(email)
-  await page.getByLabel('Password', { exact: true }).fill('Password123!')
-  await page.getByLabel('Confirm password').fill('Password123!')
+  if (role === 'farmer') await page.getByLabel('Contact number').fill('09171234500') // farmers need one (Phase 2)
+  await page.getByLabel('Email', { exact: true }).fill(email)
+  await page.getByLabel('Password', { exact: true }).fill('KapeKonek@123')
+  await page.getByLabel('Confirm password').fill('KapeKonek@123')
+  await page.getByLabel('I agree to KapeKonek’s').check() // Change 09
   await page.getByRole('button', { name: 'Create account' }).click()
 }
 
-async function signIn(page, identifier, password = 'Password123!') {
+async function signIn(page, identifier, password = 'KapeKonek@123') {
   await page.getByLabel('Email or username').fill(identifier)
   await page.getByLabel('Password', { exact: true }).fill(password)
   await page.getByRole('button', { name: 'Sign in' }).click()
@@ -38,25 +40,28 @@ test('buyer signs up, verifies the email from the mailbox and lands on the store
   await expect(page.getByRole('button', { name: 'Account menu for Ella Buyer' })).toBeVisible()
 })
 
-test('farmer signs up and goes straight to the dashboard with the unverified banner', async ({ page }) => {
+// Phase 2: farmers verify before the dashboard (the rest of the flow is in dashboard.spec.js).
+test('farmer signs up and is asked to verify the email first', async ({ page }) => {
   const id = unique()
-  await fillSignup(page, { role: 'farmer', first: 'Fred', last: 'Farmer', username: `fred${id}`, email: `e2e.farmer.${id}@example.com` })
-  await expect(page).toHaveURL('/dashboard/overview')
-  await expect(page.getByRole('heading', { name: /, Fred$/ })).toBeVisible()
-  await expect(page.getByText("Your email isn't verified yet. You can keep using your dashboard.")).toBeVisible()
+  const email = `e2e.farmer.${id}@example.com`
+  await fillSignup(page, { role: 'farmer', first: 'Fred', last: 'Farmer', username: `fred${id}`, email })
+  await expect(page).toHaveURL('/verify-email')
+  await page.goto('/dashboard/overview')
+  await expect(page).toHaveURL('/verify-email')
+  await expect(page.getByText(email)).toBeVisible()
 })
 
 test('forgot password → reset → sign in with the new password', async ({ page, request }) => {
   const id = unique()
   const email = `e2e.reset.${id}@example.com`
   const created = await request.post(`${API}/auth/register`, {
-    data: { firstName: 'Rita', lastName: 'Reset', username: `rita${id}`, email, password: 'Password123!', role: 'buyer' },
+    data: { firstName: 'Rita', lastName: 'Reset', username: `rita${id}`, email, password: 'KapeKonek@123', role: 'buyer', acceptTerms: true },
   })
   expect(created.status()).toBe(201)
 
   await page.goto('/login')
   await page.getByRole('link', { name: 'Forgot password?' }).click()
-  await page.getByLabel('Email').fill(email)
+  await page.getByLabel('Email', { exact: true }).fill(email)
   await page.getByRole('button', { name: 'Email me a reset link' }).click()
   await expect(page.getByText('If an account uses that email, a reset link is on its way.')).toBeVisible()
 
@@ -80,7 +85,7 @@ test('forgot password → reset → sign in with the new password', async ({ pag
 
 test('guard: a signed-in farmer visiting the storefront goes to the dashboard', async ({ page }) => {
   await page.goto('/login')
-  await signIn(page, 'farmer1@kapekonek.test')
+  await signIn(page, 'kapekonek.farmer.approved@gmail.com')
   await expect(page).toHaveURL('/dashboard/overview')
   await page.goto('/')
   await expect(page).toHaveURL('/dashboard/overview')
@@ -89,14 +94,14 @@ test('guard: a signed-in farmer visiting the storefront goes to the dashboard', 
 test('guard: a guest opening the dashboard signs in and comes back', async ({ page }) => {
   await page.goto('/dashboard/overview')
   await expect(page).toHaveURL('/login?redirect=%2Fdashboard%2Foverview')
-  await signIn(page, 'manager@kapekonek.test')
+  await signIn(page, 'kapekonek.manager.santacruz@gmail.com')
   await expect(page).toHaveURL('/dashboard/overview')
   await expect(page.getByText('Group Manager').first()).toBeVisible()
 })
 
 test('guard: a buyer opening the dashboard sees 403; ?redirect to another site is ignored', async ({ page }) => {
   await page.goto('/login?redirect=//evil.com')
-  await signIn(page, 'buyer@kapekonek.test')
+  await signIn(page, 'buyer') // seed usernames are the handles
   await expect(page).toHaveURL('/')
   await page.goto('/dashboard/overview')
   await expect(page.getByRole('heading', { name: "You can't open this page" })).toBeVisible()
@@ -104,14 +109,18 @@ test('guard: a buyer opening the dashboard sees 403; ?redirect to another site i
 
 test('logout asks first, then signs out', async ({ page }) => {
   await page.goto('/login')
-  await signIn(page, 'kaluppa@kapekonek.test')
+  await signIn(page, 'kapekonek.kaluppa@gmail.com')
   await expect(page).toHaveURL('/dashboard/overview')
-  await page.getByRole('button', { name: 'Log out' }).click()
+  // The dashboard keeps Log out in the account menu (DashTopbar).
+  const openMenu = () => page.getByRole('button', { name: /^Account menu for Kaluppa Admin/ }).click()
+  await openMenu()
+  await page.getByRole('menuitem', { name: 'Log out' }).click()
   const dialog = page.getByRole('dialog', { name: 'Log out of KapeKonek?' })
   await expect(dialog).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(dialog).toBeHidden()
-  await page.getByRole('button', { name: 'Log out' }).click()
+  await openMenu()
+  await page.getByRole('menuitem', { name: 'Log out' }).click()
   await dialog.getByRole('button', { name: 'Log out' }).click()
   await expect(page).toHaveURL('/')
   await expect(page.getByRole('link', { name: 'Log in' })).toBeVisible()
@@ -119,6 +128,6 @@ test('logout asks first, then signs out', async ({ page }) => {
 
 test('wrong password shows one generic message', async ({ page }) => {
   await page.goto('/login')
-  await signIn(page, 'buyer@kapekonek.test', 'Wrong123!')
+  await signIn(page, 'kapekonek.buyer@gmail.com', 'Wrong123!')
   await expect(page.getByRole('alert')).toHaveText('The email, username or password is incorrect.')
 })

@@ -16,3 +16,6 @@ export const insertMissingSettings = (values) =>
 export const replaceSetting = (key, value) => Setting.updateOne({ key }, { $set: { value } }, { upsert: true });
 
 export const countSettings = () => Setting.countDocuments();
+
+/** Save one setting (Kaluppa's Settings page). @returns {Promise<{ _id: unknown, key: string, value: unknown }>} */
+export const saveSetting = (key, value) => Setting.findOneAndUpdate({ key }, { $set: { value } }, { upsert: true, returnDocument: 'after' }).lean();

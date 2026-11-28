@@ -1,4 +1,5 @@
-import { AlertCircle, FileText, ImageUp } from 'lucide-react'
+import { IconCircleAlert, IconFileText, IconImageUp } from '@/components/ui/icons'
+
 import { useId, useState } from 'react'
 import { cn } from '@/lib/cn'
 import { checkFile } from '@/lib/fileCheck'
@@ -48,7 +49,7 @@ export function FileDrop({ kind, onFile, onError, error, invalid, busy = false, 
     )
   }
 
-  const Icon = kind === 'image' ? ImageUp : FileText
+  const Icon = kind === 'image' ? IconImageUp : IconFileText
   return (
     <label
       onDragOver={(e) => {
@@ -72,7 +73,7 @@ export function FileDrop({ kind, onFile, onError, error, invalid, busy = false, 
         <span aria-live="polite">{busyText ?? 'Uploading…'}</span>
       ) : error ? (
         <>
-          <AlertCircle aria-hidden="true" className="size-5 text-danger-ink" strokeWidth={1.75} />
+          <IconCircleAlert aria-hidden="true" className="size-5 text-danger-ink" strokeWidth={1.75} />
           <span role="alert" className="text-danger-ink">
             {typeof error === 'string' ? error : (
               <>

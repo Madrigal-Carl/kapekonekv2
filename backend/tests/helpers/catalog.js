@@ -2,22 +2,22 @@
 import { Category, Order, Product, User } from '../../src/models/index.js';
 
 export async function seedCatalogFixture() {
-  const [coffee, fertilizer, seedlings] = await Category.create([
+  const [coffee, fertilizer, beans] = await Category.create([
     { name: 'Coffee', slug: 'coffee', purchasePermission: 'catalog.coffee', isPublic: true, hasVariety: true, hasCoffeeType: true, sortOrder: 1 },
     { name: 'Fertilizer', slug: 'fertilizer', purchasePermission: 'catalog.farm_supplies', sortOrder: 2 },
-    { name: 'Seedlings', slug: 'seedlings', purchasePermission: 'catalog.farm_supplies', hasVariety: true, sortOrder: 3 },
+    { name: 'Beans', slug: 'beans', purchasePermission: 'catalog.farm_supplies', sortOrder: 3 },
   ]);
   const base = { category: coffee._id, unit: 'pack', unitLabel: '250 g', stock: 20, shortDescription: 'Test coffee.' };
   const products = await Product.create([
-    { ...base, name: 'Barako Medium Roast', slug: 'barako-medium-roast', variety: 'liberica', coffeeType: 'roasted_beans', priceCentavos: 26000, isFeatured: true },
+    { ...base, name: 'Barako Medium Roast', slug: 'barako-medium-roast', variety: 'liberica', coffeeType: 'roasted_beans', priceCentavos: 26000 },
     { ...base, name: 'Liberica Green Beans', slug: 'liberica-green-beans', variety: 'liberica', coffeeType: 'green_beans', priceCentavos: 32000, unit: 'kg', unitLabel: null },
     { ...base, name: 'Arabica Light Roast', slug: 'arabica-light-roast', variety: 'arabica', coffeeType: 'roasted_beans', priceCentavos: 38000 },
     { ...base, name: 'Robusta Ground', slug: 'robusta-ground', variety: 'robusta', coffeeType: 'ground', priceCentavos: 20000 },
     { ...base, name: 'Hidden Old Roast', slug: 'hidden-old-roast', variety: 'robusta', coffeeType: 'ground', priceCentavos: 10000, isActive: false },
     { ...base, category: fertilizer._id, name: 'Organic Fertilizer 25 kg', slug: 'organic-fertilizer-25kg', priceCentavos: 95000, unit: 'piece', unitLabel: 'sack', variety: null, coffeeType: null },
-    { ...base, category: seedlings._id, name: 'Liberica Seedling', slug: 'liberica-seedling', priceCentavos: 3500, unit: 'piece', variety: 'liberica', coffeeType: null },
+    { ...base, category: beans._id, name: 'Liberica Dried Cherry', slug: 'liberica-dried-cherry', priceCentavos: 18000, unit: 'kg', unitLabel: null, variety: null, coffeeType: null },
   ]);
-  return { coffee, fertilizer, seedlings, products: Object.fromEntries(products.map((p) => [p.slug, p])) };
+  return { coffee, fertilizer, beans, products: Object.fromEntries(products.map((p) => [p.slug, p])) };
 }
 
 /** A sold order of `product` for the user with this email (what unlocks a review). */

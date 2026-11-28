@@ -1,4 +1,5 @@
-import { Heart, MessageCircle, RotateCw } from 'lucide-react'
+import { MentionText } from './Mentions'
+import { IconHeart, IconMessage, IconRefresh } from '@/components/ui/icons'
 import { useState } from 'react'
 import { Avatar, RoleBadge } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
@@ -15,7 +16,7 @@ function Bubble({ comment, small = false }) {
         <span className={cn('font-semibold', small ? 'text-[13px]' : 'text-[13.5px]')}>{comment.author.name}</span>
         <RoleBadge person={comment.author} />
       </div>
-      <p className={cn('mb-0 whitespace-pre-line leading-[1.6] text-ink', small ? 'mt-[3px] text-[13.5px]' : 'mt-1 text-sm')}>{comment.body}</p>
+      <p className={cn('mb-0 whitespace-pre-line leading-[1.6] text-ink wrap-anywhere', small ? 'mt-[3px] text-[13.5px]' : 'mt-1 text-sm')}><MentionText text={comment.body} mentions={comment.mentions} /></p>
     </div>
   )
 }
@@ -36,14 +37,14 @@ function Comment({ comment, defaultOpen }) {
             <time dateTime={comment.createdAt}>{timeAgo(comment.createdAt)}</time>
             {comment.reactionCount > 0 && (
               <span className="inline-flex items-center gap-1">
-                <Heart aria-hidden="true" className="size-3 fill-danger-strong text-danger-strong" strokeWidth={0} />
+                <IconHeart aria-hidden="true" className="size-3 fill-danger-strong text-danger-strong" strokeWidth={0} />
                 <span><span className="sr-only">Reactions: </span>{comment.reactionCount}</span>
               </span>
             )}
             {n > 0 && (
-              <button type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="cursor-pointer border-0 bg-transparent px-0 py-1 text-[12.5px] font-semibold text-roast">
+              <Button variant="link" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="h-auto px-0 py-1 text-[12.5px]">
                 {open ? 'Hide replies' : `View ${n} ${n === 1 ? 'reply' : 'replies'}`}
-              </button>
+              </Button>
             )}
           </div>
           {open && n > 0 && (
@@ -59,14 +60,14 @@ function Comment({ comment, defaultOpen }) {
               ))}
               {(more.hasNextPage || (comment.repliesNextCursor && more.isPending)) && (
                 <li>
-                  <button
-                    type="button"
+                  <Button
+                    variant="link"
                     disabled={more.isFetching}
                     onClick={() => more.fetchNextPage()}
-                    className="cursor-pointer border-0 bg-transparent p-0 text-[12.5px] font-semibold text-roast"
+                    className="h-auto p-0 text-[12.5px]"
                   >
                     {more.isFetching ? 'Loading replies…' : 'View more replies'}
-                  </button>
+                  </Button>
                 </li>
               )}
             </ol>
@@ -96,9 +97,9 @@ export function CommentThread({ postId, total }) {
         </div>
       )}
       {isError && (
-        <EmptyState tone="error" icon={RotateCw} title="We couldn't load the comments" className="mt-4 py-8" action={<Button variant="outline" onClick={() => refetch()}>Try again</Button>} />
+        <EmptyState tone="error" icon={IconRefresh} title="We couldn't load the comments" className="mt-4 py-8" action={<Button variant="outline" onClick={() => refetch()}>Try again</Button>} />
       )}
-      {data && !comments.length && <EmptyState icon={MessageCircle} title="No comments yet" className="mt-4 py-8" />}
+      {data && !comments.length && <EmptyState icon={IconMessage} title="No comments yet" className="mt-4 py-8" />}
       {comments.length > 0 && (
         <>
           <ol className="m-0 mt-4 flex list-none flex-col gap-[18px] p-0">
@@ -106,7 +107,7 @@ export function CommentThread({ postId, total }) {
           </ol>
           <div className="mt-5 flex flex-col items-center gap-1.5">
             {hasNextPage && (
-              <Button variant="outline" pending={isFetchingNextPage} onClick={() => fetchNextPage()} className="px-5 font-medium">Load more comments</Button>
+              <Button variant="outline" loading={isFetchingNextPage} onClick={() => fetchNextPage()} className="px-5 font-medium">Load more comments</Button>
             )}
             <span className="text-[12.5px] text-ink-3">Showing {shown} of {total} comments</span>
           </div>

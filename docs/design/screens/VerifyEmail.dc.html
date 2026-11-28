@@ -32,7 +32,7 @@ button:focus-visible,a:focus-visible{outline:2px solid #7B4A2A;outline-offset:2p
     </div>
     <div style="position: relative; max-width: 460px">
       <div style="display: inline-flex; align-items: center; gap: 10px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #EBC98F; font-weight: 500">One last step</div>
-      <p style="margin: 16px 0 0; font-size: 32px; line-height: 1.18; letter-spacing: -0.02em; font-weight: 500; color: #FFFFFF">Verify your email to start ordering.</p>
+      <p style="margin: 16px 0 0; font-size: 32px; line-height: 1.18; letter-spacing: -0.02em; font-weight: 500; color: #FFFFFF">{{ panelText }}</p>
     </div>
   </section>
 
@@ -43,7 +43,8 @@ button:focus-visible,a:focus-visible{outline:2px solid #7B4A2A;outline-offset:2p
       </span>
       <div style="margin-top: 22px; display: inline-flex; align-items: center; gap: 10px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6B5A4E; font-weight: 500">Verify email</div>
       <h1 style="margin: 12px 0 0; font-size: 28px; font-weight: 500; line-height: 1.15; letter-spacing: -0.02em">Check your inbox</h1>
-      <p style="margin: 10px 0 0; font-size: 14.5px; line-height: 1.65; color: #4A3A30">We sent a verification link to <strong style="color: #2B1A12">juana.delacruz@gmail.com</strong>. Open it to unlock your cart, orders and profile. The link works for 60 minutes.</p>
+      <sc-if value="{{ isCreated }}" hint-placeholder-val="{{ false }}"><p style="margin: 10px 0 0; padding: 10px 12px; border-radius: 6px; background: #F7EFE4; font-size: 13.5px; line-height: 1.55; color: #4A3A30">{{ createdBy }}</p></sc-if>
+      <p style="margin: 10px 0 0; font-size: 14.5px; line-height: 1.65; color: #4A3A30">We sent a verification link to <strong style="color: #2B1A12">{{ email }}</strong>. {{ unlockText }} The link works for 60 minutes.</p>
 
       <sc-if value="{{ sent }}" hint-placeholder-val="{{ false }}">
         <div role="status" style="margin-top: 18px; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: #1E4D30; background: #F1F8F3; border: 1px solid #BFE0C8; border-radius: 6px; padding: 12px 14px">
@@ -58,20 +59,28 @@ button:focus-visible,a:focus-visible{outline:2px solid #7B4A2A;outline-offset:2p
       </div>
 
       <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid #EFE6DA">
-        <p style="margin: 0; font-size: 13px; color: #6B5A4E; line-height: 1.6">You can still browse coffee while you wait. Adding to cart, checking out and reviewing need a verified email.</p>
-        <a href="Products.dc.html" style="display: inline-block; margin-top: 8px; font-size: 13.5px; font-weight: 600; text-decoration: none">Browse coffee →</a>
+        <p style="margin: 0; font-size: 13px; color: #6B5A4E; line-height: 1.6">{{ footText }}</p>
+        <a href="{{ footHref }}" style="display: inline-block; margin-top: 8px; font-size: 13.5px; font-weight: 600; text-decoration: none">{{ footLink }}</a>
       </div>
     </div>
   </section>
 </main>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+<script type="text/x-dc" data-dc-script data-props='{"variant":{"editor":"enum","options":["buyer","group_manager","farmer"],"default":"buyer"},"$preview":{"width":1440,"height":900}}'>
 class Component extends DCLogic {
   constructor(props) { super(props); this.state = { sent: false }; }
   renderVals() {
     const sent = this.state.sent;
+    const vr = this.props.variant || 'buyer';
+    const created = vr !== 'buyer';
     return {
-      sent,
+      sent, isCreated: created,
+      panelText: created ? 'Verify your email to open your dashboard.' : 'Verify your email to start ordering.',
+      createdBy: vr === 'group_manager' ? 'Kaluppa created a Group Manager account for you. Verify your email before you can use it.' : 'Liza Ramos created a farmer account for you in Santa Cruz Coffee Growers. Verify your email before you can use it.',
+      email: vr === 'group_manager' ? 'celso.garcia.kapekonek@gmail.com' : (vr === 'farmer' ? 'ernesto.javier.kapekonek@gmail.com' : 'juana.delacruz@gmail.com'),
+      unlockText: created ? 'Your dashboard stays locked until you open it.' : 'Open it to unlock your cart, orders and profile.',
+      footText: created ? 'You signed in with the default password. After verifying, change it in Settings → Security. Wrong email? Ask ' + (vr === 'group_manager' ? 'Kaluppa' : 'your Group Manager') + ' to fix it.' : 'You can still browse coffee while you wait. Adding to cart, checking out and reviewing need a verified email.',
+      footHref: created ? 'ContactUs.dc.html' : 'Products.dc.html', footLink: created ? 'Contact Kaluppa →' : 'Browse coffee →',
       resend: () => this.setState({ sent: true }),
       btnLabel: sent ? 'Resend available in 60s' : 'Resend verification email',
       btnBg: sent ? '#E3D6C6' : '#7B4A2A',

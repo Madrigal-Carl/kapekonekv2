@@ -87,9 +87,8 @@ Screens: `docs/design/screens/*.dc.html` (the "Dashboard" rows of the canvas). T
 6. **Removal by a Group Manager**: confirmation required. The farmer becomes unaffiliated and unapproved, so the cap applies again. Their records stay theirs, and their chats with that Group Manager and the group become read-only.
 
 ### 3.2 Farmers created by a Group Manager
-- Email is **optional**. They sign in with a **username**.
-- **Without an email**: the Group Manager sees a **temporary password once** (modal with Copy). The account has `mustChangePassword: true`, so the first sign-in goes to a "Set a new password" page.
-- **With an email**: an invite link to set the password is sent instead.
+- **Email is required** (Change 08). The account starts with the **default password `KapeKonek@123`**, shown read-only with Copy in the create form. A verification email is sent, and until it's verified every sign-in lands on the **Verify email** page (created variant).
+- Editing a farmer has **Reset password** (back to the default, signs them out everywhere, emails them). The same applies to Kaluppa → Group Managers.
 - These accounts are approved and verified automatically. Documents are optional; they can be added later.
 
 ### 3.3 Group Manager accounts
@@ -123,7 +122,8 @@ The handover happens at the branch, outside the system.
 ### 3.6 Farms, trees, harvests
 - **Farm**:
   - `propertyNumber` is auto-generated (`TCT-<year>-<4-digit seq>`, using the Counter collection);
-  - `lotNumber` is typed by the user, unique per owner;
+  - there is **no lot number** (removed in Change 08); the property number is never typed and isn't shown as an input;
+  - `sizeHa` has at most 2 decimals; the Farms table sorts by property number ascending;
   - `sizeHa`, municipality, barangay, optional street, and a **required pin**.
   - The form map follows the address-map rules (Phase 1 Change 03):
     - picking a municipality flies to it and moves the pin;
@@ -137,9 +137,15 @@ The handover happens at the branch, outside the system.
 - **Harvest**: farm, variety (**only varieties the farm has tree groups of**), `yieldKg`, `harvestedAt`, `note`, `recordedBy`.
 - **Archive** = soft delete (`archivedAt`) with **Restore**. Archiving a farm archives its tree groups; harvests stay.
 
+### 3.6b Maps and boundaries (Change 05)
+- Real Marinduque municipality and barangay polygons (PSGC) are served by `GET /locations/boundaries?level=municipality|barangay[&municipality=]` (public, cached for a week).
+- Every map highlights the selected municipality and barangay and fits its bounds.
+- Picking a barangay moves the pin to the barangay's pole of inaccessibility, so no geocoding is needed.
+- Reverse geocoding uses point-in-polygon for municipality and barangay; Mapbox only fills the street.
+
 ### 3.7 Store for farmers
 - The **Store** sidebar item opens `/products`, which shows only categories the user may buy (Fertilizer and Seedlings for farmers, through `catalog.farm_supplies`). Buyers still only see Coffee.
-- Cart, addresses, checkout and reviews are the Phase 1 flows. After a farmer places an order, go to `/dashboard/orders?open=<id>`.
+- Cart, addresses, checkout and reviews are the Phase 1 flows. Farmers manage addresses at `/dashboard/account/addresses` (`FarmerAddresses.dc.html`) and get an extra **Farm** label (Home · Work · Farm · Other). After a farmer places an order, go to `/dashboard/orders?open=<id>`.
 - The farmer **Orders** page is a table with a View drawer: timeline, cancel while pending, and a link to the full order page.
 
 ### 3.8 Kaluppa orders
@@ -191,6 +197,7 @@ The handover happens at the branch, outside the system.
 
 ### 3.10 Hub
 - A feed for farmers, Group Managers and Kaluppa.
+  - **Posting happens in a "Create post" modal** (Facebook-style). The feed shows a trigger card ("What’s on your mind, Rodel?" plus Photo / video and Tags shortcuts) that opens it. Editing reuses the same modal, titled "Edit post". Closing with unsaved content asks "Discard this post?".
   - **Composer**: text, up to 10 media (images 5 MB, **videos 50 MB**), and **up to 3 tags** from `pruning, harvesting, processing, soil, advisory, announcement`.
   - Tags show as `#tag` at the end of the post. **Tag filter chips** sit above the feed.
 - Posts can be edited or deleted by their author. Reactions are Phase 1's like / love / celebrate. Comments have one level of replies; authors can edit or delete them.
@@ -201,7 +208,12 @@ The handover happens at the branch, outside the system.
     - 2 items: two columns;
     - 3 items: one big tile plus two small;
     - 4 or more: a 2×2 grid with "+N" on the last tile.
-  - The viewer and post page use a **fixed 16:10 stage** (max 560 px tall) with `object-fit: contain` on a dark background. Thumbnails are square with `object-fit: cover`.
+  - **Post viewer** (opens from a media tile, the time, "See more", the comment count, the Comment button or "Write a comment…"; it has its own URL, `/dashboard/hub/posts/:id?media=n`):
+    - **posts with media**: a full-screen dialog. The **left panel (400 px, white)** holds the author, caption, tags, reaction and comment counts, React / Comment, the full comment thread with replies, and a comment box pinned at the bottom. The **right side is a dark stage** with the current photo or video (`object-fit: contain`, never cropped), a "2 / 5" counter, previous / next buttons, arrow keys, a thumbnail strip, and a close button.
+    - **text-only posts**: a centered 640 px dialog with the same panel.
+    - **phones**: the stage sits on top (56% of the height), with the panel scrolling below it.
+    - Esc closes it and focus returns to what opened it.
+  - The feed card shows the last comment and "View all N comments"; the full thread lives in the viewer. Captions longer than 240 characters are cut with "See more".
 - **Views**: a `PostView {post, user, day}` record, unique, signed-in users only. **Guests are not counted.**
 - **Landing page**: shows the **3 most-viewed posts of the last 30 days**, computed hourly by a BullMQ job and cached in Valkey (`posts:top3`). Guests and buyers can open those 3 posts (public post page). Any other post asks them to sign in.
   - This replaces Phase 1's "latest posts".
@@ -212,7 +224,7 @@ The handover happens at the branch, outside the system.
   - farmer: their own farms;
   - Group Manager: association farms plus its Kaluppa farm;
   - Kaluppa: all farms, with Kaluppa farms drawn darker.
-- The popover shows property number, lot number, owner, association, size, trees by variety, the main stages, last harvest, "Managed by" for Kaluppa farms, and an "Open farm" link.
+- The popover shows property number, owner, association, size, trees by variety, the main stages, last harvest, "Managed by" for Kaluppa farms, and an "Open farm" link.
 - Filters: association (Kaluppa only), municipality, variety. A side list selects a farm and flies to it.
 
 ### 3.12 Reports and Audit log
@@ -240,6 +252,52 @@ The handover happens at the branch, outside the system.
 
 ---
 
+### 3.14 Overview date filter (Change 06)
+- Every overview has **Today · This week · This month (default) · This year**: calendar ranges in Asia/Manila, weeks starting Monday, `?period=` in the URL, remembered per user.
+- `GET /dashboard/overview?period=` returns the KPIs, the comparison with the previous equivalent period, and chart buckets (today: 2-hour buckets from 6 AM; week: days; month: weeks; year: months).
+- Stock-like KPIs (farms, trees, orders to confirm, listings to review) ignore the period.
+
+### 3.15 Record history in drawers (Change 06)
+- Every view drawer (and every edit drawer for an existing record) ends with **History**: actor, action, time and changed fields, newest first, 5 at a time.
+- It comes from `GET /audit-logs/entity/:entityType/:entityId?cursor`. Anyone who can view the record can read its history; only Kaluppa gets "Open in audit log".
+- Audited actions needed:
+  - farmer request / approve / reject / transfer / remove / contact change;
+  - Group Manager create / assign / move / archive;
+  - association create / edit / assign;
+  - farm create / edit / pin move / archive / assign farmers;
+  - tree group add / edit / stage change / archive;
+  - harvest record / edit / archive;
+  - bean list / edit / approve / reject / complete / cancel / expire;
+  - order status changes, receipt check, rider, refund;
+  - product create / edit / stock / price / thumbnail / archive;
+  - review reply / hide / unhide.
+
+### 3.16 Payment providers (Change 06)
+- E-wallet providers live in Settings with `showAtCheckout`.
+- **For now only GCash is on**; Maya is seeded with its account details but off.
+- All copy (landing, FAQ, product notes, cart, checkout, emails) is built from the enabled providers. Checkout hides the wallet tabs when only one is on.
+
+### 3.17 Change 08 summary
+- **Confirmations**: every edit of an existing record asks "Save these changes?" with a before → after list. Deleting a chat message asks "Delete message?".
+- **Export**: every Export opens a modal to pick **CSV or PDF**. The file follows the filters on screen; Group Managers are scoped to their association.
+- **Accounts**: email is required; the default password is shown read-only on create; Reset password on edit; verified email required before the dashboard opens.
+- **Farms**: no lot number; size has 2 decimals; sorted by property number. The Farmers page has a Farms owned column.
+- **Store**:
+  - Seedlings → **Beans** (still `catalog.farm_supplies`);
+  - no Featured flag: the landing shows the **top 8 best sellers** (90 days, completed orders, viewer's categories) in a carousel;
+  - a default image for products with no photo;
+  - new products need starting stock above the low-stock level (10).
+- **Associations**: a map of active associations in the join window and settings (`Association.location`). A pending farmer can message that association's Group Manager.
+- **Hub**: @mentions with role scope (see CHANGE-08 Part F), stored as `mentions[]`, with notifications.
+- **Contact us**: a public page and form (`ContactMessage`), using the new Settings → Branch contact email.
+- **Address book**: atomic 10-address limit and an `addressesVersion` check ("Your addresses changed in another tab. Refresh and try again.").
+
+### 3.17 Terms and Conditions (Change 09)
+- Sign-up needs a ticked "I agree to KapeKonek's Terms and Conditions and Privacy Policy" checkbox. The API requires `acceptTerms: true`.
+- Accounts made by Kaluppa or a Group Manager agree on their first sign-in (`TermsModal` in accept mode).
+- Users store `termsAcceptedAt` and `termsVersion`. Raising `TERMS_VERSION` asks everyone again.
+- The text lives in versioned markdown files served by `GET /legal/current`. It's a draft until Kaluppa has it reviewed.
+
 ## 4. Data models (new or changed)
 
 **Accounts and associations**
@@ -253,11 +311,10 @@ The handover happens at the branch, outside the system.
 
 **Records**
 - **Farm**:
-  - `propertyNumber` (unique), `lotNumber`, `owner`, `ownerType` (`farmer|kaluppa`), `association`;
+  - `propertyNumber` (unique), `owner`, `ownerType` (`farmer|kaluppa`), `association`;
   - `managedBy|null`, `assignedFarmers[]`;
   - `sizeHa`, `municipality`, `barangay`, `street`, `location` (GeoJSON Point, 2dsphere);
   - `createdBy`, `archivedAt`.
-  - Unique index `{owner, lotNumber}` on non-archived farms (partial index).
 - **TreeGroup**: `farm`, `owner`, `association`, `variety`, `count`, `stage`, `plantedAt`, `note`, `recordedBy`, `archivedAt`.
 - **Harvest**: `farm`, `owner`, `association`, `variety`, `yieldKg`, `harvestedAt`, `note`, `recordedBy`, `archivedAt`.
 
@@ -292,6 +349,7 @@ Every route follows the Phase 1 flow: route → **auth** → validation → cont
 
 **Account**
 - `PATCH /auth/password/first {newPassword}`: for accounts with `mustChangePassword`.
+- `GET /users/username-check?username` and `GET /users/username-suggestions?first&last` (Phase 1 sign-up endpoints) are also used by the Add farmer and Add Group Manager drawers. Creating or updating returns `409 USERNAME_TAKEN` on a clash.
 - `GET /me/farmer-profile`, `POST /me/farmer-profile/request {associationId, validId, landProof}`, `POST /me/farmer-profile/transfer {associationId, reason?}`, `DELETE /me/farmer-profile/transfer`.
 
 **Associations and Group Managers** (`associations.manage`, `group_managers.manage`)
@@ -356,7 +414,10 @@ Every route follows the Phase 1 flow: route → **auth** → validation → cont
 | Farmer request sent | Group Manager (or Kaluppa if none) | ✓ | ✓ |
 | Approved / rejected (with reason) | Farmer | ✓ | ✓ |
 | Transfer approved / rejected | Farmer | ✓ | ✓ |
-| Account created (invite link) | New Group Manager / farmer with email | ✓ | |
+| Account created (verify your email; default password) | New Group Manager / farmer | ✓ | |
+| Password reset to default | Group Manager / farmer | ✓ | ✓ |
+| Mentioned in the Hub | Mentioned user | opt-in | ✓ |
+| Contact form copy | Sender (and Kaluppa's contact email) | ✓ | |
 | Bean approved (branch + hours + deadline) / rejected / cancelled / expired / completed | Farmer (and their Group Manager in-app) | ✓ | ✓ |
 | Order status | Buyer / farmer | ✓ | ✓ |
 | New message | Members | | ✓ (badge) |
@@ -367,7 +428,7 @@ Every route follows the Phase 1 flow: route → **auth** → validation → cont
 ---
 
 ## 7. Validation (shared Zod, `schemas/`)
-- Lot number: 1–40 characters. Size: 0.01–500 ha. Tree count: 1–100,000. Yield: 0.5–100,000 kg in 0.5 steps. Dates can't be in the future.
+- Size: 0.01–500 ha, at most 2 decimals. Tree count: 1–100,000. Yield: 0.5–100,000 kg in 0.5 steps. Dates can't be in the future.
 - Bean weight: 0.5–10,000 kg in 0.5 steps; price ₱1–₱10,000 per kg; photos 1–5; note ≤ 500.
 - Rejection / cancel / removal reasons: 5–300 characters.
 - Message ≤ 2000 characters; post ≤ 5000 characters; comment ≤ 1000 characters; tags ≤ 3 from the list.
@@ -385,6 +446,7 @@ Every route follows the Phase 1 flow: route → **auth** → validation → cont
   - 3 associations, 3 Group Managers (one unassigned);
   - about 14 farmers covering every state: approved, pending, rejected, unaffiliated, a pending transfer, and one created by a Group Manager with no email and `mustChangePassword`.
 - **Records**: farms with pins across all 6 towns (including 2 Kaluppa farms, one managed by the Santa Cruz Group Manager); tree groups in all 5 stages; 12 months of harvests.
+- **Payments**: GCash shown at checkout; Maya saved with its account details but `showAtCheckout: false`.
 - **Beans and orders**: bean listings in every status (one approved listing expiring in 1 day; one unapproved farmer at 3 of 5 kg); farmer store orders in several statuses.
 - **Inbox**: conversations of every kind with sent, delivered and seen states, one edited message, one deleted for everyone, and one read-only chat.
 - **Hub**: posts with tags, multi-image and video posts (including **one portrait photo** to test the fixed frames), and views so the top 3 is filled.
@@ -398,7 +460,8 @@ Every route follows the Phase 1 flow: route → **auth** → validation → cont
 | `farmer.approved` | Approved farmer | `/dashboard/overview` |
 | `farmer.pending` | Waiting for approval, 3 of 5 kg used | overview with the banner |
 | `farmer.new` | Verified, no association | the association window |
-| `farmer.nomail` | Created by a Group Manager, username only | "Set a new password" |
+| `farmer.unverified` | Created by a Group Manager, email not verified | Verify email page (created variant) |
+| `manager.unverified` | Created by Kaluppa, email not verified | Verify email page (created variant) |
 | `buyer` | Buyer (Phase 1) | storefront |
 
 ---

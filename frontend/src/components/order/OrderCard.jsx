@@ -1,4 +1,5 @@
-import { ChevronRight, MapPin } from 'lucide-react'
+import { IconChevronRight, IconMapPin } from '@/components/ui/icons'
+
 import { Link } from 'react-router-dom'
 import { destinationLine, paymentLabel } from '@/constants/orderStatus'
 import { formatDate } from '@/lib/date'
@@ -46,7 +47,7 @@ export function OrderCard({ order }) {
       </div>
       <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-sand-soft px-5 py-3.5">
         <span className="inline-flex flex-wrap items-center gap-1.5 text-[13px] text-ink-2">
-          <MapPin aria-hidden="true" className="size-3.5 text-roast" strokeWidth={2} />
+          <IconMapPin aria-hidden="true" className="size-3.5 text-roast" strokeWidth={2} />
           {destinationLine(order)}
           <span className="ml-2 rounded-[4px] border border-sand-strong px-[7px] py-px text-[11px] font-semibold text-ink-2">{paymentLabel(order)}</span>
         </span>
@@ -56,7 +57,7 @@ export function OrderCard({ order }) {
           </span>
           <Link to={`/orders/${order._id}`} className="inline-flex min-h-10 items-center gap-1.5 text-[13.5px] font-semibold text-roast no-underline" aria-label={`View details of ${order.orderNumber}`}>
             View details
-            <ChevronRight aria-hidden="true" className="size-[15px]" strokeWidth={2} />
+            <IconChevronRight aria-hidden="true" className="size-[15px]" strokeWidth={2} />
           </Link>
         </div>
       </footer>

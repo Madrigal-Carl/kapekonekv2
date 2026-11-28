@@ -1,6 +1,9 @@
-import { ArrowRight, Minus, Plus, ShoppingBag, Trash2, TriangleAlert, X } from 'lucide-react'
+import { IconArrowRight, IconMinus, IconPlus, IconShoppingBag, IconTrash, IconTriangleAlert, IconX } from '@/components/ui/icons'
+import { orList } from '@/lib/payments'
+import { usePaymentProviders } from '@/hooks/useSettings'
+
 import { useId, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -13,6 +16,7 @@ import { formatPeso, quantityShort, quantityWords } from '@/lib/format'
 import { stepFor } from '@/lib/quantity'
 import { useCartDrawer } from '@/stores/cart.store'
 import { imageUrl } from '@/lib/image'
+import { ProductImage } from '@/components/product/ProductImage'
 
 /** Why a line blocks checkout. */
 function flagText({ flags, product }) {
@@ -35,19 +39,21 @@ function CartLine({ line, onRemove }) {
     <li className="border-b border-sand-soft py-[18px]">
       <div className="flex gap-3.5">
         <span aria-hidden="true" className="size-[72px] shrink-0 overflow-hidden rounded-[6px] bg-photo">
-          {product.image && <img src={imageUrl(product.image, 72)} alt="" className="size-full object-cover" />}
+          <ProductImage src={product.image && imageUrl(product.image, 72)} className="size-full" />
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex justify-between gap-2">
             <span className="text-[14.5px] font-semibold leading-[1.3]">{product.name}</span>
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="sm"
+              iconOnly
               aria-label={`Remove ${product.name}`}
               onClick={() => onRemove(line)}
-              className="-mr-2 -mt-2 grid size-9 shrink-0 cursor-pointer place-items-center rounded-control border-0 bg-transparent text-ink-4 hover:bg-crema"
+              className="-mr-2 -mt-2 text-ink-4 hover:bg-crema hover:text-ink-4"
             >
-              <Trash2 aria-hidden="true" className="size-[17px]" strokeWidth={1.75} />
-            </button>
+              <IconTrash aria-hidden="true" className="size-[17px]" strokeWidth={1.75} />
+            </Button>
           </div>
           <span className="mt-0.5 block text-xs text-ink-3">{productMeta(product)}</span>
           <span className="mt-0.5 block text-[12.5px] text-ink-2">
@@ -55,21 +61,20 @@ function CartLine({ line, onRemove }) {
           </span>
           <div className="mt-2.5 flex items-center justify-between">
             <div role="group" aria-label={`Quantity for ${product.name}`} className="inline-flex items-center overflow-hidden rounded-control border border-sand-strong">
-              <button type="button" aria-label="Decrease" disabled={quantity <= step || setQuantity.isPending} onClick={() => change(quantity - step)} className={stepButton}>
-                <Minus aria-hidden="true" className="size-3.5" strokeWidth={2} />
-              </button>
+              <Button variant="bare" aria-label="Decrease" disabled={quantity <= step || setQuantity.isPending} onClick={() => change(quantity - step)} className={stepButton}>
+                <IconMinus aria-hidden="true" className="size-3.5" strokeWidth={2} />
+              </Button>
               <output aria-live="polite" className="min-w-[52px] border-x border-sand text-center text-[13.5px] font-semibold leading-9">
                 {quantityShort(quantity, product.unit)}
               </output>
-              <button
-                type="button"
+              <Button variant="bare"
                 aria-label="Increase"
                 disabled={atCap || setQuantity.isPending}
                 onClick={() => change(quantity + step)}
                 className={cn(stepButton, atCap && 'disabled:bg-cream disabled:text-stepper-off disabled:opacity-100')}
               >
-                <Plus aria-hidden="true" className="size-3.5" strokeWidth={2} />
-              </button>
+                <IconPlus aria-hidden="true" className="size-3.5" strokeWidth={2} />
+              </Button>
             </div>
             <span className="text-[15px] font-semibold">{formatPeso(line.lineTotalCentavos)}</span>
           </div>
@@ -78,7 +83,7 @@ function CartLine({ line, onRemove }) {
           )}
           {warning && (
             <p role="alert" className="mt-2.5 flex items-start gap-2 rounded-control border border-notice-line bg-notice-bg px-2.5 py-2 text-[12.5px] text-caramel-badge">
-              <TriangleAlert aria-hidden="true" className="mt-px size-[15px] shrink-0" strokeWidth={2} />
+              <IconTriangleAlert aria-hidden="true" className="mt-px size-[15px] shrink-0" strokeWidth={2} />
               {warning}
             </p>
           )}
@@ -91,6 +96,7 @@ function CartLine({ line, onRemove }) {
 /** Right drawer with the buyer's cart (CartDrawer.dc.html). Remove, clear and checkout each confirm first. */
 export function CartDrawer() {
   const id = useId()
+  const providers = usePaymentProviders()
   const { open, hide } = useCartDrawer()
   const navigate = useNavigate()
   const cart = useCart()
@@ -119,9 +125,9 @@ export function CartDrawer() {
               Your cart
             </h2>
           </div>
-          <button type="button" aria-label="Close cart" onClick={hide} className="grid size-11 cursor-pointer place-items-center rounded-control border-0 bg-transparent text-ink-2 hover:bg-crema">
-            <X aria-hidden="true" className="size-[18px]" strokeWidth={2} />
-          </button>
+          <Button variant="ghost" iconOnly aria-label="Close cart" onClick={hide} className="size-11 text-ink-2 hover:bg-crema hover:text-ink-2">
+            <IconX aria-hidden="true" className="size-[18px]" strokeWidth={2} />
+          </Button>
         </div>
 
         {cart.isPending ? (
@@ -139,13 +145,13 @@ export function CartDrawer() {
           </div>
         ) : cart.isError ? (
           <div className="flex-1 p-6">
-            <EmptyState icon={TriangleAlert} tone="error" title="We couldn’t load your cart" action={<Button variant="outline" onClick={() => cart.refetch()}>Try again</Button>}>
+            <EmptyState icon={IconTriangleAlert} tone="error" title="We couldn’t load your cart" action={<Button variant="outline" onClick={() => cart.refetch()}>Try again</Button>}>
               Check your connection and try again.
             </EmptyState>
           </div>
         ) : count === 0 ? (
           <div className="flex-1 p-6">
-            <EmptyState icon={ShoppingBag} title="Your cart is empty" action={<Button to="/products" onClick={hide}>Browse coffee</Button>}>
+            <EmptyState icon={IconShoppingBag} title="Your cart is empty" action={<Button as={Link} to="/products" onClick={hide}>Browse coffee</Button>}>
               Add coffee from the products page and it will show up here.
             </EmptyState>
           </div>
@@ -161,19 +167,18 @@ export function CartDrawer() {
                 <span className="text-sm text-ink-2">Subtotal</span>
                 <span className="text-[22px] font-semibold">{formatPeso(cart.data.subtotalCentavos)}</span>
               </div>
-              <p className="mt-1.5 text-[12.5px] text-ink-3">Choose delivery or pickup and how to pay (GCash, Maya or cash) at checkout.</p>
+              <p className="mt-1.5 text-[12.5px] text-ink-3">Choose delivery or pickup and how to pay ({orList([...providers, 'cash'])}) at checkout.</p>
               <div className="mt-4 flex flex-col gap-2.5">
                 {cart.data.canCheckout ? (
-                  <Button onClick={() => setConfirm('checkout')} className="min-h-12 w-full">
+                  <Button size="lg" fullWidth onClick={() => setConfirm('checkout')} rightIcon={<IconArrowRight aria-hidden="true" className="size-4" strokeWidth={2} />}>
                     Checkout
-                    <ArrowRight aria-hidden="true" className="size-4" strokeWidth={2} />
                   </Button>
                 ) : (
-                  <button type="button" disabled className="min-h-12 w-full rounded-control border-0 bg-disabled-bg px-4 py-3 text-sm font-semibold text-disabled-ink">
+                  <Button size="lg" fullWidth disabled>
                     Checkout
-                  </button>
+                  </Button>
                 )}
-                <Button variant="outline" onClick={() => setConfirm('clear')} className="min-h-12 w-full">
+                <Button variant="outline" size="lg" fullWidth onClick={() => setConfirm('clear')}>
                   Clear cart
                 </Button>
               </div>
@@ -188,7 +193,7 @@ export function CartDrawer() {
         onClose={() => setRemoving(null)}
         onConfirm={removeLine}
         pending={remove.isPending}
-        icon={Trash2}
+        icon={IconTrash}
         tone="danger"
         title="Remove this item?"
         description={removing && `${removing.product.name} (${quantityWords(removing.quantity, removing.product.unit)}) will be removed from your cart.`}
@@ -201,7 +206,7 @@ export function CartDrawer() {
         onClose={() => setConfirm(null)}
         onConfirm={clearAll}
         pending={clear.isPending}
-        icon={Trash2}
+        icon={IconTrash}
         tone="danger"
         title="Clear your cart?"
         description={`All ${count === 1 ? '1 item' : `${count} items`} will be removed from your cart.`}
@@ -213,7 +218,7 @@ export function CartDrawer() {
         open={confirm === 'checkout'}
         onClose={() => setConfirm(null)}
         onConfirm={toCheckout}
-        icon={ShoppingBag}
+        icon={IconShoppingBag}
         title="Continue to checkout?"
         description={`${count === 1 ? '1 item' : `${count} items`} · ${formatPeso(cart.data?.subtotalCentavos ?? 0)}. Items can’t be changed on the checkout page.`}
         cancelLabel="Keep shopping"

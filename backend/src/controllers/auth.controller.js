@@ -31,6 +31,12 @@ export const logout = (_req, res) => {
   sendSuccess(res, { message: 'Signed out.' });
 };
 
+export const firstPassword = asyncHandler(async (req, res) => {
+  const { user, session } = await authService.setFirstPasswordFor(req.user, req.body);
+  setAuthCookies(res, user, { remember: false });
+  sendSuccess(res, { message: 'Password set.', data: session });
+});
+
 export const me = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: await authService.buildSession(req.user) });
 });
@@ -38,6 +44,10 @@ export const me = asyncHandler(async (req, res) => {
 export const verifyEmail = asyncHandler(async (req, res) => {
   await authService.verifyEmail(req.body);
   sendSuccess(res, { message: 'Your email is verified.' });
+});
+
+export const addEmail = asyncHandler(async (req, res) => {
+  sendSuccess(res, { message: 'Check your inbox for a verification link.', data: await authService.addFirstEmail(req.user, req.body) });
 });
 
 export const resendVerification = asyncHandler(async (req, res) => {

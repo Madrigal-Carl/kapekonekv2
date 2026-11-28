@@ -1,6 +1,7 @@
 import { Buffer } from 'node:buffer'
 import { expect, test } from '@playwright/test'
 import { latestMailLink } from './helpers/mailbox.js'
+import { confirmSave } from './helpers/confirm'
 
 const API = 'http://localhost:5100/api' // playwright.config.js API_PORT
 const unique = () => `${Date.now().toString(36)}${Math.floor(Math.random() * 1e4)}`
@@ -10,14 +11,14 @@ const PHOTO = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQ
 /** A new verified buyer (these flows change credentials, so they never touch the seeded accounts). */
 async function freshBuyer(request) {
   const id = unique()
-  const user = { firstName: 'Ana', lastName: 'Reyes', username: `ana${id}`, email: `e2e.account.${id}@example.com`, password: 'Password123!', role: 'buyer' }
+  const user = { firstName: 'Ana', lastName: 'Reyes', username: `ana${id}`, email: `e2e.account.${id}@example.com`, password: 'KapeKonek@123', role: 'buyer', acceptTerms: true }
   expect((await request.post(`${API}/auth/register`, { data: user })).status()).toBe(201)
   const token = new URL(await latestMailLink(user.email, '/verify-email/confirm')).searchParams.get('token')
   expect((await request.post(`${API}/auth/email/verify`, { data: { token } })).ok()).toBe(true)
   return user
 }
 
-async function signIn(page, identifier, password = 'Password123!', redirect = '/') {
+async function signIn(page, identifier, password = 'KapeKonek@123', redirect = '/') {
   await page.goto(`/login?redirect=${encodeURIComponent(redirect)}`)
   await page.getByLabel('Email or username').fill(identifier)
   await page.getByLabel('Password', { exact: true }).fill(password)
@@ -46,9 +47,10 @@ test('profile: taken username, save fields, upload and remove the photo', async 
   await expect(page.getByRole('button', { name: 'Remove' })).toBeDisabled()
 
   // Someone else's username: the live check says so, and the API refuses it too.
-  await page.getByLabel('Username').fill('juanadc')
-  await expect(page.getByText('@juanadc is taken. Try another one.')).toBeVisible()
+  await page.getByLabel('Username').fill('buyer')
+  await expect(page.getByText('@buyer is taken. Try another one.')).toBeVisible()
   await page.getByRole('button', { name: 'Save changes' }).click()
+  await confirmSave(page)
   await expect(page.getByText('Username is already taken')).toBeVisible()
 
   const username = `${user.username}.new`
@@ -61,6 +63,8 @@ test('profile: taken username, save fields, upload and remove the photo', async 
   await expect(page.getByText('Use an 11-digit mobile number starting with 09')).toBeVisible()
   await page.getByLabel('Contact number').fill('0917 222 3344')
   await page.getByRole('button', { name: 'Save changes' }).click()
+  await expect(page.getByRole('dialog', { name: 'Save these changes?' })).toContainText('First name')
+  await confirmSave(page)
   await expect(page.getByText('Your profile is saved')).toBeVisible()
   await expect(page.getByText('This is your current username')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Account menu for Anabel Cruz Reyes' })).toBeVisible()

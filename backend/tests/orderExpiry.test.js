@@ -25,7 +25,7 @@ beforeAll(async () => {
   await startMemoryDb();
   await runSeeders({ only: ['roles', 'users'], log: () => {} });
   ({ products } = await seedCatalogFixture());
-  kaluppa = await User.findOne({ email: 'kaluppa@kapekonek.test' });
+  kaluppa = await User.findOne({ email: 'kapekonek.kaluppa@gmail.com' });
 });
 afterAll(stopMemoryDb);
 beforeEach(async () => {
@@ -72,5 +72,22 @@ describe('order expiry', () => {
     expect(await runOrderExpiry()).toEqual({ expired: 0, skipped: true });
     await redis.del('lock:order-expiry');
     expect(await runOrderExpiry()).toEqual({ expired: 1 });
+  });
+
+  it('waits for Valkey to finish connecting instead of failing the first sweep at boot', async () => {
+    await makeOrder(products, { createdAt: ago(4) });
+    const { set, status } = redis;
+    // The cache connection has no offline queue: commands sent while connecting reject at once.
+    redis.status = 'connecting';
+    redis.set = () => Promise.reject(new Error("Stream isn't writeable and enableOfflineQueue options is false"));
+    setTimeout(() => {
+      Object.assign(redis, { set, status: 'ready' });
+      redis.emit('ready');
+    }, 50);
+    try {
+      expect(await runOrderExpiry()).toEqual({ expired: 1 });
+    } finally {
+      Object.assign(redis, { set, status });
+    }
   });
 });

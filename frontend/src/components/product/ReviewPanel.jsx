@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Pencil, Trash2 } from 'lucide-react'
+import { IconEdit, IconTrash } from '@/components/ui/icons'
 import { useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { Link } from 'react-router-dom'
@@ -17,7 +17,7 @@ import { formatDate } from '@/lib/date'
 import { reviewSchema } from '@/schemas/review.schema'
 
 const card = 'rounded-card border border-sand bg-white p-6'
-const smallButton = 'min-h-10 flex-1 px-3 py-[9px] text-[13px]'
+const smallButton = 'h-10 flex-1 px-3 text-[13px]'
 const shortDate = (value) => formatDate(value).replace(/, \d{4}$/, '')
 
 function Notice({ title, children }) {
@@ -45,7 +45,7 @@ export function ReviewPanel({ productId }) {
       <div className={card}>
         <h3 className="m-0 text-base font-semibold">Bought this?</h3>
         <p className="mt-1.5 text-[13px] leading-[1.6] text-ink-2">Sign in to review it. Only buyers who received this product can leave a review.</p>
-        <Button className="mt-3.5 w-full" onClick={() => requireAuth(() => {})}>
+        <Button fullWidth className="mt-3.5" onClick={() => requireAuth(() => {})}>
           {mustVerify ? 'Verify your email' : 'Sign in'}
         </Button>
       </div>
@@ -104,7 +104,7 @@ function YourReview({ review, onEdit }) {
             <Button variant="outline" autoFocus onClick={() => setConfirming(false)} className={smallButton}>
               Keep it
             </Button>
-            <Button onClick={doDelete} pending={remove.isPending} className={cn(smallButton, 'bg-danger-ink font-semibold hover:bg-danger-text')}>
+            <Button variant="danger" onClick={doDelete} loading={remove.isPending} className={smallButton}>
               Delete review
             </Button>
           </div>
@@ -112,11 +112,11 @@ function YourReview({ review, onEdit }) {
       ) : (
         <div className="mt-4 flex gap-2">
           <Button variant="outline" onClick={onEdit} className={smallButton}>
-            <Pencil aria-hidden="true" className="size-[15px] text-roast" strokeWidth={2} />
+            <IconEdit aria-hidden="true" className="size-[15px] text-roast" strokeWidth={2} />
             Edit
           </Button>
-          <Button variant="outline" onClick={() => setConfirming(true)} className={cn(smallButton, 'text-danger-ink hover:text-danger-ink')}>
-            <Trash2 aria-hidden="true" className="size-[15px]" strokeWidth={2} />
+          <Button variant="danger-outline" onClick={() => setConfirming(true)} className={smallButton}>
+            <IconTrash aria-hidden="true" className="size-[15px]" strokeWidth={2} />
             Delete
           </Button>
         </div>
@@ -171,16 +171,15 @@ function ReviewEditor({ productId, review, order, onDone }) {
             <legend className="p-0 text-[10.5px] font-medium uppercase tracking-[0.16em] text-ink-2">Your rating</legend>
             <div className="mt-2 flex gap-1">
               {[1, 2, 3, 4, 5].map((i) => (
-                <button
+                <Button variant="bare"
                   key={i}
-                  type="button"
                   aria-label={`${i} ${i === 1 ? 'star' : 'stars'}`}
                   aria-pressed={i === field.value}
                   onClick={() => field.onChange(i)}
                   className="grid size-10 cursor-pointer place-items-center border-0 bg-transparent p-0"
                 >
                   <Star filled={i <= field.value} className="size-[26px]" />
-                </button>
+                </Button>
               ))}
             </div>
             <FieldHint error={errors.rating?.message} />
@@ -208,7 +207,7 @@ function ReviewEditor({ productId, review, order, onDone }) {
             Cancel
           </Button>
         )}
-        <Button type="submit" pending={save.isPending} className="flex-[2]">
+        <Button type="submit" loading={save.isPending} className="flex-[2]">
           {review ? 'Save changes' : 'Post review'}
         </Button>
       </div>
