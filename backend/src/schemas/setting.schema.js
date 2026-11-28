@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { insideMarinduque } from '../services/boundary.service.js';
 import { getLocations, isValidBarangay } from '../services/location.service.js';
-import { openingHoursRule, phoneRule, walletAccountsRule } from './rules.js';
+import { emailRule, openingHoursRule, phoneRule, walletAccountsRule } from './rules.js';
 
 const MUNICIPALITIES = getLocations().map((m) => m.name);
 const whole = (label, max) => z.number(`Enter the ${label}`).int('Use whole numbers').min(0, 'Enter 0 or more').max(max, `Enter ${max.toLocaleString('en-PH')} or less`);
@@ -12,6 +12,7 @@ export const branchSettingSchema = z
   .object({
     name: z.string('Enter the branch name').trim().min(2, 'Enter the branch name').max(80, 'Use 80 characters or fewer'),
     phone: phoneRule,
+    contactEmail: z.union([z.literal(''), emailRule]).nullish().transform((v) => v || null), // Change 08: where Contact us messages go
     street: z.string().trim().max(120, 'Use 120 characters or fewer').default(''),
     municipality: z.enum(MUNICIPALITIES, 'Choose a municipality in Marinduque'),
     barangay: z.string('Choose a barangay').trim().min(1, 'Choose a barangay'),

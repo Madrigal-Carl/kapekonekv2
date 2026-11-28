@@ -8,10 +8,9 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { IconEdit, IconMapPinOff, IconPlus, IconRoute, IconTag, IconTrash, IconTriangleAlert } from '@/components/ui/icons'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { useAddresses, useDeleteAddress, useSetDefaultAddress } from '@/hooks/useAddresses'
+import { useAddressErrorToast, useAddresses, useDeleteAddress, useSetDefaultAddress } from '@/hooks/useAddresses'
 import { useAuth } from '@/hooks/useAuth'
 import { addressArea, addressLabel, quoteErrorText } from '@/lib/address'
-import { errorMessage } from '@/lib/applyServerErrors'
 import { cn } from '@/lib/cn'
 import { formatPesoShort, formatPhone } from '@/lib/format'
 
@@ -26,6 +25,7 @@ export function FarmerAddresses() {
   const addresses = useAddresses()
   const setDefault = useSetDefaultAddress()
   const remove = useDeleteAddress()
+  const addressError = useAddressErrorToast()
   const [params, setParams] = useSearchParams()
   const [editing, setEditing] = useState(null)
   const [deleting, setDeleting] = useState(null)
@@ -40,7 +40,7 @@ export function FarmerAddresses() {
   const makeDefault = (address) =>
     setDefault.mutate(address._id, {
       onSuccess: () => toast.success(`${addressLabel(address)} is now your default address.`),
-      onError: (e) => toast.error(errorMessage(e)),
+      onError: (e) => addressError(e),
     })
   const confirmDelete = () =>
     remove.mutate(deleting._id, {
@@ -48,7 +48,7 @@ export function FarmerAddresses() {
         toast.success('Address deleted.')
         setDeleting(null)
       },
-      onError: (error) => toast.error(errorMessage(error)),
+      onError: (error) => addressError(error),
     })
 
   if (addresses.isPending) {

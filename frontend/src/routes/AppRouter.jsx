@@ -28,6 +28,8 @@ const Trees = page(() => import('@/pages/dashboard/records/Trees'), 'Trees')
 const FarmMap = page(() => import('@/pages/dashboard/map/FarmMap'), 'FarmMap')
 const Reports = page(() => import('@/pages/dashboard/reports/Reports'), 'Reports')
 const AuditLog = page(() => import('@/pages/dashboard/auditLog/AuditLog'), 'AuditLog')
+const ContactMessages = page(() => import('@/pages/dashboard/contact/ContactMessages'), 'ContactMessages')
+const Contact = page(() => import('@/pages/storefront/Contact'), 'Contact')
 const ForgotPassword = page(() => import('@/pages/auth/ForgotPassword'), 'ForgotPassword')
 const Login = page(() => import('@/pages/auth/Login'), 'Login')
 const Register = page(() => import('@/pages/auth/Register'), 'Register')
@@ -69,6 +71,7 @@ const RECORD_PAGES = [
   ['farm-map', 'map.view', <FarmMap key="farm-map" />],
   ['reports', 'reports.view', <Reports key="reports" />],
   ['audit-log', 'audit.view', <AuditLog key="audit-log" />],
+  ['contact-messages', 'contact.view', <ContactMessages key="contact-messages" />],
 ]
 
 export const router = createBrowserRouter([
@@ -96,6 +99,7 @@ export const router = createBrowserRouter([
             children: [
               { path: '/products', element: <Products /> },
               { path: '/products/:slug', element: <ProductDetail /> },
+              { path: '/contact', element: <Contact /> }, // Change 08: guests, buyers and farmers
             ],
           },
         ],

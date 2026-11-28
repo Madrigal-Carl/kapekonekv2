@@ -14,6 +14,7 @@ export const SETTING_DEFAULTS = {
   branch: {
     name: 'Kaluppa',
     phone: '0917 800 1122',
+    contactEmail: null, // Change 08: Contact us messages are emailed here once Kaluppa sets it
     street: '',
     barangay: 'Pantayin',
     municipality: 'Santa Cruz',

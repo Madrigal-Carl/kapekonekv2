@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { openingHoursRule, phoneRule, walletAccountsRule } from './rules.js'
+import { emailRule, openingHoursRule, phoneRule, walletAccountsRule } from './rules.js'
 
 // Mirror backend/src/schemas/setting.schema.js. Kaluppa types pesos; the API takes integer centavos.
 const pesos = (label, min = 0) =>
@@ -10,6 +10,7 @@ const days = z.number('Enter the days').int('Use whole days').min(1, 'Enter at l
 export const branchFormSchema = z.object({
   name: z.string().trim().min(2, 'Enter the branch name').max(80, 'Use 80 characters or fewer'),
   phone: phoneRule,
+  contactEmail: z.union([z.literal(''), emailRule]).nullish().transform((v) => v || null),
   street: z.string().trim().max(120, 'Use 120 characters or fewer'),
   municipality: z.string().min(1, 'Choose a municipality'),
   barangay: z.string().min(1, 'Choose a barangay'),

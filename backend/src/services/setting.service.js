@@ -9,6 +9,7 @@ import { findSettingValue } from '../repositories/setting.repository.js';
 export const getSetting = async (key) => (await findSettingValue(key)) ?? SETTING_DEFAULTS[key];
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const FULL_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 /** "17:00" → "5:00 PM" */
 const clock = (hhmm) => {
   const [h, m] = hhmm.split(':').map(Number);
@@ -31,6 +32,18 @@ export function formatHours(hours) {
   return runs.map((r) => `${DAYS[r.start]}${r.end > r.start ? `–${DAYS[r.end]}` : ''}, ${clock(r.from)} – ${clock(r.to)}`).join(' · ');
 }
 
+/** Opening hours as rows for the Contact us card: [{ days: 'Mon – Sat', time: '8:00 AM – 5:00 PM' }, { days: 'Sunday', time: 'Closed' }]. */
+export function hoursRows(hours) {
+  const runs = [];
+  hours.forEach((h, day) => {
+    const time = h.open ? `${clock(h.from)} – ${clock(h.to)}` : 'Closed';
+    const last = runs.at(-1);
+    if (last?.time === time) last.end = day;
+    else runs.push({ start: day, end: day, time });
+  });
+  return runs.map((r) => ({ days: r.end > r.start ? `${DAYS[r.start]} – ${DAYS[r.end]}` : FULL_DAYS[r.start], time: r.time }));
+}
+
 /** "Km 3, Pantayin, Santa Cruz, Marinduque" */
 export const branchAddress = (b) => [b.street, b.barangay, b.municipality, 'Marinduque'].filter(Boolean).join(', ');
 
@@ -47,10 +60,11 @@ export async function getPickup() {
  * (every payment line in the storefront is built from `payment.providers`).
  */
 export async function getDeliveryInfo() {
-  const [fee, eta, pickup, payment] = await Promise.all([getSetting('delivery.fee'), getSetting('delivery.eta'), getPickup(), getPaymentSettings()]);
+  const [fee, eta, pickup, payment, branch] = await Promise.all([getSetting('delivery.fee'), getSetting('delivery.eta'), getPickup(), getPaymentSettings(), getSetting('branch')]);
   const { baseFeeCentavos, baseKm, perKmCentavos, roundUpToCentavos, maxKm } = fee;
   return {
     pickup,
+    contact: { email: branch.contactEmail ?? null, hours: hoursRows(branch.hours) }, // Contact us card (Change 08)
     fee: { baseFeeCentavos, baseKm, perKmCentavos, roundUpToCentavos, maxKm },
     eta: { minBusinessDays: eta.minBusinessDays, maxBusinessDays: eta.maxBusinessDays },
     payment: { providers: payment.providers },

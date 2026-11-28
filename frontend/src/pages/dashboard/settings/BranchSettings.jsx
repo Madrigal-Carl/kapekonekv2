@@ -19,13 +19,14 @@ import { SaveBar, SettingsCard } from './SettingsParts'
 const MapPicker = lazy(() => import('@/components/map/MapPicker').then((m) => ({ default: m.MapPicker })))
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 const FORM_ID = 'settings-branch'
-const toForm = (b) => ({ ...b, phone: formatPhone(b.phone), street: b.street ?? '' })
+const toForm = (b) => ({ ...b, phone: formatPhone(b.phone), street: b.street ?? '', contactEmail: b.contactEmail ?? '' })
 const pinText = (p) => `${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}`
 /** One diff row per weekday ("Monday: 08:00–17:00 → Closed"). */
 const flat = ({ hours = [], ...rest } = {}) => ({ ...rest, ...Object.fromEntries(hours.map((h, i) => [`hours${i}`, h])) })
 const LABELS = {
   name: 'Branch name',
   phone: 'Contact number',
+  contactEmail: { label: 'Contact us email', format: (v) => v || 'Not set' },
   municipality: 'Municipality',
   barangay: 'Barangay',
   street: 'Street, building or landmark',
@@ -140,6 +141,7 @@ export function BranchSettings({ branch, onSaved }) {
             <TextField id="branch-name" label="Branch name" maxLength={80} error={errors.name?.message} {...register('name')} />
             <TextField id="branch-phone" label="Contact number" type="tel" maxLength={13} error={errors.phone?.message} {...register('phone')} />
           </div>
+          <TextField id="branch-contact-email" label="Contact us email" optional type="email" maxLength={120} hint="Messages from the Contact us page are emailed here." error={errors.contactEmail?.message} {...register('contactEmail')} />
           <div className="grid gap-5 min-[720px]:grid-cols-2">
             <SearchSelect label="Municipality" icon="pin" placeholder="Select municipality" searchPlaceholder="Search municipality" options={(locations.data ?? []).map((t) => t.name)} value={municipality || null} onChange={pickMunicipality} error={errors.municipality?.message} />
             <Controller

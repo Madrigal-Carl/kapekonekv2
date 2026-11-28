@@ -52,6 +52,7 @@ export function MobileMenu() {
         <nav ref={panel} id="mobile-menu" aria-label="Menu" className="absolute inset-x-0 top-16 z-40 border-b border-sand bg-white px-4 pb-4 pt-2 shadow-dropdown">
           <Link to="/products" className={linkClasses}>Products</Link>
           <Link to="/#how" className={linkClasses}>How it works</Link>
+          <Link to="/contact" className={linkClasses}>Contact us</Link>
           <div className="mx-1 my-2 h-px bg-sand-soft" />
           {isAuthenticated ? (
             <>

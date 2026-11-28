@@ -37,7 +37,7 @@ describe('runSeeders', () => {
     const first = await counts();
     await runSeeders({ only: ['roles', 'users'], log });
     expect(await counts()).toEqual(first);
-    expect(first).toEqual({ roles: 4, permissions: 38, users: 27 });
+    expect(first).toEqual({ roles: 4, permissions: 39, users: 27 });
 
     const byEmail = async (local) => User.findOne({ email: `kapekonek.${local}@gmail.com` }).select('+password');
     expect((await byEmail('kaluppa')).roles).toEqual(['kaluppa']);

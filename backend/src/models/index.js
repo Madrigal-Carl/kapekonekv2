@@ -5,6 +5,7 @@ export * from './auditLog.model.js';
 export * from './beanListing.model.js';
 export * from './cart.model.js';
 export * from './category.model.js';
+export * from './contactMessage.model.js';
 export * from './conversation.model.js';
 export * from './conversationMember.model.js';
 export * from './farm.model.js';

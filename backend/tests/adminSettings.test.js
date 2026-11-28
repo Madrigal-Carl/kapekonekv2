@@ -64,6 +64,11 @@ describe('Branch', () => {
     const info = (await request(app).get('/api/delivery/info')).body.data;
     // Saved as 09178001122, shown spaced like the default (pickup card, bean instructions).
     expect(info.pickup).toMatchObject({ address: 'Km 3, Pantayin, Santa Cruz, Marinduque', hours: 'Mon–Sat, 8:00 AM – 5:00 PM', phone: '0917 800 1122' });
+
+    // Change 08: the Contact us email (optional, checked like any email).
+    expect((await kaluppa.patch('/api/admin/settings/branch').send(branch({ contactEmail: 'nope' }))).body.errors).toEqual({ contactEmail: 'Enter a valid email address' });
+    await kaluppa.patch('/api/admin/settings/branch').send(branch({ contactEmail: 'Branch.Inbox@Example.com' })).expect(200);
+    expect((await request(app).get('/api/delivery/info')).body.data.contact.email).toBe('branch.inbox@example.com');
   });
 
   it('checks the hours (closing after opening), the barangay and the pin', async () => {

@@ -290,3 +290,16 @@ export const postTagsRule = z
   .array(z.enum(POST_TAGS, 'Pick tags from the list'))
   .max(3, 'Pick up to 3 tags')
   .refine((tags) => new Set(tags).size === tags.length, 'Pick each tag once');
+
+// Contact us (Change 08, ContactUs.dc.html): the form and POST /contact share this schema.
+export const CONTACT_TOPICS = ['An order', 'Delivery or pickup', 'Payment', 'Selling as a farmer', 'Partnership or bulk order', 'Something else'];
+export const CONTACT_MESSAGE_MAX = 1000;
+export const contactSchema = z.object({
+  name: z.string('Enter your name.').trim().min(1, 'Enter your name.').max(80, 'Use 80 characters or fewer.'),
+  email: z.string('Enter your email so we can reply.').trim().toLowerCase().min(1, 'Enter your email so we can reply.').pipe(z.email('Enter a valid email, like name@gmail.com.')),
+  phone: z.union([z.literal(''), phoneRule]).nullish().transform((v) => v || null),
+  topic: z.enum(CONTACT_TOPICS, 'Choose a topic.'),
+  orderNumber: z.string().trim().max(40, 'Use 40 characters or fewer.').nullish().transform((v) => v || null),
+  message: z.string('Write at least 10 characters.').trim().min(10, 'Write at least 10 characters.').max(CONTACT_MESSAGE_MAX, 'Use 1,000 characters or fewer.'),
+  website: z.string().max(200).optional(), // honeypot: hidden from people, so any value means a bot
+});

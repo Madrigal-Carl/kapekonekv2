@@ -10,7 +10,7 @@ import { FieldHint, Input, Label } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { SearchSelect } from '@/components/ui/SearchSelect'
 import { Spinner } from '@/components/ui/Spinner'
-import { useCreateAddress, useUpdateAddress } from '@/hooks/useAddresses'
+import { useAddressErrorToast, useCreateAddress, useUpdateAddress } from '@/hooks/useAddresses'
 import { useCan } from '@/hooks/useCan'
 import { useDirtyDiff, useSaveConfirm } from '@/hooks/useDirtyDiff'
 import { useBarangayPoint, usePointQuote, useReverseGeocode } from '@/hooks/useGeo'
@@ -88,6 +88,7 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
   const barangayPoint = useBarangayPoint()
   const create = useCreateAddress()
   const update = useUpdateAddress()
+  const addressError = useAddressErrorToast()
   const [pinError, setPinError] = useState(null)
   const [pinNote, setPinNote] = useState(null)
   // The highlighted area. Edit opens on the saved pin with its barangay highlighted; a new address shows the whole island.
@@ -154,7 +155,7 @@ export function AddressFormModal({ address, user, onClose, onSaved }) {
       },
       onError: (error) => {
         if (error.response?.data?.errors?.location) setPinError(error.response.data.errors.location)
-        if (!applyServerErrors(error, setError, FIELDS)) toast.error(errorMessage(error))
+        if (!applyServerErrors(error, setError, FIELDS)) addressError(error)
       },
     })
   }

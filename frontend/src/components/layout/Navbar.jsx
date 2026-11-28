@@ -22,6 +22,7 @@ export function Navbar() {
   const requireAuth = useRequireAuthAction()
   const { pathname } = useLocation()
   const onProducts = pathname.startsWith('/products')
+  const onContact = pathname === '/contact'
   const cartCount = useCart().data?.count ?? 0
   const showCart = useCartDrawer((s) => s.show)
 
@@ -46,6 +47,14 @@ export function Navbar() {
               {onProducts && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-roast" />}
             </Link>
             <Link to="/#how" className="py-[22px] text-[13.5px] text-ink-2 no-underline hover:text-roast">How it works</Link>
+            <Link
+              to="/contact"
+              aria-current={onContact ? 'page' : undefined}
+              className={cn('relative py-[22px] text-[13.5px] no-underline hover:text-roast', onContact ? 'font-semibold text-roast' : 'text-ink-2')}
+            >
+              Contact us
+              {onContact && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-roast" />}
+            </Link>
           </nav>
         </div>
 

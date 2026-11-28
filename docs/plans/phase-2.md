@@ -414,8 +414,8 @@ Source: `docs/prompts/CHANGE-08-CONFIRM-EXPORT-ACCOUNTS-MENTIONS-CONTACT.md`, PH
 - [x] Hub @mentions with role scope, `mentions[]`, notifications, @ button.
 
 ### Task C08.G: Contact us and the address book
-- [ ] `/contact` page and form (`ContactMessage`, Settings → Branch contact email, copy to sender, honeypot, 3/hour), navbar and footer links.
-- [ ] Address book: atomic 10-address limit and `addressesVersion` check with a two-request race test.
+- [x] `/contact` page and form (`ContactMessage`, Settings → Branch contact email, copy to sender, honeypot, 3/hour), navbar and footer links.
+- [x] Address book: atomic 10-address limit and `addressesVersion` check with a two-request race test.
 
 ## Milestone summaries
 

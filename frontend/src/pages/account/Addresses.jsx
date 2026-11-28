@@ -7,11 +7,10 @@ import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { useAddresses, useDeleteAddress, useSetDefaultAddress } from '@/hooks/useAddresses'
+import { useAddressErrorToast, useAddresses, useDeleteAddress, useSetDefaultAddress } from '@/hooks/useAddresses'
 import { useAuth } from '@/hooks/useAuth'
 import { AccountHeading } from '@/layouts/AccountLayout'
 import { addressLabel } from '@/lib/address'
-import { errorMessage } from '@/lib/applyServerErrors'
 
 const MAX_ADDRESSES = 10
 
@@ -21,6 +20,7 @@ export function Addresses() {
   const addresses = useAddresses()
   const setDefault = useSetDefaultAddress()
   const remove = useDeleteAddress()
+  const addressError = useAddressErrorToast()
   const [editing, setEditing] = useState(undefined) // undefined = closed, null = new, object = edit
   const [deleting, setDeleting] = useState(null)
   const list = addresses.data ?? []
@@ -32,7 +32,7 @@ export function Addresses() {
         toast.success('Address deleted')
         setDeleting(null)
       },
-      onError: (error) => toast.error(errorMessage(error)),
+      onError: (error) => addressError(error),
     })
 
   return (
@@ -82,7 +82,7 @@ export function Addresses() {
                 address={address}
                 busy={setDefault.isPending}
                 onEdit={() => setEditing(address)}
-                onMakeDefault={() => setDefault.mutate(address._id, { onError: (e) => toast.error(errorMessage(e)) })}
+                onMakeDefault={() => setDefault.mutate(address._id, { onError: (e) => addressError(e) })}
                 onDelete={() => setDeleting(address)}
               />
             ))}

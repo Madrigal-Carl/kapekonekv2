@@ -15,7 +15,7 @@ vi.mock('../src/clients/mapbox.client.js', () => ({
 
 const { default: app } = await import('../src/app.js');
 const { runSeeders } = await import('../src/database/seeders/index.js');
-const { Address } = await import('../src/models/index.js');
+const { Address, User } = await import('../src/models/index.js');
 
 async function signedIn(email) {
   const agent = request.agent(app);
@@ -42,7 +42,10 @@ beforeAll(async () => {
   other = await signedIn('kapekonek.buyer01@gmail.com');
 });
 afterAll(stopMemoryDb);
-beforeEach(() => Address.deleteMany({}));
+beforeEach(async () => {
+  await Address.deleteMany({});
+  await User.updateMany({}, { addressCount: 0 });
+});
 
 describe('addresses', () => {
   it('needs a signed-in user with addresses.manage (buyers and farmers)', async () => {
@@ -69,7 +72,38 @@ describe('addresses', () => {
     for (let i = 0; i < 10; i += 1) await buyer.post('/api/addresses').send(home).expect(201);
     const res = await buyer.post('/api/addresses').send(home);
     expect(res.status).toBe(409);
-    expect(res.body).toMatchObject({ code: 'CONFLICT', message: 'You can save up to 10 addresses' });
+    expect(res.body).toMatchObject({ code: 'CONFLICT', message: 'You can have up to 10 addresses.' });
+  });
+
+  it('two adds at 9 addresses, sent together: exactly one is saved (Change 08)', async () => {
+    for (let i = 0; i < 9; i += 1) await buyer.post('/api/addresses').send(home).expect(201);
+    const results = await Promise.all([buyer.post('/api/addresses').send(home), buyer.post('/api/addresses').send({ ...home, label: 'Work' })]);
+    expect(results.map((r) => r.status).sort()).toEqual([201, 409]);
+    expect(await Address.countDocuments({ deletedAt: null })).toBe(10);
+    // Deleting frees a slot again.
+    const one = (await buyer.get('/api/addresses')).body.data[0];
+    await buyer.delete(`/api/addresses/${one._id}`).expect(200);
+    await buyer.post('/api/addresses').send(home).expect(201);
+  });
+
+  it('refuses a change from a stale tab (If-Match addressesVersion); two changes from the same version: one wins (Change 08)', async () => {
+    const { meta } = (await buyer.get('/api/addresses')).body;
+    const created = await buyer.post('/api/addresses').set('If-Match', `"${meta.version}"`).send(home).expect(201);
+    expect(created.body.meta.version).toBe(meta.version + 1);
+    // The other tab still holds the old version.
+    const stale = await buyer.post('/api/addresses').set('If-Match', `"${meta.version}"`).send({ ...home, label: 'Work' });
+    expect(stale.status).toBe(409);
+    expect(stale.body).toMatchObject({ code: 'ADDRESSES_CHANGED', message: 'Your addresses changed in another tab. Refresh and try again.' });
+    expect((await buyer.get('/api/addresses')).body.data).toHaveLength(1);
+
+    const now = created.body.meta.version;
+    const id = created.body.data._id;
+    const race = await Promise.all([
+      buyer.patch(`/api/addresses/${id}`).set('If-Match', String(now)).send({ ...home, street: 'Tab A street' }),
+      buyer.delete(`/api/addresses/${id}`).set('If-Match', String(now)),
+    ]);
+    expect(race.map((r) => r.status).sort()).toEqual([200, 409]);
+    expect((await buyer.get('/api/addresses')).body.meta.version).toBe(now + 1);
   });
 
   it('promotes the newest remaining address when the default is deleted', async () => {

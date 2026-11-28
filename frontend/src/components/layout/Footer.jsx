@@ -18,6 +18,7 @@ const COLUMNS = [
       ['How ordering works', '/#how'],
       ['Delivery & pickup', '/#faq'],
       ['FAQ', '/#faq'],
+      ['Contact us', '/contact'],
       ['Sell as a farmer', '/register'],
     ],
   },

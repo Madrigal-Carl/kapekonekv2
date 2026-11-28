@@ -53,6 +53,7 @@ import {
   LuLock,
   LuLogOut,
   LuMail,
+  LuPhone,
   LuMap,
   LuMapPin,
   LuMaximize,
@@ -177,6 +178,7 @@ export const IconLocate = LuLocateFixed
 export const IconLock = LuLock
 export const IconLogOut = LuLogOut
 export const IconMail = LuMail
+export const IconPhone = LuPhone
 export const IconMapPin = LuMapPin
 export const IconMapPinOff = LuMapPinOff
 export const IconMaximize = LuMaximize
@@ -232,6 +234,7 @@ export const NAV_ICONS = {
   audit: IconAudit,
   settings: IconSettings,
   reviews: IconReviews,
+  contact: IconMail,
   peso: IconPeso,
   clock: IconClock,
   rejected: IconCircleX,

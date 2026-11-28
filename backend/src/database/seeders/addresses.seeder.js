@@ -1,4 +1,4 @@
-import { countActiveByUser, insertAddresses } from '../../repositories/address.repository.js';
+import { countActiveByUser, insertAddresses, syncAddressCounts } from '../../repositories/address.repository.js';
 import { findUsersByUsernames } from '../../repositories/user.repository.js';
 import { labelPoint } from '../../services/boundary.service.js';
 import { getLocations } from '../../services/location.service.js';
@@ -52,5 +52,6 @@ export async function seedAddresses() {
     }, n));
   }
   if (docs.length) await insertAddresses(docs);
+  await syncAddressCounts(users.map((u) => u._id));
   return `${docs.length} addresses`;
 }

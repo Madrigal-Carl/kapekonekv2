@@ -40,7 +40,15 @@ export const NAV = {
       ],
     ],
     map,
-    ['System', [item('Reports', 'reports', '/dashboard/reports'), item('Audit log', 'audit', '/dashboard/audit-log'), item('Settings', 'settings', '/dashboard/settings')]],
+    [
+      'System',
+      [
+        item('Reports', 'reports', '/dashboard/reports'),
+        item('Contact messages', 'contact', '/dashboard/contact-messages'),
+        item('Audit log', 'audit', '/dashboard/audit-log'),
+        item('Settings', 'settings', '/dashboard/settings'),
+      ],
+    ],
   ],
 }
 

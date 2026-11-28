@@ -52,6 +52,8 @@ describe('GET /delivery/info', () => {
       fee: { baseFeeCentavos: 5000, baseKm: 3, perKmCentavos: 1000, roundUpToCentavos: 500, maxKm: 60 },
       eta: { minBusinessDays: 3, maxBusinessDays: 5 },
       payment: { providers: ['GCash'] }, // Maya is saved but off at checkout
+      // Change 08: the Contact us card. No contact email until Kaluppa sets one; hours as rows.
+      contact: { email: null, hours: [{ days: 'Mon – Sat', time: '8:00 AM – 5:00 PM' }, { days: 'Sunday', time: 'Closed' }] },
     });
     expect(JSON.stringify(res.body.data)).not.toMatch(/origin|roadFactor/);
   });

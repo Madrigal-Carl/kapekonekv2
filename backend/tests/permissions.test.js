@@ -99,7 +99,7 @@ describe('role matrix (PHASE-2-SPEC §2)', () => {
     group_manager: [...all, 'farmers.manage', 'farmers.approve', 'farmers.reset_password', ...records, 'beans.sell', 'reports.view'],
     kaluppa: [
       ...all, 'farmers.manage', 'farmers.approve', 'farmers.reset_password', 'group_managers.manage', 'users.reset_password', 'associations.manage', ...records, 'records.view_all',
-      'beans.review', ...shop, 'catalog.coffee', 'orders.manage', 'inventory.manage', 'reviews.moderate', 'settings.manage',
+      'beans.review', ...shop, 'catalog.coffee', 'orders.manage', 'inventory.manage', 'reviews.moderate', 'settings.manage', 'contact.view',
       'posts.moderate', 'audit.view', 'reports.view',
     ],
   };

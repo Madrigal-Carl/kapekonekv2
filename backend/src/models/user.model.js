@@ -18,6 +18,8 @@ const userSchema = new mongoose.Schema(
     contactNumber: { type: String, default: null },
     avatar: { url: String, publicId: String },
     tokenVersion: { type: Number, default: 0 },
+    addressCount: { type: Number, default: 0 }, // active addresses; adding checks it in the same update (Change 08)
+    addressesVersion: { type: Number, default: 0 }, // bumped by every address change; a stale tab's change is refused
     status: { type: String, enum: ['active', 'suspended'], default: 'active' },
     lastLoginAt: { type: Date, default: null },
     mustChangePassword: { type: Boolean, default: false }, // first sign-in goes to "Set a new password"

@@ -15,6 +15,7 @@ export const PERMISSIONS = {
   'profile.update': { name: 'Update profile', group: 'account' },
   'dashboard.view': { name: 'View dashboard', group: 'dashboard' },
   'settings.manage': { name: 'Manage settings', group: 'settings' },
+  'contact.view': { name: 'Read Contact us messages', group: 'settings' }, // Change 08
   'posts.react': { name: 'React to posts', group: 'posts' },
   'posts.comment': { name: 'Comment on posts', group: 'posts' },
   'posts.create': { name: 'Create posts', group: 'posts' },

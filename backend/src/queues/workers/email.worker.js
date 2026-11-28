@@ -9,6 +9,7 @@ import { emailChangedNotice } from '../../templates/email/emailChangedNotice.tem
 import { kaluppaNewOrder } from '../../templates/email/kaluppaNewOrder.template.js';
 import { orderPlaced } from '../../templates/email/orderPlaced.template.js';
 import { beanStatus } from '../../templates/email/beanStatus.template.js';
+import { contactCopy, contactMessage } from '../../templates/email/contact.templates.js';
 import { orderStatusChanged } from '../../templates/email/orderStatusChanged.template.js';
 import { resetPassword } from '../../templates/email/resetPassword.template.js';
 import { testEmail } from '../../templates/email/test.template.js';
@@ -31,6 +32,8 @@ const handlers = {
   [EMAIL_JOBS.KALUPPA_NEW_ORDER]: kaluppaNewOrder,
   [EMAIL_JOBS.ORDER_STATUS_CHANGED]: orderStatusChanged,
   [EMAIL_JOBS.BEAN_STATUS]: beanStatus,
+  [EMAIL_JOBS.CONTACT_MESSAGE]: contactMessage,
+  [EMAIL_JOBS.CONTACT_COPY]: contactCopy,
 };
 
 /**
