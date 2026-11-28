@@ -4,6 +4,9 @@ import { cn } from '@/lib/cn'
 
 // Open dialogs, newest last: only the top one handles Esc and Tab (a confirm over the cart drawer).
 const stack = []
+// The page's own overflow, saved when the first dialog opens and put back when the last one closes. Saving it per
+// dialog broke when two close in the same render (cart drawer + "Continue to checkout?"): the page stayed locked.
+let pageOverflow = ''
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
@@ -23,7 +26,7 @@ export function Modal({ open, onClose, labelledBy, describedBy, initialFocus, pl
   useEffect(() => {
     if (!open) return undefined
     const previous = document.activeElement
-    const { overflow } = document.body.style
+    if (!stack.length) pageOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     ;(initialFocus?.current ?? panel.current.querySelector(FOCUSABLE) ?? panel.current).focus()
 
@@ -53,7 +56,7 @@ export function Modal({ open, onClose, labelledBy, describedBy, initialFocus, pl
     return () => {
       document.removeEventListener('keydown', onKeyDown)
       stack.splice(stack.indexOf(self), 1)
-      document.body.style.overflow = overflow
+      if (!stack.length) document.body.style.overflow = pageOverflow
       previous?.focus?.()
     }
   }, [open, initialFocus])
