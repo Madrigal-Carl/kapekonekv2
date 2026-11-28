@@ -1,3 +1,4 @@
+import { MentionText } from './Mentions'
 import { useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -25,7 +26,7 @@ function Panel({ post, onTag, box }) {
     <>
       <PostHeader post={post} headingId="pv-title" className="shrink-0 border-b border-sand-soft px-[18px] py-4" />
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <p className="mx-[18px] mb-0 mt-3.5 whitespace-pre-line text-[14.5px] leading-[1.65] wrap-anywhere">{post.body}</p>
+        <p className="mx-[18px] mb-0 mt-3.5 whitespace-pre-line text-[14.5px] leading-[1.65] wrap-anywhere"><MentionText text={post.body} mentions={post.mentions} /></p>
         {post.tags.length > 0 && (
           <p className="mx-[18px] mb-0 mt-2 flex flex-wrap gap-2">
             {post.tags.map((tag) => (

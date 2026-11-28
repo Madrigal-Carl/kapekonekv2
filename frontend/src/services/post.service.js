@@ -23,7 +23,7 @@ export const recordView = (id) => api.post(`/hub/posts/${id}/view`).then(data)
 export const setReaction = ({ target, id, type }) =>
   (type ? api.put(`/${target}/${id}/reaction`, { type }) : api.delete(`/${target}/${id}/reaction`)).then(data)
 
-export const addComment = ({ postId, body, parentId }) => api.post(`/posts/${postId}/comments`, { body, parentId }).then(data)
-export const editComment = ({ id, body }) => api.patch(`/comments/${id}`, { body }).then(data)
+export const addComment = ({ postId, body, parentId, mentions }) => api.post(`/posts/${postId}/comments`, { body, parentId, mentions }).then(data)
+export const editComment = ({ id, body, mentions }) => api.patch(`/comments/${id}`, { body, mentions }).then(data)
 export const deleteComment = (id) => api.delete(`/comments/${id}`).then(data)
 export const removeComment = ({ id, reason }) => api.post(`/comments/${id}/remove`, { reason }).then(data)

@@ -1,12 +1,17 @@
 import { getValkey } from '../config/valkey.js';
+import { ROLES } from '../constants/permissions.js';
+import { findPeopleByIds, findUserIdsByRole } from '../repositories/user.repository.js';
 import * as repo from '../repositories/post.repository.js';
 import { POST_TAGS } from '../schemas/rules.js';
 import { AppError } from '../utils/AppError.js';
 import { authorCard } from '../utils/authorCard.js';
 import { manilaDateKey } from '../utils/manilaDate.js';
 import * as audit from './audit.service.js';
+import { loadScope } from './auth.service.js';
+import { canMessage, peopleSubs } from './inbox.service.js';
 import { notifyUsers } from './notification.service.js';
 import { userCan } from './permission.service.js';
+import { isKaluppaTeam } from './policy.service.js';
 import { assertUploadAllowed, isOwnUpload } from './upload.service.js';
 
 const REPLY_PREVIEW = 2;
@@ -37,10 +42,50 @@ function presentPost(post, { full = false, myReaction, top } = {}) {
   };
 }
 const presentComment = (c, { full = false, liked } = {}) => ({
-  _id: c._id, body: c.body, createdAt: c.createdAt, editedAt: c.editedAt ?? null, parent: c.parent ?? null,
+  _id: c._id, body: c.body, mentions: c.mentions ?? [], createdAt: c.createdAt, editedAt: c.editedAt ?? null, parent: c.parent ?? null,
   reactionCount: c.reactionCount, replyCount: c.replyCount, author: authorCard(c.author, { full }),
   ...(liked && { liked: Boolean(liked[String(c._id)]) }),
 });
+
+// @mentions (Change 08, HubMention.dc.html)
+
+/**
+ * The mentions the author may make, of names still in the text. 'kaluppa' means every Kaluppa account.
+ * Same scope as the Inbox: Kaluppa and any farmer or Group Manager; otherwise people in the author's association.
+ * @returns {Promise<unknown[]>} user ids
+ */
+async function checkedMentions(user, body, ids = []) {
+  if (user.farmerStatus === undefined) await loadScope(user);
+  const wanted = new Set(ids.map(String));
+  const out = [];
+  if (wanted.delete('kaluppa') && !isKaluppaTeam(user) && body.includes('@Kaluppa')) out.push(...(await findUserIdsByRole(ROLES.KALUPPA)));
+  for (const other of wanted.size ? await findPeopleByIds([...wanted]) : []) {
+    if (other.status !== 'active') continue;
+    await loadScope(other);
+    if (canMessage(user, other) && body.includes(`@${authorCard(other, { full: true }).name}`)) out.push(other._id);
+  }
+  return [...new Map(out.map((id) => [String(id), id])).values()];
+}
+
+/** Tell people newly mentioned (not the ones already mentioned before an edit). */
+async function notifyMentioned(user, ids, before, what, postId, body) {
+  const fresh = ids.filter((id) => !same(id, user._id) && !before.some((b) => same(b, id)));
+  if (fresh.length) await notifyUsers(fresh, { type: 'mention', title: `${who(user)} mentioned you in a ${what}`, body: excerpt(body), link: postLink(postId), data: { postId } });
+}
+
+/** Mention ids to `{ _id, name, sub }` for the highlighted links (role and association in the tooltip). Mutates and returns `items`. */
+async function withMentions(items) {
+  const all = items.flatMap((i) => [i, ...(i.replies ?? []), ...(i.lastComment ? [i.lastComment] : [])]);
+  const ids = [...new Set(all.flatMap((i) => (i.mentions ?? []).map(String)))];
+  const users = ids.length ? await findPeopleByIds(ids) : [];
+  const subs = await peopleSubs(users);
+  const cards = new Map(users.map((u) => [String(u._id), { _id: u._id, name: authorCard(u, { full: true }).name, sub: subs.get(String(u._id)) }]));
+  for (const i of all) {
+    const list = (i.mentions ?? []).map((id) => cards.get(String(id))).filter(Boolean);
+    i.mentions = list.filter((c, k) => list.findIndex((x) => x.name === c.name) === k); // several Kaluppa accounts read as one "@Kaluppa"
+  }
+  return items;
+}
 
 // Top 3 (landing page): the most-viewed posts of the last 30 days, ranked hourly by the `posts:top3` job.
 
@@ -73,7 +118,7 @@ const topIds = async () => new Set((await topEntries()).map((t) => t.id));
 export async function topPosts() {
   const entries = await topEntries();
   const posts = new Map((await repo.findPublishedByIds(entries.map((t) => t.id))).map((p) => [String(p._id), p]));
-  return entries.filter((t) => posts.has(t.id)).map((t) => ({ ...presentPost(posts.get(t.id), { full: true }), views: t.views }));
+  return withMentions(entries.filter((t) => posts.has(t.id)).map((t) => ({ ...presentPost(posts.get(t.id), { full: true }), views: t.views })));
 }
 
 /** Re-rank after a top post leaves the Hub, so the landing page doesn't keep a gap for an hour. */
@@ -96,9 +141,9 @@ export async function getPost(id, user) {
   if (!member && !top.has(String(post._id))) {
     throw new AppError(403, 'This post is in the KapeKonek Hub, for farmers, Group Managers and Kaluppa.', { code: 'FORBIDDEN' });
   }
-  if (!member) return presentPost(post);
+  if (!member) return (await withMentions([presentPost(post)]))[0];
   const mine = await repo.reactionsOf(user._id, 'post', [post._id]);
-  return presentPost(post, { full: true, myReaction: mine[String(post._id)] ?? null, top });
+  return (await withMentions([presentPost(post, { full: true, myReaction: mine[String(post._id)] ?? null, top })]))[0];
 }
 
 /**
@@ -116,9 +161,9 @@ export async function listComments(postId, page, user) {
   const liked = member ? await repo.reactionsOf(user._id, 'comment', all.map((c) => c._id)) : undefined;
   const opts = { full: member, liked };
   return {
-    items: withReplies.map(({ comment, replies }) => ({
+    items: await withMentions(withReplies.map(({ comment, replies }) => ({
       ...presentComment(comment, opts), replies: replies.items.map((r) => presentComment(r, opts)), repliesNextCursor: replies.meta.nextCursor,
-    })),
+    }))),
     meta,
   };
 }
@@ -131,7 +176,7 @@ export async function listCommentReplies(commentId, page, user) {
   const member = await isHubMember(user);
   const { items, meta } = await repo.listReplies(commentId, page);
   const liked = member ? await repo.reactionsOf(user._id, 'comment', items.map((c) => c._id)) : undefined;
-  return { items: items.map((c) => presentComment(c, { full: member, liked })), meta };
+  return { items: await withMentions(items.map((c) => presentComment(c, { full: member, liked }))), meta };
 }
 
 /**
@@ -145,7 +190,7 @@ export async function listFeed(user, query) {
   const [mine, top, latest] = await Promise.all([repo.reactionsOf(user._id, 'post', ids), topIds(), repo.latestTopLevelComments(ids)]);
   const last = new Map(latest.map((c) => [String(c.post), presentComment(c, { full: true })]));
   return {
-    items: items.map((p) => ({ ...presentPost(p, { full: true, myReaction: mine[String(p._id)] ?? null, top }), lastComment: last.get(String(p._id)) ?? null })),
+    items: await withMentions(items.map((p) => ({ ...presentPost(p, { full: true, myReaction: mine[String(p._id)] ?? null, top }), lastComment: last.get(String(p._id)) ?? null }))),
     meta,
   };
 }
@@ -182,8 +227,10 @@ const auditView = (p) => ({ body: p.body, tags: p.tags, mediaCount: p.media?.len
 const entity = (p) => ({ type: 'post', id: p._id, label: excerpt(p.body, 40) });
 
 /** `POST /hub/posts` (`posts.create`). */
-export async function createPost(user, { body, tags, media }) {
-  const post = await repo.createPost({ author: user._id, body, tags, media: await checkedMedia(user, media) });
+export async function createPost(user, { body, tags, media, mentions }) {
+  const named = await checkedMentions(user, body, mentions);
+  const post = await repo.createPost({ author: user._id, body, tags, mentions: named, media: await checkedMedia(user, media) });
+  await notifyMentioned(user, named, [], 'post', post._id, body);
   await audit.record({ actor: user, area: 'hub', action: 'create', entity: entity(post), after: auditView(post), fields: AUDITED });
   return getPost(post._id, user);
 }
@@ -196,10 +243,12 @@ async function ownPost(user, id) {
 }
 
 /** `PATCH /hub/posts/:id`: the author changes the text, tags or media. */
-export async function updatePost(user, id, { body, tags, media }) {
+export async function updatePost(user, id, { body, tags, media, mentions }) {
   const before = await ownPost(user, id);
-  const after = await repo.updatePublishedPost(id, { body, tags, media: await checkedMedia(user, media, before.media), editedAt: new Date() });
+  const named = await checkedMentions(user, body, mentions);
+  const after = await repo.updatePublishedPost(id, { body, tags, mentions: named, media: await checkedMedia(user, media, before.media), editedAt: new Date() });
   if (!after) throw notFound();
+  await notifyMentioned(user, named, before.mentions ?? [], 'post', id, body);
   await audit.record({ actor: user, area: 'hub', action: 'update', entity: entity(after), before: auditView(before), after: auditView(after), fields: AUDITED });
   return getPost(id, user);
 }
@@ -275,7 +324,7 @@ export async function unreact(user, targetType, id) {
 }
 
 /** `POST /posts/:id/comments`: a comment, or a reply to a top-level comment (one level only). */
-export async function addComment(user, postId, { body, parentId }) {
+export async function addComment(user, postId, { body, parentId, mentions }) {
   const post = await repo.findPublishedPost(postId);
   if (!post) throw notFound();
   let parent = null;
@@ -284,14 +333,16 @@ export async function addComment(user, postId, { body, parentId }) {
     if (!parent || !same(parent.post, post._id)) throw commentNotFound();
     if (parent.parent) throw fieldError('parentId', 'Reply to the comment itself');
   }
-  const comment = await repo.createComment({ post: post._id, author: user._id, parent: parent?._id ?? null, body });
+  const named = await checkedMentions(user, body, mentions);
+  const comment = await repo.createComment({ post: post._id, author: user._id, parent: parent?._id ?? null, body, mentions: named });
+  await notifyMentioned(user, named, [], 'comment', post._id, body);
   await repo.incrementPost(post._id, { commentCount: 1 });
   if (parent) {
     await repo.incrementComment(parent._id, { replyCount: 1 });
     await notifyAuthor(parent.author, user, `${who(user)} replied to your comment`, post._id, excerpt(body));
   }
   if (!parent || !same(parent.author, post.author?._id)) await notifyAuthor(post.author?._id, user, `${who(user)} commented on your post`, post._id, excerpt(body));
-  return presentComment(comment.toObject(), { full: true, liked: {} });
+  return (await withMentions([presentComment(comment.toObject(), { full: true, liked: {} })]))[0];
 }
 
 async function ownComment(user, id) {
@@ -302,9 +353,12 @@ async function ownComment(user, id) {
 }
 
 /** `PATCH /comments/:id`: the author edits their comment. */
-export async function editComment(user, id, { body }) {
-  await ownComment(user, id);
-  return presentComment(await repo.updateCommentBody(id, body), { full: true });
+export async function editComment(user, id, { body, mentions }) {
+  const before = await ownComment(user, id);
+  const named = await checkedMentions(user, body, mentions);
+  const after = await repo.updateCommentBody(id, body, named);
+  await notifyMentioned(user, named, before.mentions ?? [], 'comment', before.post, body);
+  return (await withMentions([presentComment(after, { full: true })]))[0];
 }
 
 async function dropComment(comment) {

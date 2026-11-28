@@ -14,6 +14,8 @@ import { cn } from '@/lib/cn'
 import { squareUrl } from '@/lib/image'
 import { POST_MAX, POST_MEDIA_MAX, POST_TAGS, postBodyRule } from '@/schemas/rules'
 import { LengthHint } from './LengthHint'
+import { useMentions } from '@/hooks/useMentions'
+import { MentionList, MentionNote } from './Mentions'
 import { TagChip } from './TagChip'
 
 const ACCEPT = 'image/jpeg,image/png,image/webp,image/heic,image/heif,video/mp4,video/webm'
@@ -43,6 +45,7 @@ export function CreatePostModal({ post, start = 'text', onClose, onDone }) {
   const upload = useUploadImage('post_media')
   const create = useCreatePost()
   const update = useUpdatePost()
+  const mention = useMentions(draft, setDraft, text, post?.mentions)
 
   const tooLong = draft.trim().length > POST_MAX
   // The API needs text on every post (postBodyRule), so media alone doesn't enable Post.
@@ -73,7 +76,7 @@ export function CreatePostModal({ post, start = 'text', onClose, onDone }) {
   function submit() {
     const parsed = postBodyRule.safeParse(draft)
     if (!parsed.success) return toast.error(parsed.error.issues[0].message)
-    const body = { body: parsed.data, tags, media: media.map(({ url, publicId, alt }) => ({ url, publicId, alt })) }
+    const body = { body: parsed.data, tags, mentions: mention.ids(parsed.data), media: media.map(({ url, publicId, alt }) => ({ url, publicId, alt })) }
     const onError = (error) => toast.error(errorMessage(error))
     if (editing) return update.mutate({ id: post._id, ...body }, { onSuccess: () => onDone('Post updated.'), onError })
     return create.mutate(body, { onSuccess: () => onDone('Posted to the Hub.'), onError })
@@ -117,7 +120,8 @@ export function CreatePostModal({ post, start = 'text', onClose, onDone }) {
               value={draft}
               aria-invalid={tooLong}
               aria-describedby={`${id}-len`}
-              onChange={(e) => setDraft(e.target.value)}
+              {...mention.inputProps(`${id}-mentions`)}
+              onKeyDown={mention.onKeyDown}
               placeholder={`What’s on your mind, ${me.firstName}?`}
               className={cn(
                 'w-full resize-none border-0 bg-transparent p-0 leading-[1.5] text-ink outline-none placeholder:text-ink-3',
@@ -125,6 +129,8 @@ export function CreatePostModal({ post, start = 'text', onClose, onDone }) {
               )}
             />
             <LengthHint id={`${id}-len`} value={draft} max={POST_MAX} />
+            <MentionList id={`${id}-mentions`} mention={mention} className="mt-1" />
+            <MentionNote mention={mention} className="mt-1" />
           </div>
 
           {drop && !media.length && (
@@ -226,6 +232,9 @@ export function CreatePostModal({ post, start = 'text', onClose, onDone }) {
               </Button>
               <Button variant="bare" aria-label="Add tags" aria-pressed={tagPick} onClick={() => setTagPick((t) => !t)} className={cn(toolButton, tagPick ? 'bg-crema' : 'bg-transparent hover:bg-foam')}>
                 <IconHash aria-hidden="true" className="size-5 text-roast" strokeWidth={2} />
+              </Button>
+              <Button variant="bare" aria-label="Mention someone" onClick={mention.start} className={cn(toolButton, 'bg-transparent text-[19px] font-bold text-tone-blue-ink hover:bg-foam')}>
+                @
               </Button>
             </span>
           </div>

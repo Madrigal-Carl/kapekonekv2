@@ -8,6 +8,7 @@ const commentSchema = new mongoose.Schema(
     author: { type: ObjectId, ref: 'User', required: true },
     parent: { type: ObjectId, ref: 'PostComment', default: null }, // one level of replies
     body: { type: String, required: true },
+    mentions: { type: [{ type: ObjectId, ref: 'User' }], default: [] }, // Change 08: @mentions
     reactionCount: { type: Number, default: 0 },
     replyCount: { type: Number, default: 0 },
     editedAt: { type: Date, default: null },

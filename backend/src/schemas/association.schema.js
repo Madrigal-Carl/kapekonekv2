@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { insideMarinduque } from '../services/boundary.service.js';
 import { getLocations } from '../services/location.service.js';
 import { objectIdRule, pageQuerySchema } from './common.schema.js';
 import { associationDescriptionRule, associationNameRule } from './rules.js';
@@ -12,6 +13,8 @@ export const associationSchema = z.object({
   municipality: municipalityRule,
   description: associationDescriptionRule.default(''),
   groupManagerId: objectIdRule.nullable().optional(),
+  // The meeting point pin (Change 08); null = the town's centre.
+  location: z.object({ lat: z.number(), lng: z.number() }).refine(insideMarinduque, 'Put the pin inside Marinduque').nullable().optional(),
 });
 
 export const associationListQuery = pageQuerySchema.extend({

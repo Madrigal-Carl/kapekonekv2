@@ -73,8 +73,8 @@ export const listReplies = (commentId, page) => commentPage({ parent: commentId 
 
 export const createComment = async (fields) => (await PostComment.create(fields)).populate('author', AUTHOR);
 
-export const updateCommentBody = (id, body) =>
-  PostComment.findByIdAndUpdate(id, { $set: { body, editedAt: new Date() } }, { returnDocument: 'after' }).populate('author', AUTHOR).lean();
+export const updateCommentBody = (id, body, mentions) =>
+  PostComment.findByIdAndUpdate(id, { $set: { body, mentions, editedAt: new Date() } }, { returnDocument: 'after' }).populate('author', AUTHOR).lean();
 
 export const incrementComment = (id, inc) => PostComment.updateOne({ _id: id }, { $inc: inc });
 

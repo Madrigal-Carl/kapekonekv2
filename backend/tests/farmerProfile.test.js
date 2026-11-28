@@ -107,6 +107,36 @@ describe('association requests', () => {
   });
 });
 
+describe('chatting while pending (Change 08)', () => {
+  it('a waiting farmer and the Group Manager share a direct chat; it turns read-only on reject or withdraw', async () => {
+    const { agent, user } = await registerFarmer(app, User, 'gina');
+    const manager = await User.findOne({ username: 'manager.santacruz' });
+    await ask(agent, user, associations.santacruz).expect(200);
+    const chat = await Conversation.findOne({ pairKey: directKey(user._id, manager._id) }).lean();
+    expect(chat).toBeTruthy();
+    expect(await member(chat._id, user._id)).toMatchObject({ canPost: true });
+    // Not in the group chat until approved.
+    expect(await member(associations.santacruz.groupChat, user._id)).toBeNull();
+    // "Message Liza" opens it; both sides can write.
+    expect((await agent.post('/api/conversations/direct').send({ userId: String(manager._id) })).body.data.id).toBe(String(chat._id));
+    await agent.post(`/api/conversations/${chat._id}/messages`).send({ body: 'Hello po, I sent my papers.' }).expect(201);
+    await santacruzManager.post(`/api/conversations/${chat._id}/messages`).send({ body: 'Got them, checking today.' }).expect(201);
+
+    await santacruzManager.post(`/api/farmers/${user._id}/reject`).send({ reason: 'Please send a clearer ID photo.' }).expect(200);
+    expect(await member(chat._id, user._id)).toMatchObject({ canPost: false });
+    expect((await agent.post(`/api/conversations/${chat._id}/messages`).send({ body: 'Okay po' })).status).toBe(403);
+    // Still readable: the button opens the old chat instead of failing.
+    expect((await agent.post('/api/conversations/direct').send({ userId: String(manager._id) })).body.data).toMatchObject({ id: String(chat._id), canPost: false });
+
+    // Asking again reopens it; withdrawing closes it again.
+    await ask(agent, user, associations.santacruz).expect(200);
+    expect(await member(chat._id, user._id)).toMatchObject({ canPost: true });
+    await agent.delete('/api/me/farmer-profile/request').expect(200);
+    expect(await member(chat._id, user._id)).toMatchObject({ canPost: false });
+    expect(await member(chat._id, manager._id)).toMatchObject({ canPost: false });
+  });
+});
+
 describe('the account page', () => {
   it('shows the history with names, the cap and the farmer’s own totals', async () => {
     const { agent, user } = await registerFarmer(app, User, 'gil');

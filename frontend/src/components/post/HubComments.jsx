@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { ConfirmModal } from '@/components/dashboard/ConfirmModal'
 import { Avatar } from '@/components/ui/Avatar'
@@ -13,33 +13,39 @@ import { cn } from '@/lib/cn'
 import { timeAgo } from '@/lib/date'
 import { COMMENT_MAX, commentBodyRule } from '@/schemas/rules'
 import { LengthHint } from './LengthHint'
+import { useMentions } from '@/hooks/useMentions'
+import { MentionList, MentionNote, MentionText } from './Mentions'
 
 const metaButton = 'h-auto border-0 bg-transparent p-0 text-xs font-semibold text-ink-2 hover:text-ink'
 const pill = 'min-w-0 flex-1 rounded-full border border-sand-strong bg-white px-3.5 py-1.5 focus:border-roast focus:outline-none focus:ring-[3px] focus:ring-roast/20'
 const onError = (error) => toast.error(errorMessage(error))
 
 /** One-line input with a submit button: a new comment, a reply or an edit. Enter submits. */
-function LineInput({ label, placeholder, initial = '', submitLabel, onSubmit, onCancel, pending, className, autoFocus }) {
+function LineInput({ label, placeholder, initial = '', initialMentions, submitLabel, onSubmit, onCancel, pending, className, autoFocus }) {
   const [text, setText] = useState(initial)
   const hintId = useId()
+  const input = useRef(null)
+  const mention = useMentions(text, setText, input, initialMentions)
   const tooLong = text.trim().length > COMMENT_MAX
   const submit = () => {
     const parsed = commentBodyRule.safeParse(text)
     if (!parsed.success) return toast.error(parsed.error.issues[0].message)
-    return onSubmit(parsed.data, () => setText(''))
+    return onSubmit(parsed.data, () => setText(''), mention.ids(parsed.data))
   }
   return (
     <div className={cn('flex flex-col gap-1', className)}>
     <div className="flex items-center gap-2">
       <input
+        ref={input}
         aria-label={label}
         placeholder={placeholder}
         value={text}
         aria-invalid={tooLong}
         aria-describedby={hintId}
         autoFocus={autoFocus}
-        onChange={(e) => setText(e.target.value)}
+        {...mention.inputProps(`${hintId}-mentions`)}
         onKeyDown={(e) => {
+          if (mention.onKeyDown(e)) return
           if (e.key === 'Enter' && !tooLong) submit()
           if (e.key === 'Escape' && onCancel) onCancel()
         }}
@@ -51,6 +57,8 @@ function LineInput({ label, placeholder, initial = '', submitLabel, onSubmit, on
       )}
     </div>
     <LengthHint id={hintId} value={text} max={COMMENT_MAX} />
+    <MentionList id={`${hintId}-mentions`} mention={mention} />
+    <MentionNote mention={mention} />
     </div>
   )
 }
@@ -72,18 +80,19 @@ function CommentItem({ comment, postId, small = false, onReply, onAsk }) {
           <LineInput
             label="Edit your comment"
             initial={comment.body}
+            initialMentions={comment.mentions}
             submitLabel="Save"
             autoFocus
             pending={edit.isPending}
             onCancel={() => setEditing(false)}
-            onSubmit={(body) => edit.mutate({ id: comment._id, body }, { onSuccess: () => setEditing(false), onError })}
+            onSubmit={(body, _clear, mentions) => edit.mutate({ id: comment._id, body, mentions }, { onSuccess: () => setEditing(false), onError })}
           />
         ) : (
           <div className="inline-block max-w-full rounded-xl bg-foam px-3 py-2">
             <span className="block text-[13px] font-semibold">
               {comment.author.name} <span className="text-[11.5px] font-medium text-ink-3">{comment.author.roleLabel}</span>
             </span>
-            <span className="block whitespace-pre-line text-[13.5px] leading-[1.5] wrap-anywhere">{comment.body}</span>
+            <span className="block whitespace-pre-line text-[13.5px] leading-[1.5] wrap-anywhere"><MentionText text={comment.body} mentions={comment.mentions} /></span>
           </div>
         )}
         <span className="flex flex-wrap items-center gap-3 px-3 pt-[3px] text-xs text-ink-3">
@@ -133,7 +142,7 @@ function Thread({ comment, postId, replying, onReplyToggle, onAsk }) {
           submitLabel="Reply"
           autoFocus
           pending={add.isPending}
-          onSubmit={(body, clear) => add.mutate({ postId, body, parentId: comment._id }, { onSuccess: () => { clear(); onReplyToggle() }, onError })}
+          onSubmit={(body, clear, mentions) => add.mutate({ postId, body, parentId: comment._id, mentions }, { onSuccess: () => { clear(); onReplyToggle() }, onError })}
         />
       )}
     </div>
@@ -149,11 +158,14 @@ export function CommentBox({ postId, ref }) {
   const id = useId()
   const add = useAddComment()
   const [text, setText] = useState('')
+  const own = useRef(null)
+  const input = ref ?? own
+  const mention = useMentions(text, setText, input)
   const tooLong = text.trim().length > COMMENT_MAX
   const send = () => {
     const parsed = commentBodyRule.safeParse(text)
     if (!parsed.success || add.isPending) return
-    add.mutate({ postId, body: parsed.data }, { onSuccess: () => setText(''), onError })
+    add.mutate({ postId, body: parsed.data, mentions: mention.ids(parsed.data) }, { onSuccess: () => setText(''), onError })
   }
   return (
     <div className="shrink-0 border-t border-sand-soft bg-white px-[18px] pb-4 pt-3">
@@ -161,14 +173,15 @@ export function CommentBox({ postId, ref }) {
         <Avatar person={me} className="size-8 text-[11px]" />
         <label htmlFor={id} className="sr-only">Write a comment</label>
         <textarea
-          ref={ref}
+          ref={input}
           id={id}
           rows={1}
           value={text}
           aria-invalid={tooLong}
           aria-describedby={`${id}-len`}
-          onChange={(e) => setText(e.target.value)}
+          {...mention.inputProps(`${id}-mentions`)}
           onKeyDown={(e) => {
+            if (mention.onKeyDown(e)) return
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault()
               send()
@@ -182,6 +195,8 @@ export function CommentBox({ postId, ref }) {
         </Button>
       </div>
       <LengthHint id={`${id}-len`} value={text} max={COMMENT_MAX} />
+      <MentionList id={`${id}-mentions`} mention={mention} className="mt-1.5" />
+      <MentionNote mention={mention} className="mt-1" />
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { History } from '@/components/dashboard/History'
 import { IconPlus } from '@/components/ui/icons'
-import { useEffect, useId, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useId, useMemo, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -49,7 +49,9 @@ const COLUMNS = [
   { key: 'harvest', label: 'Harvest this year', align: 'right' },
   { key: 'status', label: 'Status', kind: 'pill' },
 ]
-const FIELDS = ['name', 'municipality', 'description', 'groupManagerId']
+const FIELDS = ['name', 'municipality', 'description', 'groupManagerId', 'location']
+const MapPicker = lazy(() => import('@/components/map/MapPicker').then((m) => ({ default: m.MapPicker })))
+const PIN_HINTS = { empty: 'Click the map where the association meets. Without a pin, its town’s centre is used.', placed: 'Pin placed. Drag or click the map to move it.' }
 const MEMBER_TONE = { green: 'text-tone-green-ink', amber: 'text-tone-amber-ink', red: 'text-tone-red-ink' }
 
 const pill = (a) => (a.status === 'archived' ? { label: 'Archived', tone: 'gray' } : a.groupManager ? { label: 'Active', tone: 'green' } : { label: 'Needs a Group Manager', tone: 'amber' })
@@ -214,7 +216,7 @@ function AssociationView({ open, association: a, onEdit, onClose }) {
   )
 }
 
-const toForm = (a) => ({ name: a?.name ?? '', municipality: a?.municipality ?? '', description: a?.description ?? '', groupManagerId: a?.groupManager?.id ?? null })
+const toForm = (a) => ({ name: a?.name ?? '', municipality: a?.municipality ?? '', description: a?.description ?? '', groupManagerId: a?.groupManager?.id ?? null, location: a?.location ?? null })
 
 function AssociationForm({ open, association, onClose }) {
   const formId = useId()
@@ -240,7 +242,9 @@ function AssociationFields({ formId, association, create, update, onClose, onUnc
   // Group Managers who can take an association: anyone not archived (moving one empties their old association).
   const managers = useGroupManagers({ limit: 50, page: 1 })
   const initial = useMemo(() => toForm(association), [association])
-  const { register, control, handleSubmit, setError, formState: { errors } } = useForm({ resolver: zodResolver(associationFormSchema), defaultValues: initial })
+  const { register, control, handleSubmit, setError, setValue, formState: { errors } } = useForm({ resolver: zodResolver(associationFormSchema), defaultValues: initial })
+  const [focus, setFocus] = useState(() => (association ? { municipality: association.municipality } : {}))
+  const location = useWatch({ control, name: 'location' })
   const done = (message) => () => {
     toast.success(message)
     onClose()
@@ -262,6 +266,7 @@ function AssociationFields({ formId, association, create, update, onClose, onUnc
     municipality: 'Municipality',
     description: 'Description',
     groupManagerId: { label: 'Group Manager', format: gmName },
+    location: { label: 'Meeting point', format: (p) => (p ? `${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}` : 'Town centre') },
   })
   useEffect(() => onUnchanged(Boolean(association) && changes.length === 0), [association, changes.length, onUnchanged])
 
@@ -280,12 +285,39 @@ function AssociationFields({ formId, association, create, update, onClose, onUnc
             searchPlaceholder="Search municipality"
             options={(locations.data ?? []).map((m) => m.name)}
             value={field.value}
-            onChange={field.onChange}
+            onChange={(name) => {
+              field.onChange(name)
+              setFocus({ municipality: name, fit: true })
+            }}
             error={errors.municipality?.message}
             ref={field.ref}
           />
         )}
       />
+      <div>
+        <span className="flex items-center justify-between text-[10.5px] font-medium uppercase tracking-[0.16em] text-ink-2">
+          Meeting point <span className="normal-case tracking-normal text-ink-4">(optional)</span>
+        </span>
+        <div className="mt-2">
+          <Suspense fallback={<div className="aspect-[600/440] animate-pulse rounded-card bg-water" />}>
+            <MapPicker
+              value={location}
+              onPick={(point) => setValue('location', point, { shouldDirty: true, shouldValidate: true })}
+              focus={focus}
+              error={errors.location?.message}
+              pinLabel="Meeting point"
+              ariaLabel="Map. Click to place where the association meets."
+              searchable={false}
+              hints={PIN_HINTS}
+            />
+          </Suspense>
+        </div>
+        {location && (
+          <Button variant="link" size="sm" onClick={() => setValue('location', null, { shouldDirty: true })} className="mt-1.5 px-0">
+            Use the town centre instead
+          </Button>
+        )}
+      </div>
       <div>
         <Label htmlFor="as-desc">
           Description <span className="normal-case tracking-normal text-ink-4">(optional)</span>

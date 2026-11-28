@@ -7,7 +7,7 @@ import { AppError } from '../utils/AppError.js';
 import { containsPattern } from '../utils/escapeRegex.js';
 import { loadScope } from './auth.service.js';
 import { realtime } from '../sockets/realtime.js';
-import { ensureDirectChat, ensureKaluppaChat } from './chat.service.js';
+import { directKey, ensureDirectChat, ensureKaluppaChat } from './chat.service.js';
 import { isKaluppaTeam } from './policy.service.js';
 import { assertUploadAllowed, isOwnUpload } from './upload.service.js';
 
@@ -46,8 +46,12 @@ const scopeOf = (user, member) => ({ conversationId: member.conversation, userId
 export function canMessage(user, other) {
   if (same(user._id, other._id) || !other.roles.some((r) => INBOX_ROLES.includes(r))) return false;
   if (isKaluppaTeam(user) || isKaluppaTeam(other)) return isKaluppaTeam(user) !== isKaluppaTeam(other);
-  return same(user.associationId, other.associationId);
+  return same(user.associationId, other.associationId) || waitingPair(user, other) || waitingPair(other, user);
 }
+
+/** A farmer waiting for approval and the Group Manager of the association they asked to join (Change 08). */
+const waitingPair = (farmer, manager) =>
+  farmer.farmerStatus === 'pending' && manager.roles.includes('group_manager') && same(farmer.requestedAssociationId, manager.associationId);
 
 /**
  * Sent / Delivered / Seen for a message sent at `at`, from the other members' cursors. Groups say "Seen by N".
@@ -64,7 +68,7 @@ export function receiptFor(at, others, type) {
 }
 
 /** "Farmer · Santa Cruz Growers" for each user id (association only when approved / assigned). */
-async function peopleSubs(users) {
+export async function peopleSubs(users) {
   const ids = users.map((u) => u._id);
   const [profiles, managed] = await Promise.all([findProfilesByUsers(ids), findAssociationsByManagers(ids)]);
   const names = new Map([
@@ -227,7 +231,12 @@ export async function openDirect(user, { userId }) {
     const other = await findUserById(userId);
     if (!other || other.status !== 'active') throw new AppError(404, 'We couldn’t find that person.');
     await loadScope(other);
-    if (!canMessage(user, other)) throw new AppError(403, 'You can’t message this person.');
+    if (!canMessage(user, other)) {
+      // Not allowed to write any more (a rejected or withdrawn request): the old chat still opens, read-only.
+      const [existing] = isKaluppaTeam(user) || isKaluppaTeam(other) ? [] : await repo.findConversationIdsByKeys([directKey(user._id, other._id)]);
+      if (existing) return getConversation(user, existing);
+      throw new AppError(403, 'You can’t message this person.');
+    }
     if (isKaluppaTeam(user)) conversation = await ensureKaluppaChat(other._id);
     else if (isKaluppaTeam(other)) conversation = await ensureKaluppaChat(user._id);
     else conversation = await ensureDirectChat(user._id, other._id);

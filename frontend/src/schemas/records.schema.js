@@ -28,6 +28,7 @@ export const associationFormSchema = z.object({
   municipality: z.string().min(1, 'Choose a municipality in Marinduque'),
   description: associationDescriptionRule,
   groupManagerId: z.string().nullable(),
+  location: z.object({ lat: z.number(), lng: z.number() }).nullable(), // meeting point; null = town centre (Change 08)
 })
 
 /**

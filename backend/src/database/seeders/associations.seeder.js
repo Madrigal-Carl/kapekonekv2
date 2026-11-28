@@ -7,6 +7,7 @@ import { updateProfileWhen } from '../../repositories/farmerProfile.repository.j
 import { findUsersByUsernames, upsertSeedUser } from '../../repositories/user.repository.js';
 import { createAssociation, slugify } from '../../services/association.service.js';
 import { record } from '../../services/audit.service.js';
+import { labelPoint } from '../../services/boundary.service.js';
 import { ensureKaluppaChat, joinGroup } from '../../services/chat.service.js';
 import { farmerEntity, onboardFarmer } from '../../services/farmerProfile.service.js';
 import { seedEmail } from './users.seeder.js';
@@ -17,9 +18,9 @@ const ago = (days) => new Date(Date.now() - days * DAY);
 
 // PHASE-2-SPEC §8: 3 associations, 3 Group Managers (one unassigned).
 const ASSOCIATIONS = [
-  { key: 'sc', name: 'Santa Cruz Coffee Growers', municipality: 'Santa Cruz', manager: 'manager.santacruz', description: 'Robusta and Liberica growers around Pantayin and Matalaba. Meets every first Monday.' },
-  { key: 'boac', name: 'Boac Highland Farmers', municipality: 'Boac', manager: 'manager.boac', description: 'Upland farms above Boac town.' },
-  { key: 'gasan', name: 'Gasan Coffee Circle', municipality: 'Gasan', manager: null, description: 'A new group still looking for its Group Manager.' },
+  { key: 'sc', name: 'Santa Cruz Coffee Growers', municipality: 'Santa Cruz', manager: 'manager.santacruz', meets: 'Matalaba', description: 'Robusta and Liberica growers around Pantayin and Matalaba. Meets every first Monday.' },
+  { key: 'boac', name: 'Boac Highland Farmers', municipality: 'Boac', manager: 'manager.boac', meets: 'Mataas na Bayan', description: 'Upland farms above Boac town.' },
+  { key: 'gasan', name: 'Gasan Coffee Circle', municipality: 'Gasan', manager: null, meets: 'Libtangin', description: 'A new group still looking for its Group Manager.' },
 ];
 
 /**
@@ -86,7 +87,7 @@ async function seedAssociations(kaluppa, byHandle) {
   const out = {};
   for (const a of ASSOCIATIONS) {
     const existing = await findAssociationBySlug(slugify(a.name));
-    out[a.key] = existing ?? (await createAssociation(kaluppa, { name: a.name, municipality: a.municipality, description: a.description, groupManagerId: a.manager ? byHandle[a.manager]._id : null }));
+    out[a.key] = existing ?? (await createAssociation(kaluppa, { name: a.name, municipality: a.municipality, description: a.description, location: labelPoint(a.municipality, a.meets), groupManagerId: a.manager ? byHandle[a.manager]._id : null }));
     out[a.key]._id ??= out[a.key].id;
   }
   return out;

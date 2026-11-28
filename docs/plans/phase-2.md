@@ -409,9 +409,9 @@ Source: `docs/prompts/CHANGE-08-CONFIRM-EXPORT-ACCOUNTS-MENTIONS-CONTACT.md`, PH
 - [x] New products need starting stock above 10 (both sides).
 
 ### Task C08.F: Association map, chatting while pending, Hub mentions
-- [ ] `Association.location`, set in the Association form, seeded; map of active associations in the join window and Account settings → Association.
-- [ ] A pending farmer gets a direct chat with the Group Manager (read-only if rejected or withdrawn).
-- [ ] Hub @mentions with role scope, `mentions[]`, notifications, @ button.
+- [x] `Association.location`, set in the Association form, seeded; map of active associations in the join window and Account settings → Association.
+- [x] A pending farmer gets a direct chat with the Group Manager (read-only if rejected or withdrawn).
+- [x] Hub @mentions with role scope, `mentions[]`, notifications, @ button.
 
 ### Task C08.G: Contact us and the address book
 - [ ] `/contact` page and form (`ContactMessage`, Settings → Branch contact email, copy to sender, honeypot, 3/hour), navbar and footer links.

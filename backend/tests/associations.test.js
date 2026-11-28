@@ -64,6 +64,26 @@ describe('associations', () => {
     expect(entry.changes.map((c) => c.field).sort()).toEqual(['description', 'name']);
   });
 
+  it('keeps a meeting point pin; options fall back to the town centre; a pin off the island is refused (Change 08)', async () => {
+    const pin = { lat: 13.4767, lng: 122.0281 }; // Santa Cruz town
+    const { id } = (await create({ name: 'Pinned Growers', municipality: 'Santa Cruz', location: pin })).body.data;
+    expect((await kaluppa.get(`/api/associations/${id}`)).body.data.location).toEqual(pin);
+    const unpinned = (await create({ name: 'Unpinned Growers', municipality: 'Torrijos' })).body.data;
+    expect(unpinned.location).toBeNull();
+    const options = (await kaluppa.get('/api/associations/options')).body.data;
+    expect(options.find((o) => o.id === id).location).toEqual(pin);
+    expect(options.find((o) => o.id === unpinned.id).location).toEqual({ lat: expect.any(Number), lng: expect.any(Number) });
+
+    const off = await kaluppa.patch(`/api/associations/${id}`).send({ name: 'Pinned Growers', municipality: 'Santa Cruz', description: '', location: { lat: 14.6, lng: 121.0 } });
+    expect(off.body.errors).toEqual({ location: 'Put the pin inside Marinduque' });
+    // Leaving `location` out keeps it; null clears it (the town centre), and the move is audited.
+    await kaluppa.patch(`/api/associations/${id}`).send({ name: 'Pinned Growers', municipality: 'Santa Cruz', description: 'x' }).expect(200);
+    expect((await kaluppa.get(`/api/associations/${id}`)).body.data.location).toEqual(pin);
+    await kaluppa.patch(`/api/associations/${id}`).send({ name: 'Pinned Growers', municipality: 'Santa Cruz', description: 'x', location: null }).expect(200);
+    const entry = await AuditLog.findOne({ action: 'update', entityId: id, 'changes.field': 'location' }).lean();
+    expect(entry.changes.find((c) => c.field === 'location')).toMatchObject({ from: '13.47670, 122.02810', to: 'Town centre' });
+  });
+
   it('archives only when it has no farmers and no Group Manager; its chat turns read-only', async () => {
     const manager = await User.findOne({ username: 'manager.unassigned' });
     const { id, groupChat } = (await create({ name: 'Torrijos Growers', municipality: 'Torrijos', groupManagerId: String(manager._id) })).body.data;
@@ -92,7 +112,7 @@ describe('associations', () => {
     const farmer = await signedIn('farmer.approved');
     const options = await farmer.get('/api/associations/options');
     expect(options.status).toBe(200);
-    expect(options.body.data[0]).toEqual({ id: expect.any(String), name: expect.any(String), municipality: expect.any(String), groupManager: expect.toBeOneOf([null, { name: expect.any(String) }]) });
+    expect(options.body.data[0]).toEqual({ id: expect.any(String), name: expect.any(String), municipality: expect.any(String), location: { lat: expect.any(Number), lng: expect.any(Number) }, groupManager: expect.toBeOneOf([null, { name: expect.any(String) }]) });
     expect((await farmer.get('/api/associations')).status).toBe(403);
     const manager = await signedIn('manager.santacruz');
     expect((await manager.post('/api/associations').send({ name: 'Nope', municipality: 'Boac' })).status).toBe(403);

@@ -1,15 +1,19 @@
 import * as repo from '../repositories/association.repository.js';
 import { countFarmersByAssociation, findApprovedFarmerIds } from '../repositories/farmerProfile.repository.js';
 import { findGroupManagerById } from '../repositories/user.repository.js';
+import { getLocations } from './location.service.js';
 import { AppError } from '../utils/AppError.js';
 import { containsPattern } from '../utils/escapeRegex.js';
 import { record } from './audit.service.js';
 import { closeChat, endDirectChatsBetween, endMembership, ensureGroupChat, joinGroup } from './chat.service.js';
 import { moveManagedFarms } from './farm.service.js';
 
-const AUDITED = ['name', 'municipality', 'description', 'groupManager'];
+const AUDITED = ['name', 'municipality', 'description', 'location', 'groupManager'];
 const notFound = () => new AppError(404, 'Association not found.');
 const fullName = (user) => `${user.firstName} ${user.lastName}`;
+const toPoint = (location) => (location?.coordinates ? { lat: location.coordinates[1], lng: location.coordinates[0] } : null);
+const toGeo = (point) => (point ? { type: 'Point', coordinates: [point.lng, point.lat] } : null);
+const townCentre = (municipality) => getLocations().find((t) => t.name === municipality)?.center ?? null;
 
 /** "Boac Highland Growers" → "boac-highland-growers" */
 export const slugify = (name) =>
@@ -23,6 +27,7 @@ const toDto = (a, counts) => {
     slug: a.slug,
     municipality: a.municipality,
     description: a.description,
+    location: toPoint(a.location),
     groupManager: a.groupManager ? { id: String(a.groupManager._id), name: fullName(a.groupManager), username: a.groupManager.username } : null,
     groupChat: a.groupChat ? String(a.groupChat) : null,
     farmerCount: approved,
@@ -36,7 +41,8 @@ const withCounts = async (list) => {
   const counts = await countFarmersByAssociation(list.map((a) => a._id));
   return list.map((a) => toDto(a, counts));
 };
-const auditView = (a, manager) => ({ name: a.name, municipality: a.municipality, description: a.description, groupManager: manager ? fullName(manager) : null });
+const pinText = (a) => { const p = toPoint(a.location); return p ? `${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}` : 'Town centre'; };
+const auditView = (a, manager) => ({ name: a.name, municipality: a.municipality, description: a.description, location: pinText(a), groupManager: manager ? fullName(manager) : null });
 
 /** @param {{ q?: string, status?: string, municipality?: string, page: number, limit: number }} query */
 export async function listAssociations({ q, ...query }) {
@@ -50,12 +56,13 @@ export async function getAssociation(id) {
   return (await withCounts([association]))[0];
 }
 
-/** Active associations for the farmer's "Join your association" window. */
+/** Active associations for the farmer's "Join your association" window, each with a map pin (its meeting point or its town's centre). */
 export const associationOptions = async () =>
   (await repo.listActiveOptions()).map((a) => ({
     id: String(a._id),
     name: a.name,
     municipality: a.municipality,
+    location: toPoint(a.location) ?? townCentre(a.municipality),
     groupManager: a.groupManager ? { name: `${a.groupManager.firstName} ${a.groupManager.lastName}` } : null,
   }));
 
@@ -99,10 +106,10 @@ async function assertNameFree(name, exceptId) {
 }
 
 /** Create an association with its group chat, and optionally its Group Manager. */
-export async function createAssociation(actor, { name, municipality, description, groupManagerId }) {
+export async function createAssociation(actor, { name, municipality, description, groupManagerId, location }) {
   await assertNameFree(name);
   const manager = groupManagerId ? await assignableManager(groupManagerId) : null;
-  const created = await repo.createAssociation({ name, slug: slugify(name), municipality, description });
+  const created = await repo.createAssociation({ name, slug: slugify(name), municipality, description, location: toGeo(location) });
   const chat = await ensureGroupChat(created._id);
   const association = await repo.updateAssociationFields(created._id, { groupChat: chat._id });
   if (manager) await moveManager(manager._id, null, association, 'groupManagerId');
@@ -111,7 +118,7 @@ export async function createAssociation(actor, { name, municipality, description
 }
 
 /** Edit details; `groupManagerId` (when sent) assigns, replaces or removes the Group Manager. */
-export async function updateAssociation(actor, id, { name, municipality, description, groupManagerId }) {
+export async function updateAssociation(actor, id, { name, municipality, description, groupManagerId, location }) {
   const before = await repo.findAssociationById(id);
   if (!before) throw notFound();
   if (before.archivedAt) throw new AppError(409, 'Restore this association before editing it.');
@@ -123,7 +130,7 @@ export async function updateAssociation(actor, id, { name, municipality, descrip
     if (next) await moveManager(next._id, null, { ...before, groupManager: null }, 'groupManagerId');
     manager = next;
   }
-  const after = await repo.updateAssociationFields(id, { name, slug: slugify(name), municipality, description });
+  const after = await repo.updateAssociationFields(id, { name, slug: slugify(name), municipality, description, ...(location !== undefined && { location: toGeo(location) }) });
   await record({
     actor, area: 'associations', action: 'update', entity: { type: 'association', id, label: name },
     before: auditView(before, before.groupManager), after: auditView(after, manager), fields: AUDITED,

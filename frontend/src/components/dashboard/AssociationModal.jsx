@@ -7,6 +7,7 @@ import { SearchSelect } from '@/components/ui/SearchSelect'
 import { useAssociationOptions } from '@/hooks/useAssociations'
 import { useRequestToJoin } from '@/hooks/useFarmers'
 import { errorMessage } from '@/lib/applyServerErrors'
+import { AssociationMap } from './AssociationMap'
 import { DocumentUpload } from './DocumentUpload'
 
 const ref = (doc) => ({ url: doc.url, publicId: doc.publicId })
@@ -79,6 +80,7 @@ export function AssociationModal({ open, onClose, rejection = null }) {
                   : 'No Group Manager yet — Kaluppa will review your request'}
               </p>
             )}
+            {options.data?.length > 0 && <AssociationMap options={options.data} value={associationId} onChange={setAssociationId} />}
             <div className="grid gap-5 min-[720px]:grid-cols-2">
               <DocumentUpload label="Valid ID" short="valid ID" value={docs.validId} onChange={(doc) => setDocs((d) => ({ ...d, validId: doc }))} />
               <DocumentUpload label="Proof of land ownership" short="proof of land ownership" value={docs.landProof} onChange={(doc) => setDocs((d) => ({ ...d, landProof: doc }))} />

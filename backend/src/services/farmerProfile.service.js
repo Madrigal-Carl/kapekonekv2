@@ -10,7 +10,7 @@ import * as profiles from '../repositories/farmerProfile.repository.js';
 import { findActiveRecipientsByRole, findNamesByIds, findRecipient } from '../repositories/user.repository.js';
 import { AppError } from '../utils/AppError.js';
 import { record } from './audit.service.js';
-import { ensureKaluppaChat } from './chat.service.js';
+import { endDirectChatsBetween, ensureDirectChat, ensureKaluppaChat } from './chat.service.js';
 import { notifyUsers } from './notification.service.js';
 import { assertUploadAllowed, isOwnUpload } from './upload.service.js';
 
@@ -131,6 +131,8 @@ export async function requestToJoin(user, { associationId, validId, landProof })
     $push: { history: { action: 'request', by: user._id, note: association.name } },
   });
   if (!updated) throw new AppError(409, 'Your request is waiting for approval.');
+  // The farmer can message the Group Manager while they wait; the group chat comes with approval (Change 08).
+  if (association.groupManager) await ensureDirectChat(user._id, association.groupManager._id);
   await notifyDeciders(association, user, `${fullName(user)} wants to join ${association.name}`);
   await record({ actor: user, area: 'farmers', action: 'request', entity: farmerEntity(user), before: { status: current.status }, after: { status: 'pending', association: association.name }, fields: ['status', 'association'] });
   return getMyProfile(user);
@@ -144,6 +146,7 @@ export async function withdrawRequest(user) {
     $push: { history: { action: 'request_withdraw', by: user._id, note: current.association?.name } },
   });
   if (!updated) throw new AppError(409, 'You have no request waiting.');
+  if (current.association?.groupManager) await endDirectChatsBetween(user._id, [current.association.groupManager]);
   await record({ actor: user, area: 'farmers', action: 'request_withdraw', entity: farmerEntity(user), before: { status: 'pending', association: current.association?.name }, after: { status: 'none' }, fields: ['status', 'association'] });
   return getMyProfile(user);
 }

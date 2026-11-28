@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
+import { AssociationMap } from '@/components/dashboard/AssociationMap'
 import { DocumentUpload } from '@/components/dashboard/DocumentUpload'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -413,6 +414,7 @@ function Transfer({ profile: p }) {
             value={target}
             onChange={setTarget}
           />
+          {others.length > 0 && <AssociationMap options={others} value={target} onChange={setTarget} />}
           <div>
             <Label htmlFor="transfer-reason">
               Reason <span className="normal-case tracking-normal text-ink-4">(optional)</span>
@@ -463,6 +465,7 @@ function JoinCard({ profile: p }) {
           onChange={setAssociationId}
           error={options.isError ? 'We couldn’t load the associations. Reload the page and try again.' : undefined}
         />
+        {options.data?.length > 0 && <AssociationMap options={options.data} value={associationId} onChange={setAssociationId} />}
         <div className="grid gap-4 min-[720px]:grid-cols-2">
           <DocumentUpload label="Valid ID" short="valid ID" compact value={docs.validId} onChange={(doc) => setDocs((d) => ({ ...d, validId: doc }))} />
           <DocumentUpload label="Proof of land ownership" short="proof of land ownership" compact value={docs.landProof} onChange={(doc) => setDocs((d) => ({ ...d, landProof: doc }))} />

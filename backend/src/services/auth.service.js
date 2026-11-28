@@ -62,11 +62,13 @@ export const publicUser = (user) => ({
 export async function loadScope(user) {
   user.associationId = null;
   user.farmerStatus = null;
+  user.requestedAssociationId = null;
   if (user.roles.includes('group_manager')) user.associationId = (await findAssociationByManager(user._id))?._id ?? null;
   if (user.roles.includes('farmer')) {
     const profile = await findProfileScope(user._id);
     user.farmerStatus = profile?.status ?? 'none';
     if (profile?.status === 'approved') user.associationId = profile.association;
+    if (profile?.status === 'pending') user.requestedAssociationId = profile.association; // may message its Group Manager (Change 08)
   }
   return user;
 }

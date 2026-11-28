@@ -21,6 +21,7 @@ const postSchema = new mongoose.Schema(
     author: { type: ObjectId, ref: 'User', required: true },
     body: { type: String, required: true },
     tags: { type: [String], default: [] },
+    mentions: { type: [{ type: ObjectId, ref: 'User' }], default: [] }, // Change 08: @mentions (checked server-side)
     media: { type: [mediaSchema], default: [], validate: [(m) => m.length <= 10, 'At most 10 photos or videos'] },
     reactionCounts: { like: { type: Number, default: 0 }, love: { type: Number, default: 0 }, celebrate: { type: Number, default: 0 } },
     commentCount: { type: Number, default: 0 },

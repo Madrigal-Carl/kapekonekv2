@@ -29,7 +29,7 @@ export function listAssociations({ q, status, municipality, page, limit }) {
 }
 
 export const listActiveOptions = () =>
-  Association.find({ archivedAt: null }, { name: 1, municipality: 1, groupManager: 1 }).sort({ name: 1 }).populate('groupManager', 'firstName lastName').lean();
+  Association.find({ archivedAt: null }, { name: 1, municipality: 1, location: 1, groupManager: 1 }).sort({ name: 1 }).populate('groupManager', 'firstName lastName').lean();
 
 /** The association a Group Manager runs, or null. */
 export const findAssociationByManager = (managerId) => Association.findOne({ groupManager: managerId }).lean();

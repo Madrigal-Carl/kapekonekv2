@@ -1,3 +1,4 @@
+import { MentionText } from './Mentions'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Avatar } from '@/components/ui/Avatar'
@@ -162,7 +163,7 @@ function CommentPreview({ comment }) {
           <span className="block text-[13px] font-semibold">
             {comment.author.name} <span className="text-[11.5px] font-medium text-ink-3">{comment.author.roleLabel}</span>
           </span>
-          <span className="block whitespace-pre-line text-[13.5px] leading-[1.5] wrap-anywhere">{comment.body}</span>
+          <span className="block whitespace-pre-line text-[13.5px] leading-[1.5] wrap-anywhere"><MentionText text={comment.body} mentions={comment.mentions} /></span>
         </div>
         <time dateTime={comment.createdAt} className="block px-3 pt-[3px] text-xs text-ink-3">{timeAgo(comment.createdAt)}</time>
       </div>
@@ -230,7 +231,7 @@ export function PostCard({ post, onOpen, onEdit, onAsk, onTag, onToast }) {
       </PostHeader>
 
       <p className="mx-[18px] mb-0 mt-3 whitespace-pre-line text-[14.5px] leading-[1.65] wrap-anywhere">
-        {caption}
+        <MentionText text={caption} mentions={post.mentions} />
         {cut && (
           <>
             …{' '}

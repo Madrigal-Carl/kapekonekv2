@@ -204,6 +204,8 @@ export async function rejectFarmer(actor, id, { reason }) {
     $push: { history: { action: 'reject', by: actor._id, note: reason } },
   });
   if (!updated) throw decided();
+  const manager = profile.association.groupManager;
+  if (manager) await endDirectChatsBetween(id, [manager._id ?? manager]); // the waiting chat turns read-only (Change 08)
   await tellFarmer(id, {
     type: 'farmer_decision', job: EMAIL_JOBS.FARMER_DECISION, title: `Your request to join ${profile.association.name} wasn't approved`, body: reason,
     emailData: { approved: false, associationName: profile.association.name, reason },
