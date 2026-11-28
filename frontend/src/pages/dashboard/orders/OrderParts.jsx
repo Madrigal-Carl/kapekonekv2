@@ -1,3 +1,4 @@
+import { ProductImage } from '@/components/product/ProductImage'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { BANNER_TONES } from '@/components/dashboard/bannerTones'
 import { DASH_ORDER_STATUS, riderText } from '@/constants/orderStatus'
@@ -25,11 +26,7 @@ export function ItemsList({ order }) {
     <ul className="m-0 list-none rounded-lg border border-sand p-0">
       {order.items.map((item) => (
         <li key={String(item.product)} className="flex items-center gap-3 border-b border-skeleton px-3 py-2.5">
-          {item.image ? (
-            <img src={squareUrl(item.image, 40)} alt="" className="size-10 shrink-0 rounded-md bg-photo object-cover" />
-          ) : (
-            <span aria-hidden="true" className="size-10 shrink-0 rounded-md bg-photo" />
-          )}
+          <ProductImage src={item.image && squareUrl(item.image, 40)} className="size-10 shrink-0 overflow-hidden rounded-md" />
           <span className="flex-1 text-[13.5px]">
             <strong>{item.name}</strong>
             <span className="block text-xs text-ink-3">Qty {quantityShort(item.quantity, item.unit)}</span>

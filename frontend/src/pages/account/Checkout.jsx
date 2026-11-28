@@ -29,6 +29,7 @@ import { formatPeso, formatPhone, quantityWords } from '@/lib/format'
 import { checkoutSchema } from '@/schemas/order.schema'
 import { useCartDrawer } from '@/stores/cart.store'
 import { imageUrl } from '@/lib/image'
+import { ProductImage } from '@/components/product/ProductImage'
 
 const FIELDS = ['addressId', 'contactPhone', 'provider', 'receipt', 'note']
 const etaText = (eta) => (eta ? `${format(new Date(eta.from), 'MMM d')} – ${format(new Date(eta.to), 'MMM d')}` : null)
@@ -452,7 +453,7 @@ export function Checkout() {
             {lines.map(({ product, quantity, lineTotalCentavos }) => (
               <li key={product._id} className="flex gap-3 border-b border-sand-soft py-3">
                 <span aria-hidden="true" className="size-12 shrink-0 overflow-hidden rounded-[6px] bg-photo">
-                  {product.image && <img src={imageUrl(product.image, 64)} alt="" loading="lazy" className="size-full object-cover" />}
+                  <ProductImage src={product.image && imageUrl(product.image, 64)} loading="lazy" className="size-full" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <span className="block text-[13.5px] font-semibold">{product.name}</span>

@@ -35,7 +35,6 @@ const body = (fields = {}) => ({
   stock: 38,
   description: 'Bold and smoky.',
   photos: photos.slice(0, 3),
-  isFeatured: false,
   isActive: true,
   ...fields,
 });
@@ -96,16 +95,31 @@ describe('Inventory: photos and the thumbnail', () => {
 });
 
 describe('Inventory: category rules', () => {
-  it('allows Featured on coffee only and the units of the category', async () => {
+  it('allows the units of the category; Beans sells by kg or sack (Change 08)', async () => {
     const fertilizer = { name: 'Urea Sack', category: 'fertilizer', variety: null, coffeeType: null, unit: 'sack' };
-    const featured = await kaluppa.post('/api/admin/products').send(body({ ...fertilizer, isFeatured: true }));
-    expect(featured.status).toBe(400);
-    expect(featured.body.errors.isFeatured).toBe('Only coffee can be featured on the landing page');
+    const beans = { name: 'Robusta Parchment', category: 'beans', variety: null, coffeeType: null };
+    expect((await kaluppa.post('/api/admin/products').send(body({ ...beans, unit: 'piece' }))).body.errors.unit).toBe('Choose kg or sack');
+    expect((await kaluppa.post('/api/admin/products').send(body({ ...beans, unit: 'kg' }))).status).toBe(201);
     const wrongUnit = await kaluppa.post('/api/admin/products').send(body({ ...fertilizer, unit: 'pack' }));
     expect(wrongUnit.body.errors.unit).toBe('Choose sack or kg');
     const ok = await kaluppa.post('/api/admin/products').send(body(fertilizer));
     expect(ok.status).toBe(201);
-    expect(ok.body.data).toMatchObject({ unit: 'sack', variety: null, coffeeType: null, isFeatured: false });
+    expect(ok.body.data).toMatchObject({ unit: 'sack', variety: null, coffeeType: null });
+    expect(ok.body.data).not.toHaveProperty('isFeatured');
+  });
+
+  it('a new product starts above the low-stock level; editing stock is unaffected (Change 08)', async () => {
+    const low = await kaluppa.post('/api/admin/products').send(body({ name: 'Low Start Roast', stock: 10 }));
+    expect(low.status).toBe(400);
+    expect(low.body.errors).toEqual({ stock: 'Starting stock must be more than 10, the low-stock level.' });
+    const created = (await kaluppa.post('/api/admin/products').send(body({ name: 'Low Start Roast', stock: 11 })).expect(201)).body.data;
+    const edited = await kaluppa.patch(`/api/admin/products/${created._id}`).send(body({ name: 'Low Start Roast', stock: 3 })).expect(200);
+    expect(edited.body.data).toMatchObject({ stock: 3, stockState: 'low' });
+  });
+
+  it('a product can have no photos: the store shows the default image (Change 08)', async () => {
+    const res = await kaluppa.post('/api/admin/products').send(body({ name: 'No Photo Roast', photos: [] })).expect(201);
+    expect(res.body.data.photos).toEqual([]);
   });
 
   it('requires a variety and coffee type for coffee', async () => {
@@ -116,10 +130,13 @@ describe('Inventory: category rules', () => {
 
 describe('Inventory: list, archive, restore, audit and access', () => {
   it('lists with stock states and filters by status, category, stock and name', async () => {
-    const res = await kaluppa.get('/api/admin/products?category=seedlings');
+    const res = await kaluppa.get('/api/admin/products?category=beans');
     expect(res.status).toBe(200);
-    expect(res.body.data).toHaveLength(1);
-    expect(res.body.data[0]).toMatchObject({ name: 'Liberica Seedling', stock: 20, stockState: 'low' });
+    expect(res.body.data.map((p) => p.slug)).toContain('liberica-dried-cherry');
+    expect(res.body.data.find((p) => p.slug === 'liberica-dried-cherry')).toMatchObject({ stock: 20, stockState: 'in' });
+    // Low stock is 10 or fewer, in every category.
+    const ten = await Product.create({ ...(await Product.findOne({ slug: 'liberica-dried-cherry' }).lean()), _id: undefined, slug: 'ten-left', name: 'Ten Left Cherry', stock: 10 });
+    expect((await kaluppa.get('/api/admin/products?stock=low')).body.data.map((p) => p.slug)).toContain(ten.slug);
     const inactive = (await kaluppa.get('/api/admin/products?status=inactive')).body.data.map((p) => p.slug);
     expect(inactive).toEqual(['hidden-old-roast']);
     const out = await Product.create({ ...(await Product.findOne({ slug: 'robusta-ground' }).lean()), _id: undefined, slug: 'sold-out', name: 'Sold Out Roast', stock: 0 });
@@ -145,8 +162,8 @@ describe('Inventory: list, archive, restore, audit and access', () => {
   it('records create, update and archive in the audit log', async () => {
     const actions = (await AuditLog.find({ area: 'inventory' }).lean()).map((e) => e.action);
     expect(actions).toEqual(expect.arrayContaining(['create', 'update', 'archive', 'restore']));
-    const update = await AuditLog.findOne({ area: 'inventory', action: 'update' }).lean();
-    expect(update.changes.map((c) => c.field)).toContain('photos');
+    const updates = await AuditLog.find({ area: 'inventory', action: 'update' }).lean();
+    expect(updates.flatMap((u) => u.changes.map((c) => c.field))).toEqual(expect.arrayContaining(['photos', 'stock']));
   });
 
   it('is Kaluppa’s only', async () => {

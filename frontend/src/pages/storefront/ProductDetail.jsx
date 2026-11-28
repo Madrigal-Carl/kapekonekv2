@@ -18,6 +18,7 @@ import { cn } from '@/lib/cn'
 import { formatPeso, quantityWords } from '@/lib/format'
 import { stepFor } from '@/lib/quantity'
 import { imageUrl } from '@/lib/image'
+import { ProductImage } from '@/components/product/ProductImage'
 
 const pill = 'rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.1em]'
 const UNIT_NOUN = { kg: ['kg', 'kg'], pack: ['pack', 'packs'], piece: ['piece', 'pieces'] }
@@ -29,7 +30,7 @@ function Gallery({ images, name }) {
   return (
     <div className="min-w-0 flex-[1_1_480px]">
       <div className="relative aspect-square overflow-hidden rounded-card border border-sand bg-photo">
-        {current && <img src={imageUrl(current.url, 640)} alt={current.alt ?? name} className="size-full object-cover" />}
+        <ProductImage src={current && imageUrl(current.url, 640)} alt={current?.alt ?? name} className="size-full" />
       </div>
       {images.length > 1 && (
         <div role="group" aria-label="Product photos" className="mt-3 grid grid-cols-4 gap-3">

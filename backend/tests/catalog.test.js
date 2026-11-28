@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { seedCatalogFixture } from './helpers/catalog.js';
+import { createSoldOrder, seedCatalogFixture } from './helpers/catalog.js';
 import { startMemoryDb, stopMemoryDb } from './helpers/db.js';
 
 vi.mock('../src/config/valkey.js', async () => {
@@ -11,7 +11,9 @@ vi.mock('../src/config/valkey.js', async () => {
 
 const { default: app } = await import('../src/app.js');
 const { runSeeders } = await import('../src/database/seeders/index.js');
-const { Product } = await import('../src/models/index.js');
+const { Order, Product } = await import('../src/models/index.js');
+const { JOBS } = await import('../src/queues/jobs.queue.js');
+const { processJob } = await import('../src/queues/workers/jobs.worker.js');
 
 async function signedIn(email) {
   const agent = request.agent(app);
@@ -41,7 +43,7 @@ describe('GET /categories', () => {
   });
 
   it('shows farmers only the farm-supply categories they may buy (no Coffee)', async () => {
-    expect((await farmer.get('/api/categories')).body.data.map((c) => c.slug)).toEqual(['fertilizer', 'seedlings']);
+    expect((await farmer.get('/api/categories')).body.data.map((c) => c.slug)).toEqual(['fertilizer', 'beans']);
   });
 });
 
@@ -60,16 +62,15 @@ describe('GET /products', () => {
   });
 
   it('lists only what a signed-in viewer may buy: farmers get farm supplies, buyers coffee', async () => {
-    expect(slugs(await farmer.get('/api/products')).sort()).toEqual(['liberica-seedling', 'organic-fertilizer-25kg']);
+    expect(slugs(await farmer.get('/api/products')).sort()).toEqual(['liberica-dried-cherry', 'organic-fertilizer-25kg']);
     expect(slugs(await farmer.get('/api/products?category=coffee'))).toEqual([]);
     expect(slugs(await buyer.get('/api/products')).sort()).toEqual(['arabica-light-roast', 'barako-medium-roast', 'liberica-green-beans', 'robusta-ground']);
   });
 
-  it('filters by variety, coffee type, price (pesos), featured and search', async () => {
+  it('filters by variety, coffee type, price (pesos) and search', async () => {
     expect(slugs(await guest.get('/api/products?variety=liberica,arabica&sort=price_asc'))).toEqual(['barako-medium-roast', 'liberica-green-beans', 'arabica-light-roast']);
     expect(slugs(await guest.get('/api/products?coffeeType=ground'))).toEqual(['robusta-ground']);
     expect(slugs(await guest.get('/api/products?minPrice=250&maxPrice=330&sort=price_asc'))).toEqual(['barako-medium-roast', 'liberica-green-beans']);
-    expect(slugs(await guest.get('/api/products?featured=true'))).toEqual(['barako-medium-roast']);
     expect(slugs(await guest.get('/api/products?search=bara'))).toEqual(['barako-medium-roast']);
   });
 
@@ -116,5 +117,23 @@ describe('GET /products/:slug', () => {
     const asFarmer = await farmer.get('/api/products/organic-fertilizer-25kg');
     expect(asFarmer.status).toBe(200);
     expect(asFarmer.body.data.purchasable).toBe(true);
+  });
+});
+
+describe('GET /products/best-sellers (Change 08)', () => {
+  it('ranks by quantity in orders completed over 90 days, only from the viewer’s categories; newest fill the gaps', async () => {
+    const p = Object.fromEntries((await Product.find().lean()).map((x) => [x.slug, x]));
+    await createSoldOrder('kapekonek.buyer@gmail.com', p['robusta-ground'], { number: '9001' });
+    await createSoldOrder('kapekonek.buyer@gmail.com', p['robusta-ground'], { number: '9002' });
+    await createSoldOrder('kapekonek.buyer@gmail.com', p['arabica-light-roast'], { number: '9003' });
+    const old = await createSoldOrder('kapekonek.buyer@gmail.com', p['barako-medium-roast'], { number: '9004' });
+    await Order.updateOne({ _id: old._id }, { 'statusHistory.1.at': new Date(Date.now() - 91 * 86_400_000) }); // outside the 90 days
+    expect(await processJob({ name: JOBS.PRODUCTS_BEST8 })).toEqual({ categories: 1 }); // the daily job; the farm-supply sales are none
+
+    const best = (await guest.get('/api/products/best-sellers').expect(200)).body.data;
+    expect(best.slice(0, 2).map((x) => [x.slug, x.rank, x.soldLast90Days])).toEqual([['robusta-ground', 1, 2], ['arabica-light-roast', 2, 1]]);
+    expect(best.map((x) => x.slug).sort()).toEqual(['arabica-light-roast', 'barako-medium-roast', 'liberica-green-beans', 'robusta-ground']);
+    expect(best.slice(2).every((x) => x.soldLast90Days === 0)).toBe(true);
+    expect(slugs(await farmer.get('/api/products/best-sellers')).sort()).toEqual(['liberica-dried-cherry', 'organic-fertilizer-25kg']);
   });
 });

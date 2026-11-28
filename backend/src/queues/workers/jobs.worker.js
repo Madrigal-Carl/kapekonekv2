@@ -1,6 +1,7 @@
 import { Worker } from 'bullmq';
 import { createValkeyConnection } from '../../config/valkey.js';
 import { expireBeanListings } from '../../services/bean.service.js';
+import { refreshBestSellers } from '../../services/catalog.service.js';
 import { refreshTopPosts } from '../../services/post.service.js';
 import { JOBS, JOBS_QUEUE } from '../jobs.queue.js';
 
@@ -8,6 +9,7 @@ import { JOBS, JOBS_QUEUE } from '../jobs.queue.js';
 const handlers = {
   [JOBS.BEANS_EXPIRE]: () => expireBeanListings(new Date()),
   [JOBS.POSTS_TOP3]: async () => ({ top: (await refreshTopPosts(new Date())).length }),
+  [JOBS.PRODUCTS_BEST8]: async () => ({ categories: Object.keys(await refreshBestSellers(new Date())).length }),
 };
 
 /** @param {{ name: string }} job */

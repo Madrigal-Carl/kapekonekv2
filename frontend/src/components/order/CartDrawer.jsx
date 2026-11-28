@@ -16,6 +16,7 @@ import { formatPeso, quantityShort, quantityWords } from '@/lib/format'
 import { stepFor } from '@/lib/quantity'
 import { useCartDrawer } from '@/stores/cart.store'
 import { imageUrl } from '@/lib/image'
+import { ProductImage } from '@/components/product/ProductImage'
 
 /** Why a line blocks checkout. */
 function flagText({ flags, product }) {
@@ -38,7 +39,7 @@ function CartLine({ line, onRemove }) {
     <li className="border-b border-sand-soft py-[18px]">
       <div className="flex gap-3.5">
         <span aria-hidden="true" className="size-[72px] shrink-0 overflow-hidden rounded-[6px] bg-photo">
-          {product.image && <img src={imageUrl(product.image, 72)} alt="" className="size-full object-cover" />}
+          <ProductImage src={product.image && imageUrl(product.image, 72)} className="size-full" />
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex justify-between gap-2">

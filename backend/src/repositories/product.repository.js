@@ -53,12 +53,18 @@ export const reserveStock = async (productId, quantity) =>
 /** Put reserved stock back (cancel, reject, failed reserve). */
 export const returnStock = (productId, quantity) => Product.updateOne({ _id: productId }, { $inc: { stock: quantity } });
 
-/** Active products below their low-stock line: 10, or 50 for seedlings (PHASE-2-SPEC §4). */
-export async function findLowStock(limit) {
-  const products = await Product.find({ isActive: true, archivedAt: null, stock: { $lt: 50 } })
-    .sort({ stock: 1 }).populate('category', 'slug').select('name slug stock unit unitLabel category').lean();
-  return products.filter((p) => p.stock < (p.category?.slug === 'seedlings' ? 50 : 10)).slice(0, limit);
-}
+/** Active products at or below the low-stock line (Change 08: 10 for every category). */
+export const findLowStock = (limit, line) =>
+  Product.find({ isActive: true, archivedAt: null, stock: { $lte: line } })
+    .sort({ stock: 1 }).limit(limit).populate('category', 'slug').select('name slug stock unit unitLabel category').lean();
+
+/** Active products among `ids`, with their category (best sellers). */
+export const findActiveByIds = (ids) => Product.find({ _id: { $in: ids }, isActive: true, archivedAt: null }).populate('category', CATEGORY_FIELDS).lean();
+
+/** The newest active products in these categories, except `exceptIds` (best sellers fill their gaps with them). */
+export const listNewestActive = (categoryIds, exceptIds, limit) =>
+  Product.find({ category: { $in: categoryIds }, _id: { $nin: exceptIds }, isActive: true, archivedAt: null })
+    .sort({ createdAt: -1, _id: -1 }).limit(limit).populate('category', CATEGORY_FIELDS).lean();
 
 /** Inventory: one numbered page of products, newest first, with their category. */
 export const listInventoryPage = (filter, paging) =>

@@ -10,13 +10,13 @@ const rotate = (list, n) => [...list.slice(n), ...list.slice(0, n)];
 export const COFFEE = [
   {
     name: 'Barako Medium Roast', slug: 'barako-medium-roast', variety: 'liberica', coffeeType: 'roasted_beans', ...pack,
-    priceCentavos: 26000, stock: 38, isFeatured: true, media: ROASTED,
+    priceCentavos: 26000, stock: 38, media: ROASTED,
     shortDescription: 'Bold, smoky body. 250 g whole beans.',
     description: 'Whole Liberica beans roasted to a medium level. Expect a heavy body, low acidity and a smoky, chocolatey finish: the classic kapeng barako cup.',
   },
   {
     name: 'Liberica Green Beans', slug: 'liberica-green-beans', variety: 'liberica', coffeeType: 'green_beans', ...kilo,
-    priceCentavos: 32000, stock: 64, isFeatured: true, media: GREEN,
+    priceCentavos: 32000, stock: 64, media: GREEN,
     shortDescription: 'Sun-dried, unroasted. For home roasters.',
     description: 'Sun-dried, unroasted Liberica beans from Marinduque farms, sold by the kilo. Sorted by hand and ready for home roasters and cafés.',
   },
@@ -40,13 +40,13 @@ export const COFFEE = [
   },
   {
     name: 'Excelsa Ground', slug: 'excelsa-ground', variety: 'excelsa', coffeeType: 'ground', ...pack,
-    priceCentavos: 24000, stock: 30, isFeatured: true, media: rotate(GROUND, 1),
+    priceCentavos: 24000, stock: 30, media: rotate(GROUND, 1),
     shortDescription: 'Medium grind with a fruity finish.',
     description: 'Medium-roasted Excelsa in a medium grind with a tart, fruity finish. Ready for drip, pour-over or moka pot.',
   },
   {
     name: 'Arabica Light Roast', slug: 'arabica-light-roast', variety: 'arabica', coffeeType: 'roasted_beans', ...pack,
-    priceCentavos: 38000, stock: 17, isFeatured: true, media: rotate(ROASTED, 2),
+    priceCentavos: 38000, stock: 17, media: rotate(ROASTED, 2),
     shortDescription: 'Bright and smooth. Best for pour-over.',
     description: 'Whole Arabica beans roasted light to keep their brighter acidity and lighter body. Best for pour-over and drip.',
   },
@@ -64,7 +64,7 @@ export const COFFEE = [
   },
   {
     name: 'Robusta Dark Roast', slug: 'robusta-dark-roast', variety: 'robusta', coffeeType: 'roasted_beans', ...pack,
-    priceCentavos: 21000, stock: 44, isFeatured: true, media: rotate(ROASTED, 3),
+    priceCentavos: 21000, stock: 44, media: rotate(ROASTED, 3),
     shortDescription: 'Strong and earthy. Made for espresso.',
     description: 'Whole Robusta beans roasted dark. Strong, earthy and high in caffeine, made for espresso and milk drinks.',
   },
@@ -92,13 +92,10 @@ export const FERTILIZER = [
   { name: 'Vermicast', slug: 'vermicast', unitLabel: '10 kg bag', priceCentavos: 25000, stock: 4, shortDescription: 'Worm castings for nursery mixes and seedlings.' },
 ].map((p) => ({ ...supply, unit: 'sack', ...p, media: ['fertilizer-granules'], description: `${p.shortDescription} Sold per ${p.unitLabel}.` }));
 
-export const SEEDLINGS = ['liberica', 'excelsa', 'arabica', 'robusta'].map((variety, i) => {
-  const name = `${variety[0].toUpperCase()}${variety.slice(1)} Seedling`;
-  return {
-    ...supply, variety, name, slug: `${variety}-seedling`, unitLabel: 'seedling in a nursery bag',
-    priceCentavos: [4500, 4500, 6000, 3500][i], stock: [120, 80, 50, 150][i],
-    media: i % 2 ? ['seedling-sprout', 'seedling-hand'] : ['seedling-hand', 'seedling-sprout'],
-    shortDescription: `Six-month-old ${name.toLowerCase()} from a local nursery.`,
-    description: `Six-month-old ${name.toLowerCase()} raised in a nursery bag, ready to plant at the start of the rainy season.`,
-  };
-});
+/** Beans for farmers (Change 08: replaced Seedlings). Robusta parchment has no photo, so it shows the default image. */
+export const BEANS = [
+  { name: 'Liberica Dried Cherry', slug: 'liberica-dried-cherry', priceCentavos: 18000, stock: 140, media: ['cherries-dark'], shortDescription: 'Sun-dried Liberica cherries, sold by the kilo.' },
+  { name: 'Excelsa Dried Cherry', slug: 'excelsa-dried-cherry', priceCentavos: 17000, stock: 80, media: ['cherries-red'], shortDescription: 'Sun-dried Excelsa cherries, sold by the kilo.' },
+  { name: 'Arabica Parchment', slug: 'arabica-parchment', unit: 'sack', unitLabel: '50 kg sack', priceCentavos: 1250000, stock: 24, media: ['green-beans-drying'], shortDescription: 'Washed Arabica in parchment, ready for hulling.' },
+  { name: 'Robusta Parchment', slug: 'robusta-parchment', priceCentavos: 16000, stock: 150, media: [], shortDescription: 'Robusta in parchment, sold by the kilo.' },
+].map((p) => ({ ...supply, unit: 'kg', ...p, description: `${p.shortDescription} From Marinduque farms, sorted at Kaluppa.` }));

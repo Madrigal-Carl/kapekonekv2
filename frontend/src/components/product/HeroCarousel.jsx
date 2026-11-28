@@ -40,7 +40,7 @@ export function HeroCarousel({ slides }) {
   }, [embla, onSelect])
 
   return (
-    <section aria-roledescription="carousel" aria-label="Featured" className="relative overflow-hidden bg-espresso">
+    <section aria-roledescription="carousel" aria-label="Highlights" className="relative overflow-hidden bg-espresso">
       <div ref={viewportRef} className="overflow-hidden">
         <div className="flex">
           {list.map((slide, i) => (

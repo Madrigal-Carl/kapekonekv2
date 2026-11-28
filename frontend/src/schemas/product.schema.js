@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { PRODUCT_CATEGORIES, productPhotosRule, productPriceRule, productStockRule, refineProductCategory } from './rules.js'
+import { PRODUCT_CATEGORIES, productPhotosRule, productPriceRule, productStockRule, refineProductCategory, refineStartingStock } from './rules.js'
 
 // Mirror backend/src/schemas/product.schema.js. Kaluppa types pesos; the API takes integer centavos.
 const pick = (message) => z.string(message).min(1, message)
@@ -16,7 +16,9 @@ export const productFormSchema = z
     stock: productStockRule,
     description: z.string().trim().max(2000, 'Use 2,000 characters or fewer'),
     photos: productPhotosRule,
-    isFeatured: z.boolean(),
     isActive: z.boolean(),
   })
   .superRefine(refineProductCategory)
+
+/** Adding a product: the stock starts above the low-stock line (Change 08). */
+export const productCreateFormSchema = productFormSchema.superRefine(refineStartingStock)

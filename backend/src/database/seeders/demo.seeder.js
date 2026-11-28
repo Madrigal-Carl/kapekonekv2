@@ -1,3 +1,4 @@
+import { refreshBestSellers } from '../../services/catalog.service.js';
 import { SETTING_DEFAULTS } from '../../constants/settings.js';
 import { ROLES } from '../../constants/permissions.js';
 import { listActiveByUser } from '../../repositories/address.repository.js';
@@ -133,8 +134,9 @@ export async function seedDemo() {
 
   const juana = await seedStatusOrders(users.buyer, products, { keys: ADDRESS_KEYS });
   const [rodel] = await findUsersByUsernames(['farmer.approved']);
-  const supplies = Object.fromEntries((await listProductsByCategoryIds([ids.fertilizer, ids.seedlings])).map((p) => [p.slug, p]));
+  const supplies = Object.fromEntries((await listProductsByCategoryIds([ids.fertilizer, ids.beans])).map((p) => [p.slug, p]));
   const farmer = await seedStatusOrders(rodel, supplies, { keys: FARMER_ADDRESS_KEYS, plan: FARMER_PLAN, role: 'farmer' });
+  await refreshBestSellers(); // the landing carousel reflects the seeded sales, not a stale cache
   return `${orders.length} sold orders, ${reviews.length} reviews, ${juana} orders for buyer in every status, ${farmer} farm-supply orders for farmer.approved`;
 }
 

@@ -129,7 +129,11 @@ describe('catalog, settings, posts and demo seeders', () => {
     expect(coffeeProducts).toHaveLength(12);
     expect(coffeeProducts.filter((p) => p.stock === 0)).toHaveLength(1);
     expect(coffeeProducts.filter((p) => p.stock > 0 && p.stock <= 5).length).toBeGreaterThanOrEqual(1);
-    expect(coffeeProducts.filter((p) => p.isFeatured).length).toBeGreaterThanOrEqual(4);
+    expect(coffeeProducts.every((p) => !('isFeatured' in p))).toBe(true);
+    const beans = await Product.find({ category: (await bySlug('beans'))._id }).lean();
+    expect(beans.map((p) => p.unit).every((u) => ['kg', 'sack'].includes(u))).toBe(true);
+    expect(beans.some((p) => p.images.length === 0)).toBe(true); // shows the default image
+    expect(await Category.exists({ slug: 'seedlings' })).toBeNull();
     expect(coffeeProducts.every((p) => p.images.length >= 1 && p.images[0].url.startsWith('https://'))).toBe(true);
 
     const slides = (await Setting.findOne({ key: 'landing.heroSlides' })).value;
@@ -186,7 +190,7 @@ describe('catalog, settings, posts and demo seeders', () => {
     expect(await Notification.countDocuments({ user: juana._id })).toBeGreaterThanOrEqual(mine.length - 1);
     expect(await Notification.countDocuments({ title: /undefined/ })).toBe(0);
 
-    // Farmer store orders in several statuses (PHASE-2-SPEC §8): Rodel buys fertilizer and seedlings only.
+    // Farmer store orders in several statuses (PHASE-2-SPEC §8): Rodel buys fertilizer and beans only.
     const rodel = await User.findOne({ username: 'farmer.approved' });
     const farmerOrders = await Order.find({ buyer: rodel._id }).populate('items.product', 'category').lean();
     expect(new Set(farmerOrders.map((o) => o.status)).size).toBeGreaterThanOrEqual(4);

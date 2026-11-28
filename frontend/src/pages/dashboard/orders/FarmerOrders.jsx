@@ -112,7 +112,7 @@ export function FarmerOrders() {
       <PageHeader
         eyebrow="Marketplace"
         title="My orders"
-        description="Fertilizer and seedlings you ordered from the Kaluppa store."
+        description="Beans and fertilizer you ordered from the Kaluppa store."
         actions={
           <Button as={Link} to="/products" leftIcon={<IconStore aria-hidden="true" className="size-4" strokeWidth={2} />}>
             Go to store
@@ -141,7 +141,7 @@ export function FarmerOrders() {
         emptyState={
           filtered
             ? { title: 'No orders match', text: 'Try another status or search.' }
-            : { title: 'No orders yet', text: 'Fertilizer and seedlings you order from the store show up here.' }
+            : { title: 'No orders yet', text: 'Beans and fertilizer you order from the store show up here.' }
         }
         searchPlaceholder="Search order number or item"
         minWidth={980}

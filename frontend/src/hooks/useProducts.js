@@ -7,12 +7,13 @@ export const productKeys = {
   categories: ['products', 'categories'],
   list: (filters) => ['products', 'list', filters],
   detail: (slug) => ['products', 'detail', slug],
+  best: ['products', 'best'],
   reviews: (id) => ['products', id, 'reviews'],
   summary: (id) => ['products', id, 'reviews', 'summary'],
   myReview: (id) => ['products', id, 'reviews', 'me'],
 }
 
-/** The categories this viewer shops (buyers Coffee, farmers Fertilizer and Seedlings). */
+/** The categories this viewer shops (buyers Coffee, farmers Beans and Fertilizer). */
 export function useCategories() {
   const { user } = useAuth()
   return useQuery({ queryKey: [...productKeys.categories, user?._id ?? null], queryFn: catalog.listCategories, staleTime: 5 * 60_000 })
@@ -29,6 +30,12 @@ export function useProducts(filters, { enabled = true } = {}) {
     placeholderData: keepPreviousData,
     enabled,
   })
+}
+
+/** The landing best sellers for this viewer's categories (ranked daily on the server). */
+export function useBestSellers() {
+  const { user } = useAuth()
+  return useQuery({ queryKey: [...productKeys.best, user?._id ?? null], queryFn: catalog.listBestSellers, staleTime: 5 * 60_000 })
 }
 
 export function useProduct(slug) {

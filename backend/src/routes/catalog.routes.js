@@ -11,6 +11,7 @@ const router = Router();
 
 router.get('/categories', optionalAuth, catalog.categories);
 router.get('/products', optionalAuth, validate({ query: productListQuery }), catalog.products);
+router.get('/products/best-sellers', optionalAuth, catalog.bestSellers);
 router.get('/products/:slug', optionalAuth, validate({ params: slugParams }), catalog.product);
 
 router.get('/products/:id/reviews', optionalAuth, validate({ params: idParams, query: pageQuery(20, 5) }), catalog.productReviews);

@@ -59,7 +59,7 @@ export const ACCOUNT_TABS = {
   farmer: [
     ...BASE_TABS,
     { to: 'association', label: 'Association', icon: 'association', description: 'Your association, your Group Manager, your documents and transfers.' },
-    { to: 'addresses', label: 'Addresses', icon: 'addresses', description: 'Where Kaluppa delivers your fertilizer and seedlings. Your default address is picked first at checkout.' },
+    { to: 'addresses', label: 'Addresses', icon: 'addresses', description: 'Where Kaluppa delivers your beans and fertilizer. Your default address is picked first at checkout.' },
   ],
   group_manager: BASE_TABS,
   kaluppa: BASE_TABS,

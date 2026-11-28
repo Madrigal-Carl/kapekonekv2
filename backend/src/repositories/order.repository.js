@@ -85,10 +85,28 @@ export const listOrdersToConfirm = (limit) =>
  * Sold orders in [from, to): when they were sold (the last "sold" step) and their totals.
  * @returns {Promise<Array<{ soldAt: Date, totalCentavos: number }>>}
  */
+const SOLD_AT = { $ifNull: [{ $max: { $map: { input: { $filter: { input: '$statusHistory', cond: { $eq: ['$$this.status', 'sold'] } } }, in: '$$this.at' } } }, '$updatedAt'] };
 export const soldRows = (from, to) =>
   Order.aggregate([
     { $match: { status: 'sold' } },
-    { $addFields: { soldAt: { $ifNull: [{ $max: { $map: { input: { $filter: { input: '$statusHistory', cond: { $eq: ['$$this.status', 'sold'] } } }, in: '$$this.at' } } }, '$updatedAt'] } } },
+    { $addFields: { soldAt: SOLD_AT } },
     { $match: { soldAt: { $gte: from, $lt: to } } },
     { $project: { _id: 0, soldAt: 1, totalCentavos: 1 } },
+  ]);
+
+/**
+ * Best sellers (Change 08): quantity per product in orders sold since `from`, with the product's category, most first.
+ * @returns {Promise<Array<{ _id: unknown, sold: number, category: unknown }>>}
+ */
+export const soldQuantityByProductSince = (from) =>
+  Order.aggregate([
+    { $match: { status: 'sold' } },
+    { $addFields: { soldAt: SOLD_AT } },
+    { $match: { soldAt: { $gte: from } } },
+    { $unwind: '$items' },
+    { $group: { _id: '$items.product', sold: { $sum: '$items.quantity' } } },
+    { $lookup: { from: 'products', localField: '_id', foreignField: '_id', as: 'product', pipeline: [{ $project: { category: 1 } }] } },
+    { $unwind: '$product' },
+    { $project: { sold: 1, category: '$product.category' } },
+    { $sort: { sold: -1, _id: 1 } },
   ]);

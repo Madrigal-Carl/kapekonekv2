@@ -27,20 +27,20 @@ const renderPage = (url = '/products') =>
   )
 
 const FERTILIZER = { _id: 'c2', name: 'Fertilizer', slug: 'fertilizer', hasVariety: false, hasCoffeeType: false }
-const SEEDLINGS = { _id: 'c3', name: 'Seedlings', slug: 'seedlings', hasVariety: true, hasCoffeeType: false }
+const BEANS = { _id: 'c3', name: 'Beans', slug: 'beans', hasVariety: false, hasCoffeeType: false }
 const COFFEE = { _id: 'c1', name: 'Coffee', slug: 'coffee', hasVariety: true, hasCoffeeType: true }
 
 describe('Products', () => {
   it('shows a farmer their first category and lets them switch; no coffee filters', async () => {
-    categories.value = [FERTILIZER, SEEDLINGS]
+    categories.value = [FERTILIZER, BEANS]
     renderPage()
     expect(await screen.findByRole('heading', { level: 1, name: 'Fertilizer' })).toBeTruthy()
     await vi.waitFor(() => expect(listProducts).toHaveBeenCalledWith(expect.objectContaining({ category: 'fertilizer' })))
     expect(screen.queryByText('Coffee type')).toBeNull()
     expect(screen.queryByText('Variety')).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'Seedlings' }))
-    expect(await screen.findByRole('heading', { level: 1, name: 'Seedlings' })).toBeTruthy()
-    expect(screen.getByText('Variety')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Beans' }))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Beans' })).toBeTruthy()
+    expect(screen.queryByText('Variety')).toBeNull() // Change 08: Beans has no variety filter
   })
 
   it('keeps the buyer’s coffee page as it was', async () => {

@@ -2,10 +2,10 @@ import { COFFEE_TYPES, VARIETIES } from '@/constants/catalog'
 
 export const CATEGORY_OPTIONS = [
   { value: 'coffee', label: 'Coffee' },
+  { value: 'beans', label: 'Beans' },
   { value: 'fertilizer', label: 'Fertilizer' },
-  { value: 'seedlings', label: 'Seedlings' },
 ]
-export const CATEGORY_TONES = { coffee: 'roast', fertilizer: 'green', seedlings: 'blue' }
+export const CATEGORY_TONES = { coffee: 'roast', fertilizer: 'green', beans: 'blue' }
 
 /** "pack (250 g)" for coffee packs; other units as they are. */
 export const unitText = (unit) => (unit === 'pack' ? 'pack (250 g)' : unit)

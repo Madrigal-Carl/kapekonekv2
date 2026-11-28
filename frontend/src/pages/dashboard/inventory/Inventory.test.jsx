@@ -10,9 +10,9 @@ const photo = (n) => ({ url: `https://res.cloudinary.com/test/image/upload/v1/p$
 const BARAKO = {
   _id: 'p1', name: 'Barako Medium Roast', slug: 'barako-medium-roast', category: { slug: 'coffee', name: 'Coffee' }, variety: 'liberica', coffeeType: 'roasted_beans',
   unit: 'pack', unitLabel: '250 g', priceCentavos: 26_000, stock: 38, stockState: 'in', description: 'Chocolatey.', photos: [photo(0), photo(1), photo(2)],
-  isFeatured: true, isActive: true, archivedAt: null,
+  isActive: true, archivedAt: null,
 }
-const UREA = { ...BARAKO, _id: 'p2', name: 'Urea 46-0-0', category: { slug: 'fertilizer', name: 'Fertilizer' }, variety: null, coffeeType: null, unit: 'sack', unitLabel: '50 kg sack', stock: 6, stockState: 'low', isFeatured: false }
+const UREA = { ...BARAKO, _id: 'p2', name: 'Urea 46-0-0', category: { slug: 'fertilizer', name: 'Fertilizer' }, variety: null, coffeeType: null, unit: 'sack', unitLabel: '50 kg sack', stock: 6, stockState: 'low', photos: [] }
 const byId = { p1: BARAKO, p2: UREA }
 
 const updateProduct = vi.hoisted(() => vi.fn(async (body) => body))
@@ -43,14 +43,16 @@ function renderAt(url) {
 }
 
 describe('Inventory', () => {
-  it('lists products with category, unit, stock state and Landing', async () => {
+  it('lists products with photo (or the default image), category, unit and stock state; no Featured column', async () => {
     renderAt('/dashboard/inventory')
     const table = await screen.findByRole('region', { name: 'Products' })
     expect(await within(table).findByText('38 packs')).toBeTruthy()
     expect(within(table).getByText('6 sacks')).toBeTruthy()
     expect(within(table).getByText('Low stock')).toBeTruthy()
     expect(within(table).getByText('pack (250 g)')).toBeTruthy()
-    expect(within(table).getByText('Featured')).toBeTruthy()
+    expect(within(table).queryByText('Featured')).toBeNull()
+    expect(within(table).queryByRole('columnheader', { name: 'Landing' })).toBeNull()
+    expect(table.querySelectorAll('[data-default-image]').length).toBeGreaterThan(0) // Urea has no photo
     expect(screen.getByRole('button', { name: 'Add product' })).toBeTruthy()
   })
 
@@ -82,14 +84,27 @@ describe('Inventory', () => {
     expect(within(dialog).getByRole('button', { name: 'Photo 1 is the thumbnail' }).getAttribute('aria-pressed')).toBe('true')
   })
 
-  it('shows no coffee fields for fertilizer and keeps Featured off', async () => {
+  it('shows no coffee fields for fertilizer, no Featured switch, and explains the default image', async () => {
     renderAt('/dashboard/inventory?open=p2&mode=edit')
     const dialog = await screen.findByRole('dialog', { name: 'Edit Urea 46-0-0' })
     await within(dialog).findByRole('button', { name: /Unit/ })
     expect(within(dialog).queryByRole('button', { name: /Coffee type/ })).toBeNull()
-    const featured = within(dialog).getByRole('switch', { name: 'Featured on the landing page' })
-    expect(featured.getAttribute('aria-checked')).toBe('false')
-    expect(featured.disabled).toBe(true)
+    expect(within(dialog).queryByRole('switch', { name: /Featured/ })).toBeNull()
+    expect(dialog.textContent).toContain('No photos yetThe store shows the KapeKonek default image until you add one.')
+    // Editing stock is unaffected by the starting-stock rule.
+    expect(within(dialog).queryByText('Starting stock must be more than 10, the low-stock level.')).toBeNull()
+  })
+
+  it('a new product needs starting stock above 10: the error shows and Add is disabled (Change 08)', async () => {
+    renderAt('/dashboard/inventory?open=new')
+    const dialog = await screen.findByRole('dialog', { name: 'Add a product' })
+    const stock = within(dialog).getByLabelText('Stock')
+    fireEvent.change(stock, { target: { value: '10' } })
+    expect(await within(dialog).findByText('Starting stock must be more than 10, the low-stock level.')).toBeTruthy()
+    expect(within(dialog).getByRole('button', { name: 'Add product' }).disabled).toBe(true)
+    fireEvent.change(stock, { target: { value: '11' } })
+    await vi.waitFor(() => expect(within(dialog).getByRole('button', { name: 'Add product' }).disabled).toBe(false))
+    expect(within(dialog).getByText('Low-stock alert at 10 or fewer. New products need more than 10.')).toBeTruthy()
   })
 
   it('archives from the row action after the modal', async () => {

@@ -97,7 +97,7 @@ export function Products() {
           <Eyebrow className="mt-[18px]">Shop</Eyebrow>
           <h1 className="mt-3 text-[34px] font-medium leading-[1.1] tracking-[-0.02em] sm:text-[40px]">{category?.name ?? 'Coffee'}</h1>
           <p className="mt-2.5 max-w-[640px] text-[15.5px] leading-[1.65] text-ink-2">
-            {isCoffee ? 'Green beans, roasts and grounds from Marinduque farms.' : 'Fertilizer and seedlings for your farm, from Kaluppa.'} Delivered anywhere in Marinduque in 3–5 business days, or pick up at Kaluppa.
+            {isCoffee ? 'Green beans, roasts and grounds from Marinduque farms.' : 'Beans and fertilizer for your farm, from Kaluppa.'} Delivered anywhere in Marinduque in 3–5 business days, or pick up at Kaluppa.
           </p>
         </div>
       </section>

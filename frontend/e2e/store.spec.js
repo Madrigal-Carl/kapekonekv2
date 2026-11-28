@@ -69,6 +69,26 @@ test('a farmer buys fertilizer with GCash; Kaluppa confirms it against the recei
   await expect(page.getByRole('dialog')).toContainText('Completed')
 })
 
+test('Inventory (Change 08): Beans, no Featured, the default image, and starting stock above 10', async ({ browser }) => {
+  const page = await asKaluppa(browser)
+  await page.goto('/dashboard/inventory?q=Robusta%20Parchment')
+  const row = page.getByRole('row', { name: /Robusta Parchment/ })
+  await expect(row).toContainText('Beans')
+  await expect(row.locator('[data-default-image]')).toHaveCount(1) // no photo: the KapeKonek default image
+  await expect(page.getByRole('columnheader', { name: 'Landing' })).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Add product' }).click()
+  const form = page.getByRole('dialog', { name: 'Add a product' })
+  await expect(form.getByRole('switch', { name: /Featured/ })).toHaveCount(0)
+  await expect(form.getByText('No photos yet')).toBeVisible()
+  await form.getByLabel('Stock').fill('10')
+  await expect(form.getByText('Starting stock must be more than 10, the low-stock level.')).toBeVisible()
+  await expect(form.getByRole('button', { name: 'Add product' })).toBeDisabled()
+  await form.getByLabel('Stock').fill('11')
+  await expect(form.getByRole('button', { name: 'Add product' })).toBeEnabled()
+  await page.screenshot({ path: 'test-results/c08-inventory-add-1440.png' })
+})
+
 test('Kaluppa picks a new thumbnail for a product, and the store shows it first', async ({ browser }) => {
   const page = await asKaluppa(browser)
   await page.goto('/dashboard/inventory?q=Barako')

@@ -12,6 +12,10 @@ export const products = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: items, meta });
 });
 
+export const bestSellers = asyncHandler(async (req, res) => {
+  sendSuccess(res, { data: await catalog.bestSellers(req.user) });
+});
+
 export const product = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: await catalog.getProductBySlug(req.user, req.params.slug) });
 });

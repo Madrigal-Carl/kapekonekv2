@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { COFFEE_TYPES, UNITS, VARIETIES } from '../constants/catalog.js';
 import { pageQuerySchema } from './common.schema.js';
-import { PRODUCT_CATEGORIES, productPhotosRule, productPriceRule, productStockRule, refineProductCategory } from './rules.js';
+import { PRODUCT_CATEGORIES, productPhotosRule, productPriceRule, productStockRule, refineProductCategory, refineStartingStock } from './rules.js';
 
 /** Inventory add/edit (InventoryForm.dc.html). Category-dependent fields are checked by refineProductCategory. */
 export const productSchema = z
@@ -14,11 +14,13 @@ export const productSchema = z
     priceCentavos: productPriceRule,
     stock: productStockRule,
     description: z.string().trim().max(2000, 'Use 2,000 characters or fewer').default(''),
-    photos: productPhotosRule,
-    isFeatured: z.boolean().default(false),
+    photos: productPhotosRule.default([]),
     isActive: z.boolean().default(true),
   })
   .superRefine(refineProductCategory);
+
+/** Adding a product: the same fields, and the stock starts above the low-stock line (Change 08). */
+export const productCreateSchema = productSchema.superRefine(refineStartingStock);
 
 /** Inventory table: Status (Active by default), category, stock state, name search. */
 export const productListQuery = pageQuerySchema.extend({

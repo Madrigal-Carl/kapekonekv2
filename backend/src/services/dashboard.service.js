@@ -14,6 +14,7 @@ import { farmIdsFor } from './farm.service.js';
 import { countUnreadChats } from './inbox.service.js';
 import { userCan } from './permission.service.js';
 import { seesEveryAssociation } from './policy.service.js';
+import { LOW_STOCK_LINE } from '../schemas/rules.js';
 
 const fullName = (u) => `${u.firstName} ${u.lastName}`;
 const total = (rows, value) => rows.reduce((sum, row) => sum + value(row), 0);
@@ -200,7 +201,7 @@ async function kaluppaOverview(range) {
     countFarmersEverywhere(),
     countActiveAssociations(),
     listOrdersToConfirm(4),
-    findLowStock(4),
+    findLowStock(4, LOW_STOCK_LINE),
     pendingTotals({}),
     beanFigures({}, range),
     recentListings({}, 3, ['pending', 'approved']),

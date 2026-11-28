@@ -13,6 +13,7 @@ import { useDeleteReply, useSaveReply } from '@/hooks/useReviewModeration'
 import { errorMessage } from '@/lib/applyServerErrors'
 import { cn } from '@/lib/cn'
 import { imageUrl } from '@/lib/image'
+import { ProductImage } from '@/components/product/ProductImage'
 import { productLine, reviewTitle } from './reviewText'
 
 const MAX_REPLY = 1000
@@ -107,7 +108,7 @@ export function ReviewView({ open, review, onHide, onUnhide, unhiding, onClose }
         <>
           <div className="flex items-center gap-3.5 rounded-lg border border-sand p-3.5">
             <span aria-hidden="true" className="size-14 shrink-0 overflow-hidden rounded-md bg-photo">
-              {review.product?.image && <img src={imageUrl(review.product.image, 112)} alt="" className="size-full object-cover" />}
+              <ProductImage src={review.product?.image && imageUrl(review.product.image, 112)} className="size-full" />
             </span>
             <div className="min-w-0 flex-1">
               <span className="block text-[14.5px] font-semibold">{review.product?.name ?? 'Deleted product'}</span>

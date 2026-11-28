@@ -17,6 +17,7 @@ import { cn } from '@/lib/cn'
 import { formatDate, formatDateTime } from '@/lib/date'
 import { formatPeso, formatPhone } from '@/lib/format'
 import { imageUrl } from '@/lib/image'
+import { ProductImage } from '@/components/product/ProductImage'
 
 const CLOSED = ['cancelled', 'rejected', 'expired']
 const shortDate = (d) => format(new Date(d), 'MMM d')
@@ -251,7 +252,7 @@ export function OrderDetail() {
             {o.items.map((item) => (
               <div key={item.product} className="flex flex-wrap items-center gap-3.5 border-b border-table-line py-3">
                 <span aria-hidden="true" className="size-14 shrink-0 overflow-hidden rounded-[6px] bg-photo">
-                  {item.image && <img src={imageUrl(item.image, 64)} alt="" loading="lazy" className="size-full object-cover" />}
+                  <ProductImage src={item.image && imageUrl(item.image, 64)} loading="lazy" className="size-full" />
                 </span>
                 <div className="min-w-[150px] flex-1">
                   <Link to={`/products/${item.slug}`} className="text-sm font-semibold text-ink no-underline hover:text-roast">

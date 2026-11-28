@@ -1,7 +1,7 @@
 /** Permission slug → display name and group (PRODUCT-SPEC §1). */
 export const PERMISSIONS = {
   'catalog.coffee': { name: 'Buy coffee', group: 'catalog' },
-  'catalog.farm_supplies': { name: 'Buy fertilizer and seedlings', group: 'catalog' },
+  'catalog.farm_supplies': { name: 'Buy fertilizer and beans', group: 'catalog' },
   'cart.manage': { name: 'Manage cart', group: 'cart' },
   'addresses.manage': { name: 'Manage addresses', group: 'addresses' },
   'orders.create': { name: 'Place orders', group: 'orders' },

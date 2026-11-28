@@ -17,7 +17,6 @@ const productSchema = new mongoose.Schema(
     unit: { type: String, enum: UNITS, required: true },
     unitLabel: { type: String, default: null },
     stock: { type: Number, required: true, min: 0, default: 0 },
-    isFeatured: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
     archivedAt: { type: Date, default: null },
     ratingAverage: { type: Number, default: 0 },

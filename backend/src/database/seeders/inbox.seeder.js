@@ -58,7 +58,7 @@ export async function seedInbox() {
     [lizaChat, liza, DAY + 100, 'Rodel, please add photos to your new tree group in Lot 7 so I can check the stage.'],
     [lizaChat, rodel, DAY + 92, 'Okay po, I’ll take them tomorrow morning.'],
     [lizaChat, rodel, DAY + 91, 'Thank you po! I’ll upload the photos later.'],
-    [nestorChat, u['nestor.perez'], 2 * DAY + 30, 'Magandang umaga! Did you get the seedlings from Kaluppa?'],
+    [nestorChat, u['nestor.perez'], 2 * DAY + 30, 'Magandang umaga! Did you get the dried cherries from Kaluppa?'],
     [nestorChat, rodel, 2 * DAY + 12, 'Yes, 50 pieces. Planting them this weekend.'],
     [lornaChat, u['lorna.ilagan'], 4 * DAY, 'Look at my new seedlings!', { attachments: photo('seedling-sprout') }],
     [oldGroup, u['manager.boac'], 40 * DAY, 'Welcome to our new members!'],

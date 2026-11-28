@@ -18,8 +18,9 @@ import { useUploadImage } from '@/hooks/useUploads'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
 import { cn } from '@/lib/cn'
 import { imageUrl } from '@/lib/image'
-import { productFormSchema } from '@/schemas/product.schema'
-import { PRODUCT_CATEGORIES } from '@/schemas/rules'
+import { productCreateFormSchema, productFormSchema } from '@/schemas/product.schema'
+import { LOW_STOCK_LINE, PRODUCT_CATEGORIES, STARTING_STOCK_MESSAGE } from '@/schemas/rules'
+import { BeanMark } from '@/components/ui/BeanMark'
 import { CATEGORY_OPTIONS, unitText } from './inventoryText'
 
 const MAX_PHOTOS = 5
@@ -37,7 +38,6 @@ const toForm = (p) => ({
   stock: p?.stock ?? '',
   description: p?.description ?? '',
   photos: p?.photos ?? [],
-  isFeatured: p?.isFeatured ?? false,
   isActive: p?.isActive ?? true,
 })
 
@@ -54,14 +54,13 @@ const LABELS = {
   price: { label: 'Price', format: peso },
   stock: 'Stock',
   description: 'Description',
-  photos: { label: 'Photos', format: (photos) => `${photos.length} photo${photos.length === 1 ? '' : 's'}, thumbnail ${thumbIndex(photos) + 1}` },
-  isFeatured: 'Featured',
+  photos: { label: 'Photos', format: (photos) => (photos.length ? `${photos.length} photo${photos.length === 1 ? '' : 's'}, thumbnail ${thumbIndex(photos) + 1}` : 'No photos (default image)') },
   isActive: 'Active',
 }
 
 /**
- * Add or edit a product (InventoryForm.dc.html): category-dependent fields, photos with a picked thumbnail, Featured
- * (coffee only) and Active switches.
+ * Add or edit a product (Inventory.dc.html): category-dependent fields, photos with a picked thumbnail (or none: the
+ * default image), the Active switch. A new product starts above the low-stock level (Change 08).
  * @param {{ open: boolean, product?: object | null, onClose: () => void }} props
  */
 export function InventoryForm({ open, product = null, onClose }) {
@@ -69,6 +68,7 @@ export function InventoryForm({ open, product = null, onClose }) {
   const create = useCreateProduct()
   const update = useUpdateProduct()
   const [unchanged, setUnchanged] = useState(Boolean(product))
+  const [stockLow, setStockLow] = useState(false)
   return (
     <Drawer
       open={open}
@@ -80,26 +80,29 @@ export function InventoryForm({ open, product = null, onClose }) {
         <>
           {unchanged && <NoChangesNote id={`${formId}-nochange`} />}
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button type="submit" form={formId} loading={create.isPending || update.isPending} disabled={unchanged} aria-describedby={unchanged ? `${formId}-nochange` : undefined}>
+          <Button type="submit" form={formId} loading={create.isPending || update.isPending} disabled={unchanged || (!product && stockLow)} aria-describedby={unchanged ? `${formId}-nochange` : undefined}>
             {product ? 'Save changes' : 'Add product'}
           </Button>
         </>
       }
     >
-      {open && <ProductFields key={product?._id ?? 'new'} formId={formId} product={product} create={create} update={update} onClose={onClose} onUnchanged={setUnchanged} />}
+      {open && <ProductFields key={product?._id ?? 'new'} formId={formId} product={product} create={create} update={update} onClose={onClose} onUnchanged={setUnchanged} onStockLow={setStockLow} />}
       {open && product && <History entityType="product" entityId={product._id} />}
     </Drawer>
   )
 }
 
-function ProductFields({ formId, product, create, update, onClose, onUnchanged }) {
+function ProductFields({ formId, product, create, update, onClose, onUnchanged, onStockLow }) {
   const initial = useMemo(() => toForm(product), [product])
   const { register, control, handleSubmit, setError, setValue, getValues, formState: { errors } } = useForm({
-    resolver: zodResolver(productFormSchema),
+    resolver: zodResolver(product ? productFormSchema : productCreateFormSchema),
     defaultValues: initial,
   })
   const changes = useDirtyDiff(initial, useWatch({ control }), LABELS)
   useEffect(() => onUnchanged(Boolean(product) && changes.length === 0), [product, changes.length, onUnchanged])
+  const stock = useWatch({ control, name: 'stock' })
+  const stockLow = !product && typeof stock === 'number' && stock <= LOW_STOCK_LINE
+  useEffect(() => onStockLow(stockLow), [stockLow, onStockLow])
   const category = useWatch({ control, name: 'category' })
   const rules = PRODUCT_CATEGORIES[category]
 
@@ -109,7 +112,6 @@ function ProductFields({ formId, product, create, update, onClose, onUnchanged }
     if (!nextRules.units.includes(getValues('unit'))) setValue('unit', nextRules.units.length === 1 ? nextRules.units[0] : '')
     if (!nextRules.variety) setValue('variety', null)
     if (!nextRules.coffeeType) setValue('coffeeType', null)
-    if (!nextRules.featured) setValue('isFeatured', false)
   }
 
   const done = (name) => ({
@@ -189,8 +191,8 @@ function ProductFields({ formId, product, create, update, onClose, onUnchanged }
           inputMode="decimal"
           min="0"
           placeholder="0"
-          hint="Low-stock alert below 10 (50 for seedlings)."
-          error={errors.stock?.message}
+          hint={product ? `Low-stock alert at ${LOW_STOCK_LINE} or fewer.` : `Low-stock alert at ${LOW_STOCK_LINE} or fewer. New products need more than ${LOW_STOCK_LINE}.`}
+          error={stockLow ? STARTING_STOCK_MESSAGE : errors.stock?.message}
           {...register('stock', { setValueAs: toNumber })}
         />
       </div>
@@ -209,13 +211,6 @@ function ProductFields({ formId, product, create, update, onClose, onUnchanged }
         />
         <FieldHint id={`${formId}-desc-hint`} error={errors.description?.message} className="mt-1.5 text-xs leading-normal" />
       </div>
-      <Controller
-        name="isFeatured"
-        control={control}
-        render={({ field }) => (
-          <SwitchRow title="Featured on the landing page" text="Coffee only. Shown in the hero carousel and featured row." checked={field.value} onChange={field.onChange} disabled={!rules?.featured} error={errors.isFeatured?.message} />
-        )}
-      />
       <Controller
         name="isActive"
         control={control}
@@ -305,6 +300,17 @@ function PhotoPicker({ photos, onChange, error }) {
           </li>
         )}
       </ul>
+      {!photos.length && (
+        <div className="mt-2.5 flex items-start gap-2.5 rounded-lg border border-sand bg-cream px-3 py-2.5">
+          <span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-md bg-espresso">
+            <BeanMark className="size-4 text-caramel" />
+          </span>
+          <span className="text-[12.5px] leading-normal text-ink-2">
+            <strong className="block text-ink">No photos yet</strong>
+            The store shows the KapeKonek default image until you add one.
+          </span>
+        </div>
+      )}
       <span id={`${id}-e`} role={message ? 'alert' : undefined} className="mt-1.5 block text-xs text-danger-ink">{message}</span>
     </div>
   )

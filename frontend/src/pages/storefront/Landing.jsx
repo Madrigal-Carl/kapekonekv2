@@ -1,8 +1,9 @@
 import { Button } from '@/components/ui/Button'
 import { orList } from '@/lib/payments'
 import { usePaymentProviders } from '@/hooks/useSettings'
-import { IconArrowRight, IconBell, IconChevronDown, IconCoffee, IconMapPin, IconShoppingBag } from '@/components/ui/icons'
-import { useState } from 'react'
+import { IconArrowRight, IconBell, IconChevronDown, IconChevronLeft, IconChevronRight, IconCoffee, IconMapPin, IconShoppingBag } from '@/components/ui/icons'
+import useEmblaCarousel from 'embla-carousel-react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { HeroCarousel } from '@/components/product/HeroCarousel'
 import { ProductCard } from '@/components/product/ProductCard'
@@ -14,7 +15,7 @@ import { SectionHeading } from '@/components/ui/SectionHeading'
 import { ProductCardSkeleton, Skeleton } from '@/components/ui/Skeleton'
 import { useAuth } from '@/hooks/useAuth'
 import { useTopPosts } from '@/hooks/usePosts'
-import { useProducts } from '@/hooks/useProducts'
+import { useBestSellers } from '@/hooks/useProducts'
 import { useLanding } from '@/hooks/useSettings'
 import { cn } from '@/lib/cn'
 import { timeAgo } from '@/lib/date'
@@ -57,32 +58,88 @@ const faqs = (providers) => [
 const container = 'mx-auto max-w-[1280px] px-4 sm:px-8'
 const section = 'py-16 sm:py-24'
 
-function Featured() {
+const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+const roundButton = 'size-11 rounded-full disabled:opacity-40'
+
+/**
+ * Best sellers (Main.dc.html, Change 08): the top 8 the viewer may buy, 4 per view on desktop, 2 on tablets, 1 on
+ * phones. Prev / next, dots, swipe, and the arrow keys when focused. No autoplay; reduced motion jumps instead of sliding.
+ */
+function BestSellers({ query }) {
   const { isAuthenticated } = useAuth()
-  const { data, isPending, isError } = useProducts({ category: 'coffee', featured: true, sort: 'popular', limit: 4 })
-  const products = data?.pages[0].items ?? []
+  const { data: products = [], isPending, isError } = query
+  const [viewportRef, embla] = useEmblaCarousel({ align: 'start', slidesToScroll: 'auto', containScroll: 'trimSnaps' })
+  const [snap, setSnap] = useState({ index: 0, count: 0, prev: false, next: false })
+  useEffect(() => {
+    if (!embla) return undefined
+    const sync = () => setSnap({ index: embla.selectedScrollSnap(), count: embla.scrollSnapList().length, prev: embla.canScrollPrev(), next: embla.canScrollNext() })
+    sync()
+    embla.on('select', sync).on('reInit', sync)
+    return () => embla.off('select', sync).off('reInit', sync)
+  }, [embla])
+  const jump = reducedMotion()
+  const onKeyDown = (event) => {
+    if (event.key === 'ArrowRight') embla?.scrollNext(jump)
+    else if (event.key === 'ArrowLeft') embla?.scrollPrev(jump)
+    else return
+    event.preventDefault()
+  }
   return (
     <section className={cn(section, 'bg-white')}>
       <div className={container}>
         <div className="flex flex-wrap items-end justify-between gap-5">
           <SectionHeading
-            eyebrow="Featured"
-            title="This week's roasts and green beans"
-            lead="Picked by Kaluppa from the latest harvest. Stock is limited, so orders are confirmed first come, first served."
+            id="best-h"
+            eyebrow="Best sellers"
+            title="The 8 products people order most"
+            lead="Ranked by completed orders over the last 90 days and updated every day. Stock is limited, so orders are confirmed first come, first served."
             className="max-w-[640px]"
           />
-          <Link to="/products" className="inline-flex items-center gap-1.5 text-sm font-semibold text-roast no-underline">
-            View all coffee
-            <IconArrowRight aria-hidden="true" className="size-4" strokeWidth={2} />
-          </Link>
+          <div className="flex items-center gap-4">
+            <div className="flex gap-2">
+              <Button variant="outline" iconOnly aria-label="Previous best sellers" aria-controls="best-track" disabled={!snap.prev} onClick={() => embla?.scrollPrev(jump)} className={roundButton}>
+                <IconChevronLeft aria-hidden="true" className="size-[18px]" strokeWidth={2.2} />
+              </Button>
+              <Button variant="outline" iconOnly aria-label="Next best sellers" aria-controls="best-track" disabled={!snap.next} onClick={() => embla?.scrollNext(jump)} className={roundButton}>
+                <IconChevronRight aria-hidden="true" className="size-[18px]" strokeWidth={2.2} />
+              </Button>
+            </div>
+            <Link to="/products" className="inline-flex items-center gap-1.5 text-sm font-semibold text-roast no-underline">
+              View all products
+              <IconArrowRight aria-hidden="true" className="size-4" strokeWidth={2} />
+            </Link>
+          </div>
         </div>
-        <div className="mt-12 grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-6">
-          {isPending && [1, 2, 3, 4].map((i) => <ProductCardSkeleton key={i} />)}
-          {products.map((p) => <ProductCard key={p._id} product={p} featured />)}
+        {isPending && (
+          <div className="mt-12 grid grid-cols-1 gap-6 min-[640px]:grid-cols-2 min-[1024px]:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => <ProductCardSkeleton key={i} />)}
+          </div>
+        )}
+        {isError && <EmptyState tone="error" icon={IconCoffee} title="We couldn't load the best sellers" action={<Link to="/products">Browse all products</Link>} />}
+        {!isPending && !isError && !products.length && <EmptyState icon={IconCoffee} title="No products in the store right now" action={<Link to="/products">Browse all products</Link>} />}
+        {products.length > 0 && (
+          <div ref={viewportRef} role="region" aria-roledescription="carousel" aria-labelledby="best-h" tabIndex={0} onKeyDown={onKeyDown} className="mt-12 overflow-hidden rounded-card focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-roast">
+            <div id="best-track" aria-live="polite" className="-ml-6 flex touch-pan-y">
+              {products.map((p) => (
+                <div key={p._id} role="group" aria-roledescription="slide" aria-label={`${p.rank} of ${products.length}: ${p.name}`} className="min-w-0 shrink-0 grow-0 basis-full pl-6 min-[640px]:basis-1/2 min-[1024px]:basis-1/4">
+                  <ProductCard product={p} rank={p.rank} sold={p.soldLast90Days} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+          {snap.count > 1 ? (
+            <div className="flex items-center gap-2">
+              {Array.from({ length: snap.count }, (_, k) => (
+                <Button variant="bare" key={k} aria-label={`Page ${k + 1}`} aria-current={k === snap.index ? 'true' : undefined} onClick={() => embla?.scrollTo(k, jump)} className="grid h-6 place-items-center px-0">
+                  <span className={cn('block h-2 rounded-full transition-all motion-reduce:transition-none', k === snap.index ? 'w-7 bg-roast' : 'w-2 bg-sand-strong')} />
+                </Button>
+              ))}
+            </div>
+          ) : <span />}
+          {!isAuthenticated && <p className="m-0 text-[12.5px] text-ink-4">Guests who tap “Add” are sent to sign in and brought back here.</p>}
         </div>
-        {isError && <EmptyState tone="error" icon={IconCoffee} title="We couldn't load the featured coffee" action={<Link to="/products">Browse all coffee</Link>} />}
-        {!isPending && !isError && !products.length && <EmptyState icon={IconCoffee} title="No featured coffee right now" action={<Link to="/products">Browse all coffee</Link>} />}
-        {!isAuthenticated && <p className="mt-[18px] text-[12.5px] text-ink-4">Guests who tap “Add” are sent to sign in and brought back here.</p>}
       </div>
     </section>
   )
@@ -171,10 +228,16 @@ export function Landing() {
   const { isAuthenticated } = useAuth()
   const { data: landing } = useLanding()
   const providers = usePaymentProviders()
+  const best = useBestSellers()
+  // The hero uses the top 3 best sellers: a slide without its own photo shows the matching best seller's (Change 08).
+  const slides = landing?.heroSlides?.map((slide, i) => {
+    const photo = best.data?.[i]?.images?.[0]
+    return slide.image || !photo ? slide : { ...slide, image: { url: photo.url, alt: best.data[i].name } }
+  })
   return (
     <main>
-      <HeroCarousel slides={landing?.heroSlides} />
-      <Featured />
+      <HeroCarousel slides={slides} />
+      <BestSellers query={best} />
 
       <section className={cn(section, 'bg-crema')}>
         <div className={container}>
@@ -226,7 +289,7 @@ export function Landing() {
         <div className={cn(container, 'relative flex flex-wrap items-center gap-12')}>
           <div className="min-w-0 flex-[1_1_420px]">
             <SectionHeading onDark eyebrow="For farmers" title="Grow coffee? Sell your beans to Kaluppa." className="max-w-none" />
-            <p className="mt-3.5 text-base leading-[1.65] text-white/82">Create a farmer account, join your group, and sell your harvest through KapeKonek. Fertilizer and seedlings are coming to your account soon.</p>
+            <p className="mt-3.5 text-base leading-[1.65] text-white/82">Create a farmer account, join your group, and sell your harvest through KapeKonek. Beans and fertilizer are coming to your account soon.</p>
             <Button as={Link} variant="caramel" size="lg" className="mt-7 px-[22px] text-sm" to="/register" >
               Sign up as a farmer
             </Button>

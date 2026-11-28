@@ -1,5 +1,6 @@
 import { categoryIdsBySlug } from '../repositories/category.repository.js';
 import * as repo from '../repositories/product.repository.js';
+import { LOW_STOCK_LINE } from '../schemas/rules.js';
 import { AppError } from '../utils/AppError.js';
 import { escapeRegex } from '../utils/escapeRegex.js';
 import { slugify } from './association.service.js';
@@ -7,11 +8,10 @@ import { record } from './audit.service.js';
 import { fieldError } from './farmerProfile.service.js';
 import { assertUploadAllowed, isOwnUpload } from './upload.service.js';
 
-const AUDITED = ['name', 'category', 'variety', 'coffeeType', 'unit', 'priceCentavos', 'stock', 'description', 'photos', 'thumbnail', 'isFeatured', 'isActive'];
+const AUDITED = ['name', 'category', 'variety', 'coffeeType', 'unit', 'priceCentavos', 'stock', 'description', 'photos', 'thumbnail', 'isActive'];
 const notFound = () => new AppError(404, 'Product not found.');
-/** Low-stock line: 10, or 50 for seedlings (PHASE-2-SPEC §4). */
-const lowLine = (categorySlug) => (categorySlug === 'seedlings' ? 50 : 10);
-const stockState = (p) => (p.stock <= 0 ? 'out' : p.stock < lowLine(p.category?.slug) ? 'low' : 'in');
+/** Low stock: 10 or fewer, every category (Change 08). */
+const stockState = (p) => (p.stock <= 0 ? 'out' : p.stock <= LOW_STOCK_LINE ? 'low' : 'in');
 
 /** The Inventory view of a product: stored `images` are the form's `photos`, thumbnail first. */
 const present = (p) => ({
@@ -28,20 +28,18 @@ const present = (p) => ({
   stockState: stockState(p),
   description: p.description,
   photos: p.images.map(({ url, publicId, isThumbnail }, i) => ({ url, publicId, isThumbnail: Boolean(isThumbnail) || (i === 0 && !p.images.some((x) => x.isThumbnail)) })),
-  isFeatured: p.isFeatured,
   isActive: p.isActive,
   archivedAt: p.archivedAt ?? null,
   createdAt: p.createdAt,
 });
-const auditView = (p) => ({ ...Object.fromEntries(AUDITED.map((k) => [k, p[k] ?? null])), category: p.category?.slug ?? null, photos: p.photos.map((x) => x.publicId), thumbnail: `photo ${p.photos.findIndex((x) => x.isThumbnail) + 1}` });
+const auditView = (p) => ({ ...Object.fromEntries(AUDITED.map((k) => [k, p[k] ?? null])), category: p.category?.slug ?? null, photos: p.photos.map((x) => x.publicId), thumbnail: p.photos.length ? `photo ${p.photos.findIndex((x) => x.isThumbnail) + 1}` : null });
 const entity = (p) => ({ type: 'product', id: p._id, label: p.name });
 
-/** Mongo filter for one stock state; the low line differs for seedlings. */
-function stockFilter(state, seedlingsId) {
-  const below = (line) => ({ $gt: 0, $lt: line });
+/** Mongo filter for one stock state. */
+function stockFilter(state) {
   if (state === 'out') return { stock: { $lte: 0 } };
-  if (state === 'low') return { $or: [{ category: seedlingsId, stock: below(50) }, { category: { $ne: seedlingsId }, stock: below(10) }] };
-  return { $or: [{ category: seedlingsId, stock: { $gte: 50 } }, { category: { $ne: seedlingsId }, stock: { $gte: 10 } }] };
+  if (state === 'low') return { stock: { $gt: 0, $lte: LOW_STOCK_LINE } };
+  return { stock: { $gt: LOW_STOCK_LINE } };
 }
 
 /**
@@ -52,7 +50,7 @@ export async function listInventory({ status, category, stock, q, page, limit })
   const ids = await categoryIdsBySlug();
   const and = [status === 'archived' ? { archivedAt: { $ne: null } } : { archivedAt: null, isActive: status === 'active' }];
   if (category) and.push({ category: ids[category] });
-  if (stock) and.push(stockFilter(stock, ids.seedlings));
+  if (stock) and.push(stockFilter(stock));
   if (q) and.push({ name: new RegExp(escapeRegex(q), 'i') });
   const result = await repo.listInventoryPage({ $and: and }, { page, limit });
   return { items: result.items.map(present), meta: result.meta };
@@ -70,6 +68,7 @@ export async function getInventoryProduct(id) {
  * ones already on the product stay. Exactly one thumbnail, stored first so cards, the cart and order snapshots use it.
  */
 async function imagesFor(actor, photos, existing = []) {
+  if (!photos.length) return []; // the store shows the default image
   const kept = new Set(existing.map((p) => p.publicId));
   for (const photo of photos) {
     if (kept.has(photo.publicId)) continue;
@@ -87,7 +86,7 @@ async function storedFields(actor, { category, photos, variety, coffeeType, desc
   return {
     ...fields,
     category: ids[category],
-    variety: category === 'fertilizer' ? null : variety,
+    variety: category === 'coffee' ? variety : null,
     coffeeType: category === 'coffee' ? coffeeType : null,
     description,
     // shortcut: the card line is the description's start; a separate field when Kaluppa asks for one.

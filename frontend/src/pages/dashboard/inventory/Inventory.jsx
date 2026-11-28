@@ -3,12 +3,14 @@ import { toast } from 'sonner'
 import { ConfirmModal } from '@/components/dashboard/ConfirmModal'
 import { DataTable } from '@/components/dashboard/DataTable'
 import { PageHeader } from '@/components/dashboard/PageHeader'
+import { ProductImage } from '@/components/product/ProductImage'
 import { Button } from '@/components/ui/Button'
 import { IconPlus } from '@/components/ui/icons'
 import { useArchiveProduct, useInventory, useInventoryProduct, useRestoreProduct } from '@/hooks/useInventory'
 import { useTableParams } from '@/hooks/useTableParams'
 import { errorMessage } from '@/lib/applyServerErrors'
 import { formatPeso } from '@/lib/format'
+import { squareUrl } from '@/lib/image'
 import { NotFound } from '@/pages/errors/NotFound'
 import { DashPage } from '../overview/Overview'
 import { InventoryForm } from './InventoryForm'
@@ -24,16 +26,26 @@ const FILTERS = [
 const toRow = (p) => ({
   id: p._id,
   label: p.name,
-  product: { main: p.name, sub: productSub(p) },
+  product: { main: p.name, sub: productSub(p), image: p.photos[0]?.url },
   category: { label: p.category?.name ?? '—', tone: CATEGORY_TONES[p.category?.slug] ?? 'gray' },
   unit: unitText(p.unit),
   price: formatPeso(p.priceCentavos),
   stock: { main: stockText(p.stock, p.unit), sub: STOCK_STATES[p.stockState] },
-  landing: p.isFeatured ? 'Featured' : '',
   status: p.archivedAt ? { label: 'Archived', tone: 'gray' } : p.isActive ? { label: 'Active', tone: 'green' } : { label: 'Inactive', tone: 'gray' },
   actions: p.archivedAt ? ['restore'] : ['edit', 'archive'],
   record: p,
 })
+
+/** Photo (or the default image), name and the variety / size line (Inventory.dc.html "product" cells). */
+const productCell = ({ main, sub, image }) => (
+  <span className="flex items-center gap-2.5">
+    <ProductImage src={image && squareUrl(image, 40)} className="size-10 shrink-0 overflow-hidden rounded-md" />
+    <span className="flex min-w-0 flex-col">
+      <span className="font-semibold">{main}</span>
+      {sub && <span className="text-xs text-ink-3">{sub}</span>}
+    </span>
+  </span>
+)
 
 /** What Kaluppa sells (Inventory.dc.html): table, add/edit drawer, archive/restore modals. */
 export function Inventory() {
@@ -70,7 +82,7 @@ export function Inventory() {
       <PageHeader
         eyebrow="Marketplace"
         title="Inventory"
-        description="What Kaluppa sells: coffee for buyers, fertilizer and seedlings for farmers."
+        description="What Kaluppa sells: coffee for buyers, beans and fertilizer for farmers."
         actions={
           <Button onClick={() => set({ open: 'new', mode: null })} leftIcon={<IconPlus aria-hidden="true" className="size-4" strokeWidth={2} />}>
             Add product
@@ -81,12 +93,11 @@ export function Inventory() {
         query={query}
         ariaLabel="Products"
         columns={[
-          { key: 'product', label: 'Product', kind: 'strong' },
+          { key: 'product', label: 'Product', render: productCell },
           { key: 'category', label: 'Category', kind: 'pill' },
           { key: 'unit', label: 'Unit' },
           { key: 'price', label: 'Price', align: 'right' },
           { key: 'stock', label: 'Stock', align: 'right' },
-          { key: 'landing', label: 'Landing', kind: 'muted' },
           { key: 'status', label: 'Status', kind: 'pill' },
         ]}
         rows={list.data?.items.map(toRow)}
@@ -101,7 +112,7 @@ export function Inventory() {
         emptyState={
           params.status === 'archived'
             ? { title: 'Nothing archived', text: 'Archived products show up here. You can restore them.' }
-            : { title: 'No products yet', text: 'Add coffee for buyers, or fertilizer and seedlings for farmers.' }
+            : { title: 'No products yet', text: 'Add coffee for buyers, or beans and fertilizer for farmers.' }
         }
         searchPlaceholder="Search product name"
         minWidth={960}

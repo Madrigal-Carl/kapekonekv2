@@ -12,7 +12,6 @@ export const productListQuery = pageQuery(24, 12).extend({
   coffeeType: csvOf(Object.keys(COFFEE_TYPES), 'Unknown coffee type'),
   minPrice: peso,
   maxPrice: peso,
-  featured: z.enum(['true', 'false']).optional().transform((v) => v === 'true'),
   sort: z.enum(Object.keys(PRODUCT_SORTS), 'Unknown sort').default('newest'),
 });
 

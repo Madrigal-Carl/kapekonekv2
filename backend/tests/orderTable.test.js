@@ -52,12 +52,12 @@ describe('GET /orders?page= (farmer Orders table)', () => {
 
   it('filters by status group and searches the order number and item names', async () => {
     const pending = await order({ email: FARMER, items: [['organic-fertilizer-25kg', 1]] });
-    const preparing = await order({ email: FARMER, status: 'processing', items: [['liberica-seedling', 10]] });
-    const closed = await order({ email: FARMER, status: 'rejected', items: [['liberica-seedling', 5]] });
+    const preparing = await order({ email: FARMER, status: 'processing', items: [['liberica-dried-cherry', 10]] });
+    const closed = await order({ email: FARMER, status: 'rejected', items: [['liberica-dried-cherry', 5]] });
     expect(numbers(await farmer.get('/api/orders?page=1&group=to_confirm'))).toEqual([pending.orderNumber]);
     expect(numbers(await farmer.get('/api/orders?page=1&group=preparing'))).toEqual([preparing.orderNumber]);
     expect(numbers(await farmer.get('/api/orders?page=1&group=closed'))).toEqual([closed.orderNumber]);
-    expect(numbers(await farmer.get('/api/orders?page=1&q=seedling')).sort()).toEqual([closed.orderNumber, preparing.orderNumber].sort());
+    expect(numbers(await farmer.get('/api/orders?page=1&q=cherry')).sort()).toEqual([closed.orderNumber, preparing.orderNumber].sort());
     expect(numbers(await farmer.get(`/api/orders?page=1&q=${pending.orderNumber.slice(-4)}`))).toEqual([pending.orderNumber]);
     expect((await farmer.get('/api/orders?page=1&group=soon')).status).toBe(400);
   });

@@ -403,10 +403,10 @@ Source: `docs/prompts/CHANGE-08-CONFIRM-EXPORT-ACCOUNTS-MENTIONS-CONTACT.md`, PH
 - [x] Farmers: Farms owned column.
 
 ### Task C08.E: Inventory and the storefront
-- [ ] Seedlings → Beans (migration, seeds, copy); Featured removed (migration).
-- [ ] Best sellers (top 8 by quantity, completed orders, 90 days, viewer's categories; newest fill the gaps), daily job + Valkey `products:best8`; landing carousel; hero uses the top 3.
-- [ ] `ProductImage` with the default image everywhere a product image shows.
-- [ ] New products need starting stock above 10 (both sides).
+- [x] Seedlings → Beans (migration, seeds, copy); Featured removed (migration).
+- [x] Best sellers (top 8 by quantity, completed orders, 90 days, viewer's categories; newest fill the gaps), daily job + Valkey `products:best8`; landing carousel; hero uses the top 3.
+- [x] `ProductImage` with the default image everywhere a product image shows.
+- [x] New products need starting stock above 10 (both sides).
 
 ### Task C08.F: Association map, chatting while pending, Hub mentions
 - [ ] `Association.location`, set in the Association form, seeded; map of active associations in the join window and Account settings → Association.

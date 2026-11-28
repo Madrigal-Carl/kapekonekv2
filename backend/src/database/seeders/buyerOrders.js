@@ -35,10 +35,10 @@ const PLAN = [
 /** Rodel's (`farmer.approved`) farm-supply orders (PHASE-2-SPEC §8: farmer store orders in several statuses). Addresses: farm, home, mama. */
 export const FARMER_PLAN = [
   [0.3, 'pending', 'farm', 'GCash', [['complete-fertilizer-14-14-14', 2]]],
-  [2, 'processing', 'farm', 'cash', [['liberica-seedling', 50]]],
+  [2, 'processing', 'farm', 'cash', [['liberica-dried-cherry', 50]]],
   [3, 'ready_for_pickup', 'pickup', 'cash', [['organic-fertilizer', 4]]],
-  [10, 'cancelled', 'home', 'cash', [['excelsa-seedling', 20]], { reasonCode: 'ordered_by_mistake' }],
-  [16, 'sold', 'farm', 'GCash', [['urea-46-0-0', 1], ['robusta-seedling', 30]]],
+  [10, 'cancelled', 'home', 'cash', [['excelsa-dried-cherry', 20]], { reasonCode: 'ordered_by_mistake' }],
+  [16, 'sold', 'farm', 'GCash', [['urea-46-0-0', 1], ['robusta-parchment', 30]]],
   [35, 'sold', 'pickup', 'cash', [['vermicast', 2]]],
 ];
 
