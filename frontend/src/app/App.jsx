@@ -9,6 +9,11 @@ import { queryClient } from './queryClient'
 setAuthHandlers({
   onSessionExpired: () => useAuthStore.getState().clear(),
   onEmailNotVerified: () => router.navigate('/verify-email'),
+  // Change 09: the terms changed (or were never agreed to) mid-session; reload the session so TermsGate opens.
+  onTermsRequired: () => {
+    const { session, load } = useAuthStore.getState()
+    if (session && !session.user.mustAcceptTerms) load()
+  },
 })
 useAuthStore.getState().load()
 

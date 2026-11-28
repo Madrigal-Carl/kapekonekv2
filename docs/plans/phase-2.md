@@ -432,8 +432,8 @@ PHASE-2-SPEC §3.17, DESIGN §8.8. Screens: Register, RegisterTerms, RegisterTer
 - [x] Accounts made by Kaluppa or a Group Manager see accept mode after verifying their email, before the dashboard.
 
 ### Task C09.B: Agreement on first sign-in
-- [ ] Accept mode for anyone whose `termsVersion` is older than `TERMS_VERSION`, before any dashboard or storefront page.
-- [ ] `403 TERMS_REQUIRED` for everything but `GET /legal/current`, `POST /legal/accept` and sign-out until they agree; Agree and continue goes on to where they were going.
+- [x] Accept mode for anyone whose `termsVersion` is older than `TERMS_VERSION`, before any dashboard or storefront page.
+- [x] `403 TERMS_REQUIRED` for everything but `GET /legal/current`, `POST /legal/accept` and sign-out until they agree; Agree and continue goes on to where they were going.
 
 ## Milestone summaries
 

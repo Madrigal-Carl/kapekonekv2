@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { latestMailLink } from './helpers/mailbox.js'
 
 // Change 09: Terms and Conditions at sign-up and at first sign-in.
 const API = 'http://localhost:5100/api'
@@ -50,4 +51,53 @@ test('at 390px the modal fills the screen', async ({ browser }) => {
   expect(await dialog.boundingBox()).toEqual({ x: 0, y: 0, width: 390, height: 844 })
   await expect(dialog.getByRole('button', { name: 'I agree' })).toBeInViewport()
   await page.screenshot({ path: 'test-results/c09-terms-modal-390.png' })
+})
+
+async function signIn(page, identifier) {
+  await page.goto('/login')
+  await page.getByLabel('Email or username').fill(identifier)
+  await page.getByLabel('Password', { exact: true }).fill('KapeKonek@123')
+  await page.getByRole('button', { name: 'Sign in' }).click()
+  await page.waitForURL((url) => !url.pathname.startsWith('/login'))
+}
+
+test('a farmer made by a Group Manager must agree on first sign-in; Sign out works; agreeing continues (Change 09B)', async ({ browser }) => {
+  const id = `${Date.now()}`.slice(-7)
+  const email = `e2e.terms.${id}@example.com`
+  const manager = await (await browser.newContext()).newPage()
+  await signIn(manager, 'kapekonek.manager.santacruz@gmail.com')
+  const created = await manager.request.post(`${API}/farmers`, { data: { firstName: 'Tess', lastName: `Terms${id}`, username: `tess.${id}`, contactNumber: '09175550150', email } })
+  expect(created.status()).toBe(201)
+
+  const page = await (await browser.newContext({ viewport: { width: 1440, height: 900 } })).newPage()
+  await signIn(page, `tess.${id}`)
+  await expect(page).toHaveURL('/verify-email') // verify first (Change 08C), no terms yet
+  await expect(page.getByRole('dialog', { name: 'Agree to our terms' })).toHaveCount(0)
+  const link = new URL(await latestMailLink(email, '/verify-email/confirm'))
+  await page.goto(link.pathname + link.search)
+  await expect(page).toHaveURL('/dashboard/overview')
+
+  const terms = page.getByRole('dialog', { name: 'Agree to our terms' })
+  await expect(terms.getByText('Your account was made for you by Liza Ramos, your Group Manager. Read and agree to these before you start using KapeKonek.')).toBeVisible()
+  await page.screenshot({ path: 'test-results/c09-terms-accept-1440.png' })
+  // Can't be dismissed, and the API refuses everything else meanwhile.
+  await page.keyboard.press('Escape')
+  await expect(terms).toBeVisible()
+  await expect(terms.getByRole('button', { name: 'Agree and continue' })).toBeDisabled()
+  expect((await page.request.get(`${API}/farms`)).status()).toBe(403)
+  await page.goto('/dashboard/farms')
+  await expect(terms).toBeVisible()
+
+  await terms.getByRole('button', { name: 'Sign out' }).click()
+  await expect(page).toHaveURL('/')
+  await expect(page.getByRole('link', { name: 'Log in' })).toBeVisible()
+
+  await signIn(page, `tess.${id}`)
+  await page.goto('/dashboard/farms')
+  await terms.getByLabel('I’ve read and agree to the Terms and Conditions and the Privacy Policy.').check()
+  await terms.getByRole('button', { name: 'Agree and continue' }).click()
+  await expect(terms).toBeHidden()
+  await expect(page).toHaveURL('/dashboard/farms')
+  await expect(page.getByRole('heading', { level: 1, name: 'Farms' })).toBeVisible()
+  expect((await page.request.get(`${API}/farms`)).status()).toBe(200)
 })

@@ -56,7 +56,8 @@ describe('register', () => {
   });
 
   it('needs the terms checkbox; stores the agreed version and audits it (Change 09)', async () => {
-    const { acceptTerms: _a, ...unticked } = { ...juana, username: 'noterms', email: 'noterms@example.com' };
+    const unticked = { ...juana, username: 'noterms', email: 'noterms@example.com' };
+    delete unticked.acceptTerms;
     const refused = await request(app).post('/api/auth/register').send(unticked);
     expect(refused.status).toBe(400);
     expect(refused.body.errors).toEqual({ acceptTerms: 'Please agree to the Terms and Conditions to create your account.' });

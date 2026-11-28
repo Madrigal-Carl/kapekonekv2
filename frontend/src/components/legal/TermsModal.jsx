@@ -1,5 +1,5 @@
 import { format, parseISO } from 'date-fns'
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { IconX } from '@/components/ui/icons'
 import { Modal } from '@/components/ui/Modal'
@@ -26,6 +26,7 @@ export function TermsModal({ open, mode = 'read', tab: initialTab = 'terms', mad
   // Mount it per opening (`key`), so each link starts on its own tab.
   const [tab, setTab] = useState(initialTab)
   const [checked, setChecked] = useState(false)
+  const panel = useRef(null) // focus starts on the text, so arrow keys scroll it
   const legal = useLegal(open)
   const doc = legal.data?.[tab]
   const label = TABS.find(([key]) => key === tab)[1]
@@ -36,6 +37,7 @@ export function TermsModal({ open, mode = 'read', tab: initialTab = 'terms', mad
       open={open}
       onClose={accept ? noop : onClose}
       labelledBy={`${id}-title`}
+      initialFocus={panel}
       className="flex max-h-[calc(100vh-96px)] max-w-[640px] flex-col overflow-hidden rounded-[10px] border-0 shadow-modal max-[720px]:fixed max-[720px]:inset-0 max-[720px]:max-h-none max-[720px]:max-w-none max-[720px]:rounded-none min-[721px]:mt-8 min-[721px]:self-start"
     >
       <header className="relative shrink-0 pl-6 pr-16 pt-5">
@@ -73,7 +75,7 @@ export function TermsModal({ open, mode = 'read', tab: initialTab = 'terms', mad
           ))}
         </div>
       </header>
-      <div id={`${id}-panel`} role="tabpanel" aria-labelledby={`${id}-tab-${tab}`} tabIndex={0} className="min-h-0 flex-1 overflow-y-auto px-6 pb-[22px] pt-[18px] outline-none">
+      <div ref={panel} id={`${id}-panel`} role="tabpanel" aria-labelledby={`${id}-tab-${tab}`} tabIndex={0} className="min-h-0 flex-1 overflow-y-auto px-6 pb-[22px] pt-[18px] outline-none">
         {legal.isPending ? (
           <div aria-busy="true" aria-label="Loading" className="flex flex-col gap-3">
             <Skeleton className="h-4 w-48" />

@@ -9,7 +9,7 @@ const reply = (config, status, data = {}) => {
   return Promise.reject(error)
 }
 
-afterEach(() => setAuthHandlers({ onSessionExpired: () => {}, onEmailNotVerified: () => {} }))
+afterEach(() => setAuthHandlers({ onSessionExpired: () => {}, onEmailNotVerified: () => {}, onTermsRequired: () => {} }))
 
 describe('api interceptor', () => {
   it('refreshes once for parallel 401s and retries every request', async () => {
@@ -43,6 +43,14 @@ describe('api interceptor', () => {
     api.defaults.adapter = (config) => reply(config, 403, { code: 'EMAIL_NOT_VERIFIED' })
     await expect(api.get('/cart')).rejects.toThrow()
     expect(onEmailNotVerified).toHaveBeenCalledTimes(1)
+  })
+
+  it('tells the app when the terms must be agreed to (Change 09)', async () => {
+    const onTermsRequired = vi.fn()
+    setAuthHandlers({ onTermsRequired })
+    api.defaults.adapter = (config) => reply(config, 403, { code: 'TERMS_REQUIRED' })
+    await expect(api.get('/cart')).rejects.toThrow()
+    expect(onTermsRequired).toHaveBeenCalledTimes(1)
   })
 
   it('does not try to refresh a failed login', async () => {

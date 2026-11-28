@@ -64,6 +64,8 @@ describe('farmers a Group Manager adds (Change 08)', () => {
     await User.updateOne({ _id: user._id }, { $set: { emailVerifiedAt: new Date() } });
     const agent = request.agent(app);
     await agent.post('/api/auth/login').send({ identifier: 'nora.lim', password: 'KapeKonek@123' }).expect(200);
+    expect((await agent.patch('/api/account/password').send({})).body.code).toBe('TERMS_REQUIRED'); // Change 09: agree first
+    await agent.post('/api/legal/accept').send({ version: 1 }).expect(200);
     await agent.patch('/api/account/password').send({ currentPassword: 'KapeKonek@123', password: 'Mine@12345', passwordConfirmation: 'Mine@12345' }).expect(200);
     expect((await User.findById(user._id).lean()).passwordIsDefault).toBe(false);
 

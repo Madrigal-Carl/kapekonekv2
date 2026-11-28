@@ -1,3 +1,4 @@
+import { mustAcceptTerms } from '../constants/legal.js';
 import { ROLES } from '../constants/permissions.js';
 
 // Record scope (whose record) — PHASE-2-SPEC §2. Services call these; never `role ===` for scope.
@@ -44,3 +45,9 @@ export const isKaluppaTeam = (user) => user.roles.includes(ROLES.KALUPPA);
  */
 export const mustVerifyEmail = (user) =>
   (!user.email || !user.emailVerifiedAt) && (user.roles.some((r) => r === ROLES.BUYER || r === ROLES.FARMER) || Boolean(user.createdBy));
+
+/**
+ * Change 09: a signed-in user must agree to the current terms before anything else. Accounts that still have to verify
+ * their email do that first (the `verified` middleware answers them), so this waits until then.
+ */
+export const mustAgreeFirst = (user) => mustAcceptTerms(user) && !mustVerifyEmail(user);

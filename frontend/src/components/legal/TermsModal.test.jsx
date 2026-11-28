@@ -4,11 +4,14 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Register } from '@/pages/auth/Register'
+import { useAuthStore } from '@/stores/auth.store'
+import { TermsGate } from './TermsGate'
 import { TermsModal } from './TermsModal'
 
 const register = vi.hoisted(() => vi.fn())
 vi.mock('@/services/auth.service', async (importOriginal) => ({ ...(await importOriginal()), register }))
 vi.mock('@/services/legal.service', () => ({
+  acceptTerms: vi.fn(async () => ({})),
   getCurrentLegal: vi.fn(async () => ({
     version: 1,
     updatedAt: '2026-11-28',
@@ -68,5 +71,23 @@ describe('Terms at sign-up (Change 09)', () => {
     expect(onAgree).toHaveBeenCalledWith(1)
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
     expect(onSignOut).toHaveBeenCalled()
+  })
+
+  it('the gate opens for a signed-in user on an older version, waits for email verification, and uses the "updated" copy', async () => {
+    const show = (user) => {
+      useAuthStore.setState({ status: 'ready', session: { user: { emailVerifiedAt: '2026-11-01', mustVerifyEmail: false, mustAcceptTerms: true, ...user }, roles: ['buyer'], permissions: [] } })
+      return wrap(<TermsGate />)
+    }
+    show({ mustVerifyEmail: true })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    cleanup()
+    show({})
+    expect(await screen.findByText('We updated our terms. Read and agree to them to keep using KapeKonek.')).toBeTruthy()
+    cleanup()
+    show({ createdBy: { name: 'Kaluppa', isKaluppa: true } })
+    expect(await screen.findByText(/^Your account was made for you by Kaluppa\./)).toBeTruthy()
+    cleanup()
+    show({ mustAcceptTerms: false })
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 })

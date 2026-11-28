@@ -5,8 +5,8 @@ export const api = axios.create({
   withCredentials: true,
 })
 
-/** Set once by the app: what to do when the session can't be refreshed, or a buyer must verify. */
-const handlers = { onSessionExpired: () => {}, onEmailNotVerified: () => {} }
+/** Set once by the app: what to do when the session can't be refreshed, a buyer must verify, or the terms must be agreed to. */
+const handlers = { onSessionExpired: () => {}, onEmailNotVerified: () => {}, onTermsRequired: () => {} }
 export const setAuthHandlers = (next) => Object.assign(handlers, next)
 
 const NO_REFRESH = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/logout']
@@ -29,6 +29,7 @@ export function refreshOnce() {
 api.interceptors.response.use(undefined, async (error) => {
   const { config, response } = error
   if (response?.data?.code === 'EMAIL_NOT_VERIFIED') handlers.onEmailNotVerified()
+  if (response?.data?.code === 'TERMS_REQUIRED') handlers.onTermsRequired()
 
   const canRefresh =
     response?.status === 401 && config && !config._retried && !config._skipRefresh && !NO_REFRESH.includes(config.url)

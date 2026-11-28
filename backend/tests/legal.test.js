@@ -57,4 +57,33 @@ describe('Terms and Conditions', () => {
     expect(await AuditLog.countDocuments({ entityId: saved._id, action: 'accept_terms' })).toBe(1);
     expect((await request(app).post('/api/legal/accept').send({ version: 1 })).status).toBe(401);
   });
+
+  it('blocks everything but /auth/me, sign-out and accept with 403 TERMS_REQUIRED until they agree (Change 09B)', async () => {
+    await User.updateOne({ username: 'buyer' }, { termsVersion: 0, termsAcceptedAt: null });
+    const buyer = await signedIn(app, 'buyer');
+    const blocked = await buyer.get('/api/cart');
+    expect(blocked.status).toBe(403);
+    expect(blocked.body).toMatchObject({ code: 'TERMS_REQUIRED', message: 'Please agree to the Terms and Conditions to continue.' });
+    expect((await buyer.get('/api/notifications?limit=5')).body.code).toBe('TERMS_REQUIRED');
+    expect((await buyer.get('/api/auth/me').expect(200)).body.data.user).toMatchObject({ mustAcceptTerms: true });
+    expect((await buyer.get('/api/auth/me')).body.data.user.createdBy).toBeUndefined(); // signed up: the "we updated" copy
+    await request(app).get('/api/legal/current').expect(200);
+    await request(app).get('/api/products?limit=1').expect(200); // public pages stay public
+
+    await buyer.post('/api/legal/accept').send({ version: 1 }).expect(200);
+    await buyer.get('/api/cart').expect(200);
+
+    // Sign-out works while blocked.
+    await User.updateOne({ username: 'buyer' }, { termsVersion: 0 });
+    await buyer.post('/api/auth/logout').expect(200);
+    await User.updateOne({ username: 'buyer' }, { termsVersion: 1 });
+  });
+
+  it('an account still verifying its email gets EMAIL_NOT_VERIFIED first, not TERMS_REQUIRED', async () => {
+    await User.updateOne({ username: 'farmer.unverified' }, { termsVersion: 0, emailVerifiedAt: null });
+    const farmer = await signedIn(app, 'farmer.unverified');
+    expect((await farmer.get('/api/farms')).body.code).toBe('EMAIL_NOT_VERIFIED');
+    expect((await farmer.get('/api/auth/me')).body.data.user).toMatchObject({ mustVerifyEmail: true, mustAcceptTerms: true });
+  });
 });
+
