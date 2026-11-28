@@ -47,6 +47,7 @@ function useFarmerMutation(mutationFn) {
 }
 export const useCreateFarmer = () => useFarmerMutation(farmerService.createFarmer)
 export const useUpdateFarmer = () => useFarmerMutation(farmerService.updateFarmer)
+export const useResetFarmerPassword = () => useFarmerMutation(farmerService.resetFarmerPassword)
 export const useApproveFarmer = () => useFarmerMutation(farmerService.approveFarmer)
 export const useRejectFarmer = () => useFarmerMutation(farmerService.rejectFarmer)
 export const useApproveTransfer = () => useFarmerMutation(farmerService.approveTransfer)

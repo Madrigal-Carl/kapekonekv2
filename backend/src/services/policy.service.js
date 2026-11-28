@@ -36,3 +36,11 @@ export const isGroupManager = (user) => user.roles.includes(ROLES.GROUP_MANAGER)
 
 /** Kaluppa accounts share the `team:kaluppa` side of every Kaluppa chat (PHASE-2-SPEC §3.9). */
 export const isKaluppaTeam = (user) => user.roles.includes(ROLES.KALUPPA);
+
+/**
+ * Must verify an email before acting: buyers and farmers, and any account Kaluppa or a Group Manager created
+ * (Change 08). A username-only account has no email yet, so it must add one first. Seeded Kaluppa and Group Managers
+ * (no `createdBy`) may act unverified.
+ */
+export const mustVerifyEmail = (user) =>
+  (!user.email || !user.emailVerifiedAt) && (user.roles.some((r) => r === ROLES.BUYER || r === ROLES.FARMER) || Boolean(user.createdBy));

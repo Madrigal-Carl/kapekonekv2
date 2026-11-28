@@ -19,3 +19,4 @@ export const createGroupManager = (body) => api.post('/group-managers', body).th
 export const updateGroupManager = ({ id, ...body }) => api.patch(`/group-managers/${id}`, body).then(data)
 export const archiveGroupManager = (id) => api.post(`/group-managers/${id}/archive`).then(data)
 export const restoreGroupManager = (id) => api.post(`/group-managers/${id}/restore`).then(data)
+export const resetGroupManagerPassword = (id) => api.post(`/group-managers/${id}/reset-password`).then(data)

@@ -24,13 +24,14 @@ router.patch('/me/farmer-profile/documents', validate({ body: documentReplaceSch
 router.post('/me/farmer-profile/transfer', validate({ body: transferRequestSchema }), farmers.requestTransfer);
 router.delete('/me/farmer-profile/transfer', farmers.withdrawTransfer);
 
-const manage = [authenticate, can('farmers.manage')];
-const decide = [authenticate, can('farmers.approve')];
+const manage = [authenticate, verified, can('farmers.manage')];
+const decide = [authenticate, verified, can('farmers.approve')];
 router.get('/farmers', manage, validate({ query: farmerListQuery }), farmers.list);
 router.post('/farmers', manage, validate({ body: farmerCreateSchema }), farmers.create);
 router.get('/farmers/:id', manage, validate({ params: idParams }), farmers.show);
 router.patch('/farmers/:id', manage, validate({ params: idParams, body: farmerUpdateSchema }), farmers.update);
 router.post('/farmers/:id/remove', manage, validate({ params: idParams, body: reasonSchema }), farmers.remove);
+router.post('/farmers/:id/reset-password', authenticate, verified, can('farmers.reset_password'), validate({ params: idParams }), farmers.resetPassword);
 router.post('/farmers/:id/approve', decide, validate({ params: idParams }), farmers.approve);
 router.post('/farmers/:id/reject', decide, validate({ params: idParams, body: reasonSchema }), farmers.reject);
 router.post('/farmers/:id/transfer/approve', decide, validate({ params: idParams }), farmers.approveTransfer);

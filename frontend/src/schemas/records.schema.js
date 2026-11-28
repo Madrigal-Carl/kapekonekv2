@@ -3,14 +3,14 @@ import { associationDescriptionRule, associationNameRule, emailRule, farmSizeRul
 
 // Mirror backend/src/schemas/{farmer,groupManager,association}.schema.js. Documents and pickers are sent beside these.
 
-/** A Group Manager adds or edits a farmer. Email is optional: without one, a temporary password is shown once. */
+/** A Group Manager adds or edits a farmer. Email is required (Change 08): they verify it before the dashboard opens. */
 export const farmerFormSchema = z.object({
   firstName: nameRule,
   middleName: optionalNameRule,
   lastName: nameRule,
   username: usernameRule,
   contactNumber: phoneRule,
-  email: z.union([z.literal(''), emailRule]).nullish().transform((v) => v || null),
+  email: emailRule,
 })
 
 export const groupManagerFormSchema = z.object({

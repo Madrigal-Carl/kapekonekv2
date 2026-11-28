@@ -1,19 +1,19 @@
 import { expect, test } from '@playwright/test'
 
 // M15 / BUILD-GUIDE: sign in as every seeded handle (README "Seed accounts") and land where the table says.
-// Needs a fresh `npm run migrate:fresh -- --seed`: farmer.nomail must still have to set its password.
+// Needs a fresh `npm run migrate:fresh -- --seed`: the .unverified accounts must still be unverified.
 const HANDLES = [
   ['kaluppa', /\/dashboard\/overview/, /Good (morning|afternoon|evening), Kaluppa/],
   ['manager.santacruz', /\/dashboard\/overview/, /4 farmers are waiting/],
   ['manager.boac', /\/dashboard\/overview/, /Good (morning|afternoon|evening)/],
   ['manager.unassigned', /\/dashboard\/overview/, /association/i],
+  ['manager.unverified', /\/verify-email/, /Kaluppa created a Group Manager account for you/],
   ['farmer.approved', /\/dashboard\/overview/, /Good (morning|afternoon|evening), Rodel/],
   ['farmer.pending', /\/dashboard\/overview/, /3 of 5 kg|waiting for approval/i],
   ['farmer.new', /\/dashboard/, /association/i],
-  ['farmer.nomail', /\/set-password|\/dashboard\/first-password|password/i, /new password/i],
   ['farmer.rejected', /\/dashboard\/overview/, /Your request wasn’t approved/],
   ['farmer.transfer', /\/dashboard\/overview/, /Good (morning|afternoon|evening)/],
-  ['farmer.unverified', /\/verify-email/, /verify/i],
+  ['farmer.unverified', /\/verify-email/, /Liza Ramos created a farmer account for you/],
   ['buyer', /\/$/, /coffee/i],
   ['buyer.unverified', /\/verify-email/, /verify/i],
   ['buyer01', /\/$/, /coffee/i],

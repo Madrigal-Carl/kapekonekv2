@@ -80,11 +80,13 @@ describe('verified', () => {
     expect(res.body.code).toBe('EMAIL_NOT_VERIFIED');
   });
 
-  it('lets an unverified Group Manager through', async () => {
+  it('lets an unverified seeded Group Manager through, but not one Kaluppa created (Change 08)', async () => {
     const gm = await user('manager.santacruz');
     await User.updateOne({ _id: gm._id }, { emailVerifiedAt: null });
     expect((await request(app).get('/dashboard').set('Cookie', as(gm))).status).toBe(200);
-    await User.updateOne({ _id: gm._id }, { emailVerifiedAt: new Date() });
+    await User.updateOne({ _id: gm._id }, { createdBy: gm._id });
+    expect((await request(app).get('/dashboard').set('Cookie', as(gm))).body.code).toBe('EMAIL_NOT_VERIFIED');
+    await User.updateOne({ _id: gm._id }, { emailVerifiedAt: new Date(), createdBy: null });
   });
 });
 
@@ -94,9 +96,9 @@ describe('role matrix (PHASE-2-SPEC §2)', () => {
   const records = ['farms.manage', 'trees.manage', 'harvests.manage'];
   const expected = {
     farmer: [...all, 'association.request', ...records, 'beans.sell', ...shop],
-    group_manager: [...all, 'farmers.manage', 'farmers.approve', ...records, 'beans.sell', 'reports.view'],
+    group_manager: [...all, 'farmers.manage', 'farmers.approve', 'farmers.reset_password', ...records, 'beans.sell', 'reports.view'],
     kaluppa: [
-      ...all, 'farmers.manage', 'farmers.approve', 'group_managers.manage', 'associations.manage', ...records, 'records.view_all',
+      ...all, 'farmers.manage', 'farmers.approve', 'farmers.reset_password', 'group_managers.manage', 'users.reset_password', 'associations.manage', ...records, 'records.view_all',
       'beans.review', ...shop, 'catalog.coffee', 'orders.manage', 'inventory.manage', 'reviews.moderate', 'settings.manage',
       'posts.moderate', 'audit.view', 'reports.view',
     ],

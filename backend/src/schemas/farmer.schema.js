@@ -25,7 +25,7 @@ export const transferRequestSchema = z.object({
   reason: z.string().trim().max(300, 'Use 300 characters or fewer').optional().default(''),
 });
 
-/** A Group Manager adds or edits a farmer. Email is optional: without one, a temporary password is shown once. */
+/** A Group Manager adds or edits a farmer. Email is required on create (Change 08); older username-only farmers may still have none. */
 const farmerFields = {
   firstName: nameRule,
   middleName: optionalNameRule,
@@ -36,8 +36,8 @@ const farmerFields = {
   validId: uploadRef('valid ID').nullable().optional(),
   landProof: uploadRef('proof of land ownership').nullable().optional(),
 };
-export const farmerCreateSchema = z.object({ ...farmerFields, associationId: objectIdRule.optional() });
-export const farmerUpdateSchema = z.object({ ...farmerFields, issueTemporaryPassword: z.boolean().optional().default(false) });
+export const farmerCreateSchema = z.object({ ...farmerFields, email: emailRule, associationId: objectIdRule.optional() });
+export const farmerUpdateSchema = z.object(farmerFields);
 
 export const farmerListQuery = pageQuerySchema.extend({
   q: z.string().trim().max(80).optional(),

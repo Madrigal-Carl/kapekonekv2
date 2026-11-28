@@ -46,6 +46,10 @@ export const verifyEmail = asyncHandler(async (req, res) => {
   sendSuccess(res, { message: 'Your email is verified.' });
 });
 
+export const addEmail = asyncHandler(async (req, res) => {
+  sendSuccess(res, { message: 'Check your inbox for a verification link.', data: await authService.addFirstEmail(req.user, req.body) });
+});
+
 export const resendVerification = asyncHandler(async (req, res) => {
   await authService.resendVerification(req.user);
   sendSuccess(res, { message: 'A new verification link has been sent.' });

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ConfirmModal } from './ConfirmModal'
 
@@ -48,16 +48,12 @@ describe('ConfirmModal', () => {
     expect(onConfirm).toHaveBeenLastCalledWith('Found it cheaper nearby', 'other')
   })
 
-  it('temporary password: Copy writes it to the clipboard; Done closes', async () => {
-    const writeText = vi.fn(async () => {})
-    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
-    const onClose = vi.fn()
-    render(<ConfirmModal open variant="temporary_password" title="Account created" password="kape-7Q4m-ub9X" onClose={onClose}>Give Ernesto this temporary password.</ConfirmModal>)
-    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Copy' })))
-    expect(writeText).toHaveBeenCalledWith('kape-7Q4m-ub9X')
-    expect(screen.getByRole('button', { name: 'Copied' })).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Done' }))
-    expect(onClose).toHaveBeenCalled()
+  it('reset password: Cancel and Reset password, no reason asked', () => {
+    const onConfirm = vi.fn()
+    render(<ConfirmModal open variant="reset_password" title="Reset Ernesto’s password?" confirmLabel="Reset password" onClose={() => {}} onConfirm={onConfirm}>Their password goes back to the default.</ConfirmModal>)
+    expect(screen.queryByRole('textbox')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Reset password' }))
+    expect(onConfirm).toHaveBeenCalled()
   })
 
   it('without onConfirm it only explains, with one close button', () => {

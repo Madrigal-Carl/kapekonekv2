@@ -27,6 +27,7 @@ router.get('/group-managers', validate({ query: groupManagerListQuery }), groupM
 router.post('/group-managers', validate({ body: groupManagerSchema }), groupManagers.create);
 router.get('/group-managers/:id', validate({ params: idParams }), groupManagers.show);
 router.patch('/group-managers/:id', validate({ params: idParams, body: groupManagerSchema }), groupManagers.update);
+router.post('/group-managers/:id/reset-password', can('users.reset_password'), validate({ params: idParams }), groupManagers.resetPassword);
 router.post('/group-managers/:id/archive', validate({ params: idParams }), groupManagers.archive);
 router.post('/group-managers/:id/restore', validate({ params: idParams }), groupManagers.restore);
 

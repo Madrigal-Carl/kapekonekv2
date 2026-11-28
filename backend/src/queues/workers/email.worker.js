@@ -3,7 +3,7 @@ import { env } from '../../config/env.js';
 import { logMail, sendMail } from '../../config/mail.js';
 import { createValkeyConnection } from '../../config/valkey.js';
 import { isSeedEmail } from '../../repositories/user.repository.js';
-import { accountInvite } from '../../templates/email/accountInvite.template.js';
+import { accountCreated, passwordResetByAdmin } from '../../templates/email/account.templates.js';
 import { farmerDecision, farmerRequest, transferDecision } from '../../templates/email/farmer.templates.js';
 import { emailChangedNotice } from '../../templates/email/emailChangedNotice.template.js';
 import { kaluppaNewOrder } from '../../templates/email/kaluppaNewOrder.template.js';
@@ -21,7 +21,8 @@ const handlers = {
   [EMAIL_JOBS.TEST]: testEmail,
   [EMAIL_JOBS.VERIFY_EMAIL]: verifyEmail,
   [EMAIL_JOBS.RESET_PASSWORD]: resetPassword,
-  [EMAIL_JOBS.ACCOUNT_INVITE]: accountInvite,
+  [EMAIL_JOBS.ACCOUNT_CREATED]: accountCreated,
+  [EMAIL_JOBS.PASSWORD_RESET_BY_ADMIN]: passwordResetByAdmin,
   [EMAIL_JOBS.FARMER_REQUEST]: farmerRequest,
   [EMAIL_JOBS.FARMER_DECISION]: farmerDecision,
   [EMAIL_JOBS.TRANSFER_DECISION]: transferDecision,

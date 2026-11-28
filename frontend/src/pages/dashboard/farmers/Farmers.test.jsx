@@ -6,8 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useAuthStore } from '@/stores/auth.store'
 import { Farmers } from './Farmers'
 
-const PASSWORD = 'kape-7Q4m-ub9X'
-const createFarmer = vi.fn(async (body) => ({ farmer: { id: 'f9', name: `${body.firstName} ${body.lastName}`, firstName: body.firstName }, temporaryPassword: PASSWORD }))
+const createFarmer = vi.fn(async (body) => ({ id: 'f9', name: `${body.firstName} ${body.lastName}`, firstName: body.firstName }))
 vi.mock('@/services/farmer.service', async (importOriginal) => ({
   ...(await importOriginal()),
   listFarmers: vi.fn(async () => ({ items: [], meta: { page: 1, limit: 10, total: 0 } })),
@@ -40,7 +39,7 @@ const renderPage = () => {
 }
 
 describe('Farmers', () => {
-  it('shows a new farmer’s temporary password once, and never again after it closes', async () => {
+  it('adds a farmer with a required email and the read-only default password (Change 08)', async () => {
     renderPage()
     const add = await screen.findByRole('button', { name: 'Add farmer' })
     await waitFor(() => expect(add.disabled).toBe(false))
@@ -59,20 +58,16 @@ describe('Farmers', () => {
     expect(screen.getByLabelText('Username').value).toBe('ernesto.j')
     await screen.findByText('@ernesto.j is available', {}, { timeout: 2000 })
     fireEvent.change(screen.getByLabelText('Contact number'), { target: { value: '09171234567' } })
+    expect(screen.getByLabelText('Password').value).toBe('KapeKonek@123')
+    expect(screen.getByLabelText('Password').readOnly).toBe(true)
+    expect(screen.queryByRole('button', { name: 'Reset password' })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Create farmer' }))
+    await screen.findByText('Enter a valid email address')
+    expect(createFarmer).not.toHaveBeenCalled()
 
-    const dialog = await screen.findByRole('dialog', { name: 'Account created' })
-    expect(dialog.textContent).toContain(PASSWORD)
-    expect(dialog.textContent).toContain('Give Ernesto this temporary password')
-    expect(createFarmer).toHaveBeenCalledWith(expect.objectContaining({ firstName: 'Ernesto', username: 'ernesto.j', email: null, contactNumber: '09171234567' }))
-
-    fireEvent.click(screen.getByRole('button', { name: 'Done' }))
-    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Account created' })).toBeNull())
-    expect(document.body.textContent).not.toContain(PASSWORD)
-
-    // Opening the form again starts clean; the password is gone for good.
-    fireEvent.click(screen.getByRole('button', { name: 'Add farmer' }))
-    await screen.findByRole('dialog', { name: 'Add a farmer' })
-    expect(document.body.textContent).not.toContain(PASSWORD)
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'ernesto@gmail.com' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Create farmer' }))
+    await waitFor(() => expect(createFarmer).toHaveBeenCalledWith(expect.objectContaining({ firstName: 'Ernesto', username: 'ernesto.j', email: 'ernesto@gmail.com', contactNumber: '09171234567' })))
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Add a farmer' })).toBeNull())
   })
 })

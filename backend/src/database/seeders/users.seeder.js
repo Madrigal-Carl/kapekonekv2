@@ -15,7 +15,8 @@ const ACCOUNTS = [
   { handle: 'manager.santacruz', firstName: 'Liza', lastName: 'Ramos', roles: ['group_manager'], verified: true },
   { handle: 'manager.unassigned', firstName: 'Ramon', lastName: 'Aguilar', roles: ['group_manager'], verified: true },
   { handle: 'farmer.approved', firstName: 'Rodel', lastName: 'Mendoza', roles: ['farmer'], verified: true },
-  { handle: 'farmer.unverified', firstName: 'Nora', lastName: 'Villareal', roles: ['farmer'], verified: false },
+  // Made by a Group Manager (Change 08): default password, email not verified yet; joins Santa Cruz in the associations seeder.
+  { handle: 'farmer.unverified', firstName: 'Nora', lastName: 'Villareal', roles: ['farmer'], verified: false, createdBy: 'manager.santacruz', passwordIsDefault: true },
   { handle: 'buyer', firstName: 'Juana', lastName: 'Dela Cruz', roles: ['buyer'], verified: true, contactNumber: '09175550102' },
   { handle: 'buyer.unverified', firstName: 'Pedro', lastName: 'Lopez', roles: ['buyer'], verified: false },
 ];
@@ -48,8 +49,9 @@ function extraBuyers(count = 20) {
 export async function seedUsers() {
   const password = await bcrypt.hash(env.SEED_DEFAULT_PASSWORD, BCRYPT_ROUNDS);
   const now = new Date();
-  for (const { handle, verified, ...user } of [...ACCOUNTS, ...extraBuyers()]) {
-    await upsertSeedUser({ ...user, username: handle, email: seedEmail(handle), password, emailVerifiedAt: verified ? now : null });
+  for (const { handle, verified, createdBy, ...user } of [...ACCOUNTS, ...extraBuyers()]) {
+    const creator = createdBy && (await findUsersByUsernames([createdBy]))[0];
+    await upsertSeedUser({ ...user, username: handle, email: seedEmail(handle), password, emailVerifiedAt: verified ? now : null, ...(creator && { createdBy: creator._id }) });
   }
   // Like real sign-ups: farmers get a profile, farmers and Group Managers a chat with Kaluppa.
   for (const account of await findUsersByUsernames(ACCOUNTS.map((a) => a.handle))) {
@@ -65,7 +67,7 @@ const NOTES = {
   'manager.santacruz': 'Group Manager, Santa Cruz Coffee Growers (4 waiting)',
   'manager.unassigned': 'Group Manager, no association',
   'farmer.approved': 'Approved farmer, Santa Cruz',
-  'farmer.unverified': 'Farmer, email not verified',
+  'farmer.unverified': 'Farmer created by a Group Manager, email not verified',
   'buyer': 'Buyer with addresses and orders',
   'buyer.unverified': 'Buyer, blocked until verified',
 };

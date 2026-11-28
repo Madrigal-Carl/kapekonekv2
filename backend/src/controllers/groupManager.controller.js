@@ -12,11 +12,16 @@ export const show = asyncHandler(async (req, res) => {
 });
 
 export const create = asyncHandler(async (req, res) => {
-  sendSuccess(res, { status: 201, message: 'Group Manager added. We emailed them a link to set their password.', data: await groupManagers.createGroupManager(req.user, req.body) });
+  sendSuccess(res, { status: 201, message: 'Group Manager added. We emailed them a link to verify their email.', data: await groupManagers.createGroupManager(req.user, req.body) });
 });
 
 export const update = asyncHandler(async (req, res) => {
   sendSuccess(res, { message: 'Group Manager updated.', data: await groupManagers.updateGroupManager(req.user, req.params.id, req.body) });
+});
+
+export const resetPassword = asyncHandler(async (req, res) => {
+  await groupManagers.resetGroupManagerPassword(req.user, req.params.id);
+  sendSuccess(res, { message: 'Password reset. They were signed out everywhere and we emailed them.' });
 });
 
 export const archive = asyncHandler(async (req, res) => {

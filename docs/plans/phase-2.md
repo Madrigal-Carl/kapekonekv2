@@ -392,10 +392,10 @@ Source: `docs/prompts/CHANGE-08-CONFIRM-EXPORT-ACCOUNTS-MENTIONS-CONTACT.md`, PH
 - [x] `GET /reports/export`, `/orders/export`, `/audit-logs/export` with `format=csv|pdf` and the screen's filters; scope re-checked; 5/min per user; audited. CSV with BOM; PDF on the server (A4, header, filters, generated-at, KPIs, SVG charts, table, page numbers).
 
 ### Task C08.C: Accounts
-- [ ] Create forms: email required, read-only default password with Copy; temporary-password modal and invite flow removed.
-- [ ] Reset password (edit forms): confirm modal, default password, tokens revoked, email, audit; `users.reset_password`, `farmers.reset_password`.
-- [ ] Accounts created by Kaluppa / a Group Manager verify their email first (VerifyEmailCreated variant, Resend 60 s, Add your email); a banner suggests changing the default password.
-- [ ] Seeds: `farmer.unverified`, `manager.unverified` (replacing `farmer.nomail`).
+- [x] Create forms: email required, read-only default password with Copy; temporary-password modal and invite flow removed.
+- [x] Reset password (edit forms): confirm modal, default password, tokens revoked, email, audit; `users.reset_password`, `farmers.reset_password`.
+- [x] Accounts created by Kaluppa / a Group Manager verify their email first (VerifyEmailCreated variant, Resend 60 s, Add your email); a banner suggests changing the default password.
+- [x] Seeds: `farmer.unverified`, `manager.unverified` (replacing `farmer.nomail`).
 
 ### Task C08.D: Farms and Farmers
 - [ ] Lot number removed everywhere (migration drops the field and index); property number only as a note / title.

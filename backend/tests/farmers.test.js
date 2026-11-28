@@ -17,7 +17,7 @@ vi.mock('../src/clients/cloudinary.client.js', () => ({
 
 const { default: app } = await import('../src/app.js');
 const { runSeeders } = await import('../src/database/seeders/index.js');
-const { AuditLog, ConversationMember, FarmerProfile, User } = await import('../src/models/index.js');
+const { AuditLog, ConversationMember, User } = await import('../src/models/index.js');
 
 let associations;
 let manager;
@@ -30,48 +30,64 @@ beforeAll(async () => {
 afterAll(stopMemoryDb);
 beforeEach(() => { mail.length = 0; });
 
-const nora = { firstName: 'Nora', lastName: 'Lim', username: 'nora.lim', contactNumber: '09175550150', email: '' };
+const nora = { firstName: 'Nora', lastName: 'Lim', username: 'nora.lim', contactNumber: '09175550150', email: 'nora.lim@example.com' };
 const login = (identifier, password) => request(app).post('/api/auth/login').send({ identifier, password });
 
-describe('farmers a Group Manager adds', () => {
-  it('without an email: a temporary password shown once, then "Set a new password"', async () => {
-    // The dashboard form sends a blank email as null.
+describe('farmers a Group Manager adds (Change 08)', () => {
+  it('needs an email', async () => {
     const res = await manager.post('/api/farmers').send({ ...nora, email: null });
-    expect(res.status).toBe(201);
-    const { farmer, temporaryPassword } = res.body.data;
-    expect(temporaryPassword).toMatch(/^.{12}$/);
-    expect(farmer).toMatchObject({ username: 'nora.lim', email: null, status: 'approved', association: { id: associations.santacruz.id } });
+    expect(res.status).toBe(400);
+    expect(res.body.errors.email).toBeTruthy();
+  });
 
-    const user = await User.findOne({ username: 'nora.lim' }).select('+password').lean();
-    expect(user).toMatchObject({ mustChangePassword: true, emailVerifiedAt: expect.any(Date), createdBy: expect.anything() });
-    expect(user.password).not.toBe(temporaryPassword);
+  it('starts with the default password and an unverified email; the dashboard waits for the email', async () => {
+    const res = await manager.post('/api/farmers').send(nora);
+    expect(res.status).toBe(201);
+    expect(res.body.data).toMatchObject({ username: 'nora.lim', email: 'nora.lim@example.com', status: 'approved', association: { id: associations.santacruz.id } });
+    const user = await User.findOne({ username: 'nora.lim' }).lean();
+    expect(user).toMatchObject({ emailVerifiedAt: null, passwordIsDefault: true, mustChangePassword: false, createdBy: expect.anything() });
     expect(await member(associations.santacruz.groupChat, user._id)).toMatchObject({ canPost: true });
-    const signIn = await login('nora.lim', temporaryPassword);
+    expect(mail).toEqual([{ job: 'account-created', data: expect.objectContaining({ to: 'nora.lim@example.com', creatorName: 'Liza Ramos', username: 'nora.lim', password: 'KapeKonek@123' }) }]);
+
+    const signIn = await login('nora.lim', 'KapeKonek@123');
     expect(signIn.status).toBe(200);
-    expect(signIn.body.data.user.mustChangePassword).toBe(true);
-
-    expect((await manager.get(`/api/farmers/${user._id}`)).body.data.temporaryPassword).toBeUndefined();
+    expect(signIn.body.data.user).toMatchObject({ mustVerifyEmail: true, passwordIsDefault: true, createdBy: { name: 'Liza Ramos', isKaluppa: false }, associationName: 'Santa Cruz Growers' });
+    const agent = request.agent(app);
+    await agent.post('/api/auth/login').send({ identifier: 'nora.lim', password: 'KapeKonek@123' }).expect(200);
+    expect((await agent.get('/api/farms')).body.code).toBe('EMAIL_NOT_VERIFIED');
     const entry = await AuditLog.findOne({ area: 'farmers', action: 'create', entityId: user._id }).lean();
-    expect(JSON.stringify(entry)).not.toContain(temporaryPassword);
-    expect(mail).toEqual([]);
+    expect(JSON.stringify(entry)).not.toContain('KapeKonek@123');
   });
 
-  it('with an email: an invite instead of a password', async () => {
-    const res = await manager.post('/api/farmers').send({ ...nora, username: 'nora.mail', email: 'nora@example.com' });
-    expect(res.status).toBe(201);
-    expect(res.body.data.temporaryPassword).toBeUndefined();
-    expect(mail.map((m) => m.job)).toEqual(['account-invite']);
-    expect(await FarmerProfile.findOne({ user: res.body.data.farmer.id }).lean()).toMatchObject({ status: 'approved' });
-  });
-
-  it('can get a new temporary password when there is no email', async () => {
+  it('Reset password: back to the default, signed out everywhere, emailed and audited; only their own Group Manager', async () => {
     const user = await User.findOne({ username: 'nora.lim' });
-    const res = await manager.patch(`/api/farmers/${user._id}`).send({ ...nora, contactNumber: '09175550151', issueTemporaryPassword: true });
-    expect(res.status).toBe(200);
-    expect(res.body.data.farmer.contactNumber).toBe('09175550151');
-    expect((await login('nora.lim', res.body.data.temporaryPassword)).status).toBe(200);
-    const withEmail = await User.findOne({ username: 'nora.mail' });
-    expect((await manager.patch(`/api/farmers/${withEmail._id}`).send({ ...nora, username: 'nora.mail', email: 'nora@example.com', issueTemporaryPassword: true })).status).toBe(409);
+    await User.updateOne({ _id: user._id }, { $set: { emailVerifiedAt: new Date() } });
+    const agent = request.agent(app);
+    await agent.post('/api/auth/login').send({ identifier: 'nora.lim', password: 'KapeKonek@123' }).expect(200);
+    await agent.patch('/api/account/password').send({ currentPassword: 'KapeKonek@123', password: 'Mine@12345', passwordConfirmation: 'Mine@12345' }).expect(200);
+    expect((await User.findById(user._id).lean()).passwordIsDefault).toBe(false);
+
+    const boac = await signedIn(app, 'manager.unassigned'); // runs Boac Growers here
+    expect((await boac.post(`/api/farmers/${user._id}/reset-password`)).status).toBe(404);
+    expect((await agent.post(`/api/farmers/${user._id}/reset-password`)).status).toBe(403);
+    mail.length = 0;
+    await manager.post(`/api/farmers/${user._id}/reset-password`).expect(200);
+    expect((await agent.get('/api/auth/me')).status).toBe(401); // the old session and its refresh token are gone
+    expect((await agent.post('/api/auth/refresh')).status).toBe(401);
+    expect((await login('nora.lim', 'KapeKonek@123')).status).toBe(200);
+    expect(mail.map((m) => m.job)).toEqual(['password-reset-by-admin']);
+    const entry = await AuditLog.findOne({ area: 'farmers', action: 'reset_password', entityId: user._id }).lean();
+    expect(entry.changes).toEqual([]);
+  });
+
+  it('a new email on edit has to be verified again', async () => {
+    const created = await manager.post('/api/farmers').send({ ...nora, username: 'nora.mail', email: 'nora.mail@example.com' });
+    const { id } = created.body.data;
+    await User.updateOne({ _id: id }, { $set: { emailVerifiedAt: new Date() } });
+    mail.length = 0;
+    await manager.patch(`/api/farmers/${id}`).send({ ...nora, username: 'nora.mail', email: 'nora.new@example.com' }).expect(200);
+    expect((await User.findById(id).lean()).emailVerifiedAt).toBeNull();
+    expect(mail.map((m) => m.job)).toEqual(['account-created']);
   });
 });
 
@@ -108,16 +124,17 @@ describe('farmer list', () => {
 
 describe('usernames', () => {
   it('refuses a taken username with 409 USERNAME_TAKEN, on add and on edit; keeping your own is fine', async () => {
-    const add = await manager.post('/api/farmers').send({ ...nora, username: 'farmer.approved' });
+    const add = await manager.post('/api/farmers').send({ ...nora, username: 'farmer.approved', email: 'other@example.com' });
     expect(add.status).toBe(409);
     expect(add.body.code).toBe('USERNAME_TAKEN');
     expect(add.body.errors).toEqual({ username: 'Username is already taken' });
 
-    const created = await manager.post('/api/farmers').send({ ...nora, username: 'nora.unique', contactNumber: '09175550151' });
+    const unique = { ...nora, username: 'nora.unique', email: 'nora.unique@example.com', contactNumber: '09175550151' };
+    const created = await manager.post('/api/farmers').send(unique);
     expect(created.status).toBe(201);
-    const { id } = created.body.data.farmer;
-    const edit = await manager.patch(`/api/farmers/${id}`).send({ ...nora, username: 'farmer.approved', contactNumber: '09175550151' });
+    const { id } = created.body.data;
+    const edit = await manager.patch(`/api/farmers/${id}`).send({ ...unique, username: 'farmer.approved' });
     expect(edit.body.code).toBe('USERNAME_TAKEN');
-    expect((await manager.patch(`/api/farmers/${id}`).send({ ...nora, username: 'nora.unique', contactNumber: '09175550151' })).status).toBe(200);
+    expect((await manager.patch(`/api/farmers/${id}`).send(unique)).status).toBe(200);
   });
 });

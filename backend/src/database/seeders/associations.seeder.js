@@ -24,13 +24,13 @@ const ASSOCIATIONS = [
 
 /**
  * About 14 farmers in every state. `state`: [status, association key, by (approver), days ago] — plus a rejection reason,
- * a transfer target, or `nomail` (added by a Group Manager, username only, must set a password).
+ * a transfer target, or `createdBy` (made by Kaluppa or a Group Manager: default password, email not verified yet).
  */
 const PEOPLE = [
   { handle: 'manager.boac', firstName: 'Mario', lastName: 'Santos', roles: ['group_manager'], note: 'Group Manager, Boac Highland Farmers' },
+  { handle: 'manager.unverified', firstName: 'Celso', lastName: 'Garcia', roles: ['group_manager'], createdBy: 'kaluppa', note: 'Group Manager created by Kaluppa, email not verified' },
   { handle: 'farmer.pending', firstName: 'Joy', lastName: 'Lacsamana', state: ['pending', 'sc', null, 2], note: 'Farmer, waiting for approval' },
   { handle: 'farmer.new', firstName: 'Arnel', lastName: 'Dimaano', note: 'Farmer, no association (sees the window)' },
-  { handle: 'farmer.nomail', firstName: 'Ernesto', lastName: 'Javier', state: ['approved', 'sc', 'manager.santacruz', 5], nomail: true, note: 'Farmer added by a Group Manager, username only' },
   { handle: 'farmer.rejected', firstName: 'Ben', lastName: 'Ilagan', state: ['rejected', 'sc', 'manager.santacruz', 20], reason: 'The proof of land ownership is blurry. Please upload a clearer photo of the tax declaration.', note: 'Farmer, request rejected' },
   { handle: 'farmer.transfer', firstName: 'Rosa', lastName: 'Manalo', state: ['approved', 'boac', 'manager.boac', 260], transferTo: 'sc', note: 'Farmer in Boac asking to move to Santa Cruz' },
   { handle: 'nestor.perez', firstName: 'Nestor', lastName: 'Perez', state: ['approved', 'sc', 'manager.santacruz', 170] },
@@ -43,8 +43,11 @@ const PEOPLE = [
   { handle: 'celia.ramos', firstName: 'Celia', lastName: 'Ramos', state: ['pending', 'boac', null, 1] },
   { handle: 'tomas.leano', firstName: 'Tomas', lastName: 'Leaño', state: ['pending', 'gasan', null, 6] },
 ];
-// farmer.approved comes from the users seeder; here it joins Santa Cruz.
-const EXISTING = [{ handle: 'farmer.approved', state: ['approved', 'sc', 'manager.santacruz', 40] }];
+// farmer.approved and farmer.unverified come from the users seeder; here they join Santa Cruz.
+const EXISTING = [
+  { handle: 'farmer.approved', state: ['approved', 'sc', 'manager.santacruz', 40] },
+  { handle: 'farmer.unverified', state: ['approved', 'sc', 'manager.santacruz', 5], createdBy: 'manager.santacruz' },
+];
 
 /** Seed documents are placeholder photos (the real ones are private uploads). */
 const documents = (handle) => ({
@@ -53,7 +56,7 @@ const documents = (handle) => ({
 });
 
 /** Sign-in table rows for the people this seeder adds. */
-export const associationAccounts = () => PEOPLE.filter((p) => p.note).map((p) => [p.nomail ? '— (username only)' : seedEmail(p.handle), p.handle, p.note]);
+export const associationAccounts = () => PEOPLE.filter((p) => p.note).map((p) => [seedEmail(p.handle), p.handle, p.note]);
 
 async function seedPeople(byHandle) {
   const password = await bcrypt.hash(env.SEED_DEFAULT_PASSWORD, BCRYPT_ROUNDS);
@@ -64,10 +67,11 @@ async function seedPeople(byHandle) {
       firstName: p.firstName,
       lastName: p.lastName,
       roles,
-      ...(p.nomail ? { mustChangePassword: true, createdBy: byHandle['manager.santacruz']._id } : { email: seedEmail(p.handle) }),
+      email: seedEmail(p.handle),
       contactNumber: `0917555${String(200 + i).padStart(4, '0')}`,
       password,
-      emailVerifiedAt: new Date(), // GM-added farmers are pre-verified; the rest verified at sign-up
+      // Made by Kaluppa or a Group Manager: verify first (Verify email page, created variant); the rest verified at sign-up.
+      ...(p.createdBy ? { createdBy: byHandle[p.createdBy]._id, emailVerifiedAt: null, passwordIsDefault: true } : { emailVerifiedAt: new Date() }),
     });
   }
   const users = Object.fromEntries((await findUsersByUsernames(PEOPLE.map((p) => p.handle))).map((u) => [u.username, u]));
@@ -99,12 +103,12 @@ async function seedState(person, user, associations, byHandle) {
     status,
     association: association._id,
     requestedAt,
-    documents: person.nomail ? { validId: null, landProof: null } : documents(person.handle),
+    documents: person.createdBy ? { validId: null, landProof: null } : documents(person.handle),
     ...(status === 'approved' && { approvedAt: decidedAt, approvedBy: by._id }),
     ...(status === 'rejected' && { rejectionReason: person.reason }),
     ...(person.transferTo && { transferRequest: { association: associations[person.transferTo]._id, reason: 'My farm is closer to Santa Cruz.', requestedAt: ago(1) } }),
   };
-  const history = person.nomail
+  const history = person.createdBy
     ? [{ action: 'create', by: by._id, at: decidedAt }]
     : [{ action: 'request', by: user._id, at: requestedAt, note: association.name }, ...(by ? [{ action: status === 'approved' ? 'approve' : 'reject', by: by._id, at: decidedAt, ...(person.reason && { note: person.reason }) }] : [])];
   if (person.transferTo) history.push({ action: 'transfer_request', by: user._id, at: ago(1), note: associations[person.transferTo].name });
@@ -114,7 +118,7 @@ async function seedState(person, user, associations, byHandle) {
   if (status === 'approved') await joinGroup(user._id, association._id);
 
   const entity = farmerEntity(user);
-  if (person.nomail) {
+  if (person.createdBy) {
     await record({ actor: by, area: 'farmers', action: 'create', entity, after: { name: entity.label, username: user.username, association: association.name, status }, fields: ['name', 'username', 'association', 'status'] });
   } else {
     await record({ actor: user, area: 'farmers', action: 'request', entity, before: { status: 'none' }, after: { status: 'pending', association: association.name }, fields: ['status', 'association'] });

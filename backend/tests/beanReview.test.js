@@ -41,7 +41,6 @@ beforeAll(async () => {
   managerId = String((await User.findOne({ username: 'manager.santacruz' }))._id);
   ana = await farmerIn('ana', a.santacruz);
   nomail = await farmerIn('nomail', a.santacruz);
-  await User.updateOne({ _id: nomail.user._id }, { $unset: { email: 1 } });
 });
 beforeEach(() => {
   mail.length = 0;
@@ -100,6 +99,8 @@ describe('reject', () => {
 
   it('a farmer with no email still gets the in-app notification', async () => {
     const listing = await listFor(nomail);
+    // A username-only account (before Change 08) has no email; it must add one before acting, but still gets notified.
+    await User.updateOne({ _id: nomail.user._id }, { $unset: { email: 1 } });
     await act(kaluppa, listing.id, 'reject', { reason: 'Photos are too blurry' }).expect(200);
     expect(mail.filter((m) => m.data.to)).toHaveLength(0);
     expect(await Notification.countDocuments({ user: nomail.user._id, type: 'bean_status' })).toBe(1);

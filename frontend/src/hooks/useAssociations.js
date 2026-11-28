@@ -41,3 +41,4 @@ export const useCreateGroupManager = () => useRecordsMutation(associationService
 export const useUpdateGroupManager = () => useRecordsMutation(associationService.updateGroupManager)
 export const useArchiveGroupManager = () => useRecordsMutation(associationService.archiveGroupManager)
 export const useRestoreGroupManager = () => useRecordsMutation(associationService.restoreGroupManager)
+export const useResetGroupManagerPassword = () => useRecordsMutation(associationService.resetGroupManagerPassword)

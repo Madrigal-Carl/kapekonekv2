@@ -37,7 +37,7 @@ describe('runSeeders', () => {
     const first = await counts();
     await runSeeders({ only: ['roles', 'users'], log });
     expect(await counts()).toEqual(first);
-    expect(first).toEqual({ roles: 4, permissions: 36, users: 27 });
+    expect(first).toEqual({ roles: 4, permissions: 38, users: 27 });
 
     const byEmail = async (local) => User.findOne({ email: `kapekonek.${local}@gmail.com` }).select('+password');
     expect((await byEmail('kaluppa')).roles).toEqual(['kaluppa']);
@@ -91,11 +91,10 @@ describe('associations seeder (PHASE-2-SPEC §8)', () => {
     expect((await user('farmer.new')).emailVerifiedAt).not.toBeNull();
     expect(await profile('farmer.rejected')).toMatchObject({ status: 'rejected', association: sc, rejectionReason: expect.stringMatching(/.{5,}/) });
     expect(await profile('farmer.transfer')).toMatchObject({ status: 'approved', association: byName.Boac._id, transferRequest: { association: sc } });
-    const nomail = await user('farmer.nomail');
-    expect(nomail).toMatchObject({ mustChangePassword: true, createdBy: await id('manager.santacruz') });
-    expect(nomail.email ?? null).toBeNull();
-    expect(nomail.emailVerifiedAt).not.toBeNull();
-    expect(await profile('farmer.nomail')).toMatchObject({ status: 'approved', association: sc });
+    // Made by a Group Manager / by Kaluppa: an email that isn't verified yet, and the default password (Change 08).
+    expect(await user('farmer.unverified')).toMatchObject({ createdBy: await id('manager.santacruz'), emailVerifiedAt: null, passwordIsDefault: true, email: expect.stringMatching(/@gmail\.com$/) });
+    expect(await profile('farmer.unverified')).toMatchObject({ status: 'approved', association: sc });
+    expect(await user('manager.unverified')).toMatchObject({ roles: ['group_manager'], createdBy: await id('kaluppa'), emailVerifiedAt: null });
 
     // manager.santacruz lands with 4 waiting (3 requests + 1 transfer in); about 14 farmers in all.
     const { countWaiting } = await import('../src/repositories/farmerProfile.repository.js');

@@ -15,7 +15,6 @@ export const withdrawTransfer = () => api.delete('/me/farmer-profile/transfer').
 // Group Managers (and Kaluppa) manage farmers.
 export const listFarmers = (params) => api.get('/farmers', { params }).then(page)
 export const getFarmer = (id) => api.get(`/farmers/${id}`).then(data)
-/** @returns {Promise<{ farmer: object, temporaryPassword?: string }>} */
 export const createFarmer = (body) => api.post('/farmers', body).then(data)
 export const updateFarmer = ({ id, ...body }) => api.patch(`/farmers/${id}`, body).then(data)
 export const approveFarmer = (id) => api.post(`/farmers/${id}/approve`).then(data)
@@ -23,3 +22,4 @@ export const rejectFarmer = ({ id, reason }) => api.post(`/farmers/${id}/reject`
 export const approveTransfer = (id) => api.post(`/farmers/${id}/transfer/approve`).then(data)
 export const rejectTransfer = ({ id, reason }) => api.post(`/farmers/${id}/transfer/reject`, { reason }).then(data)
 export const removeFarmer = ({ id, reason }) => api.post(`/farmers/${id}/remove`, { reason }).then(data)
+export const resetFarmerPassword = (id) => api.post(`/farmers/${id}/reset-password`).then(data)

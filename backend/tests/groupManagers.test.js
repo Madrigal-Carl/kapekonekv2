@@ -38,16 +38,21 @@ beforeEach(() => { mail.length = 0; });
 const lena = { firstName: 'Lena', lastName: 'Ramos', username: 'lena.ramos', email: 'lena.ramos@example.com', contactNumber: '09175550111' };
 
 describe('Group Managers', () => {
-  it('creates one with an invite, a Kaluppa chat and the association’s group chat', async () => {
+  it('creates one with the default password, a verification email, a Kaluppa chat and the association’s group chat', async () => {
     const res = await kaluppa.post('/api/group-managers').send({ ...lena, associationId: boac.id });
     expect(res.status).toBe(201);
     expect(res.body.data).toMatchObject({ username: 'lena.ramos', status: 'active', association: { id: boac.id, name: 'Boac Growers' } });
     const lenaUser = await User.findOne({ username: 'lena.ramos' }).lean();
-    expect(lenaUser).toMatchObject({ roles: ['group_manager'], createdBy: expect.anything() });
+    expect(lenaUser).toMatchObject({ roles: ['group_manager'], createdBy: expect.anything(), emailVerifiedAt: null, passwordIsDefault: true });
 
-    const invite = mail.find((m) => m.job === 'account-invite');
-    expect(invite.data).toMatchObject({ to: 'lena.ramos@example.com', name: 'Lena' });
-    expect(invite.data.url).toMatch(/\/reset-password\?token=[a-f0-9]{64}&email=lena\.ramos%40example\.com$/);
+    const created = mail.find((m) => m.job === 'account-created');
+    expect(created.data).toMatchObject({ to: 'lena.ramos@example.com', name: 'Lena', creatorName: 'Kaluppa', password: 'KapeKonek@123' });
+    expect(created.data.url).toMatch(/\/verify-email\/confirm\?token=[a-f0-9]{64}$/);
+    // Until the email is verified, the dashboard is closed to them.
+    const lenaAgent = request.agent(app);
+    const signIn = await lenaAgent.post('/api/auth/login').send({ identifier: 'lena.ramos', password: 'KapeKonek@123' }).expect(200);
+    expect(signIn.body.data.user).toMatchObject({ mustVerifyEmail: true, createdBy: { name: 'Kaluppa', isKaluppa: true } });
+    expect((await lenaAgent.get('/api/farmers')).body.code).toBe('EMAIL_NOT_VERIFIED');
 
     expect(await Conversation.exists({ pairKey: `kaluppa:${lenaUser._id}` })).toBeTruthy();
     expect(await member(boac.groupChat, lenaUser._id)).toMatchObject({ canPost: true });
@@ -81,7 +86,7 @@ describe('Group Managers', () => {
     const res = await kaluppa.patch(`/api/group-managers/${lenaUser._id}`).send({ ...lena, associationId: gasan.id });
     expect(res.status).toBe(200);
     // The view drawer shows the association's waiting requests and the last sign-in.
-    expect(res.body.data).toMatchObject({ association: { id: gasan.id, farmerCount: 0, waitingCount: 0 }, lastSignInAt: null });
+    expect(res.body.data).toMatchObject({ association: { id: gasan.id, farmerCount: 0, waitingCount: 0 }, lastSignInAt: expect.any(String) }); // she signed in above
     expect(await member(boac.groupChat, lenaUser._id)).toMatchObject({ canPost: false });
     expect(await member(direct._id, farmer._id)).toMatchObject({ canPost: false });
     expect(await member(gasan.groupChat, lenaUser._id)).toMatchObject({ canPost: true });

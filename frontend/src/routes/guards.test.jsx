@@ -34,7 +34,7 @@ describe('ProtectedRoute', () => {
   })
 
   it('sends an unverified farmer to /verify-email', () => {
-    signIn(['farmer'], { emailVerifiedAt: null })
+    signIn(['farmer'], { emailVerifiedAt: null, mustVerifyEmail: true }) // the server decides (mustVerifyEmail)
     at('/dashboard/overview')
     expect(screen.getByText('Verify email')).toBeTruthy()
   })

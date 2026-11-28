@@ -5,10 +5,12 @@ import { BCRYPT_ROUNDS } from '../models/user.model.js';
 import { TOKEN_PURPOSES } from '../models/token.model.js';
 import { EMAIL_JOBS } from '../queues/email.jobs.js';
 import { enqueueEmail } from '../queues/email.queue.js';
-import { findAssociationByManager } from '../repositories/association.repository.js';
+import { findAssociationById, findAssociationByManager } from '../repositories/association.repository.js';
 import { findProfileScope } from '../repositories/farmerProfile.repository.js';
 import { consumeToken, createToken, deleteUnusedTokens } from '../repositories/token.repository.js';
+import { DEFAULT_PASSWORD } from '../constants/accounts.js';
 import {
+  addFirstEmail as addFirstEmailTo,
   createUser,
   findByIdentifierWithPassword,
   findIdentityConflicts,
@@ -24,6 +26,7 @@ import { AppError } from '../utils/AppError.js';
 import { verifyAccessToken, verifyRefreshToken } from '../utils/tokens.js';
 import { onboardFarmer } from './farmerProfile.service.js';
 import { resolvePermissions } from './permission.service.js';
+import { mustVerifyEmail } from './policy.service.js';
 
 const VERIFY_TTL_MS = 60 * 60 * 1000; // VerifyEmail.dc.html: "The link works for 60 minutes"
 const RESET_TTL_MS = 60 * 60 * 1000;
@@ -45,6 +48,8 @@ export const publicUser = (user) => ({
   avatar: user.avatar?.url ? { url: user.avatar.url } : null,
   roles: user.roles,
   mustChangePassword: Boolean(user.mustChangePassword),
+  mustVerifyEmail: mustVerifyEmail(user),
+  passwordIsDefault: Boolean(user.passwordIsDefault),
   associationId: user.associationId ? String(user.associationId) : null,
   farmerStatus: user.farmerStatus ?? null,
   createdAt: user.createdAt,
@@ -72,7 +77,19 @@ export async function loadScope(user) {
  */
 export async function buildSession(user) {
   if (user.farmerStatus === undefined) await loadScope(user);
-  return { user: publicUser(user), roles: user.roles, permissions: await resolvePermissions(user) };
+  return { user: { ...publicUser(user), ...(await createdFor(user)) }, roles: user.roles, permissions: await resolvePermissions(user) };
+}
+
+/**
+ * For the Verify email page's "created" variant: who made the account, and the farmer's association.
+ * @returns {Promise<{ createdBy?: { name: string, isKaluppa: boolean }, associationName?: string | null }>}
+ */
+async function createdFor(user) {
+  if (!user.createdBy || !mustVerifyEmail(user)) return {};
+  const creator = await findUserById(user.createdBy);
+  const isKaluppa = !creator || creator.roles.includes('kaluppa');
+  const association = user.associationId ? await findAssociationById(user.associationId) : null;
+  return { createdBy: { name: isKaluppa ? 'Kaluppa' : `${creator.firstName} ${creator.lastName}`, isKaluppa }, associationName: association?.name ?? null };
 }
 
 /**
@@ -94,14 +111,26 @@ async function issueLink(user, purpose, ttlMs) {
   return raw;
 }
 
-/** Email a new account (Group Manager, farmer with an email) a 60-minute link to set its password. */
-export async function sendAccountInvite(user) {
-  const token = await issueLink(user, TOKEN_PURPOSES.RESET_PASSWORD, RESET_TTL_MS);
-  await enqueueEmail(EMAIL_JOBS.ACCOUNT_INVITE, {
+/**
+ * A new account made by Kaluppa or a Group Manager: a verification link, plus how to sign in with the default password.
+ * @param {object} user @param {string} creatorName "Kaluppa" or the Group Manager's name
+ */
+export async function sendAccountCreated(user, creatorName) {
+  const token = await issueLink(user, TOKEN_PURPOSES.VERIFY_EMAIL, VERIFY_TTL_MS);
+  await enqueueEmail(EMAIL_JOBS.ACCOUNT_CREATED, {
     to: user.email,
     name: user.firstName,
-    url: `${env.CLIENT_URL}/reset-password?token=${token}&email=${encodeURIComponent(user.email)}`,
+    creatorName,
+    username: user.username,
+    password: DEFAULT_PASSWORD,
+    url: `${env.CLIENT_URL}/verify-email/confirm?token=${token}`,
   });
+}
+
+/** Tell the account its password went back to the default (Reset password); no-op without an email. */
+export async function sendPasswordWasReset(user, byName) {
+  if (!user.email) return;
+  await enqueueEmail(EMAIL_JOBS.PASSWORD_RESET_BY_ADMIN, { to: user.email, name: user.firstName, byName, password: DEFAULT_PASSWORD, url: `${env.CLIENT_URL}/login` });
 }
 
 /** Email a fresh verification link to the user's current address. */
@@ -174,8 +203,25 @@ export async function verifyEmail({ token }) {
 
 /** Send a fresh verification link; older links stop working. */
 export async function resendVerification(user) {
+  if (!user.email) throw new AppError(409, 'Add your email first.');
   if (user.emailVerifiedAt) throw new AppError(409, 'Your email is already verified.');
   await sendVerificationEmail(user);
+}
+
+/**
+ * "Add your email" on the Verify email page: a username-only account (made by a Group Manager before Change 08) adds
+ * its first email and gets a verification link.
+ * @throws {AppError} 409 when the account already has an email or the address is taken
+ */
+export async function addFirstEmail(user, { email }) {
+  if (user.email) throw new AppError(409, 'Your account already has an email.');
+  if ((await findIdentityConflicts({ email }, user._id)).email) {
+    throw new AppError(409, 'Some details are already in use.', { code: 'CONFLICT', errors: { email: 'Email is already taken' } });
+  }
+  const updated = await addFirstEmailTo(user._id, email);
+  if (!updated) throw new AppError(409, 'Your account already has an email.');
+  await sendVerificationEmail(updated);
+  return buildSession(updated);
 }
 
 /** Email a reset link if the account exists. The response is the same either way. */

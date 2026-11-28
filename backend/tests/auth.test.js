@@ -148,6 +148,25 @@ describe('session', () => {
     expect((await request(app).post('/api/auth/login').send({ identifier: 'nora.nomail', password: 'Fresh@Pass1' })).status).toBe(200);
   });
 
+  it('a username-only account adds its email, then verifies it before the dashboard opens (Change 08)', async () => {
+    const manager = await User.findOne({ username: 'manager.santacruz' });
+    await User.create({ firstName: 'Old', lastName: 'Account', username: 'old.account', password: 'Old@12345', roles: ['farmer'], emailVerifiedAt: new Date(), createdBy: manager._id });
+    const agent = request.agent(app);
+    const signIn = await agent.post('/api/auth/login').send({ identifier: 'old.account', password: 'Old@12345' });
+    expect(signIn.body.data.user).toMatchObject({ email: null, mustVerifyEmail: true });
+    expect((await agent.get('/api/farms')).body.code).toBe('EMAIL_NOT_VERIFIED');
+    expect((await agent.post('/api/auth/email/verification-notification')).status).toBe(409);
+
+    const taken = (await User.findOne({ username: 'farmer.unverified' })).email;
+    expect((await agent.post('/api/auth/email').send({ email: taken })).body.errors).toEqual({ email: 'Email is already taken' });
+    mail.length = 0;
+    const res = await agent.post('/api/auth/email').send({ email: 'old.account@example.com' });
+    expect(res.status).toBe(200);
+    expect(res.body.data.user).toMatchObject({ email: 'old.account@example.com', mustVerifyEmail: true });
+    expect(mail.map((m) => m.job)).toEqual(['verify-email']);
+    expect((await agent.post('/api/auth/email').send({ email: 'again@example.com' })).status).toBe(409);
+  });
+
   it('refresh without a cookie is 401', async () => {
     expect((await request(app).post('/api/auth/refresh')).status).toBe(401);
   });

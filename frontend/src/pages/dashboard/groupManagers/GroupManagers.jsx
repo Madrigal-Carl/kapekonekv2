@@ -7,6 +7,7 @@ import { Controller, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { ConfirmModal } from '@/components/dashboard/ConfirmModal'
 import { DataTable } from '@/components/dashboard/DataTable'
+import { DefaultPasswordField, ResetPasswordBox } from '@/components/dashboard/DefaultPassword'
 import { UsernameField } from '@/components/auth/UsernameField'
 import { Drawer } from '@/components/dashboard/Drawer'
 import { PageHeader } from '@/components/dashboard/PageHeader'
@@ -22,9 +23,11 @@ import {
   useCreateGroupManager,
   useGroupManager,
   useGroupManagers,
+  useResetGroupManagerPassword,
   useRestoreGroupManager,
   useUpdateGroupManager,
 } from '@/hooks/useAssociations'
+import { useCan } from '@/hooks/useCan'
 import { useDirtyDiff, useSaveConfirm } from '@/hooks/useDirtyDiff'
 import { useTableParams } from '@/hooks/useTableParams'
 import { USERNAME_INPUT, useUsernameStatus } from '@/hooks/useUsernameStatus'
@@ -205,6 +208,8 @@ function GroupManagerForm({ open, gm, onClose }) {
 
 function GroupManagerFields({ formId, gm, create, update, onClose, onUnchanged }) {
   const options = useAssociationOptions()
+  const reset = useResetGroupManagerPassword()
+  const canReset = useCan('users.reset_password')
   const initial = useMemo(() => toForm(gm), [gm])
   const { register, control, handleSubmit, setValue, setError, formState: { errors } } = useForm({
     resolver: zodResolver(groupManagerFormSchema),
@@ -242,8 +247,16 @@ function GroupManagerFields({ formId, gm, create, update, onClose, onUnchanged }
       onClose()
     }
     if (gm) confirm.submit({ id: gm.id, ...values })
-    else create.mutate(values, { onSuccess: done('Account created. We emailed an invite link.'), onError })
+    else create.mutate(values, { onSuccess: done('Account created. We emailed them a link to verify their email.'), onError })
   }
+  const onReset = (closeModal) =>
+    reset.mutate(gm.id, {
+      onSuccess: () => {
+        toast.success(`${gm.firstName}’s password is back to the default. We emailed them.`)
+        closeModal()
+      },
+      onError: (error) => toast.error(errorMessage(error)),
+    })
 
   return (
     <form id={formId} noValidate onSubmit={handleSubmit(onSubmit)} className="contents">
@@ -264,7 +277,9 @@ function GroupManagerFields({ formId, gm, create, update, onClose, onUnchanged }
         registration={register('username', USERNAME_INPUT)}
       />
       <TextField id="gm-phone" label="Contact number" type="tel" placeholder="09XX XXX XXXX" error={errors.contactNumber?.message} {...register('contactNumber')} />
-      <TextField id="gm-email" label="Email" type="email" placeholder="name@gmail.com" hint={gm ? undefined : 'We send an invite link to set a password.'} error={errors.email?.message} {...register('email')} />
+      <TextField id="gm-email" label="Email" type="email" placeholder="name@gmail.com" hint="Required. They must verify this email before they can use their account." error={errors.email?.message} {...register('email')} />
+      {!gm && <DefaultPasswordField id="gm-password" who="Group Manager" />}
+      {gm && canReset && <ResetPasswordBox first={gm.firstName} pending={reset.isPending} onReset={onReset} />}
       <SectionTitle>Association</SectionTitle>
       <Controller
         control={control}

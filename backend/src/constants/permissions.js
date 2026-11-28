@@ -25,6 +25,8 @@ export const PERMISSIONS = {
   'farmers.manage': { name: 'Manage farmers', group: 'farmers' },
   'farmers.approve': { name: 'Approve farmers', group: 'farmers' },
   'group_managers.manage': { name: 'Manage Group Managers', group: 'accounts' },
+  'users.reset_password': { name: 'Reset a Group Manager’s password', group: 'accounts' },
+  'farmers.reset_password': { name: 'Reset a farmer’s password', group: 'farmers' },
   'associations.manage': { name: 'Manage associations', group: 'accounts' },
   'farms.manage': { name: 'Manage farms', group: 'records' },
   'trees.manage': { name: 'Manage trees', group: 'records' },
@@ -61,7 +63,7 @@ const notForKaluppa = new Set(['association.request', 'beans.sell']); // the far
 export const ROLE_PERMISSIONS = {
   buyer: ['catalog.coffee', ...shop, ...everyone],
   farmer: [...everyone, ...dashboard, 'association.request', ...records, 'beans.sell', 'catalog.farm_supplies', ...shop],
-  group_manager: [...everyone, ...dashboard, 'farmers.manage', 'farmers.approve', ...records, 'beans.sell', 'reports.view'],
+  group_manager: [...everyone, ...dashboard, 'farmers.manage', 'farmers.approve', 'farmers.reset_password', ...records, 'beans.sell', 'reports.view'],
   kaluppa: Object.keys(PERMISSIONS).filter((slug) => !notForKaluppa.has(slug)),
 };
 

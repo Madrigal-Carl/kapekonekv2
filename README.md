@@ -64,18 +64,18 @@ Every account is a Gmail address with the password `KapeKonek@123` (`SEED_DEFAUL
 | `manager.santacruz` | Group Manager, Santa Cruz Coffee Growers (4 farmers waiting); manages the Kaluppa Demo Farm | `/dashboard/overview` |
 | `manager.boac` | Group Manager, Boac Highland Farmers | `/dashboard/overview` |
 | `manager.unassigned` | Group Manager with no association | `/dashboard/overview` (empty state) |
+| `manager.unverified` | Created by Kaluppa, email not verified | `/verify-email` (created variant) |
 | `farmer.approved` | Approved farmer (Rodel), farms, beans, farm-supply orders and chats | `/dashboard/overview` |
 | `farmer.pending` | Waiting for approval, 3 of 5 kg used | overview with the banner |
 | `farmer.new` | Email verified, no association | the association window |
-| `farmer.nomail` | Created by a Group Manager, username only, must set a new password | "Set a new password" |
 | `farmer.rejected` | Request rejected | overview with the reason |
 | `farmer.transfer` | In Boac, asking to move to Santa Cruz | `/dashboard/overview` |
-| `farmer.unverified` | Email not verified | `/verify-email` |
+| `farmer.unverified` | Created by a Group Manager, email not verified | `/verify-email` (created variant) |
 | `buyer` | Buyer (Juana) with addresses and orders in every status | `/` |
 | `buyer.unverified` | Buyer, blocked until verified | `/verify-email` |
 | `buyer01` … `buyer20` | Buyers who left reviews | `/` |
 
-Emails are `kapekonek.<username>@gmail.com` (or `yourname+<username>@gmail.com`); `farmer.nomail` has none. The seed also fills farms in all 6 towns, tree groups in every stage, 12 months of harvests, bean listings in every status (one approved listing expires within a day), chats with every receipt state, Hub posts (one portrait photo, one video) with views for the landing top 3, and about 60 audit entries.
+Emails are `kapekonek.<username>@gmail.com` (or `yourname+<username>@gmail.com`). The seed also fills farms in all 6 towns, tree groups in every stage, 12 months of harvests, bean listings in every status (one approved listing expires within a day), chats with every receipt state, Hub posts (one portrait photo, one video) with views for the landing top 3, and about 60 audit entries.
 
 ## Background jobs
 

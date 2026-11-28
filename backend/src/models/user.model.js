@@ -21,7 +21,8 @@ const userSchema = new mongoose.Schema(
     status: { type: String, enum: ['active', 'suspended'], default: 'active' },
     lastLoginAt: { type: Date, default: null },
     mustChangePassword: { type: Boolean, default: false }, // first sign-in goes to "Set a new password"
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }, // Kaluppa or a Group Manager: verify the email first
+    passwordIsDefault: { type: Boolean, default: false }, // still KapeKonek@123: the dashboard suggests changing it
     isSeed: { type: Boolean, default: false }, // the mail worker skips these unless SEED_EMAIL_BASE is set
   },
   { timestamps: true },

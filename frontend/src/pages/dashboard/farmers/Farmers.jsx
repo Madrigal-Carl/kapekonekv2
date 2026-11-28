@@ -72,7 +72,6 @@ export function Farmers() {
   const farmer = detail.data
   const remove = useRemoveFarmer()
   const [removing, setRemoving] = useState(null)
-  const [secret, setSecret] = useState(null) // { first, password } — shown once, then dropped
 
   const close = () => set({ open: null, mode: null })
   const drawer = params.open === 'new' || (openId && params.mode === 'edit') ? 'form' : openId && waiting(farmer, association) ? 'review' : openId ? 'view' : null
@@ -81,10 +80,9 @@ export function Farmers() {
     if (action === 'archive') return setRemoving(row)
     set({ open: row.id, mode: action === 'edit' ? 'edit' : 'view' })
   }
-  const onCreated = ({ farmer: created, temporaryPassword }) => {
+  const onCreated = (created) => {
     close()
-    if (temporaryPassword) setSecret({ first: created.firstName, password: temporaryPassword })
-    else toast.success(`${created.name} is added. We emailed them an invite link.`)
+    toast.success(`${created.name} is added. We emailed them a link to verify their email.`)
   }
   const confirmRemove = (reason) =>
     remove.mutate(
@@ -147,9 +145,6 @@ export function Farmers() {
         onConfirm={confirmRemove}
       >
         They become unaffiliated and unapproved again, so the 5 kg selling limit applies. Their farms and records stay theirs. Your chats with them become read-only.
-      </ConfirmModal>
-      <ConfirmModal open={Boolean(secret)} variant="temporary_password" title="Account created" password={secret?.password} onClose={() => setSecret(null)}>
-        Give {secret?.first} this temporary password. It’s shown only once; they must change it when they first sign in.
       </ConfirmModal>
     </DashPage>
   )

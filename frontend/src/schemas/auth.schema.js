@@ -35,5 +35,7 @@ export const firstPasswordSchema = z
   .refine((v) => v.newPassword === v.confirmPassword, { path: ['confirmPassword'], message: "Passwords don't match" })
 
 export const forgotPasswordSchema = z.object({ email: emailRule })
+/** Verify email page: a username-only account adds its first email (POST /auth/email). */
+export const addEmailSchema = z.object({ email: emailRule })
 
 export const resetPasswordSchema = matching(z.object({ password: passwordRule, confirmPassword: z.string() }))

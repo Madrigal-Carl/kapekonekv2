@@ -8,7 +8,10 @@ export const authKeys = {
   usernameSuggestions: (firstName, lastName) => ['auth', 'username-suggestions', firstName, lastName],
 }
 
-/** The session plus convenience flags. Buyers and farmers must verify their email; a temporary password must be replaced first. */
+/**
+ * The session plus convenience flags. `mustVerify` comes from the server (`mustVerifyEmail`): buyers, farmers and accounts
+ * made by Kaluppa or a Group Manager verify first. A temporary password (older accounts) must be replaced first.
+ */
 export function useAuth() {
   const session = useAuthStore((s) => s.session)
   const status = useAuthStore((s) => s.status)
@@ -21,7 +24,7 @@ export function useAuth() {
     isLoading: status === 'loading',
     isAuthenticated: Boolean(session),
     isVerified,
-    mustVerify: (roles.includes('buyer') || roles.includes('farmer')) && !isVerified,
+    mustVerify: Boolean(session?.user.mustVerifyEmail),
     mustChangePassword: Boolean(session?.user.mustChangePassword),
   }
 }
@@ -55,6 +58,11 @@ export function useSetFirstPassword() {
 }
 
 export const useResendVerification = () => useMutation({ mutationFn: authService.resendVerification })
+
+export function useAddEmail() {
+  const setSession = useAuthStore((s) => s.setSession)
+  return useMutation({ mutationFn: authService.addEmail, onSuccess: setSession })
+}
 export const useForgotPassword = () => useMutation({ mutationFn: authService.forgotPassword })
 
 export function useResetPassword() {

@@ -1,5 +1,5 @@
-import { randomBytes, randomInt } from 'node:crypto';
 import { EMAIL_JOBS } from '../queues/email.jobs.js';
+import { DEFAULT_PASSWORD } from '../constants/accounts.js';
 import { BEAN_CAP_KG } from '../constants/beans.js';
 import { capUsedKgByFarmers } from '../repositories/bean.repository.js';
 import * as profiles from '../repositories/farmerProfile.repository.js';
@@ -8,13 +8,13 @@ import {
   findIdentityConflicts,
   findUserById,
   listUsersAmong,
-  setTemporaryPassword,
+  resetToDefaultPassword,
   updateProfileFields,
 } from '../repositories/user.repository.js';
 import { AppError } from '../utils/AppError.js';
 import { containsPattern } from '../utils/escapeRegex.js';
 import { record } from './audit.service.js';
-import { sendAccountInvite } from './auth.service.js';
+import { sendAccountCreated, sendPasswordWasReset } from './auth.service.js';
 import { endDirectChatsBetween, endMembership, joinGroup } from './chat.service.js';
 import { moveOwnerRecords } from './farm.service.js';
 import {
@@ -32,18 +32,6 @@ import { isAssociationManager, seesEveryAssociation } from './policy.service.js'
 const notFound = () => new AppError(404, 'Farmer not found.');
 const decided = () => new AppError(409, 'This request was already decided.');
 const PROFILE_AUDIT = ['name', 'username', 'email', 'contactNumber'];
-
-/** 12 characters with a lowercase and uppercase letter, a number and a symbol; no look-alike characters. */
-export function temporaryPassword() {
-  const sets = ['abcdefghjkmnpqrstuvwxyz', 'ABCDEFGHJKMNPQRSTUVWXYZ', '23456789', '!@#$%*?'];
-  const pick = (set) => set[randomInt(set.length)];
-  const chars = [...sets.map(pick), ...Array.from({ length: 8 }, () => pick(sets.join('')))];
-  for (let i = chars.length - 1; i > 0; i -= 1) {
-    const j = randomInt(i + 1);
-    [chars[i], chars[j]] = [chars[j], chars[i]];
-  }
-  return chars.join('');
-}
 
 const farmerDto = (user, profile, { withDocuments = false } = {}) => {
   const { documents, ...state } = profileDto(profile);
@@ -116,8 +104,8 @@ async function documentsFrom(actor, { validId, landProof }) {
 }
 
 /**
- * A Group Manager adds an approved, verified farmer to its association. Without an email the response carries a
- * temporary password once (never stored in plain text or audited); with one, an invite is emailed.
+ * A Group Manager adds an approved farmer to its association (Change 08): the email is required, the password is the
+ * default `KapeKonek@123`, and the farmer verifies the email before the dashboard opens.
  */
 export async function createFarmer(actor, { associationId: chosen, validId, landProof, email, ...fields }) {
   const associationId = scopeOf(actor) ?? chosen;
@@ -128,14 +116,13 @@ export async function createFarmer(actor, { associationId: chosen, validId, land
   const association = await activeAssociation(associationId);
   await assertIdentityFree({ email, username: fields.username });
   const docs = await documentsFrom(actor, { validId, landProof });
-  const password = email ? null : temporaryPassword();
   const user = await createUser({
     ...fields,
-    ...(email && { email }),
+    email,
     roles: ['farmer'],
-    password: password ?? `${randomBytes(24).toString('base64url')}!1a`, // with an email, the invite sets it
-    emailVerifiedAt: new Date(),
-    mustChangePassword: !email,
+    password: DEFAULT_PASSWORD,
+    passwordIsDefault: true,
+    emailVerifiedAt: null,
     createdBy: actor._id,
   });
   const now = new Date();
@@ -145,28 +132,39 @@ export async function createFarmer(actor, { associationId: chosen, validId, land
     history: [{ action: 'create', by: actor._id, at: now }],
   });
   await joinGroup(user._id, association._id);
-  if (email) await sendAccountInvite(user);
+  await sendAccountCreated(user, fullName(actor));
   await record({
     actor, area: 'farmers', action: 'create', entity: farmerEntity(user),
     after: { ...auditView(user), association: association.name, status: 'approved' }, fields: [...PROFILE_AUDIT, 'association', 'status'],
   });
-  return { farmer: await getFarmer(actor, user._id), ...(password && { temporaryPassword: password }) };
+  return getFarmer(actor, user._id);
 }
 
-/** Edit a farmer of the association; `issueTemporaryPassword` gives an email-less farmer a new temporary password. */
-export async function updateFarmer(actor, id, { validId, landProof, email, issueTemporaryPassword, ...fields }) {
+/** Edit a farmer of the association. A new email must be verified again. */
+export async function updateFarmer(actor, id, { validId, landProof, email, ...fields }) {
   const { user: before, profile } = await loadFarmer(actor, id);
   if (!manages(actor, profile.association)) throw notFound(); // a transfer into the association isn't theirs to edit yet
   const nextEmail = email ?? before.email ?? null; // an email can be added or changed, never removed
-  if (issueTemporaryPassword && nextEmail) throw new AppError(409, 'This farmer has an email. They can reset their password from the sign-in page.');
   await assertIdentityFree({ email: nextEmail, username: fields.username }, id);
   const docs = await documentsFrom(actor, { validId, landProof });
   if (Object.keys(docs).length) await profiles.updateProfileWhen(id, {}, { $set: docs });
-  const after = await updateProfileFields(id, { ...fields, ...(nextEmail && { email: nextEmail }) });
-  const password = issueTemporaryPassword ? temporaryPassword() : null;
-  if (password) await setTemporaryPassword(id, password);
+  const emailChanged = Boolean(nextEmail) && nextEmail !== before.email;
+  const after = await updateProfileFields(id, { ...fields, ...(nextEmail && { email: nextEmail }), ...(emailChanged && { emailVerifiedAt: null }) });
+  if (emailChanged) await sendAccountCreated(after, fullName(actor));
   await record({ actor, area: 'farmers', action: 'update', entity: farmerEntity(after), before: auditView(before), after: auditView(after), fields: PROFILE_AUDIT });
-  return { farmer: await getFarmer(actor, id), ...(password && { temporaryPassword: password }) };
+  return getFarmer(actor, id);
+}
+
+/**
+ * Reset password (Change 08): back to `KapeKonek@123`, every session ends, and the farmer gets an email. Only the
+ * Group Manager of the farmer's association (`farmers.reset_password`). The password itself is never audited.
+ */
+export async function resetFarmerPassword(actor, id) {
+  const { user, profile } = await loadFarmer(actor, id);
+  if (!isAssociationManager(actor, profile.association?._id)) throw notFound(); // their own Group Manager only (not Kaluppa)
+  await resetToDefaultPassword(id, DEFAULT_PASSWORD);
+  await sendPasswordWasReset(user, fullName(actor));
+  await record({ actor, area: 'farmers', action: 'reset_password', entity: farmerEntity(user) });
 }
 
 export async function approveFarmer(actor, id) {

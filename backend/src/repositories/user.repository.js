@@ -54,6 +54,7 @@ export async function setFirstPassword(userId, password) {
   if (!user) return null;
   user.password = password;
   user.mustChangePassword = false;
+  user.passwordIsDefault = false;
   user.tokenVersion += 1;
   return user.save();
 }
@@ -62,6 +63,7 @@ export async function replacePassword(userId, password) {
   const user = await User.findById(userId);
   if (!user) return null;
   user.password = password;
+  user.passwordIsDefault = false;
   user.tokenVersion += 1;
   return user.save();
 }
@@ -127,14 +129,19 @@ export const listUsersAmong = ({ ids, words, page, limit }) =>
     { page, limit },
   );
 
-/** Replace the password with a temporary one: the next sign-in must set a new password, and other sessions end. */
-export async function setTemporaryPassword(userId, password) {
+/** Reset to the default password: every session and refresh token ends (`tokenVersion`). */
+export async function resetToDefaultPassword(userId, password) {
   const user = await User.findById(userId);
   user.password = password;
-  user.mustChangePassword = true;
+  user.passwordIsDefault = true;
+  user.mustChangePassword = false;
   user.tokenVersion += 1;
   return user.save();
 }
+
+/** A username-only account adds its first email (unverified); null when it already has one. */
+export const addFirstEmail = (userId, email) =>
+  User.findOneAndUpdate({ _id: userId, email: null }, { $set: { email, emailVerifiedAt: null } }, { new: true });
 
 export const findGroupManagerById = (id) => User.findOne({ _id: id, roles: 'group_manager' }).lean();
 

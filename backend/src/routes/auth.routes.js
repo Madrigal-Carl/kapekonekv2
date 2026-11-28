@@ -12,6 +12,7 @@ import {
   suggestionsQuerySchema,
   tokenSchema,
   usernameQuerySchema,
+  addEmailSchema,
 } from '../schemas/auth.schema.js';
 
 const router = Router();
@@ -32,6 +33,7 @@ const resendLimit = rateLimit({
   message: 'Please wait a minute before asking for another link.',
 });
 const forgotLimit = rateLimit({ name: 'forgot-password', limit: 5, windowSec: 15 * 60 });
+const addEmailLimit = rateLimit({ name: 'add-email', limit: 5, windowSec: 10 * 60, key: (req) => String(req.user._id) });
 
 router.post('/register', guestOnly, validate({ body: registerSchema }), auth.register);
 router.post('/login', guestOnly, loginLimit, validate({ body: loginSchema }), auth.login);
@@ -45,6 +47,7 @@ router.get('/username-suggestions', usernameLimit, validate({ query: suggestions
 
 router.post('/email/verify', validate({ body: tokenSchema }), auth.verifyEmail);
 router.post('/email/verification-notification', authenticate, resendLimit, auth.resendVerification);
+router.post('/email', authenticate, addEmailLimit, validate({ body: addEmailSchema }), auth.addEmail); // username-only accounts: "Add your email"
 
 router.post('/forgot-password', forgotLimit, validate({ body: forgotPasswordSchema }), auth.forgotPassword);
 router.post('/reset-password', validate({ body: resetPasswordSchema }), auth.resetPassword);

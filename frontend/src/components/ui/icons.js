@@ -29,6 +29,7 @@ import {
   LuCircleX,
   LuClipboardList,
   LuClock,
+  LuCopy,
   LuCoffee,
   LuEye,
   LuEyeOff,
@@ -153,6 +154,7 @@ export const IconCircleAlert = LuCircleAlert
 export const IconCircleCheck = LuCircleCheck
 export const IconCircleX = LuCircleX
 export const IconClock = LuClock
+export const IconCopy = LuCopy
 export const IconCoffee = LuCoffee
 export const IconEye = LuEye
 export const IconEyeOff = LuEyeOff

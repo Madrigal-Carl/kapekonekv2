@@ -26,6 +26,8 @@ export const loginSchema = z.object({
 export const tokenSchema = z.object({ token: z.string().trim().min(1, 'This link is incomplete') });
 
 export const forgotPasswordSchema = z.object({ email: emailRule });
+/** POST /auth/email: a username-only account adds its first email. */
+export const addEmailSchema = z.object({ email: emailRule });
 
 export const resetPasswordSchema = z.object({
   token: z.string().trim().min(1, 'This link is incomplete'),

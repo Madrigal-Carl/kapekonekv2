@@ -46,6 +46,11 @@ export const update = asyncHandler(async (req, res) => {
   sendSuccess(res, { message: 'Farmer updated.', data: await farmers.updateFarmer(req.user, req.params.id, req.body) });
 });
 
+export const resetPassword = asyncHandler(async (req, res) => {
+  await farmers.resetFarmerPassword(req.user, req.params.id);
+  sendSuccess(res, { message: 'Password reset. They were signed out everywhere and we emailed them.' });
+});
+
 export const approve = asyncHandler(async (req, res) => {
   sendSuccess(res, { message: 'Farmer approved.', data: await farmers.approveFarmer(req.user, req.params.id) });
 });

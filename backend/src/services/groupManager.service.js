@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto';
+import { DEFAULT_PASSWORD } from '../constants/accounts.js';
 import {
   findAssignedManagerIds,
   findAssociationById,
@@ -10,6 +10,7 @@ import { countFarmersByAssociation } from '../repositories/farmerProfile.reposit
 import {
   createUser,
   findGroupManagerById,
+  resetToDefaultPassword,
   findIdentityConflicts,
   listGroupManagers as listGroupManagerPage,
   setAccountStatus,
@@ -19,7 +20,7 @@ import { AppError } from '../utils/AppError.js';
 import { containsPattern } from '../utils/escapeRegex.js';
 import { moveManager } from './association.service.js';
 import { record } from './audit.service.js';
-import { sendAccountInvite } from './auth.service.js';
+import { sendAccountCreated, sendPasswordWasReset } from './auth.service.js';
 import { ensureKaluppaChat } from './chat.service.js';
 
 const AUDITED = ['name', 'username', 'email', 'contactNumber', 'association', 'status'];
@@ -95,19 +96,21 @@ async function assignableAssociation(associationId, managerId = null) {
   return association;
 }
 
-/** Kaluppa creates a Group Manager; an invite email lets them set their password. */
+/** Kaluppa creates a Group Manager with the default password; they verify their email before the dashboard opens. */
 export async function createGroupManager(actor, { associationId, ...fields }) {
   await assertIdentityFree(fields);
   const association = associationId ? await assignableAssociation(associationId) : null;
   const user = await createUser({
     ...fields,
     roles: ['group_manager'],
-    password: `${randomBytes(24).toString('base64url')}!1a`, // unusable until the invite sets one
+    password: DEFAULT_PASSWORD,
+    passwordIsDefault: true,
+    emailVerifiedAt: null,
     createdBy: actor._id,
   });
   await ensureKaluppaChat(user._id);
   if (association) await moveManager(user._id, null, association);
-  await sendAccountInvite(user);
+  await sendAccountCreated(user, 'Kaluppa');
   await record({ actor, area: 'group_managers', action: 'create', entity: { type: 'user', id: user._id, label: fullName(user) }, after: auditView(user, association), fields: AUDITED });
   return getGroupManager(user._id);
 }
@@ -130,6 +133,15 @@ export async function updateGroupManager(actor, id, { associationId, ...fields }
     before: auditView(before, current), after: auditView(after, next), fields: AUDITED,
   });
   return getGroupManager(id);
+}
+
+/** Reset password (`users.reset_password`): back to the default, every session ends, and they get an email. Audited without the password. */
+export async function resetGroupManagerPassword(actor, id) {
+  const user = await findGroupManagerById(id);
+  if (!user) throw notFound();
+  await resetToDefaultPassword(id, DEFAULT_PASSWORD);
+  await sendPasswordWasReset(user, 'Kaluppa');
+  await record({ actor, area: 'group_managers', action: 'reset_password', entity: { type: 'user', id: user._id, label: fullName(user) } });
 }
 
 /** Archive: they can't sign in, open sessions end, and the association goes back to Kaluppa. */

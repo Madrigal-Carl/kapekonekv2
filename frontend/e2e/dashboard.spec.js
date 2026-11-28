@@ -65,13 +65,14 @@ test('farmer signs up → verifies → joins through the window → Group Manage
   await expect(page.locator('aside').getByText('Approved farmer')).toBeVisible()
 })
 
-test('Group Manager adds an email-less farmer, who signs in by username and sets a password', async ({ page, browser }) => {
+test('Group Manager adds a farmer with the default password; they verify first, then can be reset (Change 08)', async ({ page, browser }) => {
   const id = unique()
+  const email = `e2e.farmer.${id}@example.com`
   await signIn(page, 'manager.santacruz')
   await page.goto('/dashboard/farmers')
   await page.getByRole('button', { name: 'Add farmer' }).click()
   await page.getByLabel('First name').fill('Nilo')
-  await page.getByLabel('Last name').fill(`Nomail${id}`)
+  await page.getByLabel('Last name').fill(`Farmer${id}`)
   // Suggestions are built from the name; picking one fills the field.
   const chip = page.getByRole('button', { name: /^@nilo/ }).first()
   const username = (await chip.textContent()).slice(1)
@@ -79,21 +80,36 @@ test('Group Manager adds an email-less farmer, who signs in by username and sets
   await expect(page.getByLabel('Username', { exact: true })).toHaveValue(username)
   await expect(page.getByText(`@${username} is available`)).toBeVisible()
   await page.getByLabel('Contact number').fill('09171112233')
+  await expect(page.getByLabel('Password', { exact: true })).toHaveValue('KapeKonek@123')
+  await expect(page.getByLabel('Password', { exact: true })).not.toBeEditable()
+  await page.getByLabel('Email', { exact: true }).fill(email)
+  await page.screenshot({ path: 'test-results/c08-farmer-create-1440.png' })
   await page.getByRole('button', { name: 'Create farmer' }).click()
-  const created = page.getByRole('dialog', { name: 'Account created' })
-  await expect(created).toBeVisible()
-  const password = (await created.locator('.font-mono').textContent()).trim()
-  await created.getByRole('button', { name: 'Done' }).click()
-  await expect(page.getByText(password)).toHaveCount(0)
+  await expect(page.getByText(`Nilo Farmer${id} is added. We emailed them a link to verify their email.`)).toBeVisible()
 
+  // Guard: until the email is verified, every sign-in lands on Verify email (created variant).
   const farmer = await browser.newPage()
-  await signIn(farmer, username, password)
-  await expect(farmer).toHaveURL('/set-password')
-  await farmer.getByLabel('New password', { exact: true }).fill('MyFarm@2026')
-  await farmer.getByLabel('Confirm new password').fill('MyFarm@2026')
-  await farmer.getByRole('button', { name: 'Set password and continue' }).click()
+  await signIn(farmer, username, 'KapeKonek@123')
+  await expect(farmer).toHaveURL('/verify-email')
+  await expect(farmer.getByText('Liza Ramos created a farmer account for you in Santa Cruz Coffee Growers. Verify your email before you can use it.')).toBeVisible()
+  await farmer.goto('/dashboard/overview')
+  await expect(farmer).toHaveURL('/verify-email')
+  await farmer.screenshot({ path: 'test-results/c08-verify-created-1440.png' })
+  const link = new URL(await latestMailLink(email, '/verify-email/confirm'))
+  await farmer.goto(link.pathname + link.search)
   await expect(farmer).toHaveURL('/dashboard/overview')
-  await expect(farmer.getByRole('heading', { name: /, Nilo$/ })).toBeVisible()
+  await expect(farmer.getByText('You’re still using the default password.')).toBeVisible()
+
+  // Reset password on edit: confirm, then the farmer's session ends.
+  await page.getByRole('searchbox').fill(`Farmer${id}`)
+  await page.getByRole('button', { name: `Edit Nilo Farmer${id}` }).click()
+  await page.getByRole('button', { name: 'Reset password' }).click()
+  const modal = page.getByRole('dialog', { name: 'Reset Nilo’s password?' })
+  await expect(modal).toContainText('They’re signed out on every device')
+  await modal.getByRole('button', { name: 'Reset password' }).click()
+  await expect(page.getByText('Nilo’s password is back to the default. We emailed them.')).toBeVisible()
+  await farmer.reload()
+  await expect(farmer).toHaveURL(/\/login/)
   await farmer.close()
 })
 
@@ -119,7 +135,7 @@ test('Kaluppa creates and archives a Group Manager', async ({ page }) => {
   await expect(username).toHaveValue(picked)
   await expect(page.getByText(`@${picked} is available`)).toBeVisible()
   await page.getByRole('button', { name: 'Create account' }).click()
-  await expect(page.getByText('Account created. We emailed an invite link.')).toBeVisible()
+  await expect(page.getByText('Account created. We emailed them a link to verify their email.')).toBeVisible()
 
   await page.getByRole('searchbox').fill(`Manager${id}`)
   await page.getByRole('button', { name: `Archive Gail Manager${id}` }).click()
