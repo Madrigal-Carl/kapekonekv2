@@ -3,11 +3,17 @@ import { firstPasswordSchema, registerSchema } from './auth.schema.js'
 
 const base = {
   role: 'buyer', firstName: 'Ana', middleName: '', lastName: 'Cruz', username: 'anacruz',
-  email: 'ana@example.com', password: 'KapeKonek@123', confirmPassword: 'KapeKonek@123', contactNumber: '',
+  email: 'ana@example.com', password: 'KapeKonek@123', confirmPassword: 'KapeKonek@123', contactNumber: '', acceptTerms: true,
 }
 const errorPaths = (result) => result.error?.issues.map((i) => i.path.join('.')) ?? []
 
 describe('registerSchema', () => {
+  it('needs the terms box ticked (Change 09)', () => {
+    const result = registerSchema.safeParse({ ...base, acceptTerms: false })
+    expect(errorPaths(result)).toEqual(['acceptTerms'])
+    expect(result.error.issues[0].message).toBe('Please agree to the Terms and Conditions to create your account.')
+  })
+
   it('lets a buyer leave the contact number empty', () => {
     expect(registerSchema.safeParse(base).success).toBe(true)
   })

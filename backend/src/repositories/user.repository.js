@@ -1,3 +1,4 @@
+import { TERMS_VERSION } from '../constants/legal.js';
 import { User } from '../models/user.model.js';
 import { pageList } from '../utils/pageList.js';
 
@@ -73,7 +74,10 @@ export async function replacePassword(userId, password) {
  * @param {object} data includes an already-hashed `password`
  */
 export const upsertSeedUser = ({ username, ...data }) =>
-  User.updateOne({ username }, { $setOnInsert: { username, ...data, isSeed: true } }, { upsert: true });
+  User.updateOne({ username }, { $setOnInsert: { username, ...data, isSeed: true, termsVersion: TERMS_VERSION, termsAcceptedAt: new Date() } }, { upsert: true });
+
+/** Store agreement to the Terms and Conditions (Change 09). */
+export const acceptTermsFor = (userId, version) => User.findByIdAndUpdate(userId, { termsVersion: version, termsAcceptedAt: new Date() }, AFTER);
 
 /** Users with any of the given usernames (seeders: seed usernames are their handles). */
 export const findUsersByUsernames = (usernames) =>

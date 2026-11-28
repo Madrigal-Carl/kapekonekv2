@@ -36,7 +36,7 @@ async function signedIn(identifier, { password = PASSWORD, remember = false } = 
 async function freshBuyer(name) {
   await request(app)
     .post('/api/auth/register')
-    .send({ firstName: 'Ana', lastName: 'Reyes', username: name, email: `${name}@example.com`, password: PASSWORD, role: 'buyer' })
+    .send({ firstName: 'Ana', lastName: 'Reyes', username: name, email: `${name}@example.com`, password: PASSWORD, role: 'buyer', acceptTerms: true })
     .expect(201);
   const user = await User.findOneAndUpdate({ username: name }, { emailVerifiedAt: new Date() }, { returnDocument: 'after' });
   mail.length = 0;

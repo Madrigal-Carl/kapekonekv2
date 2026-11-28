@@ -11,7 +11,7 @@ const PHOTO = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQ
 /** A new verified buyer (these flows change credentials, so they never touch the seeded accounts). */
 async function freshBuyer(request) {
   const id = unique()
-  const user = { firstName: 'Ana', lastName: 'Reyes', username: `ana${id}`, email: `e2e.account.${id}@example.com`, password: 'KapeKonek@123', role: 'buyer' }
+  const user = { firstName: 'Ana', lastName: 'Reyes', username: `ana${id}`, email: `e2e.account.${id}@example.com`, password: 'KapeKonek@123', role: 'buyer', acceptTerms: true }
   expect((await request.post(`${API}/auth/register`, { data: user })).status()).toBe(201)
   const token = new URL(await latestMailLink(user.email, '/verify-email/confirm')).searchParams.get('token')
   expect((await request.post(`${API}/auth/email/verify`, { data: { token } })).ok()).toBe(true)

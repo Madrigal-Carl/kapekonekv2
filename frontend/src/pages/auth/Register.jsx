@@ -3,9 +3,11 @@ import { useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { UsernameField } from '@/components/auth/UsernameField'
+import { TermsModal } from '@/components/legal/TermsModal'
 import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { Eyebrow } from '@/components/ui/Eyebrow'
+import { IconCircleAlert } from '@/components/ui/icons'
 import { FieldHint, Input, Label } from '@/components/ui/Input'
 import { PasswordInput, PasswordRule } from '@/components/ui/PasswordInput'
 import { RadioCard } from '@/components/ui/RadioCard'
@@ -13,6 +15,7 @@ import { useRegister } from '@/hooks/useAuth'
 import { USERNAME_INPUT, useUsernameStatus } from '@/hooks/useUsernameStatus'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import { applyServerErrors, errorMessage } from '@/lib/applyServerErrors'
+import { cn } from '@/lib/cn'
 import { registerSchema } from '@/schemas/auth.schema'
 import { PASSWORD_RULE } from '@/schemas/rules'
 
@@ -29,14 +32,16 @@ const ROLES = [
   { value: 'farmer', title: 'Sell as a farmer', description: 'Record your farms and sell beans to Kaluppa. Verify your email to start.' },
 ]
 
-const FIELDS = ['firstName', 'middleName', 'lastName', 'username', 'email', 'contactNumber', 'password', 'role']
+const FIELDS = ['firstName', 'middleName', 'lastName', 'username', 'email', 'contactNumber', 'password', 'role', 'acceptTerms']
+const docLink = 'h-auto border-0 p-0 align-baseline text-[13.5px] font-semibold text-roast underline underline-offset-2 hover:text-roast-hover'
 
 export function Register() {
   const signup = useRegister()
   const [showPasswords, setShowPasswords] = useState(false)
-  const { register, control, handleSubmit, setValue, setError, formState: { errors } } = useForm({
+  const [terms, setTerms] = useState(null) // which tab TermsModal opens on, or null
+  const { register, control, handleSubmit, setValue, setError, formState: { errors, isSubmitted } } = useForm({
     resolver: zodResolver(registerSchema),
-    defaultValues: { role: 'buyer', firstName: '', middleName: '', lastName: '', username: '', email: '', contactNumber: '', password: '', confirmPassword: '' },
+    defaultValues: { role: 'buyer', firstName: '', middleName: '', lastName: '', username: '', email: '', contactNumber: '', password: '', confirmPassword: '', acceptTerms: false },
   })
   const [role, firstName, lastName, username, password] = useWatch({ control, name: ['role', 'firstName', 'lastName', 'username', 'password'] })
   const status = useUsernameStatus(username, errors.username?.message)
@@ -142,10 +147,45 @@ export function Register() {
           <FieldHint id="confirmPassword-error" error={errors.confirmPassword?.message} />
         </div>
 
+        <div>
+          <div className="flex items-start gap-2.5">
+            <input
+              id="acceptTerms"
+              type="checkbox"
+              className={cn('mt-0.5 size-[18px] shrink-0 rounded-[3px] accent-roast', errors.acceptTerms && 'outline-2 outline-offset-2 outline-danger')}
+              aria-invalid={Boolean(errors.acceptTerms) || undefined}
+              aria-describedby="acceptTerms-error"
+              {...register('acceptTerms')}
+            />
+            <span className="text-[13.5px] leading-[1.55] text-ink">
+              <label htmlFor="acceptTerms" className="cursor-pointer">I agree to KapeKonek’s</label>{' '}
+              <Button variant="bare" onClick={() => setTerms('terms')} className={docLink}>Terms and Conditions</Button>
+              {' and '}
+              <Button variant="bare" onClick={() => setTerms('privacy')} className={docLink}>Privacy Policy</Button>.
+            </span>
+          </div>
+          {errors.acceptTerms && (
+            <p id="acceptTerms-error" role="alert" className="m-0 ml-7 mt-1.5 flex items-center gap-1.5 text-[12.5px] font-medium text-danger-ink">
+              <IconCircleAlert aria-hidden="true" className="size-3.5 shrink-0" strokeWidth={2.2} />
+              {errors.acceptTerms.message}
+            </p>
+          )}
+        </div>
+
         <Button size="lg" type="submit" loading={signup.isPending}>
           Create account
         </Button>
       </form>
+      {terms && <TermsModal
+        key={terms}
+        open
+        tab={terms}
+        onClose={() => setTerms(null)}
+        onAgree={() => {
+          setValue('acceptTerms', true, { shouldValidate: isSubmitted })
+          setTerms(null)
+        }}
+      />}
       <p className="mt-[22px] border-t border-sand-soft pt-[18px] text-center text-sm text-ink-2">
         Already have an account?{' '}
         <Link to="/login" className="font-semibold no-underline">

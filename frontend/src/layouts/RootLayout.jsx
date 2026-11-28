@@ -1,3 +1,4 @@
+import { TermsGate } from '@/components/legal/TermsGate'
 import { Suspense } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Toaster } from 'sonner'
@@ -10,6 +11,7 @@ export function RootLayout() {
       <Suspense fallback={<PageSpinner />}>
         <Outlet />
       </Suspense>
+      <TermsGate />
       <Toaster position="top-center" toastOptions={{ className: 'font-sans' }} />
     </>
   )

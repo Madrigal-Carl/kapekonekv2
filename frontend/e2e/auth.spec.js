@@ -15,6 +15,7 @@ async function fillSignup(page, { role, first, last, username, email }) {
   await page.getByLabel('Email', { exact: true }).fill(email)
   await page.getByLabel('Password', { exact: true }).fill('KapeKonek@123')
   await page.getByLabel('Confirm password').fill('KapeKonek@123')
+  await page.getByLabel('I agree to KapeKonek’s').check() // Change 09
   await page.getByRole('button', { name: 'Create account' }).click()
 }
 
@@ -54,7 +55,7 @@ test('forgot password → reset → sign in with the new password', async ({ pag
   const id = unique()
   const email = `e2e.reset.${id}@example.com`
   const created = await request.post(`${API}/auth/register`, {
-    data: { firstName: 'Rita', lastName: 'Reset', username: `rita${id}`, email, password: 'KapeKonek@123', role: 'buyer' },
+    data: { firstName: 'Rita', lastName: 'Reset', username: `rita${id}`, email, password: 'KapeKonek@123', role: 'buyer', acceptTerms: true },
   })
   expect(created.status()).toBe(201)
 

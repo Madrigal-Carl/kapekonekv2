@@ -64,9 +64,12 @@ describe('every Phase 2 mutation writes one audit entry', () => {
   });
   once('Group Manager edit', () =>
     r.kaluppa.patch(`/api/group-managers/${ids.gm}`).send({ firstName: 'Lena', lastName: 'Ramos-Cruz', username: 'lena.ramos', email: 'lena.ramos@example.com', contactNumber: '09175550111' }));
+  it('sign-up records agreeing to the terms (Change 09)', async () => {
+    ids.joy = await registerFarmer(app, User, 'joy');
+    expect(await AuditLog.findOne({ entityId: ids.joy.user._id, action: 'accept_terms' }).lean()).toMatchObject({ area: 'accounts', changes: [{ field: 'termsVersion', to: 1 }] });
+  });
   once('farmer request to join (documents never logged)', async () => {
-    const f = await registerFarmer(app, User, 'joy');
-    ids.joy = f;
+    const f = ids.joy;
     return f.agent.post('/api/me/farmer-profile/request').send({ associationId: r.a.santacruz.id, ...documentsOf(f.user._id) });
   });
   once('farmer approve', () => r.manager.post(`/api/farmers/${ids.joy.user._id}/approve`));

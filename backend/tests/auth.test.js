@@ -15,7 +15,7 @@ vi.mock('../src/queues/email.queue.js', () => ({
 const { getValkey } = await import('../src/config/valkey.js');
 const { default: app } = await import('../src/app.js');
 const { runSeeders } = await import('../src/database/seeders/index.js');
-const { User, Token } = await import('../src/models/index.js');
+const { User, Token, AuditLog } = await import('../src/models/index.js');
 
 const juana = {
   firstName: 'Juana',
@@ -24,6 +24,7 @@ const juana = {
   email: 'Juana.Santos@Example.com',
   password: 'KapeKonek@123',
   role: 'buyer',
+  acceptTerms: true,
 };
 const tokenOf = (url) => new URL(url).searchParams.get('token');
 const lastMail = (job) => mail.findLast((m) => m.job === job);
@@ -52,6 +53,21 @@ describe('register', () => {
     const sent = lastMail('verify-email');
     expect(sent.data.to).toBe('juana.santos@example.com');
     expect(sent.data.url).toMatch(/^http:\/\/localhost:5173\/verify-email\/confirm\?token=[a-f0-9]{64}$/);
+  });
+
+  it('needs the terms checkbox; stores the agreed version and audits it (Change 09)', async () => {
+    const { acceptTerms: _a, ...unticked } = { ...juana, username: 'noterms', email: 'noterms@example.com' };
+    const refused = await request(app).post('/api/auth/register').send(unticked);
+    expect(refused.status).toBe(400);
+    expect(refused.body.errors).toEqual({ acceptTerms: 'Please agree to the Terms and Conditions to create your account.' });
+    expect((await request(app).post('/api/auth/register').send({ ...unticked, acceptTerms: false })).status).toBe(400);
+
+    const res = await request(app).post('/api/auth/register').send({ ...unticked, acceptTerms: true }).expect(201);
+    expect(res.body.data.user.mustAcceptTerms).toBe(false);
+    const saved = await User.findOne({ username: 'noterms' }).lean();
+    expect(saved.termsVersion).toBe(1);
+    expect(saved.termsAcceptedAt).toBeInstanceOf(Date);
+    expect(await AuditLog.findOne({ entityId: saved._id, action: 'accept_terms' }).lean()).toMatchObject({ area: 'accounts', changes: [{ field: 'termsVersion', from: 0, to: 1 }] });
   });
 
   it('reports taken email and username as field errors', async () => {

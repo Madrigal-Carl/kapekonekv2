@@ -417,6 +417,24 @@ Source: `docs/prompts/CHANGE-08-CONFIRM-EXPORT-ACCOUNTS-MENTIONS-CONTACT.md`, PH
 - [x] `/contact` page and form (`ContactMessage`, Settings → Branch contact email, copy to sender, honeypot, 3/hour), navbar and footer links.
 - [x] Address book: atomic 10-address limit and `addressesVersion` check with a two-request race test.
 
+## Change 09 — Terms and Conditions at sign-up and first sign-in
+
+PHASE-2-SPEC §3.17, DESIGN §8.8. Screens: Register, RegisterTerms, RegisterTermsError, RegisterTermsMobile, TermsAccept, TermsModal.
+
+> **Draft text:** `backend/src/legal/terms.v1.md` and `privacy.v1.md` are the plain-language starting draft from the screens. Kaluppa must have them reviewed before launch.
+
+### Task C09.A: Sign up, TermsModal, stored acceptance
+- [x] Sign-up checkbox (unticked; label "I agree to KapeKonek’s", the two document names open `TermsModal` on their tab); error under it with a red outline, `aria-invalid`, `role="alert"`; nothing is sent. The modal's **I agree** ticks it.
+- [x] API: `acceptTerms: z.literal(true)` on sign-up.
+- [x] `TermsModal`: 640px, underline tabs, version line, scrolling body; read mode (Close / I agree, Esc and backdrop) and accept mode (not dismissible, checkbox, Sign out / Agree and continue); full screen on phones.
+- [x] `GET /legal/current` serves `src/legal/*.v<TERMS_VERSION>.md`; `POST /legal/accept {version}`.
+- [x] `termsVersion` + `termsAcceptedAt` on the user, audit "accepted the terms (v1)"; seeded accounts accepted at the current version.
+- [x] Accounts made by Kaluppa or a Group Manager see accept mode after verifying their email, before the dashboard.
+
+### Task C09.B: Agreement on first sign-in
+- [ ] Accept mode for anyone whose `termsVersion` is older than `TERMS_VERSION`, before any dashboard or storefront page.
+- [ ] `403 TERMS_REQUIRED` for everything but `GET /legal/current`, `POST /legal/accept` and sign-out until they agree; Agree and continue goes on to where they were going.
+
 ## Milestone summaries
 
 (Added after each milestone.)

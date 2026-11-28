@@ -12,6 +12,7 @@ export const registerSchema = z
     password: passwordRule,
     role: z.enum(SIGNUP_ROLES, 'Choose how you want to use KapeKonek'),
     contactNumber: phoneRule.optional(),
+    acceptTerms: z.literal(true, 'Please agree to the Terms and Conditions to create your account.'), // Change 09
   })
   .refine((v) => v.role !== 'farmer' || v.contactNumber, { path: ['contactNumber'], message: 'Farmers need a contact number' });
 

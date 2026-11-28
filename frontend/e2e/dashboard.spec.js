@@ -28,6 +28,7 @@ test('farmer signs up → verifies → joins through the window → Group Manage
   await page.getByLabel('Email', { exact: true }).fill(email)
   await page.getByLabel('Password', { exact: true }).fill('KapeKonek@123')
   await page.getByLabel('Confirm password').fill('KapeKonek@123')
+  await page.getByLabel('I agree to KapeKonek’s').check() // Change 09
   await page.getByRole('button', { name: 'Create account' }).click()
   await expect(page).toHaveURL('/verify-email')
 
@@ -98,6 +99,12 @@ test('Group Manager adds a farmer with the default password; they verify first, 
   const link = new URL(await latestMailLink(email, '/verify-email/confirm'))
   await farmer.goto(link.pathname + link.search)
   await expect(farmer).toHaveURL('/dashboard/overview')
+  // Change 09: once verified, the first sign-in asks them to agree to the terms.
+  const terms = farmer.getByRole('dialog', { name: 'Agree to our terms' })
+  await expect(terms.getByText('Your account was made for you by Liza Ramos, your Group Manager.', { exact: false })).toBeVisible()
+  await terms.getByLabel('I’ve read and agree to the Terms and Conditions and the Privacy Policy.').check()
+  await terms.getByRole('button', { name: 'Agree and continue' }).click()
+  await expect(terms).toBeHidden()
   await expect(farmer.getByText('You’re still using the default password.')).toBeVisible()
 
   // Reset password on edit: confirm, then the farmer's session ends.

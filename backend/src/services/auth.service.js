@@ -1,3 +1,5 @@
+import { mustAcceptTerms } from '../constants/legal.js';
+import { acceptTerms } from './legal.service.js';
 import { createHash, randomBytes, randomInt } from 'node:crypto';
 import bcrypt from 'bcrypt';
 import { env } from '../config/env.js';
@@ -49,6 +51,7 @@ export const publicUser = (user) => ({
   roles: user.roles,
   mustChangePassword: Boolean(user.mustChangePassword),
   mustVerifyEmail: mustVerifyEmail(user),
+  mustAcceptTerms: mustAcceptTerms(user),
   passwordIsDefault: Boolean(user.passwordIsDefault),
   associationId: user.associationId ? String(user.associationId) : null,
   farmerStatus: user.farmerStatus ?? null,
@@ -87,7 +90,7 @@ export async function buildSession(user) {
  * @returns {Promise<{ createdBy?: { name: string, isKaluppa: boolean }, associationName?: string | null }>}
  */
 async function createdFor(user) {
-  if (!user.createdBy || !mustVerifyEmail(user)) return {};
+  if (!user.createdBy || !(mustVerifyEmail(user) || mustAcceptTerms(user))) return {};
   const creator = await findUserById(user.createdBy);
   const isKaluppa = !creator || creator.roles.includes('kaluppa');
   const association = user.associationId ? await findAssociationById(user.associationId) : null;
@@ -149,7 +152,7 @@ export async function sendVerificationEmail(user) {
  * Create a buyer or farmer account and email a verification link.
  * @param {{ firstName: string, middleName: string|null, lastName: string, username: string, email: string, password: string, role: string }} input
  */
-export async function register({ role, ...fields }) {
+export async function register({ role, acceptTerms: _agreed, ...fields }) {
   const conflicts = await findIdentityConflicts(fields);
   if (conflicts.email || conflicts.username) {
     throw new AppError(409, 'Some details are already in use.', {
@@ -159,13 +162,20 @@ export async function register({ role, ...fields }) {
       },
     });
   }
-  const user = await createUser({ ...fields, roles: [role] });
+  const created = await createUser({ ...fields, roles: [role] });
+  const user = await acceptTerms(created); // the sign-up checkbox (Change 09), audited like the accept step
   if (role === 'farmer') await onboardFarmer(user._id); // every farmer account has a profile and a Kaluppa chat
   await sendVerificationEmail(user);
   return { user, session: await buildSession(user) };
 }
 
 let dummyHash;
+
+/** The accept step after sign-in (Change 09): agree to `version`, then the fresh session. */
+export async function acceptTermsAndRefresh(user, version) {
+  const updated = await acceptTerms(user, version);
+  return buildSession(await loadScope(updated));
+}
 
 /**
  * Check credentials. The error never says which part was wrong.

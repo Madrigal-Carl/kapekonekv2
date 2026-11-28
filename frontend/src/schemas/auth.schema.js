@@ -21,6 +21,7 @@ export const registerSchema = matching(
     password: passwordRule,
     confirmPassword: z.string(),
     contactNumber: z.string().transform((v) => v.replace(/\s+/g, '')),
+    acceptTerms: z.literal(true, 'Please agree to the Terms and Conditions to create your account.'), // Change 09; the API checks it too
   }),
 ).superRefine((v, ctx) => {
   if (v.role !== 'farmer') return

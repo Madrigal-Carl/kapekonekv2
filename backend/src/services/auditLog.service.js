@@ -63,7 +63,7 @@ export async function getEntityHistory(actor, { entityType, entityId, cursor, li
 }
 
 /** Areas and actor roles the audit log filters by (every `area` that `audit.record` is called with). */
-export const AUDIT_AREAS = ['associations', 'audit_log', 'beans', 'farmers', 'farms', 'group_managers', 'harvests', 'hub', 'inventory', 'orders', 'reports', 'reviews', 'settings', 'trees'];
+export const AUDIT_AREAS = ['accounts', 'associations', 'audit_log', 'beans', 'farmers', 'farms', 'group_managers', 'harvests', 'hub', 'inventory', 'orders', 'reports', 'reviews', 'settings', 'trees'];
 export const AUDIT_ROLES = ['kaluppa', 'group_manager', 'farmer', 'buyer', 'system'];
 const EXPORT_MAX = 10_000;
 

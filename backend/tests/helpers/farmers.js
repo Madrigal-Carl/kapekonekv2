@@ -12,7 +12,7 @@ export async function registerFarmer(app, User, username) {
   const agent = request.agent(app);
   await agent.post('/api/auth/register').send({
     firstName: username[0].toUpperCase() + username.slice(1), lastName: 'Farmer', username, email: `${username}@example.com`,
-    password: 'KapeKonek@123', role: 'farmer', contactNumber: '09175550100',
+    password: 'KapeKonek@123', role: 'farmer', contactNumber: '09175550100', acceptTerms: true,
   }).expect(201);
   const user = await User.findOneAndUpdate({ username }, { emailVerifiedAt: new Date() }, { new: true }).lean();
   return { agent, user };

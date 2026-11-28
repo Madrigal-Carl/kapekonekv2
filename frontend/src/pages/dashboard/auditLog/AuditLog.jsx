@@ -20,6 +20,7 @@ import { DashPage } from '../overview/Overview'
 const PAGE_SIZE = 10
 // Every area audit.record is called with; tones follow DESIGN §8.3 loosely so the column scans.
 const AREAS = {
+  accounts: ['Accounts', 'gray'],
   associations: ['Associations', 'blue'],
   beans: ['Beans', 'blue'],
   farmers: ['Farmers', 'green'],

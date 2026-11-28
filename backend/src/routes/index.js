@@ -25,6 +25,7 @@ import postRoutes from './post.routes.js';
 import reportRoutes from './report.routes.js';
 import settingRoutes from './setting.routes.js';
 import contactRoutes from './contact.routes.js';
+import legalRoutes from './legal.routes.js';
 
 const router = Router();
 
@@ -34,6 +35,7 @@ router.use('/auth', authRoutes);
 router.use(catalogRoutes);
 router.use(settingRoutes);
 router.use(contactRoutes);
+router.use(legalRoutes);
 router.use(postRoutes);
 router.use(geoRoutes);
 router.use(addressRoutes);

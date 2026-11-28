@@ -87,11 +87,13 @@ const FIELDS = {
   receiptCheck: 'receipt',
   refundReference: 'refund reference',
   archivedAt: 'archived',
+  termsVersion: 'terms version',
 }
 
 /** "Rodel Mendoza" + "<what>". */
 export function historyPhrase({ area, action, changes }) {
   if (action === 'export') return 'exported a file'
+  if (action === 'accept_terms') return `accepted the terms (v${changes.find((c) => c.field === 'termsVersion')?.to ?? ''})`
   if (action === 'update' && changes.length === 1 && ONE_FIELD[changes[0].field]) return ONE_FIELD[changes[0].field]
   return ACTIONS[area]?.[action] ?? action.replaceAll('_', ' ')
 }
